@@ -11,3 +11,6 @@ For ARDC-HASTE project
 **scenarios** folder: contains the code that calls the simulation code
 
 **tests** folder: should contain tests (hah)
+
+
+![Diagram of the planned outbreak simulator, including disease dynamics, spread, simulation code, spatial arrangement, management](images/outbreak_simulator_model_diagram.png)
