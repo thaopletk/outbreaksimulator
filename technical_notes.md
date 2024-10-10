@@ -17,3 +17,10 @@ Or, run `git submodule update --remote FMD_modelling`
 ### For Markdown syntax:
 
 [Markdown Cheaet Sheet](https://www.markdownguide.org/cheat-sheet/)
+
+
+### To run testing
+
+In commandline: 
+
+`pytest` 

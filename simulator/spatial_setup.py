@@ -1,6 +1,7 @@
 #
 # Spatial setup
 # Written by Isobel Abell and adapted by Thao Le
+# (overriding the spatial setup code from FMD_modelling)
 #
 
 import numpy as np 
