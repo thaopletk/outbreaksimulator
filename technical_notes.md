@@ -41,3 +41,11 @@ And then you should be in the virtual environment!
 You can then deactivate with:
 
 `deactivate`
+
+### Running in the virtual environment
+
+```sh
+. venv/Scripts/activate
+pip install -r requirements.txt
+python scenarios/run.py
+```
