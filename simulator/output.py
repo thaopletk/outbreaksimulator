@@ -1,0 +1,230 @@
+from matplotlib.path import Path
+from matplotlib.patches import PathPatch
+from matplotlib.collections import PatchCollection
+from matplotlib_scalebar.scalebar import ScaleBar
+import numpy as np 
+import os
+import matplotlib.pyplot as plt
+from shapely.geometry import Polygon,Point, LineString, MultiPolygon
+import geopandas as gpd
+import contextily as ctx
+import pickle
+from moviepy.editor import ImageSequenceClip
+
+#https://coderslegacy.com/python/plotting-shapely-polygons-with-interiors-holes/
+def plot_polygon(ax, poly, **kwargs):
+    path = Path.make_compound_path(
+           Path(np.asarray(poly.exterior.coords)[:, :2]),
+           *[Path(np.asarray(ring.coords)[:, :2]) for ring in poly.interiors])
+ 
+    patch = PathPatch(path, **kwargs)
+    collection = PatchCollection([patch], **kwargs)
+     
+    ax.add_collection(collection, autolim=True)
+    ax.autoscale_view()
+    return collection
+
+
+
+
+def plot_map(properties, property_coordinates, time,xlims, ylims, save_folder="outputs",real_situation=True,controlzone=None):
+    
+    folder_path = os.path.join(os.path.dirname(__file__),save_folder)
+
+    fig, ax = plt.subplots(1, 1,figsize=(20,15)) # ,figsize=(10,12)
+
+
+    if controlzone!= None:
+        try:
+            plot_polygon(ax, controlzone, facecolor="tomato", edgecolor="maroon",alpha=0.4,label="control zone")
+            
+        except:
+            for subpoly in controlzone:
+                plot_polygon(ax, subpoly, facecolor="tomato", edgecolor="maroon",alpha=0.4,label="control zone")
+            
+
+
+    # network = []
+    geometry_infected = []
+    geometry_culled = []
+    geometry_vaccinated = []
+    geometry_susceptible = []
+    # nodes 
+    if real_situation==True: # i.e. plotting the underlying situation
+        for index, premise in enumerate(properties):
+            long, lat = premise.coordinates 
+            curr_farm = Point(long,lat)
+
+            # plot neighbours using edges
+            for farm in premise.neighbourhood:
+                # neigh = Point(property_coordinates[farm[0], 0],property_coordinates[farm[0], 1])
+                # network.append(LineString(curr_farm,neigh))
+
+                # plots the lines between locations
+                plt.plot([premise.coordinates[0], property_coordinates[farm[0], 0]], [premise.coordinates[1], property_coordinates[farm[0], 1]], alpha = 0.1, color = 'black',label="network")
+
+        for index, premise in enumerate(properties):
+            long, lat = premise.coordinates 
+            curr_farm = Point(long,lat)
+
+            if premise.infection_status:
+                # plt.scatter(premise.coordinates[0], premise.coordinates[1], color = 'purple', label = 'infected')
+                geometry_infected.append(curr_farm)
+            elif premise.culled_status:
+                # plt.scatter(premise.coordinates[0], premise.coordinates[1], color = 'red', label = 'culled')
+                geometry_culled.append(curr_farm)
+            elif premise.vaccination_status:
+                # plt.scatter(premise.coordinates[0], premise.coordinates[1], color = 'green', label = 'vaccinated')
+                geometry_vaccinated.append(curr_farm)
+            else:
+                # plt.scatter(premise.coordinates[0], premise.coordinates[1], color = 'orange', label = 'susceptible')
+                geometry_susceptible.append(curr_farm)
+
+    else:
+        for index, premise in enumerate(properties):
+            long, lat = premise.coordinates 
+            curr_farm = Point(long,lat)
+
+            # if premise.infection_status:
+            #     # plt.scatter(premise.coordinates[0], premise.coordinates[1], color = 'purple', label = 'infected')
+            #     geometry_infected.append(curr_farm)
+            if premise.culled_status:
+                # plt.scatter(premise.coordinates[0], premise.coordinates[1], color = 'red', label = 'culled')
+                geometry_culled.append(curr_farm)
+            elif premise.vaccination_status:
+                # plt.scatter(premise.coordinates[0], premise.coordinates[1], color = 'green', label = 'vaccinated')
+                geometry_vaccinated.append(curr_farm)
+            else:
+                # plt.scatter(premise.coordinates[0], premise.coordinates[1], color = 'orange', label = 'susceptible')
+                geometry_susceptible.append(curr_farm)
+
+    for geometry, colour, marker,markerlabel,markersize in [[geometry_infected, 'purple','x', "infected",30],[geometry_culled,'firebrick','X',"notified",150],[geometry_vaccinated,'deepskyblue',"s","vaccinated",100],[geometry_susceptible,'orange','o', "susceptible",30]]:
+        geo_df = gpd.GeoDataFrame(geometry = geometry)
+        geo_df.crs = {'init':"epsg:4326"}
+        # plot the marker
+        ax = geo_df.plot(ax = ax, markersize = markersize, color = colour,marker = marker,label=markerlabel)
+
+    ctx.add_basemap(ax, crs={'init':'epsg:4326'}, source=ctx.providers.OpenStreetMap.Mapnik)
+
+
+    # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
+    points = gpd.GeoSeries(
+        [Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326
+    )  # Geographic WGS 84 - degrees
+    points = points.to_crs(32619)  # Projected WGS 84 - meters
+    distance_meters = points[0].distance(points[1])
+    ax.add_artist(ScaleBar(distance_meters,box_alpha=0.1,location="lower right", ))
+
+    ax.set_title('Outbreak day ' + str(time),fontsize=18)
+
+    ax.set_ylabel("latitude",fontsize=16)
+    ax.set_xlabel("longitude",fontsize=16)
+
+    if xlims!=None:
+        ax.set_xlim(xlims)
+    if ylims!=None:
+        ax.set_ylim(ylims)
+
+
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
+          fancybox=True, shadow=True, ncol=5,fontsize=18)
+    
+    ax.tick_params(axis='x', labelsize=14)
+    ax.tick_params(axis='y', labelsize=14)
+
+    # if time < 10:
+    #     file_name = "0" + str(time)  + ".png"
+    # else: 
+    #     file_name = str(time) + ".png"
+    file_name = str(time) + ".png"
+
+    if real_situation:
+        file_name =  os.path.join(folder_path, "map_underlying"+file_name)
+    else:
+        file_name =  os.path.join(folder_path, "map_apparent"+file_name)
+    plt.savefig(file_name,bbox_inches='tight')
+
+    
+
+
+    return
+
+
+
+
+def save_data_properties(properties,save_folder="outputs"):
+
+    folder_path = os.path.join(os.path.dirname(__file__),save_folder)
+
+    to_save =properties
+
+    with open(os.path.join(folder_path,"properties_initialised"), 'wb') as file:
+        pickle.dump(to_save, file)
+
+    # with open(os.path.join(folder_path,"properties"+str(time)), 'wb') as file:
+    #     pickle.dump(properties, file)
+    # with open(os.path.join(folder_path,"property_coordinates"+str(time)), 'wb') as file:
+    #     pickle.dump(property_coordinates, file)
+
+    return
+
+
+
+def save_data(properties, property_coordinates, time,controlzone,save_folder="outputs"):
+
+    folder_path = os.path.join(os.path.dirname(__file__),save_folder)
+
+    to_save = [properties,property_coordinates,time,controlzone]
+
+    with open(os.path.join(folder_path,"data"+str(time)), 'wb') as file:
+        pickle.dump(to_save, file)
+
+    # with open(os.path.join(folder_path,"properties"+str(time)), 'wb') as file:
+    #     pickle.dump(properties, file)
+    # with open(os.path.join(folder_path,"property_coordinates"+str(time)), 'wb') as file:
+    #     pickle.dump(property_coordinates, file)
+
+    return
+
+
+def make_video(save_folder="outputs",prefix="map",times=None,save_name_prefix=""):
+
+    folder_path = os.path.join(os.path.dirname(__file__),save_folder)
+
+    # current_dir = os.getcwd()
+    # parent_dir = os.path.dirname(current_dir)
+    
+    image_files = []
+    if times==None:
+        time = 1
+        file_path = os.path.join(folder_path, f"{prefix}{time}.png")
+        while os.path.exists(file_path):
+            image_files.append(file_path)
+            time+=1
+            file_path = os.path.join(folder_path, f"{prefix}{time}.png")
+    else:
+        for time in times:
+            file_path = os.path.join(folder_path, f"{prefix}{time}.png")
+            image_files.append(file_path)
+
+
+
+    # image_files = [os.path.join(folder_path, img) for img in sorted(os.listdir(folder_path)) if img.endswith(('png')) and img.startswith((prefix))]
+
+    # file_path = str(parent_dir) + "*.eps"
+    fps = 1
+    clip = ImageSequenceClip(image_files, fps = fps)
+    output_file =  os.path.join(folder_path,save_name_prefix+prefix+'plot_video.mp4')
+    
+    clip.write_videofile(output_file)
+    # ffmpeg.input(file_path, pattern_type = 'glob', framerate = 1).output('plot.mp4').run()
+
+    clip.write_gif(os.path.join(folder_path,save_name_prefix+prefix+'plot_video.gif'))
+
+    # with imageio.get_writer( os.path.join(folder_path,save_name_prefix+prefix+'plot_video.gif'), mode='I',duration=1/fps) as writer:
+    #     for filename in image_files:
+    #         image = imageio.imread(filename)
+    #         writer.append_data(image)
+
+
+    return 
