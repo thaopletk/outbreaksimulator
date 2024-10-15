@@ -11,13 +11,9 @@ import simulator.premises as premises
 import simulator.SEIR as SEIR
 import simulator.output as output
 
-# based from the fmdmodelling function FMD_ABM, but with modifications (e.g. around saving data at various time points)
-def modified_FMD_ABM(params, plotting, folder_path, xrange = [150.2503,151.39695], yrange = [-32.61181, -31.60829],unique_output=""):
-    total_culled = 0
-    total_vaccinated = 0
-    xlims=[round(xrange[0],2)-0.005,round(xrange[1],2)+0.005]
-    ylims=[round(yrange[0],1)-0.05,round(yrange[1],1)+0.05]
 
+# based from the fmdmodelling function FMD_ABM, but with modifications
+def property_setup(params,folder_path,xrange = [150.2503,151.39695], yrange = [-32.61181, -31.60829]):
     property_coordinates, adjacency_matrix, neighbour_pairs, neighbourhoods = spatial_setup.generate_properties(params['n'], params['r'], xrange, yrange) # uses the spatial-setup specific generator, rather than the fmdmodelling property generator; which means that it lacks property radii
 
     # initialise properties 
@@ -31,8 +27,23 @@ def modified_FMD_ABM(params, plotting, folder_path, xrange = [150.2503,151.39695
         properties[i].neighbourhood = neighbourhoods[i]
         properties[i].total_neighbours = len(properties[i].neighbourhood)
 
+    property_setup_info = [properties,property_coordinates, adjacency_matrix, neighbour_pairs, neighbourhoods]
     
-    output.save_data_properties([properties,property_coordinates, adjacency_matrix, neighbour_pairs, neighbourhoods],folder_path)
+    output.save_data_properties(property_setup_info,folder_path)
+
+    return property_setup_info
+
+
+
+
+# based from the fmdmodelling function FMD_ABM, but with modifications (e.g. around saving data at various time points)
+def modified_FMD_ABM(params, plotting, folder_path, property_setup_info, xrange = [150.2503,151.39695], yrange = [-32.61181, -31.60829],unique_output=""):
+    total_culled = 0
+    total_vaccinated = 0
+    xlims=[round(xrange[0],2)-0.005,round(xrange[1],2)+0.005]
+    ylims=[round(yrange[0],1)-0.05,round(yrange[1],1)+0.05]
+
+    properties,property_coordinates, adjacency_matrix, neighbour_pairs, neighbourhoods = property_setup_info
 
     # seed infection
     # property coordinates allocated at random, so can just seed the first property in each simulation 
@@ -60,7 +71,7 @@ def modified_FMD_ABM(params, plotting, folder_path, xrange = [150.2503,151.39695
     
     time = 0
     # plot_graph(properties, property_coordinates, time,folder_path)
-    output.plot_map(properties, property_coordinates, time,xlims=xlims, ylims=ylims, save_folder = folder_path)
+    output.plot_map(properties, property_coordinates, time,xlims=xlims, ylims=ylims, folder_path = folder_path)
     plotting_list = []
     
     FOI = list(np.zeros(params['n']))
@@ -138,9 +149,9 @@ def modified_FMD_ABM(params, plotting, folder_path, xrange = [150.2503,151.39695
         
         if plotting:
             # plot_graph(properties, property_coordinates, time,folder_path)
-            output.plot_map(properties, property_coordinates, time,xlims=xlims, ylims=ylims, save_folder =folder_path,real_situation=True,controlzone=controlzone)
-            output.plot_map(properties, property_coordinates, time,xlims=xlims, ylims=ylims, save_folder =folder_path,real_situation=False,controlzone=controlzone)
-            output.save_data(properties,property_coordinates, time,controlzone,folder_path,)
+            output.plot_map(properties, property_coordinates, time,xlims=xlims, ylims=ylims, folder_path =folder_path,real_situation=True,controlzone=controlzone)
+            output.plot_map(properties, property_coordinates, time,xlims=xlims, ylims=ylims, folder_path =folder_path,real_situation=False,controlzone=controlzone)
+            output.save_data(properties,property_coordinates, time,controlzone,folder_path)
 
 
         
