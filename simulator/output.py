@@ -27,9 +27,9 @@ def plot_polygon(ax, poly, **kwargs):
 
 
 
-def plot_map(properties, property_coordinates, time,xlims, ylims, save_folder="outputs",real_situation=True,controlzone=None):
+def plot_map(properties, property_coordinates, time,xlims, ylims,folder_path,real_situation=True,controlzone=None):
     
-    folder_path = os.path.join(os.path.dirname(__file__),save_folder)
+    # folder_path = os.path.join(os.path.dirname(__file__),save_folder)
 
     fig, ax = plt.subplots(1, 1,figsize=(20,15)) # ,figsize=(10,12)
 
@@ -51,6 +51,7 @@ def plot_map(properties, property_coordinates, time,xlims, ylims, save_folder="o
     geometry_susceptible = []
     # nodes 
     if real_situation==True: # i.e. plotting the underlying situation
+        network_label_switch = False
         for index, premise in enumerate(properties):
             long, lat = premise.coordinates 
             curr_farm = Point(long,lat)
@@ -61,7 +62,11 @@ def plot_map(properties, property_coordinates, time,xlims, ylims, save_folder="o
                 # network.append(LineString(curr_farm,neigh))
 
                 # plots the lines between locations
-                plt.plot([premise.coordinates[0], property_coordinates[farm[0], 0]], [premise.coordinates[1], property_coordinates[farm[0], 1]], alpha = 0.1, color = 'black',label="network")
+                if network_label_switch==False:
+                    plt.plot([premise.coordinates[0], property_coordinates[farm[0], 0]], [premise.coordinates[1], property_coordinates[farm[0], 1]], alpha = 0.1, color = 'black',label="network")
+                    network_label_switch = True # to make sure that the labelling only occurs once
+                else:
+                    plt.plot([premise.coordinates[0], property_coordinates[farm[0], 0]], [premise.coordinates[1], property_coordinates[farm[0], 1]], alpha = 0.1, color = 'black')
 
         for index, premise in enumerate(properties):
             long, lat = premise.coordinates 
@@ -120,10 +125,8 @@ def plot_map(properties, property_coordinates, time,xlims, ylims, save_folder="o
     ax.set_ylabel("latitude",fontsize=16)
     ax.set_xlabel("longitude",fontsize=16)
 
-    if xlims!=None:
-        ax.set_xlim(xlims)
-    if ylims!=None:
-        ax.set_ylim(ylims)
+    ax.set_xlim(xlims)
+    ax.set_ylim(ylims)
 
 
     ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
@@ -142,9 +145,10 @@ def plot_map(properties, property_coordinates, time,xlims, ylims, save_folder="o
         file_name =  os.path.join(folder_path, "map_underlying"+file_name)
     else:
         file_name =  os.path.join(folder_path, "map_apparent"+file_name)
+    
     plt.savefig(file_name,bbox_inches='tight')
 
-    
+    plt.close()
 
 
     return
@@ -152,9 +156,7 @@ def plot_map(properties, property_coordinates, time,xlims, ylims, save_folder="o
 
 
 
-def save_data_properties(properties,save_folder="outputs"):
-
-    folder_path = os.path.join(os.path.dirname(__file__),save_folder)
+def save_data_properties(properties,folder_path):
 
     to_save =properties
 
@@ -170,9 +172,9 @@ def save_data_properties(properties,save_folder="outputs"):
 
 
 
-def save_data(properties, property_coordinates, time,controlzone,save_folder="outputs"):
+def save_data(properties, property_coordinates, time,controlzone,folder_path):
 
-    folder_path = os.path.join(os.path.dirname(__file__),save_folder)
+    # folder_path = os.path.join(os.path.dirname(__file__),save_folder)
 
     to_save = [properties,property_coordinates,time,controlzone]
 
@@ -187,9 +189,9 @@ def save_data(properties, property_coordinates, time,controlzone,save_folder="ou
     return
 
 
-def make_video(save_folder="outputs",prefix="map",times=None,save_name_prefix=""):
+def make_video(folder_path="outputs",prefix="map",times=None,save_name_prefix=""):
 
-    folder_path = os.path.join(os.path.dirname(__file__),save_folder)
+    # folder_path = os.path.join(os.path.dirname(__file__),save_folder)
 
     # current_dir = os.getcwd()
     # parent_dir = os.path.dirname(current_dir)
