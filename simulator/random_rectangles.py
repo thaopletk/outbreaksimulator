@@ -1,23 +1,36 @@
-# from https://stackoverflow.com/questions/4373741/how-can-i-randomly-place-several-non-colliding-rects
+""" Random rectangles generator
+    
+    From the code provided by martineau at https://stackoverflow.com/questions/4373741/how-can-i-randomly-place-several-non-colliding-rects
+    (accessed 16 October 2024)
+
+    This script allows the user to slice up a rectangular region into lots of tiny rectangles, which should non-overlapping, in a fairly computationally efficient way (more efficient than generating rectangles and checking whether it is non-overlapping with all the previously generated rectangles)
+    
+    This script requires the packages random and shapely.geometry (the latter of which is required anyway for other scripts)
+
+
+""" 
 
 import random
+from shapely.geometry import Point
 from random import randint
 random.seed()
 
-
-class LocalPoint(object): # to distinguish it from shapely points and what not...
-    def __init__(self, x, y):
-        self.x, self.y = x, y
-
-    @staticmethod
-    def from_point(other):
-        return LocalPoint(other.x, other.y)
-
 class Rect(object):
+    """
+    A class representing a rectangle object
+    ...
+    Attributes
+    ----------
+    min : Point
+        a shapely point object storing the minimum x and y coordinates
+    max : Point
+        a shapely point object storing the maximum x and y coordinates
+    """
+
     def __init__(self, x1, y1, x2, y2):
         minx, maxx = (x1,x2) if x1 < x2 else (x2,x1)
         miny, maxy = (y1,y2) if y1 < y2 else (y2,y1)
-        self.min, self.max = LocalPoint(minx, miny), LocalPoint(maxx, maxy)
+        self.min, self.max = Point(minx, miny), Point(maxx, maxy)
 
     @staticmethod
     def from_points(p1, p2):
@@ -37,10 +50,10 @@ def quadsect(rect, factor):
 
     # pick a point in the interior of given rectangle
     w, h = rect.width, rect.height  # cache properties
-    center = LocalPoint(rect.min.x + (w // 2), rect.min.y + (h // 2))
+    center = Point(rect.min.x + (w // 2), rect.min.y + (h // 2))
     delta_x = plus_or_minus(randint(0, w // factor))
     delta_y = plus_or_minus(randint(0, h // factor))
-    interior = LocalPoint(center.x + delta_x, center.y + delta_y)
+    interior = Point(center.x + delta_x, center.y + delta_y)
 
     # create rectangles from the interior point and the corners of the outer one
     return [Rect(interior.x, interior.y, rect.min.x, rect.min.y),
@@ -62,6 +75,7 @@ def square_subregion(rect):
 
 
 def return_random_rectangles(num_rectangles, num_recs_to_generate = 20, region = Rect(0, 0, 640, 480)):
+    """ Return a list of random rectangles across the landscape region (noting that the rectangle sizes are also random) """
 
     # call quadsect() until at least the number of rects wanted has been generated
     rects = [region]   # seed output list
