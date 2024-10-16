@@ -1,3 +1,6 @@
+# based on FMD_modelling plotting_code.py, but adapted for "real locations" (i.e. spatially located)
+
+
 from matplotlib.path import Path
 from matplotlib.patches import PathPatch
 from matplotlib.collections import PatchCollection

@@ -47,6 +47,7 @@ def modified_FMD_ABM(params, plotting, folder_path, property_setup_info, xrange 
 
     # seed infection
     # property coordinates allocated at random, so can just seed the first property in each simulation 
+    # TODO: make this the center property, / avoid the edges of the map 
     seed_property = 0
     seed_animal = 0
     properties[seed_property].infection_status = 1
@@ -65,9 +66,10 @@ def modified_FMD_ABM(params, plotting, folder_path, property_setup_info, xrange 
 
     # set up some random initial vaccination
     # NOTE: may remove this
+    params_temp = {'prob_vaccinate': params['initial_vaccination']}
     for i, premise in enumerate(properties):
         if premise.infection_status !=1:
-            premise.vaccination(params, params['initial_vaccination'], time=0)
+            premise.vaccination(params_temp, properties, time=0)
     
     time = 0
     # plot_graph(properties, property_coordinates, time,folder_path)
@@ -136,7 +138,7 @@ def modified_FMD_ABM(params, plotting, folder_path, property_setup_info, xrange 
                         prop_culled_neighbours = 0
 
 
-                    premise.vaccination(params, prop_culled_neighbours, time)
+                    premise.vaccination(params, properties, time)
                  # does the property report?
                 # property can only report if they are infected and have not been culled yet
                 else:

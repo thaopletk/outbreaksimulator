@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__),".."))
 sys.path.append(os.path.join(os.path.dirname(__file__),"..","FMD_modelling"))
-from ipynb.fs.defs.fmd_modelling import Property, Animal # https://github.com/ipython/ipynb
+from class_definitions import Property, Animal 
 import datetime
 import itertools
 
@@ -19,7 +19,7 @@ class Premises(Property):
     def __init__(self, params):
         super().__init__(params) 
 
-        self.area = 500 # some random number, overriding the default 0
+        self.area = 500 # some random number, overriding the default 0, unknown units (should probably be converted properly)
 
         self.reported_status = False
 
@@ -38,8 +38,8 @@ class Premises(Property):
         self.cluster= "NA"
         self.type = "NA"
 
-    def vaccination(self, params, prop_culled_neighbours,time):
-        super().vaccination( params, prop_culled_neighbours)
+    def vaccination(self, params, properties,time):
+        super().vaccination( params, properties)
         if self.vaccination_status == 1:
             self.vacc_date = convert_time_to_date(time)
 

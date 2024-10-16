@@ -2,7 +2,11 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__),".."))
 sys.path.append(os.path.join(os.path.dirname(__file__),"..","FMD_modelling"))
-from ipynb.fs.defs.fmd_modelling import calculate_FOI # https://github.com/ipython/ipynb
+from FMD_modelling.FOI_calculation_fns import calculate_FOI 
+from simulator.management import geodesic_point_buffer
+
+def create_circle(centre, radius): # I wonder if this will work to override... - answer, no, it's not working 
+    return geodesic_point_buffer(centre[1], centre[0],  radius)
 
 # def calculate_FOI(properties, premise_index, params) 
 def calculate_force_of_infection(properties, premise_index, params):
