@@ -49,3 +49,16 @@ You can then deactivate with:
 pip install -r requirements.txt
 python scenarios/run.py
 ```
+
+
+### Formatting
+
+Format using Black
+
+https://www.freecodecamp.org/news/auto-format-your-python-code-with-black/
+
+https://black.readthedocs.io/en/stable/getting_started.html 
+
+`pip install black`
+
+`black sample_code.py`
