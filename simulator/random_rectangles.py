@@ -94,7 +94,22 @@ def square_subregion(rect):
 def return_random_rectangles(
     num_rectangles, num_recs_to_generate=20, region=Rect(0, 0, 640, 480)
 ):
-    """Return a list of random rectangles across the landscape region (noting that the rectangle sizes are also random)"""
+    """Return a list of random rectangles across the landscape region (noting that the rectangle sizes are also random)
+
+    Parameters
+    ----------
+    num_rectangles : int
+        number of rectangles to return (number of properties wanted)
+    num_recs_to_generate : int
+        number of rectangles to generate (modifying this number helps to adjust the average size of rectangles generated)
+    region : Rect
+        Rect object containing the region (rectangle) to subdivide
+
+    Returns
+    -------
+    list
+        a list of #num_rectangles Rect objects within the specified region
+    """
 
     # call quadsect() until at least the number of rects wanted has been generated
     rects = [region]  # seed output list

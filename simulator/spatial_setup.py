@@ -1,9 +1,10 @@
 """ Spatial setup
-    Written by Isobel Abell and adapted by Thao Le
-    (overriding the spatial setup code from FMD_modelling)
-    i.e. from generate_property_grid.py
 
+    Original code written by Isobel Abell and adapted by Thao Le     (overriding the spatial setup code from FMD_modelling from generate_property_grid.py)
 
+    This script generates random properties (i.e. farms) across the landscape, in latitude,longitude coordinates and areas in hectares and distances in kilometers (where relevant)
+
+    Some of the functions are adapted from elsewhere, noted down at each function description.
 
 """
 
@@ -12,15 +13,34 @@ import math
 import matplotlib.pyplot as plt
 import simulator.random_rectangles as random_rectangles
 import pyproj
-from shapely.geometry import shape, Polygon, Point, LineString, MultiPolygon
+from shapely.geometry import shape, Polygon, Point
 from area import area
 import pyproj
 from functools import partial
-from shapely.ops import transform, unary_union
+from shapely.ops import transform
 
 
 # https://stackoverflow.com/questions/15736995/how-can-i-quickly-estimate-the-distance-between-two-latitude-longitude-points
 def quick_distance_haversine(coords1, coords2):
+    """Get the distance between two points
+
+    Calculates the great circle distance between two points
+    on the earth (specified in decimal degrees) and converts it to kilometers
+
+    Parameters
+    ----------
+    coords1 : list of doubles [x1, y1]
+        coordinates of the first point, where x1 is longitude and y1 is latitude 
+    coords1 : list of doubles [x2, y2]
+        coordinates of the second point, where x2 is longitude and y2 is latitude 
+
+    Returns
+    -------
+    km : double
+        distance between the two points in kilometers
+    """
+
+
     x1, y1 = coords1
     x2, y2 = coords2
 
@@ -28,10 +48,7 @@ def quick_distance_haversine(coords1, coords2):
     lat1 = y1
     lon2 = x2
     lat2 = y2
-    """
-    Calculate the great circle distance between two points
-    on the earth (specified in decimal degrees)
-    """
+    
     # convert decimal degrees to radians
     lon1, lat1, lon2, lat2 = map(math.radians, [lon1, lat1, lon2, lat2])
     # haversine formula
@@ -48,10 +65,19 @@ def quick_distance_haversine(coords1, coords2):
 
 
 def convert_dict_poly_to_Polygon(poly_to_convert):
+    """Converts dictionaries of the following type into Shapely Polygons:
+
+    {"type": "Polygon",
+    "coordinates": [ [ [x0, y0],...] ]}
+     
+    """
+    # possible extension - to check that input is in the right format
+
     return Polygon([(x, y) for x, y in poly_to_convert["coordinates"][0]])
 
 
 def geodesic_polygon_buffer(lat, lon, poly_to_buff, km):
+    """Expands a polygon by a certain radius (makes it more puffy by adding a buffer around it)"""
 
     if type(poly_to_buff) == dict:
         poly_to_buff = convert_dict_poly_to_Polygon(poly_to_buff)
@@ -70,8 +96,8 @@ def geodesic_polygon_buffer(lat, lon, poly_to_buff, km):
     return Polygon(transform(project, buf).exterior.coords[:])
 
 
-# Generate random graph given n and r
 def assign_coordinates(n, xrange=[150.2503, 151.39695], yrange=[-32.61181, -31.60829]):
+    """Generates n random properties within the xrange, yrange region"""
     property_coordinates = np.zeros((n, 2))
     for i in range(n):
         x = np.random.uniform(*xrange)
@@ -82,15 +108,42 @@ def assign_coordinates(n, xrange=[150.2503, 151.39695], yrange=[-32.61181, -31.6
     return property_coordinates
 
 
-# assign wind-neighbours, assuming point-properties
 def assign_neighbours(property_coordinates, n, r):
+    """Assign wind-neighbours, assuming point-properties
+
+    Parameters
+    ----------
+    property_coordinates : list
+        list of coordinates of the properties
+    n : int
+        number of properties
+    r : double or int
+        radius (in kilometers) in which properties are considered "neighbours"
+
+    Returns
+    -------
+    adjacency_matrix : (n,n) matrix
+        symmetric adjacency matrix describing if properties are neighbours of each other or not
+        adjacency_matrix[p1, p2] = 1 means that p1 and p2 are neighbours
+    
+    neighbour_pairs : list of list of separated coordinates
+        Describes the coordinates of pairs of neighbours (can be used to plot lines between neighbours)
+        List of [x, y] pairs, where x = [x coord of p1, x coord of p2] and y = [y coord of p1, y coord of p2]
+    
+    neighbourhoods : list of list of neighbours
+        List of neighbours for each property
+        i.e., for property i, neighbours[i] is a list of property i's neighbours's index and distance
+
+    """
+
     adjacency_matrix = np.zeros((n, n))
     neighbourhoods = []
     neighbour_pairs = []
 
     for p1 in range(n):
         neighbourhoods.append([])
-        for p2 in range(n):
+        for p2 in range(n): # this could be simplified by choosing on p2 in range (p1+1, n), and changing p1 to range (0,n-1), given the symmetry...
+
             if p1 != p2:
                 # dist = np.linalg.norm(np.array(property_coordinates[p1]) - np.array(property_coordinates[p2]))
                 dist = quick_distance_haversine(
@@ -143,6 +196,30 @@ def assign_property_locations(
     yrange=[-32.61181, -31.60829],
     average_property_ha=300,
 ):
+    """Generates n random properties (with rectangular shapes)  within the xrange, yrange region
+
+    Parameters
+    ----------
+    n : int
+        number of properties to generate
+    xrange : list
+        x (longitude) width
+    yrange  : list
+        y (latitude) width
+    average_property_ha : double or int
+        a rough target for the average property size, in hectares
+
+    Returns
+    -------
+    property_coordinates : list
+        list of coordinates of the properties (center)
+    property_polygons : list of Polygons
+        the list containing the properties' shapely Polygon shape
+    property_areas : list 
+        list of sizes/areas (in hectares) of the generated properties
+
+    """
+
 
     # first, make rectangles
 
@@ -210,6 +287,37 @@ def assign_property_locations(
 
 
 def assign_neighbours_with_land(property_coordinates, property_polygons, n, r):
+    """Assign wind-neighbours, assuming properties with physical size
+
+    Parameters
+    ----------
+    property_coordinates : list
+        list of coordinates of the properties
+    property_polygons : list of Polygons
+        the list containing the properties' shapely Polygon shape
+    n : int
+        number of properties
+    r : double or int
+        radius (in kilometers) in which properties are considered "neighbours"
+
+    Returns
+    -------
+    adjacency_matrix : (n,n) matrix
+        symmetric adjacency matrix describing if properties are neighbours of each other or not
+        adjacency_matrix[p1, p2] = 1 means that p1 and p2 are neighbours
+    
+    neighbour_pairs : list of list of separated coordinates
+        Describes the coordinates of pairs of neighbours (can be used to plot lines between neighbours)
+        List of [x, y] pairs, where x = [x coord of p1, x coord of p2] and y = [y coord of p1, y coord of p2]
+    
+    neighbourhoods : list of list of neighbours
+        List of neighbours for each property
+        i.e., for property i, neighbours[i] is a list of property i's neighbours's index and distance
+    
+    property_polygons_puffed : list of polygons
+        Puffed up polygons, showing the "wind range" of each property
+
+    """
     adjacency_matrix = np.zeros((n, n))
     neighbourhoods = []
     neighbour_pairs = []
@@ -281,6 +389,42 @@ def generate_properties_with_land(
     yrange=[-32.61181, -31.60829],
     average_property_ha=300,
 ):
+    """Generates properties, with land
+    
+    Parameters
+    ----------
+    n : int
+        number of properties
+    wind_r : double or int
+        radius (in kilometers) in which properties are considered "neighbours"
+    xrange : list
+        x (longitude) width
+    yrange  : list
+        y (latitude) width
+    average_property_ha : double or int
+        a rough target for the average property size, in hectares
+    
+    Returns
+    -------
+    property_coordinates : list
+        list of coordinates of the properties (center)
+    adjacency_matrix : (n,n) matrix
+        symmetric adjacency matrix describing if properties are neighbours of each other or not
+        adjacency_matrix[p1, p2] = 1 means that p1 and p2 are neighbours  
+    neighbour_pairs : list of list of separated coordinates
+        Describes the coordinates of pairs of neighbours (can be used to plot lines between neighbours)
+        List of [x, y] pairs, where x = [x coord of p1, x coord of p2] and y = [y coord of p1, y coord of p2]
+    neighbourhoods : list of list of neighbours
+        List of neighbours for each property
+        i.e., for property i, neighbours[i] is a list of property i's neighbours's index and distance
+    property_polygons : list of Polygons
+        the list containing the properties' shapely Polygon shape
+    property_polygons_puffed : list of polygons
+        Puffed up polygons, showing the "wind range" of each property
+    property_areas : list 
+        list of sizes/areas (in hectares) of the generated properties
+    
+    """
 
     # randomly divide the space up into rectangles (approximately), and choose some randomly to be property locations
     property_coordinates, property_polygons, property_areas = assign_property_locations(
