@@ -9,8 +9,7 @@ import datetime
 import json
 import pickle
 
-import simulator.spatial_setup as spatial_setup
-import simulator.output as output 
+import simulator.simulator as simulator
 
 
 xrange = [150,151]
@@ -29,7 +28,5 @@ folder_path_main = os.path.join(os.path.dirname(__file__),"outputs","temp")
 if not os.path.exists(folder_path_main ):
     os.makedirs(folder_path_main )
 
-property_coordinates, adjacency_matrix, neighbour_pairs, neighbourhoods, property_polygons, property_polygons_puffed, property_areas = spatial_setup.generate_properties_with_land(set_up_params['n'], set_up_params['r'],  xrange, yrange, set_up_params['average_property_ha'])
+property_setup_info = simulator.property_setup(folder_path_main,set_up_params['n'], set_up_params['r'], set_up_params['average_property_ha'], set_up_params['xrange'],set_up_params['yrange'])
 
-
-output.plot_map_land(property_polygons, property_polygons_puffed,xrange, yrange,folder_path_main)

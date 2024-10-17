@@ -14,12 +14,14 @@ import simulator.output as output
 
 # based from the fmdmodelling function FMD_ABM, but with modifications
 # adjusted to have explicit parameter requirements rather than a dictionary with params 
+# average animals per hectare estimated vaguely from here, expecting that a cow needs ~10 hectares of land to raise - https://www.farmstyle.com.au/forum/raising-cattle-meat-how-many-acre
+
 def property_setup(folder_path,n_properties = 10, wind_r=25, average_property_ha=300, xrange = [150.2503,151.39695], yrange = [-32.61181, -31.60829],average_animals_per_ha = 0.1,movement_freq=14):
 
     property_coordinates, adjacency_matrix, neighbour_pairs, neighbourhoods, property_polygons, property_polygons_puffed, property_areas = spatial_setup.generate_properties_with_land(n_properties,wind_r,  xrange, yrange, average_property_ha) # uses the spatial-setup specific generator, rather than the fmdmodelling property generator
 
 
-    output.plot_map_land(property_coordinates, adjacency_matrix, neighbour_pairs, neighbourhoods, property_polygons, property_polygons_puffed,xrange, yrange,folder_path)
+    output.plot_map_land(property_polygons, property_polygons_puffed,xrange, yrange,folder_path)
 
 
     # initialise properties 
@@ -28,7 +30,7 @@ def property_setup(folder_path,n_properties = 10, wind_r=25, average_property_ha
         # new property
         new_p = premises.Premises(
             num_animals=int(property_areas[i]*average_animals_per_ha), 
-            movement_freq=1,
+            movement_freq=movement_freq,
             coordinates=property_coordinates[i], 
             area_ha = property_areas[i],
             neighbourhood=neighbourhoods[i],
@@ -47,9 +49,11 @@ def property_setup(folder_path,n_properties = 10, wind_r=25, average_property_ha
 
 
 # based from the fmdmodelling function FMD_ABM, but with modifications (e.g. around saving data at various time points)
-def modified_FMD_ABM(params, plotting, folder_path, property_setup_info, xrange = [150.2503,151.39695], yrange = [-32.61181, -31.60829],unique_output=""):
+def simulate_outbreak(params, plotting, folder_path, property_setup_info, xrange = [150.2503,151.39695], yrange = [-32.61181, -31.60829],unique_output=""):
     total_culled = 0
     total_vaccinated = 0
+
+    # limits for the figures
     xlims=[round(xrange[0],2)-0.005,round(xrange[1],2)+0.005]
     ylims=[round(yrange[0],1)-0.05,round(yrange[1],1)+0.05]
 
