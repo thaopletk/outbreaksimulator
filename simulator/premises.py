@@ -1,8 +1,8 @@
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__),".."))
-sys.path.append(os.path.join(os.path.dirname(__file__),"..","FMD_modelling"))
-from class_definitions import Property, Animal 
+
+from FMD_modelling.class_definitions import Property, Animal 
 import datetime
 import itertools
 
@@ -16,12 +16,24 @@ class Premises(Property):
     id_iter = itertools.count()
     notified_iter = itertools.count()
     
-    def __init__(self, params):
-        super().__init__(params) 
+    # area in hectares
+    def __init__(self, num_animals=0, movement_freq=1,coordinates=[0,0], area_ha = 500,neighbourhood=None,property_polygon=None,property_polygon_puffed=None ):
 
-        self.area = 500 # some random number, overriding the default 0, unknown units (should probably be converted properly)
+        # currently, the class only requires these two parameters to initialise
+        super().__init__({'size':num_animals,'movement_frequency':movement_freq}) 
 
-        self.reported_status = False
+        # but we will initialise more, now, rather than doing it in the loop
+
+        self.coordinates = coordinates
+        self.radius = None # not applicable, as we don't have radial properties
+        self.area = area_ha
+        self.neighbourhood =neighbourhood
+        self.total_neighbours = len(neighbourhood)
+
+        # unique to this class
+        self.reported_status = False 
+        self.polygon = property_polygon
+        self.puffed_poly = property_polygon_puffed
 
         # things required for output, for input into the downstream model
         self.id = next(Premises.id_iter)
@@ -37,6 +49,8 @@ class Premises(Property):
         self.county="NA"
         self.cluster= "NA"
         self.type = "NA"
+
+    
 
     def vaccination(self, params, properties,time):
         super().vaccination( params, properties)

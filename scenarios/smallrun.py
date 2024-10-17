@@ -57,28 +57,28 @@ with open(file, 'w') as f:
     json.dump(set_up_params, f)
 
 
-# then, run for the different parameter sets (for now, FMD and LSD, as examples)
+# # then, run for the different parameter sets (for now, FMD and LSD, as examples)
 
-for disease,disease_params in [["FMD_like",params_FMD_like]]:
+# for disease,disease_params in [["FMD_like",params_FMD_like]]:
 
-    # read in the property set up information (cleanly)
-    with open(os.path.join(folder_path_main,"properties_initialised"), 'rb') as file:
-        property_setup_info = pickle.load(file)
+#     # read in the property set up information (cleanly)
+#     with open(os.path.join(folder_path_main,"properties_initialised"), 'rb') as file:
+#         property_setup_info = pickle.load(file)
     
 
-    params = {**set_up_params, **disease_params }
+#     params = {**set_up_params, **disease_params }
 
-    plotting = 1
-    # unique_output = datetime.datetime.now().strftime("%Y-%m-%d %H.%M.%S")
-    unique_output = f'{disease}_{datetime.datetime.now().strftime("%Y-%m-%d %H.%M.%S")}'
-    # make a new folder
-    folder_path = os.path.join(folder_path_main, unique_output)
-    if not os.path.exists(folder_path ):
-        os.makedirs(folder_path )
+#     plotting = 1
+#     # unique_output = datetime.datetime.now().strftime("%Y-%m-%d %H.%M.%S")
+#     unique_output = f'{disease}_{datetime.datetime.now().strftime("%Y-%m-%d %H.%M.%S")}'
+#     # make a new folder
+#     folder_path = os.path.join(folder_path_main, unique_output)
+#     if not os.path.exists(folder_path ):
+#         os.makedirs(folder_path )
 
-    file = os.path.join(folder_path,"params.json")
-    with open(file, 'w') as f: 
-        json.dump(params, f)
+#     file = os.path.join(folder_path,"params.json")
+#     with open(file, 'w') as f: 
+#         json.dump(params, f)
 
-    total_culled, total_vaccinated = simulator.modified_FMD_ABM(params, plotting,folder_path,property_setup_info, xrange,yrange,unique_output)
-    print(total_culled, total_vaccinated)
+#     total_culled, total_vaccinated = simulator.modified_FMD_ABM(params, plotting,folder_path,property_setup_info, xrange,yrange,unique_output)
+#     print(total_culled, total_vaccinated)
