@@ -11,3 +11,4 @@ Shapely==1.8.2
 pillow==9.0.0
 IPython==8.12.3
 area==1.1.1
+black==24.8.0
