@@ -44,8 +44,18 @@ class Rect(object):
 
 def quadsect(rect, factor):
     """Subdivide given rectangle into four non-overlapping rectangles.
-    'factor' is an integer representing the proportion of the width or
-    height the deviatation from the center of the rectangle allowed.
+
+    Parameters
+    ----------
+    rect : Rect
+        a Rect object (rectangle) which will be subdivided
+    factor : int
+        an integer representing the proportion of the width or height the deviatation from the center of the rectangle allowed.
+
+    Returns
+    -------
+    list
+        a list of four Rect objects, which are four smaller rectangles inside the input rectangle
     """
 
     plus_or_minus = lambda v: v * [-1, 1][(randint(0, 100) % 2)]  # equal chance +/-1
