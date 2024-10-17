@@ -13,9 +13,9 @@ def test_assign_property_locations():
     xrange = [150.2503,151.39695]
     yrange = [-32.61181, -31.60829]
     results =  spatial_setup.assign_property_locations(num, xrange, yrange)
-    assert len(results)==2
+    assert len(results)==3
 
-    property_coordinates, property_polygons = results 
+    property_coordinates, property_polygons, property_areas = results 
 
     # test that the values lie within the stated range
 

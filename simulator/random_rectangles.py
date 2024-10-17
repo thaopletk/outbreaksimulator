@@ -12,7 +12,7 @@
 
 import random
 from shapely.geometry import Point
-from random import randint
+from random import randint, uniform
 random.seed()
 
 class Rect(object):
@@ -50,9 +50,9 @@ def quadsect(rect, factor):
 
     # pick a point in the interior of given rectangle
     w, h = rect.width, rect.height  # cache properties
-    center = Point(rect.min.x + (w // 2), rect.min.y + (h // 2))
-    delta_x = plus_or_minus(randint(0, w // factor))
-    delta_y = plus_or_minus(randint(0, h // factor))
+    center = Point(rect.min.x + (w / 2), rect.min.y + (h / 2))
+    delta_x = plus_or_minus(uniform(0, w / factor))
+    delta_y = plus_or_minus(uniform(0, h / factor))
     interior = Point(center.x + delta_x, center.y + delta_y)
 
     # create rectangles from the interior point and the corners of the outer one
