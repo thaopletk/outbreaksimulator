@@ -19,59 +19,6 @@ from functools import partial
 from shapely.ops import transform, unary_union
 
 
-# Generate random graph given n and r
-def assign_coordinates(n, xrange = [150.2503,151.39695], yrange = [-32.61181, -31.60829]):
-    property_coordinates = np.zeros((n, 2))
-    for i in range(n):
-        x = np.random.uniform(*xrange)
-        y = np.random.uniform(*yrange)
-        property_coordinates[i,0] = x
-        property_coordinates[i,1] = y
-
-    return property_coordinates
-
-
-# possible extensions: boundaries along roads, more jagged shapes, avoid areas like parks and nature reserves, add some level of clustering
-def assign_property_locations(n, xrange = [150.2503,151.39695], yrange = [-32.61181, -31.60829], average_property_ha = 300):
-    
-    # first, make rectangles
-
-    # to estimate the number of rectangles, I need to get the total area of xrange, yrange, and divide it up by the average property size that I want
-    # the average property size is 300 hectares, or 3 km^2, taken from https://www.agriculture.gov.au/abares/research-topics/surveys/dairy#farm-characteristics 
-
-    bounding_polygon =  {'type':'Polygon','coordinates':[[[xrange[0],yrange[0]],[xrange[1],yrange[0]],[xrange[1],yrange[1]],[xrange[0],yrange[1]],[xrange[0],yrange[0]]]]}
-    bounding_area = area(bounding_polygon) # it's not exact-exact but should be good enough, value in square metres
-    sq_to_ha = 0.0001
-    area_in_hectares = sq_to_ha*bounding_area
-    
-
-    num_recs_to_generate = int(np.ceil(area_in_hectares/average_property_ha))
-    num_rectangles = n 
-
-    #  x1, y1, x2, y2
-    region = random_rectangles.Rect(xrange[0], yrange[0], xrange[1], yrange[1])
-    random_recs = random_rectangles.return_random_rectangles(num_rectangles, num_recs_to_generate, region )
-    # the resultant rectangles are the properties 
-
-    property_coordinates = np.zeros((n, 2))
-    property_polygons = []
-
-    for i in range(n):
-        rectangle = random_recs[i]
-        # make polygons 
-        property_polygon = {'type':'Polygon',
-                            'coordinates':[[ [rectangle.min.x,rectangle.min.y],
-                                             [rectangle.max.x,rectangle.min.y],
-                                             [rectangle.max.x,rectangle.max.y],
-                                             [rectangle.min.x,rectangle.max.y],
-                                             [rectangle.min.x,rectangle.min.y]]]}
-        property_polygons.append(property_polygon)
-
-        property_coordinates[i,0] = (rectangle.min.x+rectangle.max.x)/2
-        property_coordinates[i,1] = (rectangle.min.y+rectangle.max.y)/2
-
-    return property_coordinates, property_polygons
-
 
 #https://stackoverflow.com/questions/15736995/how-can-i-quickly-estimate-the-distance-between-two-latitude-longitude-points
 def quick_distance_haversine(coords1,coords2):
@@ -97,7 +44,40 @@ def quick_distance_haversine(coords1,coords2):
     km = 6371 * c
     return km
 
+def convert_dict_poly_to_Polygon(poly_to_convert):
+    return Polygon([(x,y) for x,y in poly_to_convert["coordinates"][0]])
 
+def geodesic_polygon_buffer(lat, lon, poly_to_buff, km):
+
+    if type(poly_to_buff)==dict:
+        poly_to_buff = convert_dict_poly_to_Polygon(poly_to_buff)
+
+
+    # Azimuthal equidistant projection
+    proj_wgs84 = pyproj.Proj('EPSG:4326')
+
+
+    aeqd_proj = '+proj=aeqd +lat_0={lat} +lon_0={lon} +x_0=0 +y_0=0'
+    project = partial(
+        pyproj.transform,
+        pyproj.Proj(aeqd_proj.format(lat=lat, lon=lon)),
+        proj_wgs84,always_xy=True)
+    buf = poly_to_buff.buffer(km * 1000)  # distance in metres
+    return Polygon(transform(project, buf).exterior.coords[:])
+
+
+# Generate random graph given n and r
+def assign_coordinates(n, xrange = [150.2503,151.39695], yrange = [-32.61181, -31.60829]):
+    property_coordinates = np.zeros((n, 2))
+    for i in range(n):
+        x = np.random.uniform(*xrange)
+        y = np.random.uniform(*yrange)
+        property_coordinates[i,0] = x
+        property_coordinates[i,1] = y
+
+    return property_coordinates
+
+# assign wind-neighbours, assuming point-properties
 def assign_neighbours(property_coordinates, n, r):
     adjacency_matrix = np.zeros((n,n))
     neighbourhoods = []
@@ -124,18 +104,71 @@ def assign_neighbours(property_coordinates, n, r):
 
     return adjacency_matrix, neighbour_pairs, neighbourhoods
 
-def geodesic_polygon_buffer(lat, lon, poly_to_buff, km):
-    # Azimuthal equidistant projection
-    proj_wgs84 = pyproj.Proj(init='epsg:4326')
 
+def plot_coordinates(property_coordinates, neighbour_pairs):
+    """ Basic plotting for property coordinates (centers) and wind-neighbours """
+    plt.figure()
+    
+    # nodes 
+    for i in range(len(property_coordinates)):
+        if i == 3:
+            plt.scatter(property_coordinates[i,0], property_coordinates[i,1], color = 'red')
+        else:
+            plt.scatter(property_coordinates[i,0], property_coordinates[i,1], color = 'purple')
 
-    aeqd_proj = '+proj=aeqd +lat_0={lat} +lon_0={lon} +x_0=0 +y_0=0'
-    project = partial(
-        pyproj.transform,
-        pyproj.Proj(aeqd_proj.format(lat=lat, lon=lon)),
-        proj_wgs84)
-    buf = poly_to_buff.buffer(km * 1000)  # distance in metres
-    return Polygon(transform(project, buf).exterior.coords[:])
+    # edges
+    for node_coordinates in neighbour_pairs:
+        plt.plot(node_coordinates[0], node_coordinates[1], alpha = 0.2)
+
+    plt.show()
+
+    return 
+
+# possible extensions: boundaries along roads, more jagged shapes, avoid areas like parks and nature reserves, add some level of clustering
+def assign_property_locations(n, xrange = [150.2503,151.39695], yrange = [-32.61181, -31.60829], average_property_ha = 300):
+    
+    # first, make rectangles
+
+    # to estimate the number of rectangles, I need to get the total area of xrange, yrange, and divide it up by the average property size that I want
+    # the average property size is 300 hectares, or 3 km^2, taken from https://www.agriculture.gov.au/abares/research-topics/surveys/dairy#farm-characteristics 
+
+    bounding_polygon =  {'type':'Polygon','coordinates':[[[xrange[0],yrange[0]],[xrange[1],yrange[0]],[xrange[1],yrange[1]],[xrange[0],yrange[1]],[xrange[0],yrange[0]]]]}
+    bounding_area = area(bounding_polygon) # it's not exact-exact but should be good enough, value in square metres
+    sq_to_ha = 0.0001
+    area_in_hectares = sq_to_ha*bounding_area
+    
+
+    num_recs_to_generate = int(np.ceil(area_in_hectares/average_property_ha))
+    num_rectangles = n 
+
+    #  x1, y1, x2, y2
+    region = random_rectangles.Rect(xrange[0], yrange[0], xrange[1], yrange[1])
+    random_recs = random_rectangles.return_random_rectangles(num_rectangles, num_recs_to_generate, region )
+    # the resultant rectangles are the properties 
+
+    property_coordinates = np.zeros((n, 2))
+    property_polygons = []
+    property_areas = []
+
+    for i in range(n):
+        rectangle = random_recs[i]
+        # make polygons 
+        property_polygon = {'type':'Polygon',
+                            'coordinates':[[ [rectangle.min.x,rectangle.min.y],
+                                             [rectangle.max.x,rectangle.min.y],
+                                             [rectangle.max.x,rectangle.max.y],
+                                             [rectangle.min.x,rectangle.max.y],
+                                             [rectangle.min.x,rectangle.min.y]]]}
+        
+        property_areas.append(sq_to_ha*area(property_polygon))
+
+        property_polygons.append(convert_dict_poly_to_Polygon(property_polygon)) # Shapely Polygon object needed for the rest of the code
+
+        property_coordinates[i,0] = (rectangle.min.x+rectangle.max.x)/2
+        property_coordinates[i,1] = (rectangle.min.y+rectangle.max.y)/2
+
+    return property_coordinates, property_polygons, property_areas
+
 
 def assign_neighbours_with_land(property_coordinates,property_polygons, n, r):
     adjacency_matrix = np.zeros((n,n))
@@ -154,7 +187,6 @@ def assign_neighbours_with_land(property_coordinates,property_polygons, n, r):
                 dist_centres = quick_distance_haversine(property_coordinates[p1], property_coordinates[p2]) # distance in km
 
                 # calculate whether they're wind-neighbours
-                # TODO/ in progress
                 # step 1: puff up p1
                 p1_poly = property_polygons[p1]
                 lat = property_coordinates[p1][1] # y
@@ -183,25 +215,6 @@ def assign_neighbours_with_land(property_coordinates,property_polygons, n, r):
     return adjacency_matrix, neighbour_pairs, neighbourhoods, property_polygons_puffed
 
 
-def plot_coordinates(property_coordinates, neighbour_pairs):
-    """ Basic plotting for property coordinates (centers) and wind-neighbours """
-    plt.figure()
-    
-    # nodes 
-    for i in range(len(property_coordinates)):
-        if i == 3:
-            plt.scatter(property_coordinates[i,0], property_coordinates[i,1], color = 'red')
-        else:
-            plt.scatter(property_coordinates[i,0], property_coordinates[i,1], color = 'purple')
-
-    # edges
-    for node_coordinates in neighbour_pairs:
-        plt.plot(node_coordinates[0], node_coordinates[1], alpha = 0.2)
-
-    plt.show()
-
-    return 
-
 
 def generate_properties(n, r,  xrange = [150.2503,151.39695], yrange = [-32.61181, -31.60829]):
     """ Generates point-properties, without land """
@@ -216,17 +229,18 @@ def generate_properties(n, r,  xrange = [150.2503,151.39695], yrange = [-32.6118
 
     return property_coordinates, adjacency_matrix, neighbour_pairs, neighbourhoods
 
+
 def generate_properties_with_land(n, wind_r,  xrange = [150.2503,151.39695], yrange = [-32.61181, -31.60829], average_property_ha = 300):
 
     # randomly divide the space up into rectangles (approximately), and choose some randomly to be property locations
-    property_coordinates, property_polygons= assign_property_locations(n, xrange, yrange, average_property_ha)
+    property_coordinates, property_polygons, property_areas = assign_property_locations(n, xrange, yrange, average_property_ha)
 
     # find wind- neighbours given wind-neighbourhood radius
     
     adjacency_matrix, neighbour_pairs, neighbourhoods, property_polygons_puffed = assign_neighbours_with_land(property_coordinates,property_polygons, n, wind_r)
 
     # possible extension is to return in a dictionary, to improve flexibility of output
-    return property_coordinates, adjacency_matrix, neighbour_pairs, neighbourhoods, property_polygons, property_polygons_puffed
+    return property_coordinates, adjacency_matrix, neighbour_pairs, neighbourhoods, property_polygons, property_polygons_puffed, property_areas
 
 
 
