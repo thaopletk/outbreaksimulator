@@ -200,13 +200,17 @@ def plot_map(properties, property_coordinates, time,xlims, ylims,folder_path,rea
     return
 
 
+def save_pickle(to_save,filename):
+    with open(filename, 'wb') as file:
+        pickle.dump(to_save, file)
+    return 0
 
 
 def save_data_properties(properties,folder_path):
 
     to_save =properties
 
-    with open(os.path.join(folder_path,"properties_initialised"), 'wb') as file:
+    with open(os.path.join(folder_path,"properties_initialised.pickle"), 'wb') as file:
         pickle.dump(to_save, file)
 
     # with open(os.path.join(folder_path,"properties"+str(time)), 'wb') as file:
@@ -215,6 +219,8 @@ def save_data_properties(properties,folder_path):
     #     pickle.dump(property_coordinates, file)
 
     return
+
+
 
 
 

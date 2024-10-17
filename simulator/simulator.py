@@ -13,27 +13,37 @@ import simulator.output as output
 
 
 # based from the fmdmodelling function FMD_ABM, but with modifications
-def property_setup(params,folder_path,xrange = [150.2503,151.39695], yrange = [-32.61181, -31.60829]):
-    property_coordinates, adjacency_matrix, neighbour_pairs, neighbourhoods = spatial_setup.generate_properties(params['n'], params['r'], xrange, yrange) # uses the spatial-setup specific generator, rather than the fmdmodelling property generator; which means that it lacks property radii
+# adjusted to have explicit parameter requirements rather than a dictionary with params 
+def property_setup(folder_path,n_properties = 10, wind_r=25, average_property_ha=300, xrange = [150.2503,151.39695], yrange = [-32.61181, -31.60829],average_animals_per_ha = 0.1,movement_freq=14):
+
+    property_coordinates, adjacency_matrix, neighbour_pairs, neighbourhoods, property_polygons, property_polygons_puffed, property_areas = spatial_setup.generate_properties_with_land(n_properties,wind_r,  xrange, yrange, average_property_ha) # uses the spatial-setup specific generator, rather than the fmdmodelling property generator
+
+
+    output.plot_map_land(property_coordinates, adjacency_matrix, neighbour_pairs, neighbourhoods, property_polygons, property_polygons_puffed,xrange, yrange,folder_path)
+
 
     # initialise properties 
     properties = []
-    for i in range(params['n']):
-        properties.append(premises.Premises(params))
-        properties[i].init_animals(params)
-        properties[i].coordinates = property_coordinates[i]
-        # properties[i].radius default to zero
-        # properties[i].area default to 500
-        properties[i].neighbourhood = neighbourhoods[i]
-        properties[i].total_neighbours = len(properties[i].neighbourhood)
+    for i in range(n_properties):
+        # new property
+        new_p = premises.Premises(
+            num_animals=int(property_areas[i]*average_animals_per_ha), 
+            movement_freq=1,
+            coordinates=property_coordinates[i], 
+            area_ha = property_areas[i],
+            neighbourhood=neighbourhoods[i],
+            property_polygon= property_polygons[i],
+            property_polygon_puffed = property_polygons_puffed[i] )
 
-    property_setup_info = [properties,property_coordinates, adjacency_matrix, neighbour_pairs, neighbourhoods]
+
+        properties.append(new_p)
+        properties[i].init_animals(None)  # init with empty "params", as no parameters are actually used to initialise animals
+
+    property_setup_info = [properties,property_coordinates, adjacency_matrix, neighbour_pairs, neighbourhoods, property_polygons, property_polygons_puffed, property_areas]
     
     output.save_data_properties(property_setup_info,folder_path)
 
     return property_setup_info
-
-
 
 
 # based from the fmdmodelling function FMD_ABM, but with modifications (e.g. around saving data at various time points)
