@@ -27,7 +27,7 @@ def plot_polygon(ax, poly, **kwargs):
     ax.autoscale_view()
     return collection
 
-def plot_map_land(property_coordinates, adjacency_matrix, neighbour_pairs, neighbourhoods, property_polygons, property_polygons_puffed,xlims, ylims,folder_path):
+def plot_map_land(property_polygons, property_polygons_puffed,xlims, ylims,folder_path):
     fig, ax = plt.subplots(1, 1,figsize=(20,15)) # ,figsize=(10,12)
 
     for poly in property_polygons_puffed:
