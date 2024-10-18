@@ -1,3 +1,8 @@
+""" Premises class definition 
+
+    The premises class describes farms (or other properties), with attributes such as location and size
+"""
+
 import sys
 import os
 
@@ -11,12 +16,41 @@ import itertools
 def convert_time_to_date(
     time, start_date=datetime.datetime(year=2024, month=11, day=1)
 ):
+    """Converts outbreak days (0, 1, 2...) to fake dates, started at some specified date (day 0).
+    Parameters
+    ----------
+    time : int
+        Simulation day to convert
+    start_date : datetime.datetime objective
+        Date time object describing "day 0".
+
+    Returns
+    -------
+    date : string
+        Formatted string d/m/Y representing the physical date
+    """
     current_date = start_date + datetime.timedelta(days=time)
     return current_date.strftime("%d/%m/%Y")
 
 
 # for now, we need additional parameters, hence inheriting from the fmdmodelling code
 class Premises(Property):
+    """
+    A class used to present premises/properties in the model
+
+    Since we need additional parameters, this class inherits the Property class from the fmdmodelling code (class_definitions.py)
+
+    Attributes
+    ----------
+    (so many attributes... - TODO)
+
+
+    Methods
+    ----------
+    (so many methods - TODO)
+
+    """
+
     id_iter = itertools.count()
     notified_iter = itertools.count()
 
@@ -88,7 +122,15 @@ class Premises(Property):
             )  # might need to change this, but for now, it should be the earliest date with clinical symptoms
 
     def return_output_row(self):
-        # id	status	ip	exposure_date	clinical_date	notification_date	removal_date	recovery_date	vacc_date	region	county	cluster	xcoord	ycoord	area	type	total
+        """Returns a row with information for outputing (required downstream for forecasting)
+
+        Returns
+        -------
+        list
+            a list containing the following information in order:
+            id, status, ip, exposure_date, clinical_date, notification_date, removal_date, recovery_date, vacc_date, region, county, cluster, xcoord, ycoord, area, type, total
+
+        """
 
         return [
             self.id,
