@@ -33,6 +33,72 @@ def plot_polygon(ax, poly, **kwargs):
     return collection
 
 
+def plot_property_coordinates(
+    property_coordinates,
+    xlims,
+    ylims,
+    folder_path,
+    file_name="base_map.png",
+    colour="orange",
+):
+    fig, ax = plt.subplots(1, 1, figsize=(20, 15))  # ,figsize=(10,12)
+
+    farms = []
+    for coords in property_coordinates:
+        long, lat = coords
+        curr_farm = Point(long, lat)
+        farms.append(curr_farm)
+
+    markersize = 30
+
+    marker = "o"
+    markerlabel = "susceptible"
+
+    geo_df = gpd.GeoDataFrame(geometry=farms)
+    geo_df.crs = {"init": "epsg:4326"}
+    ax = geo_df.plot(
+        ax=ax, markersize=markersize, color=colour, marker=marker, label=markerlabel
+    )
+
+    ctx.add_basemap(
+        ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik
+    )
+
+    # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
+    points = gpd.GeoSeries(
+        [Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326
+    )  # Geographic WGS 84 - degrees
+    points = points.to_crs(32619)  # Projected WGS 84 - meters
+    distance_meters = points[0].distance(points[1])
+    ax.add_artist(
+        ScaleBar(
+            distance_meters,
+            box_alpha=0.1,
+            location="lower right",
+        )
+    )
+
+    ax.set_title("Map", fontsize=18)
+
+    ax.set_ylabel("latitude", fontsize=16)
+    ax.set_xlabel("longitude", fontsize=16)
+
+    ax.set_xlim(xlims)
+    ax.set_ylim(ylims)
+
+    # ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
+    #       fancybox=True, shadow=True, ncol=5,fontsize=18)
+
+    ax.tick_params(axis="x", labelsize=14)
+    ax.tick_params(axis="y", labelsize=14)
+
+    file_name = os.path.join(folder_path, file_name)
+
+    plt.savefig(file_name, bbox_inches="tight")
+
+    plt.close()
+
+
 def plot_map_land(
     property_polygons, property_polygons_puffed, xlims, ylims, folder_path
 ):
