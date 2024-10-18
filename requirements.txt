@@ -12,3 +12,4 @@ pillow==9.0.0
 IPython==8.12.3
 area==1.1.1
 black==24.8.0
+pre_commit==3.5.0
