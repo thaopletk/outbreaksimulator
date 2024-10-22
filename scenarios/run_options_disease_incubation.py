@@ -23,7 +23,7 @@ folder_path_main = os.path.join(
 if not os.path.exists(folder_path_main):
     os.makedirs(folder_path_main)
 
-n = 500
+n = 100
 
 set_up_params = {
     "n": n,  # total number of properties to include
@@ -75,8 +75,10 @@ params_long_incubation = {
 }
 
 for disease, disease_params in [
-    ["short_incubation", params_short_incubation],
-    ["long_incubation", params_long_incubation],
+    [
+        "long_incubation",
+        params_long_incubation,
+    ],  #  ["short_incubation", params_short_incubation],
 ]:
     # read in the property set up information (cleanly)
     with open(
