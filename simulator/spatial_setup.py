@@ -63,6 +63,43 @@ def quick_distance_haversine(coords1, coords2):
     return km
 
 
+def calculate_area(polygon):
+    """Calculate area of a polygon, in hectares
+
+    bounding_polygon = {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [xrange[0], yrange[0]],
+                [xrange[1], yrange[0]],
+                [xrange[1], yrange[1]],
+                [xrange[0], yrange[1]],
+                [xrange[0], yrange[0]],
+            ]
+        ],
+    }
+
+    """
+
+    sq_to_ha = 0.0001
+
+    # first check if it is in dictionary form or not
+    if type(polygon) != dict:
+        # in this case, it should be a polygon (normal shapely polygon)
+        polygon = {
+            "type": "Polygon",
+            "coordinates": [polygon.exterior.coords[:]],
+        }
+
+    poly_area = area(
+        polygon
+    )  # it's not exact-exact but should be good enough, value in square metres
+
+    area_in_hectares = sq_to_ha * poly_area
+
+    return area_in_hectares
+
+
 def convert_dict_poly_to_Polygon(poly_to_convert):
     """Converts dictionaries of the following type into Shapely Polygons:
 
@@ -238,11 +275,8 @@ def assign_property_locations(
             ]
         ],
     }
-    bounding_area = area(
-        bounding_polygon
-    )  # it's not exact-exact but should be good enough, value in square metres
-    sq_to_ha = 0.0001
-    area_in_hectares = sq_to_ha * bounding_area
+
+    area_in_hectares = calculate_area(bounding_polygon)
 
     num_recs_to_generate = int(np.ceil(area_in_hectares / average_property_ha))
     num_rectangles = n
@@ -274,7 +308,7 @@ def assign_property_locations(
             ],
         }
 
-        property_areas.append(sq_to_ha * area(property_polygon))
+        property_areas.append(calculate_area(property_polygon))
 
         property_polygons.append(
             convert_dict_poly_to_Polygon(property_polygon)
