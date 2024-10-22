@@ -357,10 +357,20 @@ def assign_neighbours_with_land(property_coordinates, property_polygons, n, r):
     neighbour_pairs = []
     property_polygons_puffed = []
 
-    for p1 in range(n):
+    for p1 in range(0, n):
+        p1_poly = property_polygons[p1]
+        lat = property_coordinates[p1][1]  # y
+        lon = property_coordinates[p1][0]  # x
+        puff_p1 = geodesic_polygon_buffer(lat, lon, p1_poly, r)
+        property_polygons_puffed.append(puff_p1)
+
+    for p1 in range(0, n):
         neighbourhoods.append([])
+
+        puff_p1 = property_polygons_puffed[p1]
+
         # loop over property list
-        for p2 in range(n):
+        for p2 in range(0, n):
             # don't consider property whose neighbourhood we're calculating
             if p1 != p2:
                 # calculate distance between centres
@@ -370,13 +380,6 @@ def assign_neighbours_with_land(property_coordinates, property_polygons, n, r):
                 )  # distance in km
 
                 # calculate whether they're wind-neighbours
-                # step 1: puff up p1
-                p1_poly = property_polygons[p1]
-                lat = property_coordinates[p1][1]  # y
-                lon = property_coordinates[p1][0]  # x
-                puff_p1 = geodesic_polygon_buffer(lat, lon, p1_poly, r)
-                property_polygons_puffed.append(puff_p1)
-
                 p2_poly = property_polygons[p2]
 
                 if puff_p1.intersects(p2_poly):
