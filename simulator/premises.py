@@ -131,7 +131,7 @@ class Premises(Property):
                     self.vaccinate(time)
         else:
             vaccinate_rand = np.random.rand()
-            if vaccinate_rand < prob_vaccinate * prop_culled_neighbours:
+            if vaccinate_rand < prob_vaccinate:
                 self.vaccinate(time)
         return
 
