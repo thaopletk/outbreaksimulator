@@ -166,8 +166,6 @@ def plot_map(
     controlzone=None,
 ):
 
-    # folder_path = os.path.join(os.path.dirname(__file__),save_folder)
-
     fig, ax = plt.subplots(1, 1, figsize=(20, 15))  # ,figsize=(10,12)
 
     if controlzone != None:

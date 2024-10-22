@@ -5,6 +5,7 @@
 
 import sys
 import os
+import numpy as np
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -97,11 +98,41 @@ class Premises(Property):
         self.cluster = "NA"
         self.type = "NA"
 
-    def vaccination(self, params, properties, time):
-        super().vaccination(params, properties)
-        if self.vaccination_status == 1:
-            self.vacc_date = convert_time_to_date(time)
+    #
+    def vaccinate(self, time):
+        self.vaccination_status = 1
+        self.vacc_date = convert_time_to_date(time)
 
+        return 0
+
+    def vaccination(
+        self, prob_vaccinate, properties, time, culled_neighbours_only=True
+    ):
+        """Decide whether or not to vaccinate
+
+        Since we will allow properties to vaccination *without* needing culled neighbours, this code has been adapted from the original definition
+
+        Should first check whether or not it's already culled
+        """
+
+        if culled_neighbours_only:
+            prop_culled_neighbours = 0
+            if len(self.neighbourhood):  # premise has neighbours
+                neighbours = [el[0] for el in self.neighbourhood]
+                culled_neighbours = sum(
+                    [properties[i].culled_status for i in neighbours]
+                )
+                prop_culled_neighbours = culled_neighbours / self.total_neighbours
+
+            # vaccination
+            if prop_culled_neighbours:  # if there are culled neighbours
+                vaccinate_rand = np.random.rand()
+                if vaccinate_rand < prob_vaccinate * prop_culled_neighbours:
+                    self.vaccinate(time)
+        else:
+            vaccinate_rand = np.random.rand()
+            if vaccinate_rand < prob_vaccinate * prop_culled_neighbours:
+                self.vaccinate(time)
         return
 
     def reporting(self, params, time):
