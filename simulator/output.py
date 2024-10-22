@@ -165,7 +165,11 @@ def plot_map(
     real_situation=True,
     controlzone=None,
 ):
+    """Plot map
 
+    Plots map (with map background)
+
+    """
     fig, ax = plt.subplots(1, 1, figsize=(20, 15))  # ,figsize=(10,12)
 
     if controlzone != None:
@@ -268,6 +272,18 @@ def plot_map(
         [geometry_vaccinated, "deepskyblue", "s", "vaccinated", 100],
         [geometry_susceptible, "orange", "o", "susceptible", 30],
     ]:
+        if geometry == []:
+            if markerlabel == "infected":
+                if real_situation == True:
+                    geometry = [
+                        Point(xlims[0] - 0.1, ylims[0] - 0.1)
+                    ]  # putting the point outside the limits
+            else:
+                geometry = [
+                    Point(xlims[0] - 0.1, ylims[0] - 0.1)
+                ]  # putting the point outside the limits
+
+            # add a fake point to ensure the legend is there
         geo_df = gpd.GeoDataFrame(geometry=geometry)
         geo_df.crs = {"init": "epsg:4326"}
         # plot the marker

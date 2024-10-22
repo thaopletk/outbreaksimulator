@@ -12,6 +12,7 @@ import simulator.management as management
 import simulator.premises as premises
 import simulator.SEIR as SEIR
 import simulator.output as output
+import FMD_modelling.animal_movement_code as animal_movement_code
 
 
 # based from the fmdmodelling function FMD_ABM, but with modifications
@@ -19,16 +20,23 @@ import simulator.output as output
 # average animals per hectare estimated vaguely from here, expecting that a cow needs ~10 hectares of land to raise - https://www.farmstyle.com.au/forum/raising-cattle-meat-how-many-acre
 
 
+# TODO this could be moved into the spatial_setup file...
 def property_setup(
     folder_path,
-    n_properties=10,
-    wind_r=25,
+    n=10,
+    r_wind=25,
     average_property_ha=300,
     xrange=[150.2503, 151.39695],
     yrange=[-32.61181, -31.60829],
     average_animals_per_ha=0.1,
-    movement_freq=14,
+    movement_frequency=14,
+    **_,
 ):
+    """
+
+    n: int
+        Number of properties
+    """
 
     (
         property_coordinates,
@@ -39,7 +47,7 @@ def property_setup(
         property_polygons_puffed,
         property_areas,
     ) = spatial_setup.generate_properties_with_land(
-        n_properties, wind_r, xrange, yrange, average_property_ha
+        n, r_wind, xrange, yrange, average_property_ha
     )  # uses the spatial-setup specific generator, rather than the fmdmodelling property generator
 
     output.plot_map_land(
@@ -48,11 +56,13 @@ def property_setup(
 
     # initialise properties
     properties = []
-    for i in range(n_properties):
+    for i in range(n):
         # new property
         new_p = premises.Premises(
-            num_animals=int(property_areas[i] * average_animals_per_ha),
-            movement_freq=movement_freq,
+            num_animals=max(
+                int(property_areas[i] * average_animals_per_ha), 1
+            ),  # at least one animal per property
+            movement_freq=movement_frequency,
             coordinates=property_coordinates[i],
             area_ha=property_areas[i],
             neighbourhood=neighbourhoods[i],
@@ -81,7 +91,6 @@ def property_setup(
     return property_setup_info
 
 
-# TODO: need to properly handle what would happen if no ideal property is found to seed
 def seed_infection(xrange, yrange, properties):
     seed_property = 0  # default
     seed_animal = 0
@@ -126,6 +135,16 @@ def simulate_outbreak(
     r_wind=25,
     beta_wind=0.01,
     beta_animal=2,
+    latent_period=2,
+    infectious_period=2,
+    preclinical_period=2,
+    prob_vaccinate=0.5,
+    clinical_reporting_threshold=0.01,
+    prob_report=0.8,
+    movement_frequency=10,
+    movement_probability=0.1,
+    movement_prop_animals=0.1,
+    **_,
 ):
     """Run the simulated outbreak
 
@@ -140,6 +159,7 @@ def simulate_outbreak(
     total_culled = 0
     total_vaccinated = 0
     time = 0
+    controlzone = None
 
     # limits for the figures
     xlims = [round(xrange[0], 2) - 0.005, round(xrange[1], 2) + 0.005]
@@ -161,25 +181,36 @@ def simulate_outbreak(
                 init_vax_probability, properties, time, culled_neighbours_only=False
             )
 
-    output.plot_map(
-        properties,
-        property_coordinates,
-        time,
-        xlims=xlims,
-        ylims=ylims,
-        folder_path=folder_path,
-    )
+    if plotting:
+        output.plot_map(
+            properties,
+            property_coordinates,
+            time,
+            xlims=xlims,
+            ylims=ylims,
+            folder_path=folder_path,
+            real_situation=True,
+            controlzone=controlzone,
+        )
+        output.plot_map(
+            properties,
+            property_coordinates,
+            time,
+            xlims=xlims,
+            ylims=ylims,
+            folder_path=folder_path,
+            real_situation=False,
+            controlzone=controlzone,
+        )
 
     # spread begins here:
 
     FOI = list(np.zeros(n))
     plt.figure()
     # start time loop
-    infected_properties = 1  # so the while loop begins
-    while infected_properties > 0 and time < stop_time:
+    infected_sum = 1  # so the while loop begins
+    while infected_sum > 0 and time < stop_time:
         time += 1
-
-        controlzone = None
 
         # TODO : no controls for now, will update later
         # if time >= params["policy_start"]:
@@ -210,51 +241,58 @@ def simulate_outbreak(
         #                             neighbour.neighbourhood.remove(x)
         #                             break
 
-        infected_properties = 0
+        # calculate FOI for each property
+
         for i, premise in enumerate(properties):
             if not premise.culled_status:
                 FOI[i] = SEIR.calculate_force_of_infection(
                     properties, i, vax_modifier, r_wind, beta_wind, beta_animal
                 )
 
-        # run infection model for each property
-        for i, premise in enumerate(properties):
-            # if the property has not been culled
-            if not premise.culled_status:
-                # run infection model and update infection numbers
-                premise.infection_model(params, FOI[i], time)
-                cumulative_infection_proportions[i] = (
-                    premise.cumulative_infections / premise.size
+        # vaccinate properties around culled (reported) properties
+        for premise in properties:
+            if not premise.culled_status and not premise.infection_status:
+                premise.vaccination(
+                    prob_vaccinate, properties, time, culled_neighbours_only=True
                 )
 
-                # does the property vaccinate?
-                # property can only vaccinate if they are not infected already
-                if not premise.infection_status:
-                    # calculate infected neighbours
-                    if len(premise.neighbourhood):  # premise has neighbours
-                        neighbours = [el[0] for el in premise.neighbourhood]
-                        culled_neighbours = sum(
-                            [properties[i].culled_status for i in neighbours]
-                        )
-                        prop_culled_neighbours = (
-                            culled_neighbours / premise.total_neighbours
-                        )
-                    else:  # no neighbours
-                        prop_culled_neighbours = 0
+        # check if any properties now want to report
+        for premise in properties:
+            if not premise.culled_status:
+                premise.reporting(clinical_reporting_threshold, prob_report, time)
 
-                    premise.vaccination(params, properties, time)
-                # does the property report?
-                # property can only report if they are infected and have not been culled yet
-                else:
-                    infected_properties += 1  # counting infected properties while we're considering infected properties
-                    premise.reporting(params, time)
-            # if property has been culled
-            else:
-                # keeping track of infected_proportions for all properties
-                cumulative_infection_proportions[i] = 0
+        # run infection model for each property
+        for i, premise in enumerate(properties):
+            premise.infection_model(
+                latent_period, infectious_period, preclinical_period, FOI[i], time
+            )
+
+        # movement of animals
+        animal_movement_code.animal_movement(
+            properties,
+            {
+                "n": n,
+                "movement_frequency": movement_frequency,
+                "movement_probability": movement_probability,
+                "movement_prop_animals": movement_prop_animals,
+            },
+            time,
+        )
+
+        # update counts
+        # simulation ends when infected_sum = 0
+        infected_sum = 0
+        for i, premise in enumerate(properties):
+            premise.update_counts()
+            # TODO something like premise.update_status() # in the case all infected animals recover or are moved off the property, it may be considered no longer infected? or, to state "contaminated"
+            # though in that case, the fomites should still be there -- noted under cumulative infections...?
+            if not premise.culled_status:
+                cumulative_infection_proportions[i] = (
+                    premise.cumulative_infections / len(premise.animals)
+                )
+                infected_sum += premise.number_infected
 
         if plotting:
-            # plot_graph(properties, property_coordinates, time,folder_path)
             output.plot_map(
                 properties,
                 property_coordinates,
@@ -283,6 +321,7 @@ def simulate_outbreak(
         output.make_video(folder_path, "map_underlying")
         output.make_video(folder_path, "map_apparent")
 
+    # statistics from end of simulation
     for premise in properties:
         if premise.culled_status:
             total_culled += 1

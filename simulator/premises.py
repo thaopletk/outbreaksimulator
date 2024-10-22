@@ -135,8 +135,13 @@ class Premises(Property):
                 self.vaccinate(time)
         return
 
-    def reporting(self, params, time):
-        super().reporting(params)
+    def reporting(self, clinical_reporting_threshold, prob_report, time):
+        super().reporting(
+            {
+                "clinical_reporting_threshold": clinical_reporting_threshold,
+                "prob_report": prob_report,
+            }
+        )
         if self.culled_status == 1:
             self.notification_date = convert_time_to_date(time)
             self.status = "IP"
@@ -144,8 +149,17 @@ class Premises(Property):
             self.reported_status = True
         return
 
-    def infection_model(self, params, FOI, time):
-        super().infection_model(params, FOI)
+    def infection_model(
+        self, latent_period, infectious_period, preclinical_period, FOI, time
+    ):
+        super().infection_model(
+            {
+                "latent_period": latent_period,
+                "infectious_period": infectious_period,
+                "pre-clinical_period": preclinical_period,
+            },
+            FOI,
+        )
 
         if self.infection_status == 1 and self.clinical_date == "NA":
             self.clinical_date = convert_time_to_date(
