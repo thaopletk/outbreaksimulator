@@ -84,6 +84,7 @@ def property_setup(
 # TODO: need to properly handle what would happen if no ideal property is found to seed
 def seed_infection(xrange, yrange, properties):
     seed_property = 0  # default
+    seed_animal = 0
 
     # send infection in the middle third of the map (we don't want the outbreak spreading to edges and stop simply because of the unnatural map boundaries)
     # property coordinates allocated at random, so we can just go through one-by-one to find a suitable property to see
@@ -99,12 +100,11 @@ def seed_infection(xrange, yrange, properties):
         ):
             # seed this property
             seed_property = i
-            seed_animal = 0
             break
 
     properties[seed_property].infection_status = 1
     properties[seed_property].animals[seed_animal].status = "infected"
-    properties[seed_property].prop_infectious = 1 / properties[i].size
+    properties[seed_property].prop_infectious = 1 / properties[seed_property].size
     properties[seed_property].cumulative_infections = 1
 
     return properties, seed_property
@@ -122,6 +122,10 @@ def simulate_outbreak(
     unique_output="",
     init_vax_probability=0,
     stop_time=math.inf,
+    vax_modifier=0.4,
+    r_wind=25,
+    beta_wind=0.01,
+    beta_animal=2,
 ):
     """Run the simulated outbreak
 
@@ -177,38 +181,41 @@ def simulate_outbreak(
 
         controlzone = None
 
-        if time >= params["policy_start"]:
-            # break/remove neighbour lines at radius r<= 'policy_r' around reported properties
-            coordlist_of_infected_properties = []
-            for i, premise in enumerate(properties):
-                if premise.reported_status == True:
-                    coordlist_of_infected_properties.append(premise.coordinates)
+        # TODO : no controls for now, will update later
+        # if time >= params["policy_start"]:
+        #     # break/remove neighbour lines at radius r<= 'policy_r' around reported properties
+        #     coordlist_of_infected_properties = []
+        #     for i, premise in enumerate(properties):
+        #         if premise.reported_status == True:
+        #             coordlist_of_infected_properties.append(premise.coordinates)
 
-            if coordlist_of_infected_properties != []:
+        #     if coordlist_of_infected_properties != []:
 
-                controlzone = management.define_control_zone_circles(
-                    coordlist_of_infected_properties, params["policy_r"]
-                )
+        #         controlzone = management.define_control_zone_circles(
+        #             coordlist_of_infected_properties, params["policy_r"]
+        #         )
 
-                for i, premise in enumerate(properties):
-                    if controlzone.contains(Point(premise.coordinates)):
-                        old_neighbourhood = premise.neighbourhood
-                        premise.neighbourhood = []
-                        premise.total_neighbours = 0
-                        # go through the old neighbours and remove their connection to this neighbour
-                        for farm in old_neighbourhood[:]:
-                            index = farm[0]
-                            neighbour = properties[index]
-                            neighbour_of_neighbour = neighbour.neighbourhood
-                            for x in neighbour_of_neighbour[:]:
-                                if x[0] == i:
-                                    neighbour.neighbourhood.remove(x)
-                                    break
+        #         for i, premise in enumerate(properties):
+        #             if controlzone.contains(Point(premise.coordinates)):
+        #                 old_neighbourhood = premise.neighbourhood
+        #                 premise.neighbourhood = []
+        #                 premise.total_neighbours = 0
+        #                 # go through the old neighbours and remove their connection to this neighbour
+        #                 for farm in old_neighbourhood[:]:
+        #                     index = farm[0]
+        #                     neighbour = properties[index]
+        #                     neighbour_of_neighbour = neighbour.neighbourhood
+        #                     for x in neighbour_of_neighbour[:]:
+        #                         if x[0] == i:
+        #                             neighbour.neighbourhood.remove(x)
+        #                             break
 
         infected_properties = 0
         for i, premise in enumerate(properties):
             if not premise.culled_status:
-                FOI[i] = SEIR.calculate_force_of_infection(properties, i, params)
+                FOI[i] = SEIR.calculate_force_of_infection(
+                    properties, i, vax_modifier, r_wind, beta_wind, beta_animal
+                )
 
         # run infection model for each property
         for i, premise in enumerate(properties):
