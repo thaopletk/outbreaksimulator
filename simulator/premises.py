@@ -12,6 +12,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from FMD_modelling.class_definitions import Property, Animal
 import datetime
 import itertools
+from simulator.spatial_setup import calculate_area
 
 
 def convert_time_to_date(
@@ -82,6 +83,7 @@ class Premises(Property):
         self.reported_status = False
         self.polygon = property_polygon
         self.puffed_poly = property_polygon_puffed
+        self.puffed_poly_area = calculate_area(property_polygon_puffed)
 
         # things required for output, for input into the downstream model
         self.id = next(Premises.id_iter)
