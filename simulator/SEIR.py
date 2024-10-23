@@ -12,26 +12,6 @@ from shapely.ops import nearest_points
 from shapely.geometry import Point, Polygon
 
 
-def create_circle(centre, radius):
-    return Polygon(geodesic_point_buffer(centre[1], centre[0], radius))
-
-
-def create_unsafe_disc(premise, radius):
-    """Adapted from FMD modelling code
-
-    In order to change the definition of circle creation
-
-    radius : double
-        radius in kilometers
-
-    """
-    centre = premise.coordinates
-    unsafe_disc = create_circle(centre, radius)
-    area = calculate_area(unsafe_disc)
-
-    return unsafe_disc, area
-
-
 def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind):
     """Adapted from FMD modelling code
 
@@ -45,7 +25,9 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind):
     A_i = properties[premise_index].area
 
     # area of safe radius disc
-    unsafe_disc_i, A_is = create_unsafe_disc(properties[premise_index], r_wind)
+    # unsafe dist is the puffed polygons!
+    # unsafe_disc_i = properties[premise_index].puff_poly
+    A_is = properties[premise_index].puffed_poly_area
 
     FOI += beta_wind * C_i * A_i / A_is
 
@@ -56,7 +38,11 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind):
         C_j = properties[index].cumulative_infections
 
         # calculating area overlap
-        unsafe_disc_j, A_js = create_unsafe_disc(properties[index], r_wind)
+        unsafe_disc_j = properties[index].puff_poly
+        A_js = properties[
+            index
+        ].puffed_poly_area  # area of unsafe_disc_j of properties[index]
+
         A_ijs = calculate_area(property_i_polygon.intersection(unsafe_disc_j))
 
         # calculating min distance centre j to boundary of i, in km
@@ -65,7 +51,7 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind):
         )
 
         d_ij = quick_distance_haversine([p1.x, p1.y], [p2.x, p2.y])
-        distance_modifier = 1 - (d_ij / r_wind)
+        distance_modifier = max(0, 1 - (d_ij / r_wind))
 
         # update FOI
         FOI += beta_wind * C_j * distance_modifier * A_ijs / A_js
