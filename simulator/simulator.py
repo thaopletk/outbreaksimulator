@@ -302,6 +302,7 @@ def simulate_outbreak(
                 folder_path=folder_path,
                 real_situation=True,
                 controlzone=controlzone,
+                infectionpoly=False,
             )
             output.plot_map(
                 properties,
@@ -312,6 +313,7 @@ def simulate_outbreak(
                 folder_path=folder_path,
                 real_situation=False,
                 controlzone=controlzone,
+                infectionpoly=False,
             )
             output.save_data(
                 properties, property_coordinates, time, controlzone, folder_path

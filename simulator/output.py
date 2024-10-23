@@ -11,7 +11,7 @@ from matplotlib_scalebar.scalebar import ScaleBar
 import numpy as np
 import os
 import matplotlib.pyplot as plt
-from shapely.geometry import Polygon, Point, LineString, MultiPolygon
+from shapely.geometry import Polygon, Point, LineString, MultiPolygon, MultiPoint
 import geopandas as gpd
 import contextily as ctx
 import pickle
@@ -164,6 +164,7 @@ def plot_map(
     folder_path,
     real_situation=True,
     controlzone=None,
+    infectionpoly=False,
 ):
     """Plot map
 
@@ -202,6 +203,9 @@ def plot_map(
     # nodes
     if real_situation == True:  # i.e. plotting the underlying situation
         network_label_switch = False
+
+        infected_coords = []
+
         for index, premise in enumerate(properties):
             long, lat = premise.coordinates
             curr_farm = Point(long, lat)
@@ -216,7 +220,7 @@ def plot_map(
                     plt.plot(
                         [premise.coordinates[0], property_coordinates[farm[0], 0]],
                         [premise.coordinates[1], property_coordinates[farm[0], 1]],
-                        alpha=0.1,
+                        alpha=0.01,
                         color="black",
                         label="network",
                     )
@@ -227,7 +231,7 @@ def plot_map(
                     plt.plot(
                         [premise.coordinates[0], property_coordinates[farm[0], 0]],
                         [premise.coordinates[1], property_coordinates[farm[0], 1]],
-                        alpha=0.1,
+                        alpha=0.01,
                         color="black",
                     )
 
@@ -238,17 +242,35 @@ def plot_map(
             if premise.infection_status:
                 # plt.scatter(premise.coordinates[0], premise.coordinates[1], color = 'purple', label = 'infected')
                 geometry_infected.append(curr_farm)
+                infected_coords.append(premise.coordinates)
             elif premise.culled_status:
                 # plt.scatter(premise.coordinates[0], premise.coordinates[1], color = 'red', label = 'culled')
                 geometry_culled.append(curr_farm)
+                infected_coords.append(premise.coordinates)
+
             elif premise.vaccination_status:
                 # plt.scatter(premise.coordinates[0], premise.coordinates[1], color = 'green', label = 'vaccinated')
                 geometry_vaccinated.append(curr_farm)
             else:
                 # plt.scatter(premise.coordinates[0], premise.coordinates[1], color = 'orange', label = 'susceptible')
                 geometry_susceptible.append(curr_farm)
+        if infectionpoly == True:
+            if len(infected_coords) > 2:
+                infection_hull = MultiPoint(infected_coords).convex_hull
+                plot_polygon(
+                    ax,
+                    infection_hull,
+                    facecolor="purple",
+                    edgecolor="purple",
+                    alpha=0.2,
+                    label="infection polygon",
+                )
+            # TODO should consider the case of when it's smaller...
 
     else:
+
+        infected_coords = []
+
         for index, premise in enumerate(properties):
             long, lat = premise.coordinates
             curr_farm = Point(long, lat)
@@ -259,12 +281,26 @@ def plot_map(
             if premise.culled_status:
                 # plt.scatter(premise.coordinates[0], premise.coordinates[1], color = 'red', label = 'culled')
                 geometry_culled.append(curr_farm)
+                infected_coords.append(premise.coordinates)
+
             elif premise.vaccination_status:
                 # plt.scatter(premise.coordinates[0], premise.coordinates[1], color = 'green', label = 'vaccinated')
                 geometry_vaccinated.append(curr_farm)
             else:
                 # plt.scatter(premise.coordinates[0], premise.coordinates[1], color = 'orange', label = 'susceptible')
                 geometry_susceptible.append(curr_farm)
+
+        if infectionpoly == True:
+            if len(infected_coords) > 2:
+                infection_hull = MultiPoint(infected_coords).convex_hull
+                plot_polygon(
+                    ax,
+                    infection_hull,
+                    facecolor="purple",
+                    edgecolor="purple",
+                    alpha=0.2,
+                    label="infection polygon",
+                )
 
     for geometry, colour, marker, markerlabel, markersize in [
         [geometry_infected, "purple", "x", "infected", 30],

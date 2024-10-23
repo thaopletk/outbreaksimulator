@@ -38,7 +38,7 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind):
         C_j = properties[index].cumulative_infections
 
         # calculating area overlap
-        unsafe_disc_j = properties[index].puff_poly
+        unsafe_disc_j = properties[index].puffed_poly
         A_js = properties[
             index
         ].puffed_poly_area  # area of unsafe_disc_j of properties[index]
@@ -51,7 +51,7 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind):
         )
 
         d_ij = quick_distance_haversine([p1.x, p1.y], [p2.x, p2.y])
-        distance_modifier = max(0, 1 - (d_ij / r_wind))
+        distance_modifier = max(0.001, 1 - (d_ij / r_wind))
 
         # update FOI
         FOI += beta_wind * C_j * distance_modifier * A_ijs / A_js
