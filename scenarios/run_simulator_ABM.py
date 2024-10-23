@@ -48,15 +48,15 @@ params_low_incubation = {
     "init_vax_probability": 0,
     "stop_time": 14,
     "vax_modifier": 0.4,
-    "beta_wind": 0.2,
+    "beta_wind": 2,
     "beta_animal": 4,
     "latent_period": 2,
     "infectious_period": 1,
     "preclinical_period": 2,
     "prob_vaccinate": 0.5,
     "clinical_reporting_threshold": 0.05,
-    "prob_report": 0.5,
-    "movement_probability": 0.1,
+    "prob_report": 0.7,
+    "movement_probability": 0.5,
     "movement_prop_animals": 0.2,
 }
 disease = "low_incubation"

@@ -157,7 +157,7 @@ class Premises(Property):
             x, y = self.coordinates
 
             location = self.geolocator.reverse(f"{y},{x}")
-            report = f"DAY {self.notification_date}\nIP {self.ip}, {round(self.area,1)} ha cattle property at location (x,y)={round(x,2)}, {round(y,2)}, {location}, has been reported infected.\nA total of {self.size} animals have been culled.\n"
+            report = f"DAY {self.notification_date}\nIP {self.ip}, {round(self.area,1)} ha cattle property at location (x,y)=({round(x,2)}, {round(y,2)}), {location}, has been reported infected.\nA total of {self.size} animal(s) have been culled.\n"
 
         return report
 

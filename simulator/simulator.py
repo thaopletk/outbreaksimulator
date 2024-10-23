@@ -119,6 +119,28 @@ def seed_infection(xrange, yrange, properties):
     return properties, seed_property
 
 
+def initialise_infection_vaccination(
+    properties, n, xrange, yrange, init_vax_probability, time=0
+):
+    # seed infection (in the center third)
+    properties, seed_property = seed_infection(xrange, yrange, properties)
+
+    # initialise list of cumulative infections from each property - calculated for FOI every loop
+    cumulative_infection_proportions = list(np.zeros(n))
+    cumulative_infection_proportions[seed_property] = (
+        properties[seed_property].cumulative_infections / properties[seed_property].size
+    )
+
+    # set up some random initial vaccination
+    for i, premise in enumerate(properties):
+        if premise.infection_status != 1:
+            premise.vaccination(
+                init_vax_probability, properties, time, culled_neighbours_only=False
+            )
+
+    return properties, seed_property, cumulative_infection_proportions
+
+
 # based from the fmdmodelling function FMD_ABM, but with modifications (e.g. around saving data at various time points)
 def simulate_outbreak(
     n,
@@ -159,27 +181,22 @@ def simulate_outbreak(
     total_culled = 0
     total_vaccinated = 0
     time = 0
+
     controlzone = None
+
+    report = ""
+    movement_records = []
+    contact_tracing_reports = ""
 
     # limits for the figures
     xlims = [round(xrange[0], 2) - 0.005, round(xrange[1], 2) + 0.005]
     ylims = [round(yrange[0], 1) - 0.05, round(yrange[1], 1) + 0.05]
 
-    # seed infection (in the center third)
-    properties, seed_property = seed_infection(xrange, yrange, properties)
-
-    # initialise list of cumulative infections from each property - calculated for FOI every loop
-    cumulative_infection_proportions = list(np.zeros(n))
-    cumulative_infection_proportions[seed_property] = (
-        properties[seed_property].cumulative_infections / properties[seed_property].size
+    properties, seed_property, cumulative_infection_proportions = (
+        initialise_infection_vaccination(
+            properties, n, xrange, yrange, init_vax_probability
+        )
     )
-
-    # set up some random initial vaccination
-    for i, premise in enumerate(properties):
-        if premise.infection_status != 1:
-            premise.vaccination(
-                init_vax_probability, properties, time, culled_neighbours_only=False
-            )
 
     if plotting:
         output.plot_map(
@@ -203,17 +220,14 @@ def simulate_outbreak(
             controlzone=controlzone,
         )
 
-    report = ""
-
-    movement_records = []
-
     # spread begins here:
 
     FOI = list(np.zeros(n))
-    plt.figure()
+    # plt.figure()
     # start time loop
     infected_sum = 1  # so the while loop begins
-    while infected_sum > 0 and time < stop_time:
+    properties_to_contact_trace = []
+    while time < stop_time:  # infected_sum > 0 and
         time += 1
 
         # TODO : no controls for now, will update later
@@ -253,6 +267,25 @@ def simulate_outbreak(
                     properties, i, vax_modifier, r_wind, beta_wind, beta_animal
                 )
 
+        # conduct contact tracing of properties that reported yesterday
+        traced_contacts = []
+        for property_index in properties_to_contact_trace:
+            contact_tracing_report, traced_property_indices = (
+                management.contact_tracing(property_index, movement_records, time)
+            )
+            contact_tracing_reports += contact_tracing_report
+            traced_contacts.extend(traced_property_indices)
+
+        # now, reset the contact tracing "queue"
+        properties_to_contact_trace = []
+
+        # TODO: do something about the contact tracing
+        # 1. plot out a "network" of the contact traced properties
+        # 2. Conduct testing of traced properties
+        # 3. Apply movement standstill to traced properties
+        for index in traced_contacts:
+            pass
+
         # vaccinate properties around culled (reported) properties
         for premise in properties:
             if not premise.culled_status and not premise.infection_status:
@@ -261,11 +294,13 @@ def simulate_outbreak(
                 )
 
         # check if any properties now want to report
-        for premise in properties:
+        for i, premise in enumerate(properties):
             if not premise.culled_status:
                 report += premise.reporting(
                     clinical_reporting_threshold, prob_report, time
                 )
+                if premise.reported_status == True:
+                    properties_to_contact_trace.append(i)
 
         # run infection model for each property
         for i, premise in enumerate(properties):
@@ -372,6 +407,10 @@ def simulate_outbreak(
     # output "reports" report
     with open(os.path.join(folder_path, "report.txt"), "w") as file:
         file.write(report)
+
+    # output contact tracing reports
+    with open(os.path.join(folder_path, "report_contact_tracing.txt"), "w") as file:
+        file.write(contact_tracing_reports)
 
     # write movement records
 
