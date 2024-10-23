@@ -12,7 +12,7 @@ import simulator.management as management
 import simulator.premises as premises
 import simulator.SEIR as SEIR
 import simulator.output as output
-import FMD_modelling.animal_movement_code as animal_movement_code
+import simulator.animal_movement as animal_movement
 
 
 # based from the fmdmodelling function FMD_ABM, but with modifications
@@ -205,6 +205,8 @@ def simulate_outbreak(
 
     report = ""
 
+    movement_records = []
+
     # spread begins here:
 
     FOI = list(np.zeros(n))
@@ -272,16 +274,16 @@ def simulate_outbreak(
             )
 
         # movement of animals
-        animal_movement_code.animal_movement(
+        movement_record = animal_movement.animal_movement(
             properties,
-            {
-                "n": n,
-                "movement_frequency": movement_frequency,
-                "movement_probability": movement_probability,
-                "movement_prop_animals": movement_prop_animals,
-            },
-            time,
+            n=n,
+            movement_frequency=movement_frequency,
+            movement_probability=movement_probability,
+            movement_prop_animals=movement_prop_animals,
+            day=time,
         )
+        if movement_record != []:
+            movement_records.extend(movement_record)
 
         # update counts
         # simulation ends when infected_sum = 0
@@ -370,5 +372,25 @@ def simulate_outbreak(
     # output "reports" report
     with open(os.path.join(folder_path, "report.txt"), "w") as file:
         file.write(report)
+
+    # write movement records
+
+    header = [
+        "time",
+        "moving from index",
+        "moving to index",
+        "report",
+    ]
+    file = os.path.join(folder_path, f"movement_records.csv")
+    with open(file, "w", newline="") as f:
+
+        # create the csv writer
+        writer = csv.writer(f)
+
+        # write the header
+        writer.writerow(header)
+
+        for row in movement_records:
+            writer.writerow(row)
 
     return total_culled, total_vaccinated
