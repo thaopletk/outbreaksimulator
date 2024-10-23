@@ -6,6 +6,7 @@
 import sys
 import os
 import numpy as np
+from geopy.geocoders import Nominatim
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -54,7 +55,10 @@ class Premises(Property):
     """
 
     id_iter = itertools.count()
-    notified_iter = itertools.count()
+    notified_iter = itertools.count(
+        start=1
+    )  # IP (infected properties) should start from 1
+    geolocator = Nominatim(user_agent="http")
 
     # area in hectares
     def __init__(
@@ -144,12 +148,18 @@ class Premises(Property):
                 "prob_report": prob_report,
             }
         )
+        report = ""
         if self.culled_status == 1:
             self.notification_date = convert_time_to_date(time)
             self.status = "IP"
             self.ip = next(Premises.notified_iter)
             self.reported_status = True
-        return
+            x, y = self.coordinates
+
+            location = self.geolocator.reverse(f"{y},{x}")
+            report = f"DAY {self.notification_date}\nIP {self.ip}, {round(self.area,1)} ha cattle property at location (x,y)={round(x,2)}, {round(y,2)}, {location}, has been reported infected.\nA total of {self.size} animals have been culled.\n"
+
+        return report
 
     def infection_model(
         self, latent_period, infectious_period, preclinical_period, FOI, time

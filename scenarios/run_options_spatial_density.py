@@ -22,7 +22,7 @@ folder_path_main = os.path.join(
 if not os.path.exists(folder_path_main):
     os.makedirs(folder_path_main)
 
-for n in [100, 1000, 10000]:
+for n in [100, 500, 1000]:
 
     set_up_params = {
         "n": n,  # total number of properties to include

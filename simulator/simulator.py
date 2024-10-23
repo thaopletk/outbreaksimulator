@@ -203,6 +203,8 @@ def simulate_outbreak(
             controlzone=controlzone,
         )
 
+    report = ""
+
     # spread begins here:
 
     FOI = list(np.zeros(n))
@@ -259,7 +261,9 @@ def simulate_outbreak(
         # check if any properties now want to report
         for premise in properties:
             if not premise.culled_status:
-                premise.reporting(clinical_reporting_threshold, prob_report, time)
+                report += premise.reporting(
+                    clinical_reporting_threshold, prob_report, time
+                )
 
         # run infection model for each property
         for i, premise in enumerate(properties):
@@ -362,5 +366,9 @@ def simulate_outbreak(
         for premise in properties:
             row = premise.return_output_row()
             writer.writerow(row)
+
+    # output "reports" report
+    with open(os.path.join(folder_path, "report.txt"), "w") as file:
+        file.write(report)
 
     return total_culled, total_vaccinated
