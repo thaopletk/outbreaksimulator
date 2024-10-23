@@ -3,6 +3,7 @@ import pyproj
 from functools import partial
 from shapely.geometry import Polygon, Point, LineString, MultiPolygon
 from shapely.ops import transform, unary_union
+from simulator.premises import convert_time_to_date
 
 
 def geodesic_point_buffer(lat, lon, km):
@@ -30,3 +31,38 @@ def define_control_zone_circles(coordinates, radius_km):
     controlzone = unary_union(list_of_polygons)
 
     return controlzone
+
+
+# could probably run this recursively
+def contact_tracing(property_index, movement_records, time):
+    """Contact tracing
+
+    assumes records in form [time, property index from, property index to, string-report] (should do a check)
+
+    """
+
+    contact_tracing_report = f"DAY {convert_time_to_date(time)} - contact tracing report compiled for movements from property index {property_index}\n"
+    traced_property_indices = []
+
+    if len(movement_records) != 0:
+        # check the length of movement records (a minimum requirement)
+        if len(movement_records[0]) == 4:
+
+            # go through the movement records, and look for animal movements off the property
+            for record in movement_records:
+                if record[1] == property_index:
+                    traced_property_indices.append(record[2])
+                    contact_tracing_report = (
+                        contact_tracing_report + " - " + record[3] + "\n"
+                    )
+
+    return contact_tracing_report, traced_property_indices
+
+
+def testing(properties, property_indices, time):
+    """Testing
+
+    Conducts testing on the property indices
+
+    """
+    pass
