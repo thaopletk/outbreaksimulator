@@ -16,7 +16,7 @@ xrange = [150, 151]
 yrange = [-30, -29]
 
 set_up_params = {
-    "n": 20,  # total number of properties to include
+    "n": 25,  # total number of properties to include
     "r_wind": 25,  # note that this should be in KILOMETERS, the maximum wind dispersal distance
     "xrange": xrange,
     "yrange": yrange,
