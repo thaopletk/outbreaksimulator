@@ -1,7 +1,7 @@
 # infectious animal disease Outbreak Simulator (iadOS)
 For ARDC-HASTE project
 
-**Code written by Isobel Abell and Thao P. Le**
+**Code written by Thao P. Le and Isobel Abell**
 (base code and FMD_modelling module written by Isobel Abell, and adapted by Thao P. Le)
 
 **FMD_modelling** folder: submodule containing infectious disease spread code
@@ -10,7 +10,15 @@ For ARDC-HASTE project
 
 **scenarios** folder: contains the code that calls the simulation code
 
-**tests** folder: should contain tests (hah)
+**tests** folder: contains some tests
+
+
+![Diagram of the current state of the outbreak simulator, including disease dynamics, spread, simulation code, spatial arrangement, management](images/outbreak_simulator_model_current_status.png)
 
 
 ![Diagram of the planned outbreak simulator, including disease dynamics, spread, simulation code, spatial arrangement, management](images/outbreak_simulator_model_diagram.png)
+
+
+![Example of a generated base map](images/base_map.png)
+
+![Example (snapshot) of an outbreak](images/simulator_snapshot.png)
