@@ -60,7 +60,8 @@ def animal_movement(
                         # check if distance is less than max distance max_movement_distance
                         if (
                             quick_distance_haversine(
-                                properties[premise_index].coords, properties[i].coords
+                                properties[premise_index].coordinates,
+                                properties[i].coordinates,
                             )
                             < max_movement_distance
                         ):

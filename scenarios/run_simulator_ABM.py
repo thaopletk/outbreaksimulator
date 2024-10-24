@@ -85,5 +85,8 @@ total_culled, total_vaccinated, properties = simulator.simulate_outbreak(
     movement_restrictions=True,
     movement_restriction_radius_km=10,
     movement_restriction_convex=True,
+    ring_vaccination=True,
+    ring_vaccination_radius_km=20,
+    ring_vaccination_convex=False,
     **params,
 )

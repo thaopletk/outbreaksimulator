@@ -175,27 +175,33 @@ def plot_map(
     """
     fig, ax = plt.subplots(1, 1, figsize=(20, 15))  # ,figsize=(10,12)
 
-    if controlzone != None:
-        try:
-            plot_polygon(
-                ax,
-                controlzone,
-                facecolor="tomato",
-                edgecolor="maroon",
-                alpha=0.4,
-                label="control zone",
-            )
+    colour_dictionary = {
+        "movement restrictions": "tomato",
+        "ring vaccination": "deepskyblue",
+    }
 
-        except:
-            for subpoly in controlzone:
+    if controlzone != None and controlzone != {}:
+        for control_type, zone in controlzone.items():
+            try:
                 plot_polygon(
                     ax,
-                    subpoly,
-                    facecolor="tomato",
+                    zone,
+                    facecolor=colour_dictionary[control_type],
                     edgecolor="maroon",
-                    alpha=0.4,
-                    label="control zone",
+                    alpha=0.2,
+                    label=control_type,
                 )
+
+            except:
+                for subpoly in zone:
+                    plot_polygon(
+                        ax,
+                        subpoly,
+                        facecolor=colour_dictionary[control_type],
+                        edgecolor="maroon",
+                        alpha=0.2,
+                        label=control_type,
+                    )
 
     # network = []
     geometry_infected = []
