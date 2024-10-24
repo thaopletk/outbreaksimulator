@@ -12,13 +12,19 @@ For ARDC-HASTE project
 
 **tests** folder: contains some tests
 
-
-![Diagram of the current state of the outbreak simulator, including disease dynamics, spread, simulation code, spatial arrangement, management](images/outbreak_simulator_model_current_status.png)
-
+# Planned outbreak simulator
 
 ![Diagram of the planned outbreak simulator, including disease dynamics, spread, simulation code, spatial arrangement, management](images/outbreak_simulator_model_diagram.png)
 
+# Current state
+
+![Diagram of the current state of the outbreak simulator, including disease dynamics, spread, simulation code, spatial arrangement, management](images/outbreak_simulator_model_current_status.png)
+
+![Diagram of the current state of management](images/management_process.png)
+
+# Example outputs
 
 ![Example of a generated base map](images/base_map.png)
 
-![Example (snapshot) of an outbreak](images/simulator_snapshot.png)
+![Example (snapshot) of an outbreak](images/simulation_snapshot.png)
+
