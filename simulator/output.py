@@ -1,6 +1,8 @@
 """ Data visualisation and pickle outputs
 
-    Based on FMD_modelling plotting_code.py, but adapted for "real locations" (i.e. spatially located)
+    Based on FMD_modelling plotting_code.py, but adapted for "real locations" (i.e. spatially located).
+
+    This script produces output plots (static, gifs and mp4 animations) of the outbreak.
 
 """
 
@@ -19,8 +21,12 @@ from moviepy.editor import ImageSequenceClip
 from simulator.premises import convert_time_to_date
 
 
-# https://coderslegacy.com/python/plotting-shapely-polygons-with-interiors-holes/
 def plot_polygon(ax, poly, **kwargs):
+    """Plot a polygon
+
+    Based on code from https://coderslegacy.com/python/plotting-shapely-polygons-with-interiors-holes/
+
+    """
     path = Path.make_compound_path(
         Path(np.asarray(poly.exterior.coords)[:, :2]),
         *[Path(np.asarray(ring.coords)[:, :2]) for ring in poly.interiors],
@@ -42,6 +48,8 @@ def plot_property_coordinates(
     file_name="base_map.png",
     colour="orange",
 ):
+    """Plot properties' coordinates (centers) only"""
+
     fig, ax = plt.subplots(1, 1, figsize=(20, 15))  # ,figsize=(10,12)
 
     farms = []
@@ -103,6 +111,7 @@ def plot_property_coordinates(
 def plot_map_land(
     property_polygons, property_polygons_puffed, xlims, ylims, folder_path
 ):
+    """Plot property boundaries"""
     fig, ax = plt.subplots(1, 1, figsize=(20, 15))  # ,figsize=(10,12)
 
     for poly in property_polygons_puffed:
@@ -143,10 +152,6 @@ def plot_map_land(
     ax.tick_params(axis="x", labelsize=14)
     ax.tick_params(axis="y", labelsize=14)
 
-    # if time < 10:
-    #     file_name = "0" + str(time)  + ".png"
-    # else:
-    #     file_name = str(time) + ".png"
     file_name = "base_map.png"
 
     file_name = os.path.join(folder_path, file_name)
@@ -168,9 +173,29 @@ def plot_map(
     infectionpoly=False,
     contacts_for_plotting={},
 ):
-    """Plot map
+    """Plot map during an outbreak
 
-    Plots map (with map background)
+    Parameters
+    ----------
+    properties : list of premises
+        list of properties (Premises objects)
+    property_coordinates : list
+        list of properties' center coordinates
+    time : int
+        current simulation time (will be converted into a date)
+    xlims : list
+        the figure's x-limits
+    ylims : list
+        the figure's y-limits
+    folder_path : str
+        save location for the image
+    controlzone : dict of polygons
+        Dictionary containing any control zones to be plotted. Currently accepts control zones for movement restrictions, ring vaccination, and ring culling
+    infectionpoly : bool
+        determines whether to plot an extra polygon to show the 'shape' of infected properties
+    contacts_for_plotting : dict of property indices
+        in form [source-property] : [properties that it had sent animals to recently], to plot the results of contact tracing
+
 
     """
     fig, ax = plt.subplots(1, 1, figsize=(20, 15))  # ,figsize=(10,12)
@@ -204,12 +229,10 @@ def plot_map(
                         label=control_type,
                     )
 
-    # network = []
     geometry_infected = []
     geometry_culled = []
     geometry_vaccinated = []
     geometry_susceptible = []
-    # nodes
 
     for key, value in contacts_for_plotting.items():
         premise = properties[key]
@@ -261,19 +284,15 @@ def plot_map(
             curr_farm = Point(long, lat)
 
             if premise.infection_status:
-                # plt.scatter(premise.coordinates[0], premise.coordinates[1], color = 'purple', label = 'infected')
                 geometry_infected.append(curr_farm)
                 infected_coords.append(premise.coordinates)
             elif premise.culled_status:
-                # plt.scatter(premise.coordinates[0], premise.coordinates[1], color = 'red', label = 'culled')
                 geometry_culled.append(curr_farm)
                 infected_coords.append(premise.coordinates)
 
             elif premise.vaccination_status:
-                # plt.scatter(premise.coordinates[0], premise.coordinates[1], color = 'green', label = 'vaccinated')
                 geometry_vaccinated.append(curr_farm)
             else:
-                # plt.scatter(premise.coordinates[0], premise.coordinates[1], color = 'orange', label = 'susceptible')
                 geometry_susceptible.append(curr_farm)
         if infectionpoly == True:
             if len(infected_coords) > 2:
@@ -296,19 +315,13 @@ def plot_map(
             long, lat = premise.coordinates
             curr_farm = Point(long, lat)
 
-            # if premise.infection_status:
-            #     # plt.scatter(premise.coordinates[0], premise.coordinates[1], color = 'purple', label = 'infected')
-            #     geometry_infected.append(curr_farm)
             if premise.culled_status:
-                # plt.scatter(premise.coordinates[0], premise.coordinates[1], color = 'red', label = 'culled')
                 geometry_culled.append(curr_farm)
                 infected_coords.append(premise.coordinates)
 
             elif premise.vaccination_status:
-                # plt.scatter(premise.coordinates[0], premise.coordinates[1], color = 'green', label = 'vaccinated')
                 geometry_vaccinated.append(curr_farm)
             else:
-                # plt.scatter(premise.coordinates[0], premise.coordinates[1], color = 'orange', label = 'susceptible')
                 geometry_susceptible.append(curr_farm)
 
         if infectionpoly == True:
@@ -387,10 +400,6 @@ def plot_map(
     ax.tick_params(axis="x", labelsize=14)
     ax.tick_params(axis="y", labelsize=14)
 
-    # if time < 10:
-    #     file_name = "0" + str(time)  + ".png"
-    # else:
-    #     file_name = str(time) + ".png"
     file_name = str(time) + ".png"
 
     if real_situation:
@@ -418,37 +427,21 @@ def save_data_properties(properties, folder_path):
     with open(os.path.join(folder_path, "properties_initialised.pickle"), "wb") as file:
         pickle.dump(to_save, file)
 
-    # with open(os.path.join(folder_path,"properties"+str(time)), 'wb') as file:
-    #     pickle.dump(properties, file)
-    # with open(os.path.join(folder_path,"property_coordinates"+str(time)), 'wb') as file:
-    #     pickle.dump(property_coordinates, file)
-
     return
 
 
 def save_data(properties, property_coordinates, time, controlzone, folder_path):
-
-    # folder_path = os.path.join(os.path.dirname(__file__),save_folder)
 
     to_save = [properties, property_coordinates, time, controlzone]
 
     with open(os.path.join(folder_path, "data" + str(time)), "wb") as file:
         pickle.dump(to_save, file)
 
-    # with open(os.path.join(folder_path,"properties"+str(time)), 'wb') as file:
-    #     pickle.dump(properties, file)
-    # with open(os.path.join(folder_path,"property_coordinates"+str(time)), 'wb') as file:
-    #     pickle.dump(property_coordinates, file)
-
     return
 
 
 def make_video(folder_path="outputs", prefix="map", times=None, save_name_prefix=""):
-
-    # folder_path = os.path.join(os.path.dirname(__file__),save_folder)
-
-    # current_dir = os.getcwd()
-    # parent_dir = os.path.dirname(current_dir)
+    """Outputs a gif and mp4 of the outbreak, based on saved png images"""
 
     image_files = []
     if times == None:
@@ -463,9 +456,6 @@ def make_video(folder_path="outputs", prefix="map", times=None, save_name_prefix
             file_path = os.path.join(folder_path, f"{prefix}{time}.png")
             image_files.append(file_path)
 
-    # image_files = [os.path.join(folder_path, img) for img in sorted(os.listdir(folder_path)) if img.endswith(('png')) and img.startswith((prefix))]
-
-    # file_path = str(parent_dir) + "*.eps"
     fps = 1
     clip = ImageSequenceClip(image_files, fps=fps)
     output_file = os.path.join(
@@ -473,15 +463,9 @@ def make_video(folder_path="outputs", prefix="map", times=None, save_name_prefix
     )
 
     clip.write_videofile(output_file)
-    # ffmpeg.input(file_path, pattern_type = 'glob', framerate = 1).output('plot.mp4').run()
 
     clip.write_gif(
         os.path.join(folder_path, save_name_prefix + prefix + "plot_video.gif")
     )
-
-    # with imageio.get_writer( os.path.join(folder_path,save_name_prefix+prefix+'plot_video.gif'), mode='I',duration=1/fps) as writer:
-    #     for filename in image_files:
-    #         image = imageio.imread(filename)
-    #         writer.append_data(image)
 
     return

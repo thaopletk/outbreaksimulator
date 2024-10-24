@@ -1,3 +1,14 @@
+"""Simulator
+
+    Runs parts of the simulation. Adapted from FMD_modelling, abm_fn.py
+    Adjusted to have explicit parameter requirements rather than a dictionary with params
+
+    Typical workflow involves calling:
+    * property_setup
+    * simulate_outbreak
+
+"""
+
 import sys
 import os
 
@@ -15,9 +26,8 @@ import simulator.output as output
 import simulator.animal_movement as animal_movement
 
 
-# based from the fmdmodelling function FMD_ABM, but with modifications
-# adjusted to have explicit parameter requirements rather than a dictionary with params
-# average animals per hectare estimated vaguely from here, expecting that a cow needs ~10 hectares of land to raise - https://www.farmstyle.com.au/forum/raising-cattle-meat-how-many-acre
+#
+#
 
 
 # TODO this could be moved into the spatial_setup file...
@@ -35,7 +45,16 @@ def property_setup(
     """
 
     n: int
-        Number of properties
+        Number of properties to generate
+    r_wind : int, double
+        Distance in kilometers, to define wind neighbours
+    average_property_ha : int, double
+        Not actually the average property hectares generated at the moment... but as a rough guide (TODO - adjust generation to make this value the actual average?)
+    average_animals_per_ha : double
+        Average number of animals per hectare, to initialise properties
+        The default value comes from https://www.farmstyle.com.au/forum/raising-cattle-meat-how-many-acre where a cow needs ~10 hectares of land to raise
+    movement_frequency : int
+        Properties might move animals every x days
     """
 
     (
@@ -92,10 +111,10 @@ def property_setup(
 
 
 def seed_infection(xrange, yrange, properties):
+    """Send infection in the middle third of the map if possible (we don't want the outbreak spreading to edges and stop simply because of the unnatural map boundaries)"""
     seed_property = 0  # default
     seed_animal = 0
 
-    # send infection in the middle third of the map (we don't want the outbreak spreading to edges and stop simply because of the unnatural map boundaries)
     # property coordinates allocated at random, so we can just go through one-by-one to find a suitable property to see
     x_width = xrange[1] - xrange[0]
     y_width = yrange[1] - yrange[0]

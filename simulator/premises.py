@@ -1,6 +1,9 @@
 """ Premises class definition 
 
     The premises class describes farms (or other properties), with attributes such as location and size
+
+    Expands upon the Property class from FMD_Modelling
+
 """
 
 import sys
@@ -39,7 +42,7 @@ def convert_time_to_date(
 # for now, we need additional parameters, hence inheriting from the fmdmodelling code
 class Premises(Property):
     """
-    A class used to present premises/properties in the model
+    A class used to represent premises/properties in the model
 
     Since we need additional parameters, this class inherits the Property class from the fmdmodelling code (class_definitions.py)
 
@@ -142,6 +145,7 @@ class Premises(Property):
         return
 
     def cull_without_reporting(self, time):
+        """Cull without reporting - useful for ring culling"""
         self.infection_status = 0
         self.culled_status = 1
         # all animals culled
