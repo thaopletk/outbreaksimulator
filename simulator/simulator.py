@@ -170,6 +170,9 @@ def simulate_outbreak(
     movement_restrictions=False,
     movement_restriction_radius_km=None,
     movement_restriction_convex=None,
+    ring_vaccination=False,
+    ring_vaccination_radius_km=None,
+    ring_vaccination_convex=None,
     **_,
 ):
     """Run the simulated outbreak
@@ -186,7 +189,7 @@ def simulate_outbreak(
     total_vaccinated = 0
     time = 0
 
-    controlzone = None
+    controlzone = {}  # dictionary, of different types control zones, if necessary
 
     report = ""
     movement_records = []
@@ -286,6 +289,29 @@ def simulate_outbreak(
             traced_contacts.extend(traced_property_indices)
             contacts_for_plotting[property_index] = traced_property_indices
 
+        # implementing ring vaccination
+        if ring_vaccination:
+            source_indices = []
+            for i, premise in enumerate(properties):
+                if premise.reported_status == True:
+                    source_indices.append(i)
+
+            if source_indices != []:
+                controlzone_ring_vaccination = management.define_control_zone_polygons(
+                    properties,
+                    source_indices,
+                    ring_vaccination_radius_km,
+                    convex=ring_vaccination_convex,
+                )
+
+                controlzone["ring vaccination"] = controlzone_ring_vaccination
+
+                for premise in properties:
+                    if not premise.culled_status and premise.polygon.intersects(
+                        controlzone_ring_vaccination
+                    ):
+                        premise.vaccinate(time)
+
         # vaccinate properties around culled (reported) properties
         for premise in properties:
             if not premise.culled_status and not premise.infection_status:
@@ -315,6 +341,7 @@ def simulate_outbreak(
 
         # calculate movement restriction zones before animal movement
         # TODO: can implement some kind of policy_start variable
+        controlzone_movement_restrictions = None
         if movement_restrictions:
             source_indices = []
             for i, premise in enumerate(properties):
@@ -322,12 +349,15 @@ def simulate_outbreak(
                     source_indices.append(i)
 
             if source_indices != []:
-                controlzone = management.define_control_zone_polygons(
-                    properties,
-                    source_indices,
-                    movement_restriction_radius_km,
-                    convex=movement_restriction_convex,
+                controlzone_movement_restrictions = (
+                    management.define_control_zone_polygons(
+                        properties,
+                        source_indices,
+                        movement_restriction_radius_km,
+                        convex=movement_restriction_convex,
+                    )
                 )
+                controlzone["movement restrictions"] = controlzone_movement_restrictions
 
         # movement of animals
         movement_record = animal_movement.animal_movement(
@@ -337,7 +367,7 @@ def simulate_outbreak(
             movement_probability=movement_probability,
             movement_prop_animals=movement_prop_animals,
             day=time,
-            controlzone=controlzone,
+            controlzone=controlzone_movement_restrictions,
         )
         if movement_record != []:
             movement_records.extend(movement_record)

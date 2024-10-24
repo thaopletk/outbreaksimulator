@@ -57,7 +57,7 @@ for (
     movement_restrictions,
     movement_restriction_radius_km,
     movement_restriction_convex,
-) in [[False, None, None], [True, 10, False][True, 10, True]]:
+) in [[False, None, None], [True, 10, False], [True, 10, True]]:
 
     # check if there already exists a properties_initialised.pickle in the folder, and if so, load that instead of re-running property set_up
     # TODO - would be to also save the setup params, and check that the saved setup params match the ones above
