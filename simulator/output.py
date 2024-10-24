@@ -178,6 +178,7 @@ def plot_map(
     colour_dictionary = {
         "movement restrictions": "tomato",
         "ring vaccination": "deepskyblue",
+        "ring culling": "black",
     }
 
     if controlzone != None and controlzone != {}:

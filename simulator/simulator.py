@@ -173,6 +173,9 @@ def simulate_outbreak(
     ring_vaccination=False,
     ring_vaccination_radius_km=None,
     ring_vaccination_convex=None,
+    ring_culling=False,
+    ring_culling_radius_km=None,
+    ring_culling_convex=None,
     **_,
 ):
     """Run the simulated outbreak
@@ -187,6 +190,7 @@ def simulate_outbreak(
     """
     total_culled = 0
     total_vaccinated = 0
+    total_culled_animals = 0
     time = 0
 
     controlzone = {}  # dictionary, of different types control zones, if necessary
@@ -266,7 +270,10 @@ def simulate_outbreak(
             # given that I mostly copied this from the code below, this suggests that it could be encapsulated better...
             for index in positive_indices:
                 premise = properties[index]
-                premise_report = premise.reporting(0, 0, time=time, force_report=True)
+                premise_report, culled_animals = premise.reporting(
+                    0, 0, time=time, force_report=True
+                )
+                total_culled_animals += culled_animals
                 premise_report = "REPORTED AFTER POSTIVE TEST: " + premise_report
                 report += premise_report
                 combined_narrative += premise_report
@@ -289,13 +296,36 @@ def simulate_outbreak(
             traced_contacts.extend(traced_property_indices)
             contacts_for_plotting[property_index] = traced_property_indices
 
+        source_indices = []
+        for i, premise in enumerate(properties):
+            if premise.reported_status == True:
+                source_indices.append(i)
+
+        # implement ring culling
+        if ring_culling:
+            if source_indices != []:
+                controlzone_ring_culling = management.define_control_zone_polygons(
+                    properties,
+                    source_indices,
+                    ring_culling_radius_km,
+                    convex=ring_culling_convex,
+                )
+
+                controlzone["ring culling"] = controlzone_ring_culling
+
+                for premise in properties:
+                    if not premise.culled_status and premise.polygon.intersects(
+                        controlzone_ring_culling
+                    ):
+                        premise_report, culled_animals = premise.cull_without_reporting(
+                            time
+                        )
+                        total_culled_animals += culled_animals
+                        report += premise_report
+                        combined_narrative += premise_report
+
         # implementing ring vaccination
         if ring_vaccination:
-            source_indices = []
-            for i, premise in enumerate(properties):
-                if premise.reported_status == True:
-                    source_indices.append(i)
-
             if source_indices != []:
                 controlzone_ring_vaccination = management.define_control_zone_polygons(
                     properties,
@@ -322,9 +352,10 @@ def simulate_outbreak(
         # check if any properties now want to report
         for i, premise in enumerate(properties):
             if not premise.culled_status:
-                premise_report = premise.reporting(
+                premise_report, culled_animals = premise.reporting(
                     clinical_reporting_threshold, prob_report, time
                 )
+                total_culled_animals += culled_animals
                 report += premise_report
                 combined_narrative += premise_report
                 if premise.reported_status == True:
@@ -429,7 +460,7 @@ def simulate_outbreak(
             total_vaccinated += 1
 
     # should add in a total culled animals
-    combined_narrative += f"\n Total culled properties: {total_culled}; total vaccinated properties: {total_vaccinated}"
+    combined_narrative += f"\n==============\nTotal culled properties: {total_culled}; total vaccinated properties: {total_vaccinated}; total culled animals: {total_culled_animals}"
 
     # print output
     header = [

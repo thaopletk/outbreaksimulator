@@ -141,6 +141,24 @@ class Premises(Property):
                 self.vaccinate(time)
         return
 
+    def cull_without_reporting(self, time):
+        self.infection_status = 0
+        self.culled_status = 1
+        # all animals culled
+        self.animals = []
+
+        report = ""
+        # no notification date
+        self.removal_date = convert_time_to_date(time)
+        # no change in "IP" status
+        self.reported_status = True
+        x, y = self.coordinates
+
+        location = self.geolocator.reverse(f"{y},{x}")
+        report = f"DAY {self.removal_date} - Property ID {self.id}, {round(self.area,1)} ha cattle property at location (x,y)=({round(x,2)}, {round(y,2)}), {location}, is within the ring culling zone.\nA total of {self.size} animal(s) have been culled.\n"
+
+        return report, self.size
+
     def reporting(
         self, clinical_reporting_threshold, prob_report, time, force_report=False
     ):
@@ -158,7 +176,9 @@ class Premises(Property):
             self.animals = []
 
         report = ""
+        culled_animals = 0
         if self.culled_status == 1:
+            culled_animals = self.size
             self.notification_date = convert_time_to_date(time)
             self.status = "IP"
             self.ip = next(Premises.notified_iter)
@@ -166,9 +186,9 @@ class Premises(Property):
             x, y = self.coordinates
 
             location = self.geolocator.reverse(f"{y},{x}")
-            report = f"DAY {self.notification_date} - IP {self.ip} (ID {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(x,2)}, {round(y,2)}), {location}, has been reported infected.\nA total of {self.size} animal(s) have been culled.\n"
+            report = f"DAY {self.notification_date} - IP {self.ip} (ID {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(x,2)}, {round(y,2)}), {location}, has been reported infected.\nA total of {culled_animals} animal(s) have been culled.\n"
 
-        return report
+        return report, culled_animals
 
     def infection_model(
         self, latent_period, infectious_period, preclinical_period, FOI, time
