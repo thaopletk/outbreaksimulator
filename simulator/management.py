@@ -4,6 +4,7 @@ from functools import partial
 from shapely.geometry import Polygon, Point, LineString, MultiPolygon
 from shapely.ops import transform, unary_union
 from simulator.premises import convert_time_to_date
+import numpy as np
 
 
 def geodesic_point_buffer(lat, lon, km):
@@ -34,14 +35,14 @@ def define_control_zone_circles(coordinates, radius_km):
 
 
 # could probably run this recursively
-def contact_tracing(property_index, movement_records, time):
+def contact_tracing(properties, property_index, movement_records, time):
     """Contact tracing
 
     assumes records in form [time, property index from, property index to, string-report] (should do a check)
 
     """
 
-    contact_tracing_report = f"DAY {convert_time_to_date(time)} - contact tracing report compiled for movements from property index {property_index}\n"
+    contact_tracing_report = f"DAY {convert_time_to_date(time)} - contact tracing report compiled for movements from IP {properties[property_index].ip} (ID {properties[property_index].id})\n"
     traced_property_indices = []
 
     if len(movement_records) != 0:
@@ -59,10 +60,30 @@ def contact_tracing(property_index, movement_records, time):
     return contact_tracing_report, traced_property_indices
 
 
-def testing(properties, property_indices, time):
+def testing(properties, property_indices, time, test_sensitivity):
     """Testing
 
     Conducts testing on the property indices
 
     """
-    pass
+    testing_report = f"DAY {convert_time_to_date(time)} - testing report\n"
+    positive_indices = []
+
+    for index in property_indices:
+        premise = properties[index]
+        if premise.culled_status:
+            testing_report += f"No testing: property index {index} (IP {premise.ip}) has already been culled\n"
+        elif premise.infection_status:
+            prob_successful = np.random.rand()
+            if prob_successful < test_sensitivity:
+                x, y = premise.coordinates
+                testing_report += f"Tested: property index {index} at location (x,y)=({round(x,2)}, {round(y,2)}) report POSITIVE result\n"
+                positive_indices.append(index)
+            else:
+                testing_report += (
+                    f"Tested: property index {index} report negative result\n"
+                )
+        else:
+            testing_report += f"Tested: property index {index} report negative result\n"
+
+    return testing_report, positive_indices

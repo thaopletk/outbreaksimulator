@@ -141,13 +141,22 @@ class Premises(Property):
                 self.vaccinate(time)
         return
 
-    def reporting(self, clinical_reporting_threshold, prob_report, time):
-        super().reporting(
-            {
-                "clinical_reporting_threshold": clinical_reporting_threshold,
-                "prob_report": prob_report,
-            }
-        )
+    def reporting(
+        self, clinical_reporting_threshold, prob_report, time, force_report=False
+    ):
+        if not force_report:
+            super().reporting(
+                {
+                    "clinical_reporting_threshold": clinical_reporting_threshold,
+                    "prob_report": prob_report,
+                }
+            )
+        else:
+            self.infection_status = 0
+            self.culled_status = 1
+            # all animals culled
+            self.animals = []
+
         report = ""
         if self.culled_status == 1:
             self.notification_date = convert_time_to_date(time)
@@ -157,7 +166,7 @@ class Premises(Property):
             x, y = self.coordinates
 
             location = self.geolocator.reverse(f"{y},{x}")
-            report = f"DAY {self.notification_date}\nIP {self.ip}, {round(self.area,1)} ha cattle property at location (x,y)=({round(x,2)}, {round(y,2)}), {location}, has been reported infected.\nA total of {self.size} animal(s) have been culled.\n"
+            report = f"DAY {self.notification_date} - IP {self.ip} (ID {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(x,2)}, {round(y,2)}), {location}, has been reported infected.\nA total of {self.size} animal(s) have been culled.\n"
 
         return report
 
