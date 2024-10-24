@@ -167,6 +167,9 @@ def simulate_outbreak(
     movement_probability=0.1,
     movement_prop_animals=0.1,
     test_sensitivity=0.9,
+    movement_restrictions=False,
+    movement_restriction_radius_km=None,
+    movement_restriction_convex=None,
     **_,
 ):
     """Run the simulated outbreak
@@ -237,35 +240,6 @@ def simulate_outbreak(
         properties_to_contact_trace_tomorrow = (
             []
         )  # properties collected today, to be traced tomorrow
-
-        # TODO : no controls for now, will update later
-        # if time >= params["policy_start"]:
-        #     # break/remove neighbour lines at radius r<= 'policy_r' around reported properties
-        #     coordlist_of_infected_properties = []
-        #     for i, premise in enumerate(properties):
-        #         if premise.reported_status == True:
-        #             coordlist_of_infected_properties.append(premise.coordinates)
-
-        #     if coordlist_of_infected_properties != []:
-
-        #         controlzone = management.define_control_zone_circles(
-        #             coordlist_of_infected_properties, params["policy_r"]
-        #         )
-
-        #         for i, premise in enumerate(properties):
-        #             if controlzone.contains(Point(premise.coordinates)):
-        #                 old_neighbourhood = premise.neighbourhood
-        #                 premise.neighbourhood = []
-        #                 premise.total_neighbours = 0
-        #                 # go through the old neighbours and remove their connection to this neighbour
-        #                 for farm in old_neighbourhood[:]:
-        #                     index = farm[0]
-        #                     neighbour = properties[index]
-        #                     neighbour_of_neighbour = neighbour.neighbourhood
-        #                     for x in neighbour_of_neighbour[:]:
-        #                         if x[0] == i:
-        #                             neighbour.neighbourhood.remove(x)
-        #                             break
 
         # calculate FOI for each property
 
@@ -339,6 +313,22 @@ def simulate_outbreak(
                 latent_period, infectious_period, preclinical_period, FOI[i], time
             )
 
+        # calculate movement restriction zones before animal movement
+        # TODO: can implement some kind of policy_start variable
+        if movement_restrictions:
+            source_indices = []
+            for i, premise in enumerate(properties):
+                if premise.reported_status == True:
+                    source_indices.append(i)
+
+            if source_indices != []:
+                controlzone = management.define_control_zone_polygons(
+                    properties,
+                    source_indices,
+                    movement_restriction_radius_km,
+                    convex=movement_restriction_convex,
+                )
+
         # movement of animals
         movement_record = animal_movement.animal_movement(
             properties,
@@ -347,6 +337,7 @@ def simulate_outbreak(
             movement_probability=movement_probability,
             movement_prop_animals=movement_prop_animals,
             day=time,
+            controlzone=controlzone,
         )
         if movement_record != []:
             movement_records.extend(movement_record)
@@ -479,4 +470,4 @@ def simulate_outbreak(
         for row in movement_records:
             writer.writerow(row)
 
-    return total_culled, total_vaccinated
+    return total_culled, total_vaccinated, properties

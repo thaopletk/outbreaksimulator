@@ -5,6 +5,7 @@ from shapely.geometry import Polygon, Point, LineString, MultiPolygon
 from shapely.ops import transform, unary_union
 from simulator.premises import convert_time_to_date
 import numpy as np
+from simulator.spatial_setup import geodesic_polygon_buffer
 
 
 def geodesic_point_buffer(lat, lon, km):
@@ -20,6 +21,7 @@ def geodesic_point_buffer(lat, lon, km):
 
 
 def define_control_zone_circles(coordinates, radius_km):
+    """Creates control zones around coordinates"""
     list_of_polygons = []
 
     for site in coordinates:
@@ -30,6 +32,27 @@ def define_control_zone_circles(coordinates, radius_km):
         list_of_polygons.append(poly)
 
     controlzone = unary_union(list_of_polygons)
+
+    return controlzone
+
+
+def define_control_zone_polygons(properties, source_indices, radius_km, convex=False):
+    """Creates control zones around properties"""
+    list_of_polygons = []
+
+    for i in source_indices:
+        # time to puff these polygons up
+
+        poly = properties[i].polygon
+        lat = properties[i].coordinates[1]  # y
+        lon = properties[i].coordinates[0]  # x
+        puff_p1 = geodesic_polygon_buffer(lat, lon, poly, radius_km)
+        list_of_polygons.append(puff_p1)
+
+    controlzone = unary_union(list_of_polygons)
+
+    if convex:
+        controlzone = controlzone.convex_hull
 
     return controlzone
 

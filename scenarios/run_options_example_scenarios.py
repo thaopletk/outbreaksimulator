@@ -25,32 +25,6 @@ set_up_params = {
     "movement_frequency": 3,
 }
 
-folder_path_main = os.path.join(
-    os.path.dirname(__file__), "outputs", "October_2024_options", "example_scenarios"
-)
-if not os.path.exists(folder_path_main):
-    os.makedirs(folder_path_main)
-
-# check if there already exists a properties_initialised.pickle in the folder, and if so, load that instead of re-running property set_up
-# TODO - would be to also save the setup params, and check that the saved setup params match the ones above
-properties_initialised = os.path.join(folder_path_main, "properties_initialised.pickle")
-if os.path.exists(properties_initialised):
-    with open(properties_initialised, "rb") as file:
-        property_setup_info = pickle.load(file)
-else:
-    property_setup_info = simulator.property_setup(folder_path_main, **set_up_params)
-
-
-(
-    properties,
-    property_coordinates,
-    adjacency_matrix,
-    neighbour_pairs,
-    neighbourhoods,
-    property_polygons,
-    property_polygons_puffed,
-    property_areas,
-) = property_setup_info
 
 params_low_incubation = {
     "init_vax_probability": 0,
@@ -73,23 +47,61 @@ disease = "example"
 params = {**set_up_params, **params_low_incubation}
 
 
-plotting = True
-unique_output = f'{disease}_{datetime.datetime.now().strftime("%Y-%m-%d %H.%M.%S")}'
-# make a new folder
-folder_path = os.path.join(folder_path_main, unique_output)
-if not os.path.exists(folder_path):
-    os.makedirs(folder_path)
-
-file = os.path.join(folder_path, "params.json")
-with open(file, "w") as f:
-    json.dump(params, f)
-
-
-simulator.simulate_outbreak(
-    plotting=plotting,
-    folder_path=folder_path,
-    properties=properties,
-    property_coordinates=property_coordinates,
-    unique_output=unique_output,
-    **params,
+folder_path_main = os.path.join(
+    os.path.dirname(__file__), "outputs", "October_2024_options", "example_scenarios"
 )
+if not os.path.exists(folder_path_main):
+    os.makedirs(folder_path_main)
+
+for (
+    movement_restrictions,
+    movement_restriction_radius_km,
+    movement_restriction_convex,
+) in [[False, None, None], [True, 10, False][True, 10, True]]:
+
+    # check if there already exists a properties_initialised.pickle in the folder, and if so, load that instead of re-running property set_up
+    # TODO - would be to also save the setup params, and check that the saved setup params match the ones above
+    properties_initialised = os.path.join(
+        folder_path_main, "properties_initialised.pickle"
+    )
+    if os.path.exists(properties_initialised):
+        with open(properties_initialised, "rb") as file:
+            property_setup_info = pickle.load(file)
+    else:
+        property_setup_info = simulator.property_setup(
+            folder_path_main, **set_up_params
+        )
+
+    (
+        properties,
+        property_coordinates,
+        adjacency_matrix,
+        neighbour_pairs,
+        neighbourhoods,
+        property_polygons,
+        property_polygons_puffed,
+        property_areas,
+    ) = property_setup_info
+
+    plotting = True
+    unique_output = f'{disease}_{datetime.datetime.now().strftime("%Y-%m-%d %H.%M.%S")}'
+    # make a new folder
+    folder_path = os.path.join(folder_path_main, unique_output)
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    file = os.path.join(folder_path, "params.json")
+    with open(file, "w") as f:
+        json.dump(params, f)
+
+    simulator.simulate_outbreak(
+        plotting=plotting,
+        folder_path=folder_path,
+        properties=properties,
+        property_coordinates=property_coordinates,
+        unique_output=unique_output,
+        movement_restrictions=movement_restrictions,
+        movement_restriction_radius_km=movement_restriction_radius_km,
+        movement_restriction_convex=movement_restriction_convex,
+        **params,
+    )

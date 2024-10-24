@@ -76,11 +76,14 @@ with open(file, "w") as f:
     json.dump(params, f)
 
 
-simulator.simulate_outbreak(
+total_culled, total_vaccinated, properties = simulator.simulate_outbreak(
     plotting=plotting,
     folder_path=folder_path,
     properties=properties,
     property_coordinates=property_coordinates,
     unique_output=unique_output,
+    movement_restrictions=True,
+    movement_restriction_radius_km=10,
+    movement_restriction_convex=True,
     **params,
 )
