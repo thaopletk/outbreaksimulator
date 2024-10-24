@@ -16,7 +16,7 @@ xrange = [150, 151]
 yrange = [-30, -29]
 
 set_up_params = {
-    "n": 25,  # total number of properties to include
+    "n": 30,  # total number of properties to include
     "r_wind": 25,  # note that this should be in KILOMETERS, the maximum wind dispersal distance
     "xrange": xrange,
     "yrange": yrange,
@@ -46,7 +46,7 @@ property_setup_info = simulator.property_setup(folder_path_main, **set_up_params
 
 params_low_incubation = {
     "init_vax_probability": 0,
-    "stop_time": 14,
+    "stop_time": 21,
     "vax_modifier": 0.4,
     "beta_wind": 2,
     "beta_animal": 4,
@@ -58,6 +58,7 @@ params_low_incubation = {
     "prob_report": 0.7,
     "movement_probability": 0.5,
     "movement_prop_animals": 0.2,
+    "test_sensitivity": 0.9,
 }
 disease = "low_incubation"
 

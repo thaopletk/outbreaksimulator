@@ -166,6 +166,7 @@ def simulate_outbreak(
     movement_frequency=10,
     movement_probability=0.1,
     movement_prop_animals=0.1,
+    test_sensitivity=0.9,
     **_,
 ):
     """Run the simulated outbreak
@@ -187,6 +188,8 @@ def simulate_outbreak(
     report = ""
     movement_records = []
     contact_tracing_reports = ""
+    testing_reports = ""
+    combined_narrative = ""
 
     # limits for the figures
     xlims = [round(xrange[0], 2) - 0.005, round(xrange[1], 2) + 0.005]
@@ -227,8 +230,13 @@ def simulate_outbreak(
     # start time loop
     infected_sum = 1  # so the while loop begins
     properties_to_contact_trace = []
+    traced_contacts = []
     while time < stop_time:  # infected_sum > 0 and
         time += 1
+
+        properties_to_contact_trace_tomorrow = (
+            []
+        )  # properties collected today, to be traced tomorrow
 
         # TODO : no controls for now, will update later
         # if time >= params["policy_start"]:
@@ -267,24 +275,40 @@ def simulate_outbreak(
                     properties, i, vax_modifier, r_wind, beta_wind, beta_animal
                 )
 
+        # Do something about the contact tracing reported yesterday
+        # TODO 1. plot out a "network" of the contact traced properties
+        # 2. Conduct testing of traced properties
+        # TODO 3. Apply movement standstill to traced properties
+        if traced_contacts != []:
+            testing_report, positive_indices = management.testing(
+                properties, traced_contacts, time, test_sensitivity
+            )
+            testing_reports += testing_report
+            combined_narrative += testing_report
+            # for any positive indices (properties found), we will need to enact "reporting" procedures
+            # given that I mostly copied this from the code below, this suggests that it could be encapsulated better...
+            for index in positive_indices:
+                premise = properties[index]
+                premise_report = premise.reporting(0, 0, time=time, force_report=True)
+                premise_report = "REPORTED AFTER POSTIVE TEST: " + premise_report
+                report += premise_report
+                combined_narrative += premise_report
+                if premise.reported_status == True:  # well, this should be true...
+                    properties_to_contact_trace_tomorrow.append(index)
+
+        traced_contacts = []  # reset this
+
         # conduct contact tracing of properties that reported yesterday
-        traced_contacts = []
+
         for property_index in properties_to_contact_trace:
             contact_tracing_report, traced_property_indices = (
-                management.contact_tracing(property_index, movement_records, time)
+                management.contact_tracing(
+                    properties, property_index, movement_records, time
+                )
             )
             contact_tracing_reports += contact_tracing_report
+            combined_narrative += contact_tracing_report
             traced_contacts.extend(traced_property_indices)
-
-        # now, reset the contact tracing "queue"
-        properties_to_contact_trace = []
-
-        # TODO: do something about the contact tracing
-        # 1. plot out a "network" of the contact traced properties
-        # 2. Conduct testing of traced properties
-        # 3. Apply movement standstill to traced properties
-        for index in traced_contacts:
-            pass
 
         # vaccinate properties around culled (reported) properties
         for premise in properties:
@@ -296,11 +320,16 @@ def simulate_outbreak(
         # check if any properties now want to report
         for i, premise in enumerate(properties):
             if not premise.culled_status:
-                report += premise.reporting(
+                premise_report = premise.reporting(
                     clinical_reporting_threshold, prob_report, time
                 )
+                report += premise_report
+                combined_narrative += premise_report
                 if premise.reported_status == True:
-                    properties_to_contact_trace.append(i)
+                    properties_to_contact_trace_tomorrow.append(i)
+
+        #
+        properties_to_contact_trace = list(set(properties_to_contact_trace_tomorrow))
 
         # run infection model for each property
         for i, premise in enumerate(properties):
@@ -360,6 +389,8 @@ def simulate_outbreak(
                 properties, property_coordinates, time, controlzone, folder_path
             )
 
+        combined_narrative += "\n"
+
     if plotting:
         output.make_video(folder_path, "map_underlying")
         output.make_video(folder_path, "map_apparent")
@@ -370,6 +401,9 @@ def simulate_outbreak(
             total_culled += 1
         if premise.vaccination_status:
             total_vaccinated += 1
+
+    # should add in a total culled animals
+    combined_narrative += f"\n Total culled properties: {total_culled}; total vaccinated properties: {total_vaccinated}"
 
     # print output
     header = [
@@ -411,6 +445,14 @@ def simulate_outbreak(
     # output contact tracing reports
     with open(os.path.join(folder_path, "report_contact_tracing.txt"), "w") as file:
         file.write(contact_tracing_reports)
+
+    # output testing reports
+    with open(os.path.join(folder_path, "report_testing.txt"), "w") as file:
+        file.write(testing_reports)
+
+    # output the inter-twined narrative (of known occurences)
+    with open(os.path.join(folder_path, "report_combined_narrative.txt"), "w") as file:
+        file.write(combined_narrative)
 
     # write movement records
 
