@@ -1,3 +1,14 @@
+""" Management
+
+This script contains several functions used to implement various control actions, including:
+
+    * defining general control zones
+    * conducting contact tracing
+    * conducting testing.
+
+
+"""
+
 import geopandas as gpd
 import pyproj
 from functools import partial
@@ -9,7 +20,12 @@ from simulator.spatial_setup import geodesic_polygon_buffer
 
 
 def geodesic_point_buffer(lat, lon, km):
-    # Azimuthal equidistant projection
+    """Returns a circle around a point
+
+    Based on an azimuthal equidistant projection
+
+    """
+
     proj_wgs84 = pyproj.Proj(init="epsg:4326")
 
     aeqd_proj = "+proj=aeqd +lat_0={lat} +lon_0={lon} +x_0=0 +y_0=0"
@@ -21,7 +37,7 @@ def geodesic_point_buffer(lat, lon, km):
 
 
 def define_control_zone_circles(coordinates, radius_km):
-    """Creates control zones around coordinates"""
+    """Creates control zones around coordinates and joins them together"""
     list_of_polygons = []
 
     for site in coordinates:
@@ -61,7 +77,14 @@ def define_control_zone_polygons(properties, source_indices, radius_km, convex=F
 def contact_tracing(properties, property_index, movement_records, time):
     """Contact tracing
 
-    assumes records in form [time, property index from, property index to, string-report] (should do a check)
+    Parameters
+    ----------
+    properties
+        list of properties
+    property_index : int
+        property from which we are tracing
+    movement records : list of lists
+        assumes records in form [time (int), property index from (int), property index to (int), report  (string)] (TODO: should do a check)
 
     """
 
@@ -91,7 +114,7 @@ def contact_tracing(properties, property_index, movement_records, time):
 def testing(properties, property_indices, time, test_sensitivity):
     """Testing
 
-    Conducts testing on the property indices
+    Conducts testing on the input property_indices
 
     """
     testing_report = f"DAY {convert_time_to_date(time)} - testing report\n"

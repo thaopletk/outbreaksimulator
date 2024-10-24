@@ -1,3 +1,8 @@
+""" SEIR (susceptible, exposed, infectious, recovered)
+
+    Adapted from FOI_calculation_fns.py in FMD_modelling
+"""
+
 import sys
 import os
 
@@ -78,9 +83,11 @@ def calculate_force_of_infection(
     return FOI
 
 
-# does not use or require property area / radius
 def calculate_FOI_point_properties(premise, params, infected_props):
-    # FOI = beta * [(vax - 1)*vax_status + 1] * x
+    """Calculates the force of infections, assuming point-properties (no area used)
+    From FMD_modelling, before area was implemented
+    """
+
     x = 0
 
     vax_status = (params["vax_modifier"] - 1) * premise.vaccination_status + 1

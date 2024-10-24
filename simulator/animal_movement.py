@@ -20,6 +20,31 @@ def animal_movement(
     controlzone,
     max_movement_distance=500,
 ):
+    """Conduct animal movements between properties that are allowed to move
+
+    Parameters
+    ----------
+    properties : list
+        list of premises
+    n : int
+        number of total properties (not used, TODO - remove it? and modify wherever animal_movement is called)
+    movement_frequency : int
+        properties might move animals every #movement_frequency days
+    movement_probability : double
+        probability of animal movement on a movement day
+    movement_prop_animals : double
+        proportion of animals that would move
+    day : int
+        current simulation day
+    controlzone : polygon
+        polygon that describes movement restrictions, if any
+    max_movement_distance : int, double
+        maximum distance that animals could be moved, in kilometers
+
+
+
+
+    """
     added_animals = []
 
     date = convert_time_to_date(day)
