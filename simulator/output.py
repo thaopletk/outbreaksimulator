@@ -16,6 +16,7 @@ import geopandas as gpd
 import contextily as ctx
 import pickle
 from moviepy.editor import ImageSequenceClip
+from simulator.premises import convert_time_to_date
 
 
 # https://coderslegacy.com/python/plotting-shapely-polygons-with-interiors-holes/
@@ -165,6 +166,7 @@ def plot_map(
     real_situation=True,
     controlzone=None,
     infectionpoly=False,
+    contacts_for_plotting={},
 ):
     """Plot map
 
@@ -201,6 +203,18 @@ def plot_map(
     geometry_vaccinated = []
     geometry_susceptible = []
     # nodes
+
+    for key, value in contacts_for_plotting.items():
+        premise = properties[key]
+        for contact_index in value:
+            contact = properties[contact_index]
+            plt.plot(
+                [premise.coordinates[0], contact.coordinates[0]],
+                [premise.coordinates[1], contact.coordinates[1]],
+                alpha=1,
+                color="black",
+            )
+
     if real_situation == True:  # i.e. plotting the underlying situation
         network_label_switch = False
 
@@ -345,7 +359,8 @@ def plot_map(
         )
     )
 
-    ax.set_title("Outbreak day " + str(time), fontsize=18)
+    # ax.set_title("Outbreak day " + str(time), fontsize=18)
+    ax.set_title(convert_time_to_date(time), fontsize=18)
 
     ax.set_ylabel("latitude", fontsize=16)
     ax.set_xlabel("longitude", fontsize=16)

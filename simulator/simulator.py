@@ -297,6 +297,7 @@ def simulate_outbreak(
                     properties_to_contact_trace_tomorrow.append(index)
 
         traced_contacts = []  # reset this
+        contacts_for_plotting = {}  # from property, to properties
 
         # conduct contact tracing of properties that reported yesterday
 
@@ -309,6 +310,7 @@ def simulate_outbreak(
             contact_tracing_reports += contact_tracing_report
             combined_narrative += contact_tracing_report
             traced_contacts.extend(traced_property_indices)
+            contacts_for_plotting[property_index] = traced_property_indices
 
         # vaccinate properties around culled (reported) properties
         for premise in properties:
@@ -373,6 +375,7 @@ def simulate_outbreak(
                 real_situation=True,
                 controlzone=controlzone,
                 infectionpoly=False,
+                contacts_for_plotting={},  # TODO in the real situation, these should be the actual movements, or something
             )
             output.plot_map(
                 properties,
@@ -384,7 +387,9 @@ def simulate_outbreak(
                 real_situation=False,
                 controlzone=controlzone,
                 infectionpoly=False,
+                contacts_for_plotting=contacts_for_plotting,
             )
+            # should also save contacts_for_plotting
             output.save_data(
                 properties, property_coordinates, time, controlzone, folder_path
             )
