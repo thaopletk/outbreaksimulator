@@ -88,6 +88,7 @@ class Premises(Property):
 
         # unique to this class
         self.reported_status = False
+        self.culled_on_suspicion = False
         self.polygon = property_polygon
         self.puffed_poly = property_polygon_puffed
         self.puffed_poly_area = calculate_area(property_polygon_puffed)
@@ -155,7 +156,8 @@ class Premises(Property):
         # no notification date
         self.removal_date = convert_time_to_date(time)
         # no change in "IP" status
-        self.reported_status = True
+        # self.reported_status = False # no change
+        self.culled_on_suspicion = True
         x, y = self.coordinates
 
         location = self.geolocator.reverse(f"{y},{x}")
@@ -241,3 +243,63 @@ class Premises(Property):
             self.type,
             self.size,
         ]
+
+    def return_known_output_row(self):
+        """Returns a row with *known* information for outputing (required downstream for forecasting)
+
+        I.e., by "known", I mean that if an infected property hasn't notified yet, then there shouldn't be anything printed there regarding clinical dates
+
+        Returns
+        -------
+        list
+            a list containing the following information in order:
+            id, status, ip, exposure_date, clinical_date, notification_date, removal_date, recovery_date, vacc_date, region, county, cluster, xcoord, ycoord, area, type, total
+
+        """
+
+        if (
+            self.reported_status
+        ):  # if reported already, then all information can be provided
+            return self.return_output_row()
+        if (
+            self.culled_on_suspicion
+        ):  # if culled on suspicion, then exposure, clinical, notification dates should be NA
+            return [
+                self.id,
+                self.status,
+                self.ip,
+                "NA",  # self.exposure_date,
+                "NA",  # self.clinical_date,
+                self.notification_date,  # this should already be "NA"
+                self.removal_date,  # this shouldn't be NA, since this is a property that has been culled
+                self.recovery_date,
+                self.vacc_date,
+                self.region,
+                self.county,
+                self.cluster,
+                self.coordinates[0],
+                self.coordinates[1],
+                self.area,
+                self.type,
+                self.size,
+            ]
+        else:
+            return [
+                self.id,
+                self.status,
+                self.ip,
+                "NA",  # self.exposure_date,
+                "NA",  # self.clinical_date,
+                self.notification_date,  # this should already be "NA"
+                self.removal_date,  # this should already be "NA"
+                self.recovery_date,
+                self.vacc_date,
+                self.region,
+                self.county,
+                self.cluster,
+                self.coordinates[0],
+                self.coordinates[1],
+                self.area,
+                self.type,
+                self.size,
+            ]
