@@ -233,6 +233,7 @@ def plot_map(
     geometry_culled = []
     geometry_vaccinated = []
     geometry_susceptible = []
+    geometry_culled_on_suspicion = []
 
     for key, value in contacts_for_plotting.items():
         premise = properties[key]
@@ -287,8 +288,15 @@ def plot_map(
                 geometry_infected.append(curr_farm)
                 infected_coords.append(premise.coordinates)
             elif premise.culled_status:
-                geometry_culled.append(curr_farm)
-                infected_coords.append(premise.coordinates)
+                if premise.reported_status:
+                    geometry_culled.append(curr_farm)
+                    infected_coords.append(premise.coordinates)
+                elif premise.culled_on_suspicion:
+                    geometry_culled_on_suspicion.append(curr_farm)
+                else:
+                    raise Exception(
+                        "Culled yet neither reported nor culled on suspicion"
+                    )
 
             elif premise.vaccination_status:
                 geometry_vaccinated.append(curr_farm)
@@ -307,7 +315,7 @@ def plot_map(
                 )
             # TODO should consider the case of when it's smaller...
 
-    else:
+    else:  # Apparent situation
 
         infected_coords = []
 
@@ -316,8 +324,16 @@ def plot_map(
             curr_farm = Point(long, lat)
 
             if premise.culled_status:
-                geometry_culled.append(curr_farm)
-                infected_coords.append(premise.coordinates)
+                if premise.reported_status:
+                    geometry_culled.append(curr_farm)
+                    infected_coords.append(premise.coordinates)
+
+                elif premise.culled_on_suspicion:
+                    geometry_culled_on_suspicion.append(curr_farm)
+                else:
+                    raise Exception(
+                        "Culled yet neither reported nor culled on suspicion"
+                    )
 
             elif premise.vaccination_status:
                 geometry_vaccinated.append(curr_farm)
@@ -339,6 +355,7 @@ def plot_map(
     for geometry, colour, marker, markerlabel, markersize in [
         [geometry_infected, "purple", "x", "infected", 30],
         [geometry_culled, "firebrick", "X", "notified", 150],
+        [geometry_culled_on_suspicion, "black", "X", "culled on suspicion", 150],
         [geometry_vaccinated, "deepskyblue", "s", "vaccinated", 100],
         [geometry_susceptible, "orange", "o", "susceptible", 30],
     ]:

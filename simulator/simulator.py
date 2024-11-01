@@ -481,7 +481,7 @@ def simulate_outbreak(
     # should add in a total culled animals
     combined_narrative += f"\n==============\nTotal culled properties: {total_culled}; total vaccinated properties: {total_vaccinated}; total culled animals: {total_culled_animals}"
 
-    # print output
+    # print output: all
     header = [
         "id",
         "status",
@@ -501,7 +501,7 @@ def simulate_outbreak(
         "type",
         "total",
     ]
-    file = os.path.join(folder_path, f"fake_data{unique_output}.csv")
+    file = os.path.join(folder_path, f"fake_data_underlying_{unique_output}.csv")
     with open(file, "w", newline="") as f:
 
         # create the csv writer
@@ -512,6 +512,20 @@ def simulate_outbreak(
 
         for premise in properties:
             row = premise.return_output_row()
+            writer.writerow(row)
+
+    # print output: known
+    file = os.path.join(folder_path, f"fake_data_apparent_{unique_output}.csv")
+    with open(file, "w", newline="") as f:
+
+        # create the csv writer
+        writer = csv.writer(f)
+
+        # write the header
+        writer.writerow(header)
+
+        for premise in properties:
+            row = premise.return_known_output_row()
             writer.writerow(row)
 
     # output "reports" report
