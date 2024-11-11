@@ -45,7 +45,7 @@ property_setup_info = simulator.property_setup(folder_path_main, **set_up_params
 ) = property_setup_info
 
 params_low_incubation = {
-    "init_vax_probability": 0,
+    "init_vax_probability": 0,  # note that this should be zero
     "stop_time": 21,
     "vax_modifier": 0.4,
     "beta_wind": 2,
@@ -88,8 +88,11 @@ total_culled, total_vaccinated, properties = simulator.simulate_outbreak(
     # ring_vaccination=True,
     # ring_vaccination_radius_km=20,
     # ring_vaccination_convex=True,
-    ring_culling=True,
-    ring_culling_radius_km=15,
-    ring_culling_convex=False,
+    # ring_culling=True,
+    # ring_culling_radius_km=15,
+    # ring_culling_convex=False,
+    ring_testing=True,
+    ring_testing_radius_km=15,
+    ring_testing_convex=True,
     **params,
 )

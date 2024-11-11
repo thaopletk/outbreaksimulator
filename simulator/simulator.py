@@ -195,6 +195,9 @@ def simulate_outbreak(
     ring_culling=False,
     ring_culling_radius_km=None,
     ring_culling_convex=None,
+    ring_testing=False,
+    ring_testing_radius_km=None,
+    ring_testing_convex=None,
     **_,
 ):
     """Run the simulated outbreak
@@ -360,6 +363,46 @@ def simulate_outbreak(
                         controlzone_ring_vaccination
                     ):
                         premise.vaccinate(time)
+
+        # implementing ring testing
+        if ring_testing:
+            if source_indices != []:
+                controlzone_ring_testing = management.define_control_zone_polygons(
+                    properties,
+                    source_indices,
+                    ring_testing_radius_km,
+                    convex=ring_testing_convex,
+                )
+
+                controlzone["ring testing"] = controlzone_ring_testing
+
+                properties_to_test = []
+                for i, premise in enumerate(properties):
+                    if not premise.culled_status and premise.polygon.intersects(
+                        controlzone_ring_testing
+                    ):
+                        properties_to_test.append(i)
+
+                testing_report, positive_indices = management.testing(
+                    properties, properties_to_test, time, test_sensitivity
+                )
+
+                testing_reports += testing_report
+                combined_narrative += testing_report
+
+                # for any positive indices (properties found), we will need to enact "reporting" procedures
+                # given that I mostly copied this from the code above, this suggests that it could be encapsulated better...
+                for index in positive_indices:
+                    premise = properties[index]
+                    premise_report, culled_animals = premise.reporting(
+                        0, 0, time=time, force_report=True
+                    )
+                    total_culled_animals += culled_animals
+                    premise_report = "REPORTED AFTER POSTIVE TEST: " + premise_report
+                    report += premise_report
+                    combined_narrative += premise_report
+                    if premise.reported_status == True:  # well, this should be true...
+                        properties_to_contact_trace_tomorrow.append(index)
 
         # vaccinate properties around culled (reported) properties
         for premise in properties:
