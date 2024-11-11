@@ -204,6 +204,7 @@ def plot_map(
         "movement restrictions": "tomato",
         "ring vaccination": "deepskyblue",
         "ring culling": "black",
+        "ring testing": "green",
     }
 
     if controlzone != None and controlzone != {}:
@@ -234,6 +235,7 @@ def plot_map(
     geometry_vaccinated = []
     geometry_susceptible = []
     geometry_culled_on_suspicion = []
+    geomtry_culled_on_suspicion_actually_infected = []
 
     for key, value in contacts_for_plotting.items():
         premise = properties[key]
@@ -292,7 +294,12 @@ def plot_map(
                     geometry_culled.append(curr_farm)
                     infected_coords.append(premise.coordinates)
                 elif premise.culled_on_suspicion:
-                    geometry_culled_on_suspicion.append(curr_farm)
+
+                    if premise.cumulative_infections > 0:
+                        geomtry_culled_on_suspicion_actually_infected.append(curr_farm)
+                    else:
+                        geometry_culled_on_suspicion.append(curr_farm)
+
                 else:
                     raise Exception(
                         "Culled yet neither reported nor culled on suspicion"
@@ -356,11 +363,21 @@ def plot_map(
         [geometry_infected, "purple", "x", "infected", 30],
         [geometry_culled, "firebrick", "X", "notified", 150],
         [geometry_culled_on_suspicion, "black", "X", "culled on suspicion", 150],
+        [
+            geomtry_culled_on_suspicion_actually_infected,
+            "purple",
+            "X",
+            "culled on suspicion, actually infected",
+            150,
+        ],
         [geometry_vaccinated, "deepskyblue", "s", "vaccinated", 100],
         [geometry_susceptible, "orange", "o", "susceptible", 30],
     ]:
         if geometry == []:
-            if markerlabel == "infected":
+            if (
+                markerlabel == "infected"
+                or markerlabel == "culled on suspicion, actually infected"
+            ):  # only for the real situation case plotting
                 if real_situation == True:
                     geometry = [
                         Point(xlims[0] - 0.1, ylims[0] - 0.1)
