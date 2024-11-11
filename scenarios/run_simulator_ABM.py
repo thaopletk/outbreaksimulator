@@ -82,6 +82,7 @@ total_culled, total_vaccinated, properties = simulator.simulate_outbreak(
     properties=properties,
     property_coordinates=property_coordinates,
     unique_output=unique_output,
+    movement_standstill=True,  # if this is true, then movement restrictions should be false
     # movement_restrictions=True,
     # movement_restriction_radius_km=10,
     # movement_restriction_convex=True,
@@ -91,8 +92,8 @@ total_culled, total_vaccinated, properties = simulator.simulate_outbreak(
     # ring_culling=True,
     # ring_culling_radius_km=15,
     # ring_culling_convex=False,
-    ring_testing=True,
-    ring_testing_radius_km=15,
-    ring_testing_convex=True,
+    # ring_testing=True,
+    # ring_testing_radius_km=15,
+    # ring_testing_convex=True,
     **params,
 )

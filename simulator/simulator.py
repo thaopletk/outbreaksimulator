@@ -186,6 +186,7 @@ def simulate_outbreak(
     movement_probability=0.1,
     movement_prop_animals=0.1,
     test_sensitivity=0.9,
+    movement_standstill=False,  # should only trigger after a notification occurs
     movement_restrictions=False,
     movement_restriction_radius_km=None,
     movement_restriction_convex=None,
@@ -435,7 +436,31 @@ def simulate_outbreak(
         # calculate movement restriction zones before animal movement
         # TODO: can implement some kind of policy_start variable
         controlzone_movement_restrictions = None
-        if movement_restrictions:
+        if movement_standstill:
+            source_indices = []
+            for i, premise in enumerate(properties):
+                if premise.reported_status == True:
+                    source_indices.append(i)
+
+            if source_indices != []:
+                map_polygon = {
+                    "type": "Polygon",
+                    "coordinates": [
+                        [
+                            [xlims[0], ylims[0]],
+                            [xlims[1], ylims[0]],
+                            [xlims[1], ylims[1]],
+                            [xlims[0], ylims[1]],
+                            [xlims[0], ylims[0]],
+                        ]
+                    ],
+                }
+                controlzone_movement_restrictions = (
+                    spatial_setup.convert_dict_poly_to_Polygon(map_polygon)
+                )
+                controlzone["movement restrictions"] = controlzone_movement_restrictions
+
+        elif movement_restrictions:
             source_indices = []
             for i, premise in enumerate(properties):
                 if premise.reported_status == True:
