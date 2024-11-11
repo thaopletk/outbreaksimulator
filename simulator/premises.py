@@ -73,6 +73,12 @@ class Premises(Property):
         neighbourhood=None,
         property_polygon=None,
         property_polygon_puffed=None,
+        property_type="NA",
+        movement_probability=0,
+        movement_prop_animals=0,
+        extra_capacity_multiplier=1,
+        allowed_movement=["farm"],
+        max_daily_movements=1,
     ):
 
         # currently, the class only requires these two parameters to initialise
@@ -106,7 +112,18 @@ class Premises(Property):
         self.region = "NA"
         self.county = "NA"
         self.cluster = "NA"
-        self.type = "NA"
+        self.type = property_type
+
+        # for movement
+        self.movement_probability = movement_probability
+        self.movement_prop_animals = movement_prop_animals
+        self.extra_capacity_multiplier = extra_capacity_multiplier
+        self.movement_frequency = movement_freq
+
+        self.capacity = num_animals * extra_capacity_multiplier
+
+        self.allowed_movement = allowed_movement
+        self.max_daily_movements = max_daily_movements
 
     #
     def vaccinate(self, time):
