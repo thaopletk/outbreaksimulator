@@ -13,9 +13,9 @@ from simulator.spatial_setup import quick_distance_haversine
 def animal_movement(
     properties,
     n,
-    movement_frequency,
-    movement_probability,
-    movement_prop_animals,
+    movement_frequency,  # TODO ? remove this and have it as an attribute for each property?
+    movement_probability,  # TODO ? remove this and have it as an attribute for each property?
+    movement_prop_animals,  # TODO ? remove this and have it as an attribute for each property?
     day,
     controlzone,
     max_movement_distance=500,
@@ -69,12 +69,13 @@ def animal_movement(
 
         # if it's a movement day for this property
         if not (
-            (day - properties[premise_index].movement_start_day) % movement_frequency
+            (day - properties[premise_index].movement_start_day)
+            % properties[premise_index].movement_frequency
         ):
 
             # if there is movement
             prob_movement = np.random.rand()
-            if prob_movement < movement_probability:
+            if prob_movement < properties[premise_index].movement_probability:
 
                 # where can the animals moving to
                 moving_to_premise_indices = []
@@ -98,10 +99,15 @@ def animal_movement(
                     # how many animals moving
                     property_size = len(properties[premise_index].animals)
                     number_animals = int(
-                        np.floor(movement_prop_animals * property_size)
+                        np.floor(
+                            properties[premise_index].movement_prop_animals
+                            * property_size
+                        )
                     )
 
                     # choose random premise to move to
+                    # TODO rather than completely random movement, movement will depend on what kind of property it is, and that also determines what kinds of properties it can move to
+                    # for saleyards and traders, they should be able to have movement to MULTIPLE different properties in one day
                     moving_to_premise_index = np.random.choice(
                         moving_to_premise_indices
                     )

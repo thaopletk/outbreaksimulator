@@ -24,6 +24,7 @@ import simulator.premises as premises
 import simulator.SEIR as SEIR
 import simulator.output as output
 import simulator.animal_movement as animal_movement
+from iteround import saferound
 
 
 #
@@ -39,7 +40,55 @@ def property_setup(
     xrange=[150.2503, 151.39695],
     yrange=[-32.61181, -31.60829],
     average_animals_per_ha=0.1,
-    movement_frequency=14,
+    property_types={
+        "saleyard": 0.001,
+        "trader": 0.007,
+        "feedlot": 0.007,
+        "abbattoir": 0.001,
+        "farm": 1 - 0.001 - 0.007 - 0.007 - 0.001,
+    },
+    movement_frequency={
+        "saleyard": 1,
+        "trader": 1,
+        "feedlot": 7,
+        "abbattoir": 0,
+        "farm": 0.3,
+    },
+    movement_probability={
+        "saleyard": 1,
+        "trader": 1,
+        "feedlot": 0.2,
+        "abbattoir": 0,
+        "farm": 0.5,
+    },
+    movement_prop_animals={
+        "saleyard": 0.2,
+        "trader": 0.8,
+        "feedlot": 0.1,
+        "abbattoir": 0,
+        "farm": 0.2,
+    },
+    extra_capacity_multiplier={
+        "saleyard": 3,
+        "trader": 3,
+        "feedlot": 3,
+        "abbattoir": 2,
+        "farm": 1,
+    },
+    allowed_movement={
+        "saleyard": ["saleyard", "trader", "feedlot", "abbattoir", "farm"],
+        "trader": ["saleyard", "trader", "feedlot", "abbattoir", "farm"],
+        "feedlot": ["abbattoir"],
+        "abbattoir": [],
+        "farm": ["saleyard", "trader", "feedlot", "abbattoir", "farm"],
+    },
+    max_daily_movements={
+        "saleyard": 6,
+        "trader": 3,
+        "feedlot": 2,
+        "abbattoir": 0,
+        "farm": 1,
+    },
     **_,
 ):
     """
@@ -53,8 +102,21 @@ def property_setup(
     average_animals_per_ha : double
         Average number of animals per hectare, to initialise properties
         The default value comes from https://www.farmstyle.com.au/forum/raising-cattle-meat-how-many-acre where a cow needs ~10 hectares of land to raise
-    movement_frequency : int
-        Properties might move animals every x days
+    property_types : dictionary
+        the different property types and their proportions (to generate)
+    movement_frequency : dictionary
+        Properties might move animals every x days; a dictionary containing this information for different types of properties
+    movement_probability: dictionary
+        The probability of movement on a given day
+    movement_prop_animals : dictionary
+        number of animals that might be moved
+    extra_capacity_multiplier : dictionary
+        extra capacity beyond the average_animals_per_ha
+    allowed_movement : dictionary
+        the property types that the key-property can move animals to
+    max_daily_movements : dictionary
+        some property types can move animals to multiple different properties
+
     """
 
     (
@@ -73,26 +135,44 @@ def property_setup(
         property_polygons, property_polygons_puffed, xrange, yrange, folder_path
     )
 
+    properties_type_number = saferound(
+        [x * n for x in property_types.values()], places=0
+    )
+    properties_type_number = [int(x) for x in properties_type_number]
+
     # initialise properties
     properties = []
-    for i in range(n):
-        # new property
-        new_p = premises.Premises(
-            num_animals=max(
-                int(property_areas[i] * average_animals_per_ha), 1
-            ),  # at least one animal per property
-            movement_freq=movement_frequency,
-            coordinates=property_coordinates[i],
-            area_ha=property_areas[i],
-            neighbourhood=neighbourhoods[i],
-            property_polygon=property_polygons[i],
-            property_polygon_puffed=property_polygons_puffed[i],
-        )
+    i = 0
+    for property_type, n_to_generate in zip(
+        property_types.keys(), properties_type_number
+    ):
 
-        properties.append(new_p)
-        properties[i].init_animals(
-            None
-        )  # init with empty "params", as no parameters are actually used to initialise animals
+        for j in range(n_to_generate):
+            # new property
+            new_p = premises.Premises(
+                num_animals=max(
+                    int(property_areas[i] * average_animals_per_ha), 1
+                ),  # at least one animal per property
+                movement_freq=movement_frequency[property_type],
+                coordinates=property_coordinates[i],
+                area_ha=property_areas[i],
+                neighbourhood=neighbourhoods[i],
+                property_polygon=property_polygons[i],
+                property_polygon_puffed=property_polygons_puffed[i],
+                property_type=property_type,
+                movement_probability=movement_probability[property_type],
+                movement_prop_animals=movement_prop_animals[property_type],
+                extra_capacity_multiplier=extra_capacity_multiplier[property_type],
+                allowed_movement=allowed_movement[property_type],
+                max_daily_movements=max_daily_movements[property_type],
+            )
+
+            properties.append(new_p)
+            properties[i].init_animals(
+                None
+            )  # init with empty "params", as no parameters are actually used to initialise animals
+
+            i += 1
 
     property_setup_info = [
         properties,

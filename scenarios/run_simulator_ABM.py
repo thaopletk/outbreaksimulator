@@ -22,8 +22,58 @@ set_up_params = {
     "yrange": yrange,
     "average_property_ha": 500,  # TODO this isn't exactly the average property size...but it *is* related to it. There may be a minimum size to this...
     "average_animals_per_ha": 0.2,
-    "movement_frequency": 3,
+    "property_types": {
+        "saleyard": 0.001,
+        "trader": 0.007,
+        "feedlot": 0.007,
+        "abbattoir": 0.001,
+        "farm": 1 - 0.001 - 0.007 - 0.007 - 0.001,
+    },
+    "movement_frequency": {
+        "saleyard": 1,
+        "trader": 1,
+        "feedlot": 1,
+        "abbattoir": 1,
+        "farm": 3,
+    },
+    "movement_probability": {
+        "saleyard": 1,
+        "trader": 1,
+        "feedlot": 0.2,
+        "abbattoir": 0,
+        "farm": 0.5,
+    },
+    "movement_prop_animals": {
+        "saleyard": 0.2,
+        "trader": 0.8,
+        "feedlot": 0.1,
+        "abbattoir": 0,
+        "farm": 0.2,
+    },
+    "extra_capacity_multiplier": {
+        "saleyard": 3,
+        "trader": 3,
+        "feedlot": 3,
+        "abbattoir": 1000,
+        "farm": 1,
+    },
+    "allowed_movement": {
+        "saleyard": ["saleyard", "trader", "feedlot", "abbattoir", "farm"],
+        "trader": ["saleyard", "trader", "feedlot", "abbattoir", "farm"],
+        "feedlot": ["abbattoir"],
+        "abbattoir": [],
+        "farm": ["saleyard", "trader", "feedlot", "abbattoir", "farm"],
+    },
+    "max_daily_movements": {
+        "saleyard": 6,
+        "trader": 3,
+        "feedlot": 2,
+        "abbattoir": 0,
+        "farm": 1,
+    },
 }
+# will need to do something special with abbattoirs, e.g. they move things to an infinite sink...
+# need to set up their capacity, their current number of animals, their unique movement frequency which would be a lot higher...
 
 
 folder_path_main = os.path.join(os.path.dirname(__file__), "outputs", "temp")
@@ -47,17 +97,16 @@ property_setup_info = simulator.property_setup(folder_path_main, **set_up_params
 params_low_incubation = {
     "init_vax_probability": 0,  # note that this should be zero
     "stop_time": 21,
-    "vax_modifier": 0.4,
+    "vax_modifier": 1
+    - 0.7,  # vax modifier appears to be what you multiply the FOI by...
     "beta_wind": 2,
     "beta_animal": 4,
     "latent_period": 2,
     "infectious_period": 1,
     "preclinical_period": 2,
-    "prob_vaccinate": 0.5,
+    "prob_vaccinate": 0,  # zero, as people won't randomly vaccination
     "clinical_reporting_threshold": 0.05,
     "prob_report": 0.7,
-    "movement_probability": 0.5,
-    "movement_prop_animals": 0.2,
     "test_sensitivity": 0.9,
 }
 disease = "low_incubation"
