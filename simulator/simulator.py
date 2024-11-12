@@ -136,9 +136,20 @@ def property_setup(
     )
 
     properties_type_number = saferound(
-        [x * n for x in property_types.values()], places=0
+        [max(x * n, 1.0) for x in property_types.values()], places=0
     )
     properties_type_number = [int(x) for x in properties_type_number]
+    if sum(properties_type_number) > n:
+        difference = sum(properties_type_number) - n
+        max_index = properties_type_number.index(max(properties_type_number))
+        properties_type_number[max_index] = (
+            properties_type_number[max_index] - difference
+        )
+
+    if any(properties_type_number) == 0:
+        raise ValueError(
+            "After all this hard work, there should be at least one property for each property type"
+        )
 
     # initialise properties
     properties = []

@@ -5,6 +5,7 @@
 
 import sys
 import os
+import rasterio
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "FMD_modelling"))
@@ -25,6 +26,12 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind):
     """
     FOI = 0
 
+    # vector modification
+    vectors_file = os.path.join(
+        os.path.dirname(__file__), "vectors_rangebag.tif"
+    )  # Proj_current_Philaenus.spumarius..Linnaeus..1758._rangebag.tif from Biosecurity Commons
+    vectors_img = rasterio.open(vectors_file)
+
     # contribution from property i
     C_i = properties[premise_index].cumulative_infections
     A_i = properties[premise_index].area
@@ -34,7 +41,11 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind):
     # unsafe_disc_i = properties[premise_index].puff_poly
     A_is = properties[premise_index].puffed_poly_area
 
-    FOI += beta_wind * C_i * A_i / A_is
+    vector_val = [
+        x for x in vectors_img.sample([properties[premise_index].coordinates])
+    ][0][0]
+
+    FOI += vector_val * beta_wind * C_i * A_i / A_is
 
     property_i_polygon = properties[premise_index].polygon
 
@@ -58,8 +69,12 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind):
         d_ij = quick_distance_haversine([p1.x, p1.y], [p2.x, p2.y])
         distance_modifier = max(0.001, 1 - (d_ij / r_wind))
 
+        vector_val_neighbour = [
+            x for x in vectors_img.sample([properties[index].coordinates])
+        ][0][0]
+
         # update FOI
-        FOI += beta_wind * C_j * distance_modifier * A_ijs / A_js
+        FOI += vector_val_neighbour * beta_wind * C_j * distance_modifier * A_ijs / A_js
 
     return FOI
 

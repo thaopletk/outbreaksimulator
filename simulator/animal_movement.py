@@ -8,6 +8,7 @@
 import numpy as np
 from simulator.premises import convert_time_to_date
 from simulator.spatial_setup import quick_distance_haversine
+from iteround import saferound
 
 
 def animal_movement(
@@ -40,10 +41,6 @@ def animal_movement(
         polygon that describes movement restrictions, if any
     max_movement_distance : int, double
         maximum distance that animals could be moved, in kilometers
-
-
-
-
     """
     added_animals = []
 
@@ -91,7 +88,13 @@ def animal_movement(
                             )
                             < max_movement_distance
                         ):
-                            moving_to_premise_indices.append(i)
+                            # and also check if the property is the right type for moving to
+                            if (
+                                properties[i].type
+                                in properties[premise_index].allowed_movement
+                            ):
+
+                                moving_to_premise_indices.append(i)
 
                 # if there's somewhere to move the animals
                 if moving_to_premise_indices:
@@ -104,34 +107,71 @@ def animal_movement(
                             * property_size
                         )
                     )
+                    if property_size > 1 and number_animals == 0:
+                        number_animals = (
+                            1  # keeping at least one animal in each property
+                        )
 
-                    # choose random premise to move to
-                    # TODO rather than completely random movement, movement will depend on what kind of property it is, and that also determines what kinds of properties it can move to
-                    # for saleyards and traders, they should be able to have movement to MULTIPLE different properties in one day
-                    moving_to_premise_index = np.random.choice(
-                        moving_to_premise_indices
+                    if number_animals == 0:
+                        break  # no animals to move
+
+                    # how many different properties will the animals be moving to
+                    num_properties_to_move_to = (
+                        np.random.randint(
+                            1, properties[premise_index].max_daily_movements
+                        )
+                        if properties[premise_index].max_daily_movements > 1
+                        else 1
                     )
 
-                    row = [
-                        day,
-                        premise_index,
-                        moving_to_premise_index,
-                        f"DAY {date} - moved {number_animals} animals from property ID {properties[premise_index].id} to property ID {properties[moving_to_premise_index].id}",
-                    ]  # TODO add more information in the narrative report or row as required
-                    movement_record.append(row)
+                    if num_properties_to_move_to > number_animals:
+                        num_properties_to_move_to = number_animals
 
-                    # keeping track of moving the animals
-                    moving_animal_list = []
-                    for _ in range(int(number_animals)):
-                        moving_animal_index = np.random.randint(
-                            0, len(properties[premise_index].animals)
-                        )
-                        moving_animal = properties[premise_index].animals.pop(
-                            moving_animal_index
-                        )
-                        moving_animal_list.append(moving_animal)
+                    num_animals_moved_to_each_property = saferound(
+                        [number_animals / num_properties_to_move_to]
+                        * num_properties_to_move_to,
+                        places=0,
+                    )
+                    num_animals_moved_to_each_property = [
+                        int(x) for x in num_animals_moved_to_each_property
+                    ]
 
-                    added_animals.append([moving_animal_list, moving_to_premise_index])
+                    # choose random premise to move to
+                    # for saleyards and traders, they should be able to have movement to MULTIPLE different properties in one day
+                    moving_to_premise_indices = np.random.choice(
+                        moving_to_premise_indices,
+                        size=num_properties_to_move_to,
+                        replace=False,
+                    )
+
+                    # TODO haven't actually used the capacity limit here...
+
+                    for moving_to_premise_index, number_animals in zip(
+                        moving_to_premise_indices, num_animals_moved_to_each_property
+                    ):
+
+                        row = [
+                            day,
+                            premise_index,
+                            moving_to_premise_index,
+                            f"DAY {date} - moved {number_animals} animals from property ID {properties[premise_index].id} ({properties[premise_index].type}) to property ID {properties[moving_to_premise_index].id} ({properties[moving_to_premise_index].type})",
+                        ]  # TODO add more information in the narrative report or row as required
+                        movement_record.append(row)
+
+                        # keeping track of moving the animals
+                        moving_animal_list = []
+                        for _ in range(int(number_animals)):
+                            moving_animal_index = np.random.randint(
+                                0, len(properties[premise_index].animals)
+                            )
+                            moving_animal = properties[premise_index].animals.pop(
+                                moving_animal_index
+                            )
+                            moving_animal_list.append(moving_animal)
+
+                        added_animals.append(
+                            [moving_animal_list, moving_to_premise_index]
+                        )
 
     # move animals to properties
     if added_animals:  # as long as there are animals to move
