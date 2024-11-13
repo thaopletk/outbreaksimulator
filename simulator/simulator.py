@@ -525,7 +525,6 @@ def simulate_outbreak(
             )
 
         # calculate movement restriction zones before animal movement
-        # TODO: can implement some kind of policy_start variable
         controlzone_movement_restrictions = None
         if movement_standstill:
             source_indices = []
