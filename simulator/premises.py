@@ -16,7 +16,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from FMD_modelling.class_definitions import Property, Animal
 import datetime
 import itertools
-from simulator.spatial_setup import calculate_area
+from simulator.spatial_functions import calculate_area
 
 
 def convert_time_to_date(

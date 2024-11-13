@@ -10,9 +10,11 @@ import rasterio
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "FMD_modelling"))
 import FMD_modelling.FOI_calculation_fns as FOI_calculation_fns
-from simulator.management import geodesic_point_buffer
-from simulator.spatial_setup import calculate_area
-from simulator.spatial_setup import quick_distance_haversine
+from simulator.spatial_functions import (
+    calculate_area,
+    quick_distance_haversine,
+    geodesic_point_buffer,
+)
 
 from shapely.ops import nearest_points
 from shapely.geometry import Point, Polygon

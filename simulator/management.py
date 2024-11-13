@@ -16,24 +16,7 @@ from shapely.geometry import Polygon, Point, LineString, MultiPolygon
 from shapely.ops import transform, unary_union
 from simulator.premises import convert_time_to_date
 import numpy as np
-from simulator.spatial_setup import geodesic_polygon_buffer
-
-
-def geodesic_point_buffer(lat, lon, km):
-    """Returns a circle around a point
-
-    Based on an azimuthal equidistant projection
-
-    """
-
-    proj_wgs84 = pyproj.Proj(init="epsg:4326")
-
-    aeqd_proj = "+proj=aeqd +lat_0={lat} +lon_0={lon} +x_0=0 +y_0=0"
-    project = partial(
-        pyproj.transform, pyproj.Proj(aeqd_proj.format(lat=lat, lon=lon)), proj_wgs84
-    )
-    buf = Point(0, 0).buffer(km * 1000)  # distance in metres
-    return transform(project, buf).exterior.coords[:]
+from simulator.spatial_functions import *
 
 
 def define_control_zone_circles(coordinates, radius_km):

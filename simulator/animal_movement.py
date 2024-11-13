@@ -7,7 +7,7 @@
 
 import numpy as np
 from simulator.premises import convert_time_to_date
-from simulator.spatial_setup import quick_distance_haversine
+from simulator.spatial_functions import quick_distance_haversine
 from iteround import saferound
 
 
