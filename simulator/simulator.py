@@ -356,11 +356,19 @@ def simulate_outbreak(
     infected_sum = 1  # so the while loop begins
     jobs_queue = []  # [date for completion, property to act on, job type]
     local_movement_restrictions = []
+    dt = 0.5
+
+    job_manager = management.JobManager(
+        lab_test_sensitivity,
+        clinical_test_sensitivity,
+        cull_delay=1,
+        contact_tracing_delay=0.5,
+    )
+
     while time < stop_time:  # infected_sum > 0 and
         time += 1
 
         # calculate FOI for each property
-
         for i, premise in enumerate(properties):
             if not premise.culled_status:
                 FOI[i] = SEIR.calculate_force_of_infection(
@@ -370,232 +378,23 @@ def simulate_outbreak(
         contacts_for_plotting = {}  # from property, to properties
 
         # Go through jobs in the queue
-        new_jobs = []
-        for job in jobs_queue:
-            if job["status"] == "in progress" and job["day"] <= time:
-                # job should now be complete
-                if job["type"] == management.jobtype.LabTesting:
-                    testing_report, positive = management.test_property(
-                        properties,
-                        job["property_i"],
-                        time,
-                        lab_test_sensitivity,
-                        test_type="lab test",
-                    )
-                    testing_reports += testing_report
-                    combined_narrative += testing_report
+        (
+            new_report,
+            new_testing_reports,
+            new_combined_narrative,
+            new_contact_tracing_reports,
+            local_movement_restrictions,
+            newly_culled_animals,
+            contacts_for_plotting,
+        ) = job_manager.job_manager(time, properties, movement_records)
 
-                    job["status"] = (
-                        "complete"  # mark job as complete, slated for removal from the job queue
-                    )
+        report += new_report
+        testing_reports += new_testing_reports
+        combined_narrative += new_combined_narrative
+        contact_tracing_reports += new_contact_tracing_reports
+        total_culled_animals += newly_culled_animals
 
-                    if positive:
-                        premise = properties[job["property_i"]]
-
-                        # report property
-                        premise_report = premise.report_only(time)
-                        report += premise_report
-                        combined_narrative += premise_report
-
-                        # triggers: decision to cull
-                        decision_to_cull = f"Property {job['property_i']} will be culled after a positive lab test\n"
-                        report += decision_to_cull
-                        combined_narrative += decision_to_cull
-
-                        # add culling job to the jobs_queue, as it has a delay
-                        cull_delay = 1
-                        new_job = {
-                            "status": "in progress",
-                            "day": time + cull_delay,
-                            "type": management.jobtype.Cull,
-                            "property_i": job["property_i"],
-                        }
-                        new_jobs.append(new_job)
-
-                        # triggers local movement restrictions
-                        local_movement_restrictions.append(
-                            properties[job["property_i"]].polygon
-                        )
-
-                        # triggers: possible larger movement restrictions
-                        # should be done later
-
-                        # triggers: contact tracing
-                        contact_tracing_delay = 0.5
-                        new_job = {
-                            "status": "in progress",
-                            "day": time + contact_tracing_delay,
-                            "type": management.jobtype.ContactTracing,
-                            "property_i": job["property_i"],
-                        }
-                        exists = False
-                        for j in jobs_queue:
-                            if (
-                                j["status"] == "in progress"
-                                and j["type"] == management.jobtype.ContactTracing
-                                and j["property_i"] == job["property_i"]
-                            ):
-                                exists = True
-                                break
-                        if not exists:
-                            for j in new_jobs:
-                                if (
-                                    j["status"] == "in progress"
-                                    and j["type"] == management.jobtype.ContactTracing
-                                    and j["property_i"] == job["property_i"]
-                                ):
-                                    exists = True
-                                    break
-                            if not exists:
-                                new_jobs.append(new_job)
-
-                    else:
-                        pass  # may have ongoing surveillance here in the future
-
-                elif job["type"] == management.jobtype.ClinicalObservation:
-                    testing_report, positive = management.test_property(
-                        properties,
-                        job["property_i"],
-                        time,
-                        clinical_test_sensitivity,
-                        test_type="clinical observation",
-                    )
-                    testing_reports += testing_report
-                    combined_narrative += testing_report
-
-                    job["status"] = (
-                        "complete"  # mark job as complete, slated for removal from the job queue
-                    )
-
-                    if positive:
-                        # trigger local movement restrictions
-                        local_movement_restrictions.append(
-                            properties[job["property_i"]].polygon
-                        )
-
-                        # possible larger movements
-                        # may or may not be done later
-
-                        # contact tracing TODO : this was copied from above, which means that it should be encapsulated better
-                        contact_tracing_delay = 0.5
-                        new_job = {
-                            "status": "in progress",
-                            "day": time + contact_tracing_delay,
-                            "type": management.jobtype.ContactTracing,
-                            "property_i": job["property_i"],
-                        }
-                        exists = False
-                        for j in jobs_queue:
-                            if (
-                                j["status"] == "in progress"
-                                and j["type"] == management.jobtype.ContactTracing
-                                and j["property_i"] == job["property_i"]
-                            ):
-                                exists = True
-                                break
-                        if not exists:
-                            for j in new_jobs:
-                                if (
-                                    j["status"] == "in progress"
-                                    and j["type"] == management.jobtype.ContactTracing
-                                    and j["property_i"] == job["property_i"]
-                                ):
-                                    exists = True
-                                    break
-                            if not exists:
-                                new_jobs.append(new_job)
-
-                        # lab testing should also be implemented - it may have already been ordered but it's probably better to check
-                        lab_test_delay = 1.0
-
-                        new_job = {
-                            "status": "in progress",
-                            "day": time + lab_test_delay,
-                            "type": management.jobtype.LabTesting,
-                            "property_i": job["property_i"],
-                        }
-                        for j in jobs_queue:
-                            if (
-                                j["status"] == "in progress"
-                                and j["type"] == management.jobtype.LabTesting
-                                and j["property_i"] == job["property_i"]
-                            ):
-                                exists = True
-                                break
-                        if not exists:
-                            for j in new_jobs:
-                                if (
-                                    j["status"] == "in progress"
-                                    and j["type"] == management.jobtype.LabTesting
-                                    and j["property_i"] == job["property_i"]
-                                ):
-                                    exists = True
-                                    break
-                            if not exists:
-                                mini_report = f"Personnel will be sent to property {job['property_i']} for lab testing\n"
-                                report += mini_report
-                                combined_narrative += mini_report
-                                new_jobs.append(new_job)
-
-                    else:
-                        pass  # may have ongoing surveillance here in the future
-
-                elif job["type"] == management.jobtype.Cull:
-                    premise = properties[job["property_i"]]
-                    premise_report, culled_animals = premise.cull_only(time)
-                    total_culled_animals += culled_animals
-                    report += premise_report
-                    combined_narrative += premise_report
-
-                    job["status"] = (
-                        "complete"  # mark job as complete, slated for removal from the job queue
-                    )
-                elif job["type"] == management.jobtype.ContactTracing:
-                    # conduct contact tracing of properties that reported yesterday
-
-                    contact_tracing_report, traced_property_indices = (
-                        management.contact_tracing(
-                            properties, job["property_i"], movement_records, time
-                        )
-                    )
-                    contact_tracing_reports += contact_tracing_report
-                    combined_narrative += contact_tracing_report
-                    contacts_for_plotting[job["property_i"]] = traced_property_indices
-
-                    # for the traced property indices, trigger clinical examination and lab testing
-                    clinical_delay = 0.5
-                    lab_test_delay = 1.5
-                    for t_i in traced_property_indices:
-
-                        mini_report = f"Personnel will be sent to traced property {t_i} for clinical observation and lab testing\n"
-                        report += mini_report
-                        combined_narrative += mini_report
-
-                        new_job = {
-                            "status": "in progress",
-                            "day": time + clinical_delay,
-                            "type": management.jobtype.ClinicalObservation,
-                            "property_i": t_i,
-                        }
-                        new_jobs.append(new_job)
-
-                        new_job = {
-                            "status": "in progress",
-                            "day": time + lab_test_delay,
-                            "type": management.jobtype.LabTesting,
-                            "property_i": t_i,
-                        }
-                        new_jobs.append(new_job)
-
-                    job["status"] = (
-                        "complete"  # mark job as complete, slated for removal from the job queue
-                    )
-
-        # clean up job queue
-        jobs_queue = [job for job in jobs_queue if job["status"] == "in progress"]
-        # and add in new jobs
-        jobs_queue.extend(new_jobs)
-        # todo: in general, I should check for duplicate jobs
+        # TODO somewhere - there is the "dt" element; the job_manager should be run again later in the "day"
 
         source_indices = []
         for i, premise in enumerate(properties):
@@ -603,6 +402,7 @@ def simulate_outbreak(
                 source_indices.append(i)
 
         # implement ring culling
+        # TODO : need to incorporate this into the job framework
         if ring_culling:
             if source_indices != []:
                 controlzone_ring_culling = management.define_control_zone_polygons(
@@ -662,44 +462,23 @@ def simulate_outbreak(
                     ):
                         properties_to_test.append(i)
 
-                testing_report, positive_indices = management.testing(
-                    properties, properties_to_test, time, lab_test_sensitivity
-                )
-
-                testing_reports += testing_report
-                combined_narrative += testing_report
-
-                # for any positive indices (properties found), we will need to enact "reporting" procedures
-                # given that I mostly copied this from the code above, this suggests that it could be encapsulated better...
-                for index in positive_indices:
-                    premise = properties[index]
-                    premise_report, culled_animals = premise.reporting(
-                        0, 0, time=time, force_report=True
+                for i in properties_to_test:
+                    job = {
+                        "status": "in progress",
+                        "day": time,
+                        "type": management.jobtype.LabTesting,
+                        "property_i": i,
+                    }
+                    temp_report, temp_testing_reports, temp_combined_narrative = (
+                        job_manager.run_lab_testing_now(properties, job, time)
                     )
-                    total_culled_animals += culled_animals
-                    premise_report = "REPORTED AFTER POSTIVE TEST: " + premise_report
-                    report += premise_report
-                    combined_narrative += premise_report
-                    if premise.reported_status == True:  # well, this should be true...
-                        # triggers: contact tracing
-                        contact_tracing_delay = 0.5
-                        new_job = {
-                            "status": "in progress",
-                            "day": time + contact_tracing_delay,
-                            "type": management.jobtype.ContactTracing,
-                            "property_i": index,
-                        }
-                        exists = False
-                        for j in jobs_queue:
-                            if (
-                                j["status"] == "in progress"
-                                and j["type"] == management.jobtype.ContactTracing
-                                and j["property_i"] == job["property_i"]
-                            ):
-                                exists = True
-                                break
-                        if not exists:
-                            jobs_queue.append(new_job)
+                    report += temp_report
+                    testing_reports += temp_testing_reports
+                    combined_narrative += temp_combined_narrative
+
+        for job in job_manager.new_jobs:
+            job_manager.add_job_to_queue(job)
+        job_manager.new_jobs = []
 
         # vaccinate properties around culled (reported) properties
         for premise in properties:
@@ -710,34 +489,27 @@ def simulate_outbreak(
 
         # check if any properties now want to report
         for i, premise in enumerate(properties):
-            if not premise.culled_status:
-                premise_report, culled_animals = premise.reporting(
-                    clinical_reporting_threshold, prob_report, time
-                )
-                total_culled_animals += culled_animals
-                report += premise_report
-                combined_narrative += premise_report
-                if premise.reported_status == True:
-                    contact_tracing_delay = 0.5
-                    new_job = {
-                        "status": "in progress",
-                        "day": time + contact_tracing_delay,
-                        "type": management.jobtype.ContactTracing,
-                        "property_i": i,
-                    }
-                    exists = False
-                    for j in jobs_queue:
-                        if (
-                            j["status"] == "in progress"
-                            and j["type"] == management.jobtype.ContactTracing
-                            and j["property_i"] == i
-                        ):
-                            exists = True
-                            break
-                    if not exists:
-                        jobs_queue.append(new_job)
+            if not premise.culled_status and premise.prob_of_reporting_only(
+                clinical_reporting_threshold, prob_report
+            ):
+                # essentially the same as a positive clinical observation
 
-        #
+                # enact local movement restrictions around this property, just in case
+                local_movement_restrictions.append(premise.polygon)
+
+                # schedule contact tracing
+                s_report = job_manager.schedule_contract_tracing(i, time)
+                combined_narrative += s_report
+
+                # schedule lab testing (if not yet done)
+                report = job_manager.schedule_lab_testing(i, time)
+                new_report += report
+                new_combined_narrative += report
+
+        for job in job_manager.new_jobs:
+            job_manager.add_job_to_queue(job)
+        job_manager.new_jobs = []
+
         # properties_to_contact_trace = list(set(properties_to_contact_trace_tomorrow))
 
         # run infection model for each property

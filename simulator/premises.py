@@ -213,6 +213,16 @@ class Premises(Property):
 
         return report, culled_animals
 
+    def prob_of_reporting_only(self, clinical_reporting_threshold, prob_report):
+        if self.prop_clinical > clinical_reporting_threshold:
+            reporting_rand = np.random.rand()
+            chance_of_reporting = prob_report * self.prop_clinical
+
+            # we assume once a property reports infection, they are immediately culled
+            if reporting_rand < chance_of_reporting:
+                return True
+        return False
+
     def reporting(
         self, clinical_reporting_threshold, prob_report, time, force_report=False
     ):
