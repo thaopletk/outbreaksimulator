@@ -17,6 +17,61 @@ from shapely.ops import transform, unary_union
 from simulator.premises import convert_time_to_date
 import numpy as np
 from simulator.spatial_functions import *
+from enum import Enum
+
+
+# discrete job type list syntax
+class jobtype(Enum):
+    LabTesting = 1
+    ClinicalObservation = 2
+    Cull = 3
+    ContactTracing = 4
+    # SelfReport = 1
+    # LocalMovementRestriction = 2
+    # LargeMovementRestriction = 3
+    # LabTestingStart = 4
+    # LabTestingResults = 5
+    # ClinicalTestingStart = 6
+    # ClinicalTestingResults = 7
+    # ContactTracingStart = 8
+    # ContactTracingResults = 9
+    # DecisionToCull = 10
+    # Culling = 11
+    # RingManagement = 12
+
+
+# TODO: incomplete start to a class system for jobs
+# """
+#     Class for jobs - basic policy framework, which defines what kind of jobs come next after it
+# """
+# class JobPolicy:
+
+#     def __init__(self, job_type : jobtype, delay : float, yes_jobs = [], no_jobs = None):
+#         self.job_type = job_type
+#         self.delay = delay
+#         self.yes_jobs = yes_jobs
+#         self.no_jobs = no_jobs
+
+#     # def run_job(self,params):
+#     #     result = self.job_function(**params)
+#     #     if result == True:
+#     #         return self.yes_jobs
+#     #     else:
+#     #         return self.no_jobs
+
+
+# class Culling(JobPolicy):
+#     def __init__(self, delay):
+#         super().__init(self, jobtype.Culling, delay, None, None) # there are no follow-on jobs from culling
+
+#     def start_job(self, start_day : float, property_to_cull):
+#         super().start_job(start_day)
+#         report = ""
+#         anticipated_completion = start_day + self.delay
+#         return report, anticipated_completion
+
+#     def finish_job(self, day, property_to_cull):
+#         pass
 
 
 def define_control_zone_circles(coordinates, radius_km):
@@ -94,30 +149,47 @@ def contact_tracing(properties, property_index, movement_records, time):
     return contact_tracing_report, traced_property_indices
 
 
+def test_property(
+    properties, property_index, time, test_sensitivity, test_type="Lab test"
+):
+    positive = False
+    premise = properties[property_index]
+
+    testing_report = f"DAY {convert_time_to_date(time)} - {test_type} report for property index {property_index}\n"
+
+    if premise.culled_status:
+        testing_report += f"No testing: property index {property_index} (IP {premise.ip}) has already been culled\n"
+    elif premise.infection_status:
+        prob_successful = np.random.rand()
+        if prob_successful < test_sensitivity:
+            x, y = premise.coordinates
+            testing_report += f"Property index {property_index} at location (x,y)=({round(x,2)}, {round(y,2)}) report POSITIVE result\n"
+            positive = True
+        else:
+            testing_report += (
+                f"Property index {property_index} report negative result\n"
+            )
+    else:
+        testing_report += f"Property index {property_index} report negative result\n"
+    return testing_report, positive
+
+
 def testing(properties, property_indices, time, test_sensitivity):
     """Testing
 
     Conducts testing on the input property_indices
 
     """
-    testing_report = f"DAY {convert_time_to_date(time)} - testing report\n"
+    testing_report = ""  #  f"DAY {convert_time_to_date(time)} - testing report\n"
     positive_indices = []
 
     for index in property_indices:
-        premise = properties[index]
-        if premise.culled_status:
-            testing_report += f"No testing: property index {index} (IP {premise.ip}) has already been culled\n"
-        elif premise.infection_status:
-            prob_successful = np.random.rand()
-            if prob_successful < test_sensitivity:
-                x, y = premise.coordinates
-                testing_report += f"Tested: property index {index} at location (x,y)=({round(x,2)}, {round(y,2)}) report POSITIVE result\n"
-                positive_indices.append(index)
-            else:
-                testing_report += (
-                    f"Tested: property index {index} report negative result\n"
-                )
-        else:
-            testing_report += f"Tested: property index {index} report negative result\n"
+        small_testing_report, positive = test_property(
+            properties, index, time, test_sensitivity
+        )
+        testing_report += small_testing_report
+
+        if positive:
+            positive_indices.append(index)
 
     return testing_report, positive_indices

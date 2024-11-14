@@ -107,7 +107,8 @@ params_low_incubation = {
     "prob_vaccinate": 0,  # zero, as people won't randomly vaccination
     "clinical_reporting_threshold": 0.05,
     "prob_report": 0.7,
-    "test_sensitivity": 0.9,
+    "lab_test_sensitivity": 0.9,
+    "clinical_test_sensitivity": 0.5,
 }
 disease = "low_incubation"
 
