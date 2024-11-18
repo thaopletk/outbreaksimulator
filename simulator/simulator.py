@@ -355,6 +355,7 @@ def save_reports(
 
 
 def save_current_state(properties, time, folder_path, unique_output):
+
     to_save = properties
 
     with open(os.path.join(folder_path, "properties_" + str(time)), "wb") as file:
@@ -406,6 +407,376 @@ def save_current_state(properties, time, folder_path, unique_output):
         for premise in properties:
             row = premise.return_known_output_row()
             writer.writerow(row)
+
+
+def save_outbreak_state(
+    properties,
+    time,
+    folder_path,
+    unique_output,
+    total_culled_animals,
+    movement_records,
+    job_manager,
+):
+
+    # saves properties
+    save_current_state(properties, time, folder_path, unique_output)
+
+    # to save everything else
+    to_save = [total_culled_animals, movement_records, job_manager]
+    with open(
+        os.path.join(folder_path, "outbreak_state_other_" + str(time)), "wb"
+    ) as file:
+        pickle.dump(to_save, file)
+
+
+def simulate_outbreak_one_day(
+    total_culled_animals,
+    time,
+    properties,
+    property_coordinates,
+    folder_path,
+    movement_records,
+    job_manager,
+    n=5,
+    report="",
+    contact_tracing_reports="",
+    testing_reports="",
+    combined_narrative="",
+    cumulative_infection_proportions=[],
+    xlims=[150.2503, 151.39695],
+    ylims=[[-32.61181, -31.60829]],
+    vax_modifier=0.4,
+    r_wind=25,
+    beta_wind=0.01,
+    beta_animal=2,
+    latent_period=2,
+    infectious_period=2,
+    preclinical_period=2,
+    movement_standstill=False,  # should only trigger after a notification occurs
+    movement_restrictions=False,
+    movement_restriction_radius_km=None,
+    movement_restriction_convex=None,
+    ring_vaccination=False,
+    ring_vaccination_radius_km=None,
+    ring_vaccination_convex=None,
+    ring_culling=False,
+    ring_culling_radius_km=None,
+    ring_culling_convex=None,
+    ring_testing=False,
+    ring_testing_radius_km=None,
+    ring_testing_convex=None,
+    **_,
+):
+    """Simulate outbreak spread and management for one day"""
+
+    FOI = list(np.zeros(n))
+
+    controlzone = {}  # the control zone should be re-calculated every day
+    # calculate FOI for each property
+    for i, premise in enumerate(properties):
+        if not premise.culled_status:
+            FOI[i] = SEIR.calculate_force_of_infection(
+                properties, i, vax_modifier, r_wind, beta_wind, beta_animal
+            )
+
+    contacts_for_plotting = {}  # from property, to properties
+
+    # Go through jobs in the queue
+    (
+        new_report,
+        new_testing_reports,
+        new_combined_narrative,
+        new_contact_tracing_reports,
+        local_movement_restrictions,
+        newly_culled_animals,
+        contacts_for_plotting,
+    ) = job_manager.job_manager(time, properties, movement_records)
+
+    report += new_report
+    testing_reports += new_testing_reports
+    combined_narrative += new_combined_narrative
+    contact_tracing_reports += new_contact_tracing_reports
+    total_culled_animals += newly_culled_animals
+
+    # source indices to determine any ring management
+    source_indices = []
+    for i, premise in enumerate(properties):
+        if premise.reported_status == True:
+            source_indices.append(i)
+
+    # TODO : need to incorporate this into the job framework
+    if ring_culling:
+        if source_indices != []:
+            controlzone_ring_culling = management.define_control_zone_polygons(
+                properties,
+                source_indices,
+                ring_culling_radius_km,
+                convex=ring_culling_convex,
+            )
+
+            controlzone["ring culling"] = controlzone_ring_culling
+
+            for premise in properties:
+                if not premise.culled_status and premise.polygon.intersects(
+                    controlzone_ring_culling
+                ):
+                    premise_report, culled_animals = premise.cull_without_reporting(
+                        time
+                    )
+                    total_culled_animals += culled_animals
+                    report += premise_report
+                    combined_narrative += premise_report
+
+    # implementing ring vaccination
+    if ring_vaccination:
+        if source_indices != []:
+            controlzone_ring_vaccination = management.define_control_zone_polygons(
+                properties,
+                source_indices,
+                ring_vaccination_radius_km,
+                convex=ring_vaccination_convex,
+            )
+
+            controlzone["ring vaccination"] = controlzone_ring_vaccination
+
+            for premise in properties:
+                if not premise.culled_status and premise.polygon.intersects(
+                    controlzone_ring_vaccination
+                ):
+                    premise.vaccinate(time)
+
+    # implementing ring testing
+    if ring_testing:
+        if source_indices != []:
+            controlzone_ring_testing = management.define_control_zone_polygons(
+                properties,
+                source_indices,
+                ring_testing_radius_km,
+                convex=ring_testing_convex,
+            )
+
+            controlzone["ring testing"] = controlzone_ring_testing
+
+            properties_to_test = []
+            for i, premise in enumerate(properties):
+                if not premise.culled_status and premise.polygon.intersects(
+                    controlzone_ring_testing
+                ):
+                    properties_to_test.append(i)
+
+            for i in properties_to_test:
+                job = {
+                    "status": "in progress",
+                    "day": time,
+                    "type": management.jobtype.LabTesting,
+                    "property_i": i,
+                }
+                temp_report, temp_testing_reports, temp_combined_narrative = (
+                    job_manager.run_lab_testing_now(properties, job, time)
+                )
+                report += temp_report
+                testing_reports += temp_testing_reports
+                combined_narrative += temp_combined_narrative
+
+    for job in job_manager.new_jobs:
+        job_manager.add_job_to_queue(job)
+    job_manager.new_jobs = []
+
+    # run infection model for each property
+    for i, premise in enumerate(properties):
+        premise.infection_model(
+            latent_period, infectious_period, preclinical_period, FOI[i], time
+        )
+    # calculate movement restriction zones before animal movement
+    controlzone_movement_restrictions = None
+    if local_movement_restrictions != []:
+        controlzone_movement_restrictions = unary_union(local_movement_restrictions)
+    if movement_standstill:
+        source_indices = []
+        for i, premise in enumerate(properties):
+            if premise.reported_status == True:
+                source_indices.append(i)
+
+        if source_indices != []:
+            map_polygon = {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [xlims[0], ylims[0]],
+                        [xlims[1], ylims[0]],
+                        [xlims[1], ylims[1]],
+                        [xlims[0], ylims[1]],
+                        [xlims[0], ylims[0]],
+                    ]
+                ],
+            }
+            controlzone_large_movement_restrictions = (
+                spatial_setup.convert_dict_poly_to_Polygon(map_polygon)
+            )
+            if controlzone_movement_restrictions == None:
+                controlzone_movement_restrictions = (
+                    controlzone_large_movement_restrictions
+                )
+            else:
+                controlzone_movement_restrictions = unary_union(
+                    [
+                        controlzone_movement_restrictions,
+                        controlzone_large_movement_restrictions,
+                    ]
+                )
+            controlzone["movement restrictions"] = controlzone_movement_restrictions
+
+    elif movement_restrictions:
+        source_indices = []
+        for i, premise in enumerate(properties):
+            if premise.reported_status == True:
+                source_indices.append(i)
+
+        if source_indices != []:
+            controlzone_large_movement_restrictions = (
+                management.define_control_zone_polygons(
+                    properties,
+                    source_indices,
+                    movement_restriction_radius_km,
+                    convex=movement_restriction_convex,
+                )
+            )
+            if controlzone_movement_restrictions == None:
+                controlzone_movement_restrictions = (
+                    controlzone_large_movement_restrictions
+                )
+            else:
+                controlzone_movement_restrictions = unary_union(
+                    [
+                        controlzone_movement_restrictions,
+                        controlzone_large_movement_restrictions,
+                    ]
+                )
+            controlzone["movement restrictions"] = controlzone_movement_restrictions
+
+    # movement of animals
+    movement_record = animal_movement.animal_movement(
+        properties,
+        n=n,
+        day=time,
+        controlzone=controlzone_movement_restrictions,
+    )
+    if movement_record != []:
+        movement_records.extend(movement_record)
+
+    # update counts
+    # simulation ends when infected_sum = 0
+    infected_sum = 0
+    for i, premise in enumerate(properties):
+        premise.update_counts()
+        # TODO something like premise.update_status() # in the case all infected animals recover or are moved off the property, it may be considered no longer infected? or, to state "contaminated"
+        # though in that case, the fomites should still be there -- noted under cumulative infections...?
+        if not premise.culled_status:
+            cumulative_infection_proportions[i] = premise.cumulative_infections / len(
+                premise.animals
+            )
+            infected_sum += premise.number_infected
+
+    plot_current_state(
+        properties,
+        property_coordinates,
+        time,
+        xlims,
+        ylims,
+        folder_path,
+        controlzone,
+        infectionpoly=False,
+        contacts_for_plotting=contacts_for_plotting,
+    )
+    # should also save contacts_for_plotting
+    output.save_data(properties, property_coordinates, time, controlzone, folder_path)
+
+    combined_narrative += "\n"
+
+    return (
+        total_culled_animals,
+        properties,
+        movement_records,
+        report,
+        contact_tracing_reports,
+        testing_reports,
+        combined_narrative,
+        job_manager,
+        cumulative_infection_proportions,
+    )
+
+
+def simulate_outbreak_continue(
+    properties,
+    folder_path,
+    stop_time,
+    unique_output,
+    total_culled_animals=0,
+    time=0,
+    movement_records=[],
+    local_movement_restrictions=[],
+    job_manager=None,
+):
+    """Simulate outbreak - continue from previous state and output at the end
+    TODO
+    """
+
+    report = ""
+    contact_tracing_reports = ""
+    testing_reports = ""
+    combined_narrative = ""
+
+    if job_manager == None:
+        job_manager = management.JobManager()
+
+    while time < stop_time:
+        time += 1
+
+        (
+            total_culled_animals,
+            properties,
+            movement_records,
+            report,
+            contact_tracing_reports,
+            testing_reports,
+            combined_narrative,
+            job_manager,
+        ) = simulate_outbreak_one_day(
+            total_culled_animals,
+            time,
+            properties,
+            movement_records,
+            job_manager,
+            n,
+            report,
+            contact_tracing_reports,
+            testing_reports,
+            combined_narrative,
+        )
+
+    save_outbreak_state(
+        properties,
+        time,
+        folder_path,
+        unique_output,
+        total_culled_animals,
+        movement_records,
+        job_manager,
+    )
+
+    save_reports(
+        properties,
+        folder_path,
+        total_culled_animals,
+        combined_narrative,
+        report,
+        contact_tracing_reports,
+        testing_reports,
+        movement_records,
+    )
+
+    return properties, time, total_culled_animals, movement_records, job_manager
 
 
 # based from the fmdmodelling function FMD_ABM, but with modifications (e.g. around saving data at various time points)
@@ -499,8 +870,6 @@ def simulate_outbreak(
     FOI = list(np.zeros(n))
     # plt.figure()
     # start time loop
-    infected_sum = 1  # so the while loop begins
-    jobs_queue = []  # [date for completion, property to act on, job type]
     local_movement_restrictions = []
     dt = 0.5
 
