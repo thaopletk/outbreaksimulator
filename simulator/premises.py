@@ -263,7 +263,10 @@ class Premises(Property):
             FOI,
         )
 
-        if self.infection_status == 1 and self.clinical_date == "NA":
+        if self.infection_status == 1 and self.exposure_date == "NA":
+            self.exposure_date = convert_time_to_date(time)
+
+        if self.prop_clinical > 0 and self.clinical_date == "NA":
             self.clinical_date = convert_time_to_date(
                 time
             )  # might need to change this, but for now, it should be the earliest date with clinical symptoms
