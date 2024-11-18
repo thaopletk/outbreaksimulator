@@ -17,6 +17,7 @@ import numpy as np
 from shapely.geometry import Point
 import csv
 import math
+import pickle
 import matplotlib.pyplot as plt
 import simulator.spatial_setup as spatial_setup
 import simulator.management as management
@@ -160,10 +161,14 @@ def property_setup(
 
         for j in range(n_to_generate):
             # new property
+            animal_multiplier = 1
+            if property_type in ["saleyard", "feedlot"]:
+                animal_multiplier = 2  # double the number of animals on that property
             new_p = premises.Premises(
                 num_animals=max(
-                    int(property_areas[i] * average_animals_per_ha), 1
-                ),  # at least one animal per property
+                    int(animal_multiplier * property_areas[i] * average_animals_per_ha),
+                    animal_multiplier * 5,
+                ),  # at least five animals per property
                 movement_freq=movement_frequency[property_type],
                 coordinates=property_coordinates[i],
                 area_ha=property_areas[i],
@@ -201,7 +206,7 @@ def property_setup(
     return property_setup_info
 
 
-def seed_infection(xrange, yrange, properties):
+def seed_infection(xrange, yrange, properties, time=0):
     """Send infection in the middle third of the map if possible (we don't want the outbreak spreading to edges and stop simply because of the unnatural map boundaries)"""
     seed_property = 0  # default
     seed_animal = 0
@@ -222,6 +227,7 @@ def seed_infection(xrange, yrange, properties):
             break
 
     properties[seed_property].infection_status = 1
+    properties[seed_property].exposure_date = premises.convert_time_to_date(time)
     properties[seed_property].animals[seed_animal].status = "infected"
     properties[seed_property].prop_infectious = 1 / properties[seed_property].size
     properties[seed_property].cumulative_infections = 1
@@ -249,6 +255,157 @@ def initialise_infection_vaccination(
             )
 
     return properties, seed_property, cumulative_infection_proportions
+
+
+def plot_current_state(
+    properties,
+    property_coordinates,
+    time,
+    xlims,
+    ylims,
+    folder_path,
+    controlzone,
+    infectionpoly=False,
+    contacts_for_plotting={},
+):
+    output.plot_map(
+        properties,
+        property_coordinates,
+        time,
+        xlims=xlims,
+        ylims=ylims,
+        folder_path=folder_path,
+        real_situation=True,
+        controlzone=controlzone,
+        infectionpoly=infectionpoly,
+        contacts_for_plotting=contacts_for_plotting,  # TODO in the real situation, these should be the actual movements, or something
+    )
+    output.plot_map(
+        properties,
+        property_coordinates,
+        time,
+        xlims=xlims,
+        ylims=ylims,
+        folder_path=folder_path,
+        real_situation=False,
+        controlzone=controlzone,
+        infectionpoly=infectionpoly,
+        contacts_for_plotting=contacts_for_plotting,
+    )
+
+
+def save_reports(
+    properties,
+    folder_path,
+    total_culled_animals,
+    combined_narrative,
+    report,
+    contact_tracing_reports,
+    testing_reports,
+    movement_records,
+):
+    total_culled = 0
+    total_vaccinated = 0
+    for premise in properties:
+        if premise.culled_status:
+            total_culled += 1
+        if premise.vaccination_status:
+            total_vaccinated += 1
+
+    to_save_narrative = (
+        combined_narrative
+        + f"\n==============\nTotal culled properties: {total_culled}; total vaccinated properties: {total_vaccinated}; total culled animals: {total_culled_animals}"
+    )
+
+    # output "reports" report
+    with open(os.path.join(folder_path, "report.txt"), "w") as file:
+        file.write(report)
+
+    # output contact tracing reports
+    with open(os.path.join(folder_path, "report_contact_tracing.txt"), "w") as file:
+        file.write(contact_tracing_reports)
+
+    # output testing reports
+    with open(os.path.join(folder_path, "report_testing.txt"), "w") as file:
+        file.write(testing_reports)
+
+    # output the inter-twined narrative (of known occurences)
+    with open(os.path.join(folder_path, "report_combined_narrative.txt"), "w") as file:
+        file.write(to_save_narrative)
+
+    # write movement records
+
+    header = [
+        "time",
+        "moving from index",
+        "moving to index",
+        "report",
+    ]
+    file = os.path.join(folder_path, f"movement_records.csv")
+    with open(file, "w", newline="") as f:
+
+        # create the csv writer
+        writer = csv.writer(f)
+
+        # write the header
+        writer.writerow(header)
+
+        for row in movement_records:
+            writer.writerow(row)
+
+
+def save_current_state(properties, time, folder_path, unique_output):
+    to_save = properties
+
+    with open(os.path.join(folder_path, "properties_" + str(time)), "wb") as file:
+        pickle.dump(to_save, file)
+
+    # print output: all
+    header = [
+        "id",
+        "status",
+        "ip",
+        "exposure_date",
+        "clinical_date",
+        "notification_date",
+        "removal_date",
+        "recovery_date",
+        "vacc_date",
+        "region",
+        "county",
+        "cluster",
+        "xcoord",
+        "ycoord",
+        "area",
+        "type",
+        "total",
+    ]
+    file = os.path.join(folder_path, f"fake_data_underlying_{unique_output}.csv")
+    with open(file, "w", newline="") as f:
+
+        # create the csv writer
+        writer = csv.writer(f)
+
+        # write the header
+        writer.writerow(header)
+
+        for premise in properties:
+            row = premise.return_output_row()
+            writer.writerow(row)
+
+    # print output: known
+    file = os.path.join(folder_path, f"fake_data_apparent_{unique_output}.csv")
+    with open(file, "w", newline="") as f:
+
+        # create the csv writer
+        writer = csv.writer(f)
+
+        # write the header
+        writer.writerow(header)
+
+        for premise in properties:
+            row = premise.return_known_output_row()
+            writer.writerow(row)
 
 
 # based from the fmdmodelling function FMD_ABM, but with modifications (e.g. around saving data at various time points)
@@ -327,25 +484,14 @@ def simulate_outbreak(
     )
 
     if plotting:
-        output.plot_map(
+        plot_current_state(
             properties,
             property_coordinates,
             time,
-            xlims=xlims,
-            ylims=ylims,
-            folder_path=folder_path,
-            real_situation=True,
-            controlzone=controlzone,
-        )
-        output.plot_map(
-            properties,
-            property_coordinates,
-            time,
-            xlims=xlims,
-            ylims=ylims,
-            folder_path=folder_path,
-            real_situation=False,
-            controlzone=controlzone,
+            xlims,
+            ylims,
+            folder_path,
+            controlzone,
         )
 
     # spread begins here:
@@ -612,27 +758,14 @@ def simulate_outbreak(
                 infected_sum += premise.number_infected
 
         if plotting:
-            output.plot_map(
+            plot_current_state(
                 properties,
                 property_coordinates,
                 time,
-                xlims=xlims,
-                ylims=ylims,
-                folder_path=folder_path,
-                real_situation=True,
-                controlzone=controlzone,
-                infectionpoly=False,
-                contacts_for_plotting={},  # TODO in the real situation, these should be the actual movements, or something
-            )
-            output.plot_map(
-                properties,
-                property_coordinates,
-                time,
-                xlims=xlims,
-                ylims=ylims,
-                folder_path=folder_path,
-                real_situation=False,
-                controlzone=controlzone,
+                xlims,
+                ylims,
+                folder_path,
+                controlzone,
                 infectionpoly=False,
                 contacts_for_plotting=contacts_for_plotting,
             )
@@ -654,90 +787,17 @@ def simulate_outbreak(
         if premise.vaccination_status:
             total_vaccinated += 1
 
-    # should add in a total culled animals
-    combined_narrative += f"\n==============\nTotal culled properties: {total_culled}; total vaccinated properties: {total_vaccinated}; total culled animals: {total_culled_animals}"
+    save_current_state(properties, time, folder_path, unique_output)
 
-    # print output: all
-    header = [
-        "id",
-        "status",
-        "ip",
-        "exposure_date",
-        "clinical_date",
-        "notification_date",
-        "removal_date",
-        "recovery_date",
-        "vacc_date",
-        "region",
-        "county",
-        "cluster",
-        "xcoord",
-        "ycoord",
-        "area",
-        "type",
-        "total",
-    ]
-    file = os.path.join(folder_path, f"fake_data_underlying_{unique_output}.csv")
-    with open(file, "w", newline="") as f:
-
-        # create the csv writer
-        writer = csv.writer(f)
-
-        # write the header
-        writer.writerow(header)
-
-        for premise in properties:
-            row = premise.return_output_row()
-            writer.writerow(row)
-
-    # print output: known
-    file = os.path.join(folder_path, f"fake_data_apparent_{unique_output}.csv")
-    with open(file, "w", newline="") as f:
-
-        # create the csv writer
-        writer = csv.writer(f)
-
-        # write the header
-        writer.writerow(header)
-
-        for premise in properties:
-            row = premise.return_known_output_row()
-            writer.writerow(row)
-
-    # output "reports" report
-    with open(os.path.join(folder_path, "report.txt"), "w") as file:
-        file.write(report)
-
-    # output contact tracing reports
-    with open(os.path.join(folder_path, "report_contact_tracing.txt"), "w") as file:
-        file.write(contact_tracing_reports)
-
-    # output testing reports
-    with open(os.path.join(folder_path, "report_testing.txt"), "w") as file:
-        file.write(testing_reports)
-
-    # output the inter-twined narrative (of known occurences)
-    with open(os.path.join(folder_path, "report_combined_narrative.txt"), "w") as file:
-        file.write(combined_narrative)
-
-    # write movement records
-
-    header = [
-        "time",
-        "moving from index",
-        "moving to index",
-        "report",
-    ]
-    file = os.path.join(folder_path, f"movement_records.csv")
-    with open(file, "w", newline="") as f:
-
-        # create the csv writer
-        writer = csv.writer(f)
-
-        # write the header
-        writer.writerow(header)
-
-        for row in movement_records:
-            writer.writerow(row)
+    save_reports(
+        properties,
+        folder_path,
+        total_culled_animals,
+        combined_narrative,
+        report,
+        contact_tracing_reports,
+        testing_reports,
+        movement_records,
+    )
 
     return total_culled, total_vaccinated, properties

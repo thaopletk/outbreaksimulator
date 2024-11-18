@@ -50,6 +50,7 @@ pip install -r requirements.txt
 python scenarios/run.py
 ```
 
+*Note that the requirements.txt is currently not up-to-date...*
 
 ### Formatting
 

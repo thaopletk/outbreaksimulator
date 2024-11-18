@@ -1,0 +1,14 @@
+{
+    "init_vax_probability": 0, 
+    "vax_modifier": 0.3,
+    "beta_wind": 2,
+    "beta_animal": 2,
+    "latent_period": 7,
+    "infectious_period": 23.1,
+    "preclinical_period": 7,
+    "prob_vaccinate": 0, 
+    "clinical_reporting_threshold": 0.05,
+    "prob_report": 0.7,
+    "lab_test_sensitivity": 0.9,
+    "clinical_test_sensitivity": 0.5
+}
