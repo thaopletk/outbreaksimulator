@@ -20,6 +20,8 @@ For ARDC-HASTE project
 
 ![Diagram of the current state of the outbreak simulator, including disease dynamics, spread, simulation code, spatial arrangement, management](images/outbreak_simulator_model_current_status.png)
 
+
+(note that this management process png is no longer up to date...)
 ![Diagram of the current state of management](images/management_process.png)
 
 # Example outputs
