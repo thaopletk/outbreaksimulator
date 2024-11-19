@@ -143,7 +143,7 @@ p.movement_frequency = properties_specific_parameters["movement_frequency"]["stu
 p.max_daily_movements = properties_specific_parameters["max_daily_movements"]["stud farm"]
 
 
-# Step 5: force reporting at the stud farm
+# Step 5: force reporting at the stud farm at the end of the day (?), and allow for some options for the next day of simulation - UP TO
 
 
 exit(0)
