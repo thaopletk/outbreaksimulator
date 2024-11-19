@@ -18,6 +18,11 @@ import simulator.management as management
 folder_path_main = os.path.join(os.path.dirname(__file__), "trial_simex_v2")
 folder_path_seed = os.path.join(folder_path_main, "01_seed")
 folder_path_undetected_spread_1 = os.path.join(folder_path_main, "02_undetected_spread_one_week")
+folder_path_first_report = os.path.join(folder_path_main, "03_first_report")
+folder_path_movement_standstill_A = os.path.join(folder_path_main, "03A_movement_standstill_one_week")
+folder_path_radius_50km_B = os.path.join(folder_path_main, "03B_movement_radius_50km_one_week")
+folder_path_radius_25km_C = os.path.join(folder_path_main, "03C_movement_radius_25km_one_week")
+
 
 # step 1: make folder for everything
 # Not in output folder, so that it'll be synced...
@@ -143,7 +148,13 @@ p.movement_frequency = properties_specific_parameters["movement_frequency"]["stu
 p.max_daily_movements = properties_specific_parameters["max_daily_movements"]["stud farm"]
 
 
-# Step 5: force reporting at the stud farm at the end of the day (?), and allow for some options for the next day of simulation - UP TO
+# Step 5: day 8: force reporting at the stud farm at the start of the day, followed by the default processes (contact tracing, assume that clinical confirmation is immediate, lab testing in process); the day will probably end with minimal movement restrictions for the infected property and the contact traced properties.
+# These properties should shown on a map
+# Then stop the simulation, and allow for some options for the next day of simulation
+# Options: complete movement standstill, and certain radii around the infected property
+
+if not os.path.exists(folder_path_first_report):
+    os.makedirs(folder_path_first_report)
 
 
 exit(0)
