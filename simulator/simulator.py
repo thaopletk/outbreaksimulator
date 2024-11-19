@@ -117,9 +117,11 @@ def trial_simex_property_setup(
     """Properties set up for the December 2024 Trial Simulation Exercise"""
 
     # checks that the sum of n_property_types is equal to spatial_only_paramaters["n"]
-    property_specific_sum = sum([ value for key, value in properties_specific_parameters["n_property_types"].items()])
-    if spatial_only_paramaters["n"]!=property_specific_sum:
-        raise ValueError("The total number of properties in spatial_only_parameters doesn't match the number in properties_specific_parameters")
+    property_specific_sum = sum([value for key, value in properties_specific_parameters["n_property_types"].items()])
+    if spatial_only_paramaters["n"] != property_specific_sum:
+        raise ValueError(
+            "The total number of properties in spatial_only_parameters doesn't match the number in properties_specific_parameters"
+        )
 
     # 1. Spatial-only, property-type-agnostic setup
     (
@@ -149,7 +151,7 @@ def trial_simex_property_setup(
     # 2. Property-specific initialisation
 
     # initialise properties
-    properties = [None]*spatial_only_paramaters["n"]
+    properties = [None] * spatial_only_paramaters["n"]
 
     # unique situation: select one of the center properties to be the stud farm (where infection will be seeded)
     stud_farm_i = 0  # default
@@ -209,10 +211,10 @@ def trial_simex_property_setup(
                 max_daily_movements=properties_specific_parameters["max_daily_movements"][property_type],
             )
 
-            
-
             properties[new_p_i] = new_p
-            properties[new_p_i].id = new_p_i # override the default assigned id, as the properties were added out of order (above)
+            properties[new_p_i].id = (
+                new_p_i  # override the default assigned id, as the properties were added out of order (above)
+            )
             properties[new_p_i].init_animals(
                 None
             )  # init with empty "params", as no parameters are actually used to initialise animals

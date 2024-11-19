@@ -17,9 +17,7 @@ import simulator.management as management
 # folder names
 folder_path_main = os.path.join(os.path.dirname(__file__), "trial_simex_v2")
 folder_path_seed = os.path.join(folder_path_main, "01_seed")
-folder_path_undetected_spread_1 = os.path.join(
-    folder_path_main, "02_undetected_spread_one_week"
-)
+folder_path_undetected_spread_1 = os.path.join(folder_path_main, "02_undetected_spread_one_week")
 
 # step 1: make folder for everything
 # Not in output folder, so that it'll be synced...
@@ -37,12 +35,13 @@ with open(os.path.join(folder_path_main, "properties_specific_parameters.json"),
     properties_specific_parameters = json.load(file)
 
 
-
 # step 2: initiate the full proper map, including with different property types
 
 properties_filename = os.path.join(folder_path_main, "properties_initialised.pickle")
 if not os.path.exists(properties_filename):
-    property_setup_info = simulator.trial_simex_property_setup(folder_path_main, spatial_only_paramaters,properties_specific_parameters)
+    property_setup_info = simulator.trial_simex_property_setup(
+        folder_path_main, spatial_only_paramaters, properties_specific_parameters
+    )
 else:
     # load properties
     with open(properties_filename, "rb") as file:
@@ -56,8 +55,6 @@ with open(os.path.join(folder_path_main, "scenario_params.json"), "r") as file:
 
 with open(os.path.join(folder_path_main, "job_params.json"), "r") as file:
     job_params = json.load(file)
-
-
 
 
 (
@@ -82,9 +79,7 @@ properties_seeded_filename = os.path.join(folder_path_seed, "properties_0")
 if not os.path.exists(properties_seeded_filename):
     # seed property
 
-    properties, seed_property = simulator.seed_infection(
-        set_up_params["xrange"], set_up_params["yrange"], properties
-    )
+    properties, seed_property = simulator.seed_infection(set_up_params["xrange"], set_up_params["yrange"], properties)
 
     # rename property as the stud farm
     p = properties[seed_property]
