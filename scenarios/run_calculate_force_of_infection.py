@@ -66,13 +66,10 @@ cumulative_infection_proportions[seed_property] = (
 # set up some random initial vaccination
 for i, premise in enumerate(properties):
     if premise.infection_status != 1:
-        premise.vaccination(
-            init_vax_probability, properties, time, culled_neighbours_only=False
-        )
+        premise.vaccination(init_vax_probability, properties, time, culled_neighbours_only=False)
 
 output.plot_map(
     properties,
-    property_coordinates,
     time,
     xlims=xlims,
     ylims=ylims,
@@ -92,8 +89,6 @@ controlzone = None
 infected_properties = 0
 for i, premise in enumerate(properties):
     if not premise.culled_status:
-        FOI[i] = SEIR.calculate_force_of_infection(
-            properties, i, vax_modifier, r_wind, beta_wind, beta_animal
-        )
+        FOI[i] = SEIR.calculate_force_of_infection(properties, i, vax_modifier, r_wind, beta_wind, beta_animal)
 
 print(FOI)

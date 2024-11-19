@@ -65,18 +65,12 @@ def plot_property_coordinates(
 
     geo_df = gpd.GeoDataFrame(geometry=farms)
     geo_df.crs = {"init": "epsg:4326"}
-    ax = geo_df.plot(
-        ax=ax, markersize=markersize, color=colour, marker=marker, label=markerlabel
-    )
+    ax = geo_df.plot(ax=ax, markersize=markersize, color=colour, marker=marker, label=markerlabel)
 
-    ctx.add_basemap(
-        ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik
-    )
+    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
-    points = gpd.GeoSeries(
-        [Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326
-    )  # Geographic WGS 84 - degrees
+    points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
     points = points.to_crs(32619)  # Projected WGS 84 - meters
     distance_meters = points[0].distance(points[1])
     ax.add_artist(
@@ -108,9 +102,7 @@ def plot_property_coordinates(
     plt.close()
 
 
-def plot_map_land(
-    property_polygons, property_polygons_puffed, xlims, ylims, folder_path
-):
+def plot_map_land(property_polygons, property_polygons_puffed, xlims, ylims, folder_path):
     """Plot property boundaries"""
     fig, ax = plt.subplots(1, 1, figsize=(20, 15))  # ,figsize=(10,12)
 
@@ -120,14 +112,10 @@ def plot_map_land(
     for poly in property_polygons:
         plot_polygon(ax, poly, facecolor="tomato", edgecolor="maroon", alpha=1)
 
-    ctx.add_basemap(
-        ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik
-    )
+    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
-    points = gpd.GeoSeries(
-        [Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326
-    )  # Geographic WGS 84 - degrees
+    points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
     points = points.to_crs(32619)  # Projected WGS 84 - meters
     distance_meters = points[0].distance(points[1])
     ax.add_artist(
@@ -163,7 +151,6 @@ def plot_map_land(
 
 def plot_map(
     properties,
-    property_coordinates,
     time,
     xlims,
     ylims,
@@ -179,8 +166,6 @@ def plot_map(
     ----------
     properties : list of premises
         list of properties (Premises objects)
-    property_coordinates : list
-        list of properties' center coordinates
     time : int
         current simulation time (will be converted into a date)
     xlims : list
@@ -301,9 +286,7 @@ def plot_map(
                         geometry_culled_on_suspicion.append(curr_farm)
 
                 else:
-                    raise Exception(
-                        "Culled yet neither reported nor culled on suspicion"
-                    )
+                    raise Exception("Culled yet neither reported nor culled on suspicion")
 
             elif premise.vaccination_status:
                 geometry_vaccinated.append(curr_farm)
@@ -338,9 +321,7 @@ def plot_map(
                 elif premise.culled_on_suspicion:
                     geometry_culled_on_suspicion.append(curr_farm)
                 else:
-                    raise Exception(
-                        "Culled yet neither reported nor culled on suspicion"
-                    )
+                    raise Exception("Culled yet neither reported nor culled on suspicion")
 
             elif premise.vaccination_status:
                 geometry_vaccinated.append(curr_farm)
@@ -375,34 +356,23 @@ def plot_map(
     ]:
         if geometry == []:
             if (
-                markerlabel == "infected"
-                or markerlabel == "culled on suspicion, actually infected"
+                markerlabel == "infected" or markerlabel == "culled on suspicion, actually infected"
             ):  # only for the real situation case plotting
                 if real_situation == True:
-                    geometry = [
-                        Point(xlims[0] - 0.1, ylims[0] - 0.1)
-                    ]  # putting the point outside the limits
+                    geometry = [Point(xlims[0] - 0.1, ylims[0] - 0.1)]  # putting the point outside the limits
             else:
-                geometry = [
-                    Point(xlims[0] - 0.1, ylims[0] - 0.1)
-                ]  # putting the point outside the limits
+                geometry = [Point(xlims[0] - 0.1, ylims[0] - 0.1)]  # putting the point outside the limits
 
             # add a fake point to ensure the legend is there
         geo_df = gpd.GeoDataFrame(geometry=geometry)
         geo_df.crs = {"init": "epsg:4326"}
         # plot the marker
-        ax = geo_df.plot(
-            ax=ax, markersize=markersize, color=colour, marker=marker, label=markerlabel
-        )
+        ax = geo_df.plot(ax=ax, markersize=markersize, color=colour, marker=marker, label=markerlabel)
 
-    ctx.add_basemap(
-        ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik
-    )
+    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
-    points = gpd.GeoSeries(
-        [Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326
-    )  # Geographic WGS 84 - degrees
+    points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
     points = points.to_crs(32619)  # Projected WGS 84 - meters
     distance_meters = points[0].distance(points[1])
     ax.add_artist(
@@ -492,14 +462,10 @@ def make_video(folder_path="outputs", prefix="map", times=None, save_name_prefix
 
     fps = 1
     clip = ImageSequenceClip(image_files, fps=fps)
-    output_file = os.path.join(
-        folder_path, save_name_prefix + prefix + "plot_video.mp4"
-    )
+    output_file = os.path.join(folder_path, save_name_prefix + prefix + "plot_video.mp4")
 
     clip.write_videofile(output_file)
 
-    clip.write_gif(
-        os.path.join(folder_path, save_name_prefix + prefix + "plot_video.gif")
-    )
+    clip.write_gif(os.path.join(folder_path, save_name_prefix + prefix + "plot_video.gif"))
 
     return

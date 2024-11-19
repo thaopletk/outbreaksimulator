@@ -26,16 +26,12 @@ if not os.path.exists(folder_path_main):
     os.makedirs(folder_path_main)
 
 
-# read in parameters
+# step 2: initiate the full proper map, including with different property types
+# parameters
 with open(os.path.join(folder_path_main, "spatial_only_parameters.json"), "r") as file:
     spatial_only_paramaters = json.load(file)
-
-
 with open(os.path.join(folder_path_main, "properties_specific_parameters.json"), "r") as file:
     properties_specific_parameters = json.load(file)
-
-
-# step 2: initiate the full proper map, including with different property types
 
 # properties_filename = os.path.join(folder_path_main, "properties_initialised.pickle")
 properties_filename = os.path.join(folder_path_main, "properties_init")
@@ -61,18 +57,19 @@ else:
         properties = pickle.load(file)
 
 
-exit(0)
+# limits for the figures
+xlims = [
+    round(spatial_only_paramaters["xrange"][0], 2) - 0.005,
+    round(spatial_only_paramaters["xrange"][1], 2) + 0.005,
+]
+ylims = [
+    round(spatial_only_paramaters["yrange"][0], 1) - 0.05,
+    round(spatial_only_paramaters["yrange"][1], 1) + 0.05,
+]
 
-with open(os.path.join(folder_path_main, "scenario_params.json"), "r") as file:
-    scenario_params = json.load(file)
-
-with open(os.path.join(folder_path_main, "job_params.json"), "r") as file:
-    job_params = json.load(file)
-
-
-time = 0
 
 # step 3: force initial seeding of a property in/near the center (call it a "stud farm") and save
+time = 0
 if not os.path.exists(folder_path_seed):
     os.makedirs(folder_path_seed)
 
@@ -80,26 +77,11 @@ properties_seeded_filename = os.path.join(folder_path_seed, "properties_0")
 if not os.path.exists(properties_seeded_filename):
     # seed property
 
-    properties, seed_property = simulator.seed_infection(set_up_params["xrange"], set_up_params["yrange"], properties)
-
-    # rename property as the stud farm
-    p = properties[seed_property]
-    p.type = "stud farm"
+    properties, seed_property = simulator.seed_infection_at_property_type(
+        spatial_only_paramaters["xrange"], spatial_only_paramaters["yrange"], properties, "stud farm", time
+    )
 
     # save new properties output figures and tables as necessary
-
-    # limits for the figures
-    xlims = [
-        round(set_up_params["xrange"][0], 2) - 0.005,
-        round(set_up_params["xrange"][1], 2) + 0.005,
-    ]
-    ylims = [
-        round(set_up_params["yrange"][0], 1) - 0.05,
-        round(set_up_params["yrange"][1], 1) + 0.05,
-    ]
-
-    controlzone = {}
-
     simulator.plot_current_state(
         properties,
         property_coordinates,
@@ -107,7 +89,7 @@ if not os.path.exists(properties_seeded_filename):
         xlims,
         ylims,
         folder_path_seed,
-        controlzone,
+        controlzone={},
         infectionpoly=False,
         contacts_for_plotting={},
     )
@@ -117,6 +99,16 @@ if not os.path.exists(properties_seeded_filename):
 else:
     with open(properties_seeded_filename, "rb") as file:
         properties = pickle.load(file)
+
+
+exit(0)
+
+with open(os.path.join(folder_path_main, "scenario_params.json"), "r") as file:
+    scenario_params = json.load(file)
+
+with open(os.path.join(folder_path_main, "job_params.json"), "r") as file:
+    job_params = json.load(file)
+
 
 # step 4: run the simulation, including forcing some initial movements from that center seeded property (say, over 7 days).
 if not os.path.exists(folder_path_undetected_spread_1):
