@@ -63,3 +63,9 @@ https://black.readthedocs.io/en/stable/getting_started.html
 `pip install black`
 
 `black sample_code.py`
+
+To use it as a pre-commit hook, also run:
+
+`pip install pre-commit`
+
+`pre-commit install`
