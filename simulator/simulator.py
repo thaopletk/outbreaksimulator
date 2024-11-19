@@ -30,9 +30,6 @@ from iteround import saferound
 from shapely.ops import transform, unary_union
 from simulator.spatial_functions import quick_distance_haversine
 
-#
-#
-
 
 def trial_simex_property_setup(
     folder_path,
@@ -117,6 +114,12 @@ def trial_simex_property_setup(
         },
     },
 ):
+    """Properties set up for the December 2024 Trial Simulation Exercise"""
+
+    # checks that the sum of n_property_types is equal to spatial_only_paramaters["n"]
+    property_specific_sum = sum([ value for key, value in properties_specific_parameters["n_property_types"].items()])
+    if spatial_only_paramaters["n"]!=property_specific_sum:
+        raise ValueError("The total number of properties in spatial_only_parameters doesn't match the number in properties_specific_parameters")
 
     # 1. Spatial-only, property-type-agnostic setup
     (
@@ -146,17 +149,13 @@ def trial_simex_property_setup(
     # 2. Property-specific initialisation
 
     # initialise properties
-    properties = []
+    properties = [None]*spatial_only_paramaters["n"]
 
-    # unique situation: select one of the center properties to be the stud farm (were infection will be seeded)
+    # unique situation: select one of the center properties to be the stud farm (where infection will be seeded)
     stud_farm_i = 0  # default
     # property coordinates allocated at random, so we can just go through one-by-one to find a suitable property to see
-    x_width = (
-        spatial_only_paramaters["xrange"][1] - spatial_only_paramaters["xrange"][0]
-    )
-    y_width = (
-        spatial_only_paramaters["yrange"][1] - spatial_only_paramaters["yrange"][0]
-    )
+    x_width = spatial_only_paramaters["xrange"][1] - spatial_only_paramaters["xrange"][0]
+    y_width = spatial_only_paramaters["yrange"][1] - spatial_only_paramaters["yrange"][0]
     for i in range(len(property_coordinates)):
         coords = property_coordinates[i]
         if (
@@ -173,9 +172,7 @@ def trial_simex_property_setup(
     available_i_s = list(range(0, len(property_coordinates)))
     available_i_s.remove(stud_farm_i)
     random.shuffle(available_i_s)
-    for property_type, n_to_generate in properties_specific_parameters[
-        "n_property_types"
-    ].items():
+    for property_type, n_to_generate in properties_specific_parameters["n_property_types"].items():
         if property_type == "stud farm":
             if n_to_generate != 1:
                 raise ValueError("Code assumes that there will only be one stud farm")
@@ -199,31 +196,24 @@ def trial_simex_property_setup(
                     ),
                     animal_multiplier * 5,
                 ),  # at least five animals per property
-                movement_freq=properties_specific_parameters["movement_frequency"][
-                    property_type
-                ],
+                movement_freq=properties_specific_parameters["movement_frequency"][property_type],
                 coordinates=property_coordinates[new_p_i],
                 area_ha=property_areas[new_p_i],
                 neighbourhood=neighbourhoods[new_p_i],
                 property_polygon=property_polygons[new_p_i],
                 property_polygon_puffed=property_polygons_puffed[new_p_i],
                 property_type=property_type,
-                movement_probability=properties_specific_parameters[
-                    "movement_probability"
-                ][property_type],
-                movement_prop_animals=properties_specific_parameters[
-                    "movement_prop_animals"
-                ][property_type],
-                allowed_movement=properties_specific_parameters["allowed_movement"][
-                    property_type
-                ],
-                max_daily_movements=properties_specific_parameters[
-                    "max_daily_movements"
-                ][property_type],
+                movement_probability=properties_specific_parameters["movement_probability"][property_type],
+                movement_prop_animals=properties_specific_parameters["movement_prop_animals"][property_type],
+                allowed_movement=properties_specific_parameters["allowed_movement"][property_type],
+                max_daily_movements=properties_specific_parameters["max_daily_movements"][property_type],
             )
 
-            properties.append(new_p)
-            properties[i].init_animals(
+            
+
+            properties[new_p_i] = new_p
+            properties[new_p_i].id = new_p_i # override the default assigned id, as the properties were added out of order (above)
+            properties[new_p_i].init_animals(
                 None
             )  # init with empty "params", as no parameters are actually used to initialise animals
 
@@ -260,6 +250,8 @@ def trial_simex_property_setup(
     ]
 
     output.save_data_properties(property_setup_info, folder_path)
+
+    save_current_state(properties, "init", folder_path, "init")
 
     return property_setup_info
 
@@ -364,32 +356,22 @@ def property_setup(
         n, r_wind, xrange, yrange, average_property_ha
     )  # uses the spatial-setup specific generator, rather than the fmdmodelling property generator
 
-    output.plot_map_land(
-        property_polygons, property_polygons_puffed, xrange, yrange, folder_path
-    )
+    output.plot_map_land(property_polygons, property_polygons_puffed, xrange, yrange, folder_path)
 
-    properties_type_number = saferound(
-        [max(x * n, 1.0) for x in property_types.values()], places=0
-    )
+    properties_type_number = saferound([max(x * n, 1.0) for x in property_types.values()], places=0)
     properties_type_number = [int(x) for x in properties_type_number]
     if sum(properties_type_number) > n:
         difference = sum(properties_type_number) - n
         max_index = properties_type_number.index(max(properties_type_number))
-        properties_type_number[max_index] = (
-            properties_type_number[max_index] - difference
-        )
+        properties_type_number[max_index] = properties_type_number[max_index] - difference
 
     if any(properties_type_number) == 0:
-        raise ValueError(
-            "After all this hard work, there should be at least one property for each property type"
-        )
+        raise ValueError("After all this hard work, there should be at least one property for each property type")
 
     # initialise properties
     properties = []
     i = 0
-    for property_type, n_to_generate in zip(
-        property_types.keys(), properties_type_number
-    ):
+    for property_type, n_to_generate in zip(property_types.keys(), properties_type_number):
 
         for j in range(n_to_generate):
             # new property
@@ -435,6 +417,7 @@ def property_setup(
 
     output.save_data_properties(property_setup_info, folder_path)
 
+    # note that you should only need to keep "properties" from here on
     return property_setup_info
 
 
@@ -470,9 +453,7 @@ def seed_infection(xrange, yrange, properties, time=0):
     return properties, seed_property
 
 
-def initialise_infection_vaccination(
-    properties, n, xrange, yrange, init_vax_probability, time=0
-):
+def initialise_infection_vaccination(properties, n, xrange, yrange, init_vax_probability, time=0):
     # seed infection (in the center third)
     properties, seed_property = seed_infection(xrange, yrange, properties)
 
@@ -485,9 +466,7 @@ def initialise_infection_vaccination(
     # set up some random initial vaccination
     for i, premise in enumerate(properties):
         if premise.infection_status != 1:
-            premise.vaccination(
-                init_vax_probability, properties, time, culled_neighbours_only=False
-            )
+            premise.vaccination(init_vax_probability, properties, time, culled_neighbours_only=False)
 
     return properties, seed_property, cumulative_infection_proportions
 
@@ -662,9 +641,7 @@ def save_outbreak_state(
 
     # to save everything else
     to_save = [total_culled_animals, movement_records, job_manager]
-    with open(
-        os.path.join(folder_path, "outbreak_state_other_" + str(time)), "wb"
-    ) as file:
+    with open(os.path.join(folder_path, "outbreak_state_other_" + str(time)), "wb") as file:
         pickle.dump(to_save, file)
 
 
@@ -708,15 +685,11 @@ def simulate_outbreak_spread_only(
         # calculate FOI for each property
         for i, premise in enumerate(properties):
             if not premise.culled_status:
-                FOI[i] = SEIR.calculate_force_of_infection(
-                    properties, i, vax_modifier, r_wind, beta_wind, beta_animal
-                )
+                FOI[i] = SEIR.calculate_force_of_infection(properties, i, vax_modifier, r_wind, beta_wind, beta_animal)
 
         # run infection model for each property
         for i, premise in enumerate(properties):
-            premise.infection_model(
-                latent_period, infectious_period, preclinical_period, FOI[i], time
-            )
+            premise.infection_model(latent_period, infectious_period, preclinical_period, FOI[i], time)
 
         # movement of animals
         controlzone_movement_restrictions = None
@@ -747,9 +720,7 @@ def simulate_outbreak_spread_only(
                 contacts_for_plotting=contacts_for_plotting,
             )
             # should also save contacts_for_plotting
-            output.save_data(
-                properties, property_coordinates, time, controlzone, folder_path
-            )
+            output.save_data(properties, property_coordinates, time, controlzone, folder_path)
 
     if plotting:
         output.make_video(folder_path, "map_underlying")
@@ -816,9 +787,7 @@ def simulate_outbreak_one_day(
     # calculate FOI for each property
     for i, premise in enumerate(properties):
         if not premise.culled_status:
-            FOI[i] = SEIR.calculate_force_of_infection(
-                properties, i, vax_modifier, r_wind, beta_wind, beta_animal
-            )
+            FOI[i] = SEIR.calculate_force_of_infection(properties, i, vax_modifier, r_wind, beta_wind, beta_animal)
 
     contacts_for_plotting = {}  # from property, to properties
 
@@ -858,12 +827,8 @@ def simulate_outbreak_one_day(
             controlzone["ring culling"] = controlzone_ring_culling
 
             for premise in properties:
-                if not premise.culled_status and premise.polygon.intersects(
-                    controlzone_ring_culling
-                ):
-                    premise_report, culled_animals = premise.cull_without_reporting(
-                        time
-                    )
+                if not premise.culled_status and premise.polygon.intersects(controlzone_ring_culling):
+                    premise_report, culled_animals = premise.cull_without_reporting(time)
                     total_culled_animals += culled_animals
                     report += premise_report
                     combined_narrative += premise_report
@@ -881,9 +846,7 @@ def simulate_outbreak_one_day(
             controlzone["ring vaccination"] = controlzone_ring_vaccination
 
             for premise in properties:
-                if not premise.culled_status and premise.polygon.intersects(
-                    controlzone_ring_vaccination
-                ):
+                if not premise.culled_status and premise.polygon.intersects(controlzone_ring_vaccination):
                     premise.vaccinate(time)
 
     # implementing ring testing
@@ -900,9 +863,7 @@ def simulate_outbreak_one_day(
 
             properties_to_test = []
             for i, premise in enumerate(properties):
-                if not premise.culled_status and premise.polygon.intersects(
-                    controlzone_ring_testing
-                ):
+                if not premise.culled_status and premise.polygon.intersects(controlzone_ring_testing):
                     properties_to_test.append(i)
 
             for i in properties_to_test:
@@ -912,8 +873,8 @@ def simulate_outbreak_one_day(
                     "type": management.jobtype.LabTesting,
                     "property_i": i,
                 }
-                temp_report, temp_testing_reports, temp_combined_narrative = (
-                    job_manager.run_lab_testing_now(properties, job, time)
+                temp_report, temp_testing_reports, temp_combined_narrative = job_manager.run_lab_testing_now(
+                    properties, job, time
                 )
                 report += temp_report
                 testing_reports += temp_testing_reports
@@ -925,9 +886,7 @@ def simulate_outbreak_one_day(
 
     # run infection model for each property
     for i, premise in enumerate(properties):
-        premise.infection_model(
-            latent_period, infectious_period, preclinical_period, FOI[i], time
-        )
+        premise.infection_model(latent_period, infectious_period, preclinical_period, FOI[i], time)
     # calculate movement restriction zones before animal movement
     controlzone_movement_restrictions = None
     if local_movement_restrictions != []:
@@ -951,13 +910,9 @@ def simulate_outbreak_one_day(
                     ]
                 ],
             }
-            controlzone_large_movement_restrictions = (
-                spatial_setup.convert_dict_poly_to_Polygon(map_polygon)
-            )
+            controlzone_large_movement_restrictions = spatial_setup.convert_dict_poly_to_Polygon(map_polygon)
             if controlzone_movement_restrictions == None:
-                controlzone_movement_restrictions = (
-                    controlzone_large_movement_restrictions
-                )
+                controlzone_movement_restrictions = controlzone_large_movement_restrictions
             else:
                 controlzone_movement_restrictions = unary_union(
                     [
@@ -974,18 +929,14 @@ def simulate_outbreak_one_day(
                 source_indices.append(i)
 
         if source_indices != []:
-            controlzone_large_movement_restrictions = (
-                management.define_control_zone_polygons(
-                    properties,
-                    source_indices,
-                    movement_restriction_radius_km,
-                    convex=movement_restriction_convex,
-                )
+            controlzone_large_movement_restrictions = management.define_control_zone_polygons(
+                properties,
+                source_indices,
+                movement_restriction_radius_km,
+                convex=movement_restriction_convex,
             )
             if controlzone_movement_restrictions == None:
-                controlzone_movement_restrictions = (
-                    controlzone_large_movement_restrictions
-                )
+                controlzone_movement_restrictions = controlzone_large_movement_restrictions
             else:
                 controlzone_movement_restrictions = unary_union(
                     [
@@ -1013,9 +964,7 @@ def simulate_outbreak_one_day(
         # TODO something like premise.update_status() # in the case all infected animals recover or are moved off the property, it may be considered no longer infected? or, to state "contaminated"
         # though in that case, the fomites should still be there -- noted under cumulative infections...?
         if not premise.culled_status:
-            cumulative_infection_proportions[i] = premise.cumulative_infections / len(
-                premise.animals
-            )
+            cumulative_infection_proportions[i] = premise.cumulative_infections / len(premise.animals)
             infected_sum += premise.number_infected
 
     plot_current_state(
@@ -1185,10 +1134,8 @@ def simulate_outbreak(
     xlims = [round(xrange[0], 2) - 0.005, round(xrange[1], 2) + 0.005]
     ylims = [round(yrange[0], 1) - 0.05, round(yrange[1], 1) + 0.05]
 
-    properties, seed_property, cumulative_infection_proportions = (
-        initialise_infection_vaccination(
-            properties, n, xrange, yrange, init_vax_probability
-        )
+    properties, seed_property, cumulative_infection_proportions = initialise_infection_vaccination(
+        properties, n, xrange, yrange, init_vax_probability
     )
 
     if plotting:
@@ -1223,9 +1170,7 @@ def simulate_outbreak(
         # calculate FOI for each property
         for i, premise in enumerate(properties):
             if not premise.culled_status:
-                FOI[i] = SEIR.calculate_force_of_infection(
-                    properties, i, vax_modifier, r_wind, beta_wind, beta_animal
-                )
+                FOI[i] = SEIR.calculate_force_of_infection(properties, i, vax_modifier, r_wind, beta_wind, beta_animal)
 
         contacts_for_plotting = {}  # from property, to properties
 
@@ -1267,12 +1212,8 @@ def simulate_outbreak(
                 controlzone["ring culling"] = controlzone_ring_culling
 
                 for premise in properties:
-                    if not premise.culled_status and premise.polygon.intersects(
-                        controlzone_ring_culling
-                    ):
-                        premise_report, culled_animals = premise.cull_without_reporting(
-                            time
-                        )
+                    if not premise.culled_status and premise.polygon.intersects(controlzone_ring_culling):
+                        premise_report, culled_animals = premise.cull_without_reporting(time)
                         total_culled_animals += culled_animals
                         report += premise_report
                         combined_narrative += premise_report
@@ -1290,9 +1231,7 @@ def simulate_outbreak(
                 controlzone["ring vaccination"] = controlzone_ring_vaccination
 
                 for premise in properties:
-                    if not premise.culled_status and premise.polygon.intersects(
-                        controlzone_ring_vaccination
-                    ):
+                    if not premise.culled_status and premise.polygon.intersects(controlzone_ring_vaccination):
                         premise.vaccinate(time)
 
         # implementing ring testing
@@ -1309,9 +1248,7 @@ def simulate_outbreak(
 
                 properties_to_test = []
                 for i, premise in enumerate(properties):
-                    if not premise.culled_status and premise.polygon.intersects(
-                        controlzone_ring_testing
-                    ):
+                    if not premise.culled_status and premise.polygon.intersects(controlzone_ring_testing):
                         properties_to_test.append(i)
 
                 for i in properties_to_test:
@@ -1321,8 +1258,8 @@ def simulate_outbreak(
                         "type": management.jobtype.LabTesting,
                         "property_i": i,
                     }
-                    temp_report, temp_testing_reports, temp_combined_narrative = (
-                        job_manager.run_lab_testing_now(properties, job, time)
+                    temp_report, temp_testing_reports, temp_combined_narrative = job_manager.run_lab_testing_now(
+                        properties, job, time
                     )
                     report += temp_report
                     testing_reports += temp_testing_reports
@@ -1335,15 +1272,11 @@ def simulate_outbreak(
         # vaccinate properties around culled (reported) properties
         for premise in properties:
             if not premise.culled_status and not premise.infection_status:
-                premise.vaccination(
-                    prob_vaccinate, properties, time, culled_neighbours_only=True
-                )
+                premise.vaccination(prob_vaccinate, properties, time, culled_neighbours_only=True)
 
         # check if any properties now want to report
         for i, premise in enumerate(properties):
-            if not premise.culled_status and premise.prob_of_reporting_only(
-                clinical_reporting_threshold, prob_report
-            ):
+            if not premise.culled_status and premise.prob_of_reporting_only(clinical_reporting_threshold, prob_report):
                 # essentially the same as a positive clinical observation
 
                 # enact local movement restrictions around this property, just in case
@@ -1366,9 +1299,7 @@ def simulate_outbreak(
 
         # run infection model for each property
         for i, premise in enumerate(properties):
-            premise.infection_model(
-                latent_period, infectious_period, preclinical_period, FOI[i], time
-            )
+            premise.infection_model(latent_period, infectious_period, preclinical_period, FOI[i], time)
 
         # calculate movement restriction zones before animal movement
         controlzone_movement_restrictions = None
@@ -1393,13 +1324,9 @@ def simulate_outbreak(
                         ]
                     ],
                 }
-                controlzone_large_movement_restrictions = (
-                    spatial_setup.convert_dict_poly_to_Polygon(map_polygon)
-                )
+                controlzone_large_movement_restrictions = spatial_setup.convert_dict_poly_to_Polygon(map_polygon)
                 if controlzone_movement_restrictions == None:
-                    controlzone_movement_restrictions = (
-                        controlzone_large_movement_restrictions
-                    )
+                    controlzone_movement_restrictions = controlzone_large_movement_restrictions
                 else:
                     controlzone_movement_restrictions = unary_union(
                         [
@@ -1416,18 +1343,14 @@ def simulate_outbreak(
                     source_indices.append(i)
 
             if source_indices != []:
-                controlzone_large_movement_restrictions = (
-                    management.define_control_zone_polygons(
-                        properties,
-                        source_indices,
-                        movement_restriction_radius_km,
-                        convex=movement_restriction_convex,
-                    )
+                controlzone_large_movement_restrictions = management.define_control_zone_polygons(
+                    properties,
+                    source_indices,
+                    movement_restriction_radius_km,
+                    convex=movement_restriction_convex,
                 )
                 if controlzone_movement_restrictions == None:
-                    controlzone_movement_restrictions = (
-                        controlzone_large_movement_restrictions
-                    )
+                    controlzone_movement_restrictions = controlzone_large_movement_restrictions
                 else:
                     controlzone_movement_restrictions = unary_union(
                         [
@@ -1455,9 +1378,7 @@ def simulate_outbreak(
             # TODO something like premise.update_status() # in the case all infected animals recover or are moved off the property, it may be considered no longer infected? or, to state "contaminated"
             # though in that case, the fomites should still be there -- noted under cumulative infections...?
             if not premise.culled_status:
-                cumulative_infection_proportions[i] = (
-                    premise.cumulative_infections / len(premise.animals)
-                )
+                cumulative_infection_proportions[i] = premise.cumulative_infections / len(premise.animals)
                 # infected_sum += premise.number_infected
 
         if plotting:
@@ -1473,9 +1394,7 @@ def simulate_outbreak(
                 contacts_for_plotting=contacts_for_plotting,
             )
             # should also save contacts_for_plotting
-            output.save_data(
-                properties, property_coordinates, time, controlzone, folder_path
-            )
+            output.save_data(properties, property_coordinates, time, controlzone, folder_path)
 
         combined_narrative += "\n"
 

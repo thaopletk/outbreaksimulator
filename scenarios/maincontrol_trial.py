@@ -15,7 +15,7 @@ import simulator.simulator as simulator
 import simulator.management as management
 
 # folder names
-folder_path_main = os.path.join(os.path.dirname(__file__), "trial_simex")
+folder_path_main = os.path.join(os.path.dirname(__file__), "trial_simex_v2")
 folder_path_seed = os.path.join(folder_path_main, "01_seed")
 folder_path_undetected_spread_1 = os.path.join(
     folder_path_main, "02_undetected_spread_one_week"
@@ -29,8 +29,27 @@ if not os.path.exists(folder_path_main):
 
 
 # read in parameters
-with open(os.path.join(folder_path_main, "trial_setup_parameters.json"), "r") as file:
-    set_up_params = json.load(file)
+with open(os.path.join(folder_path_main, "spatial_only_parameters.json"), "r") as file:
+    spatial_only_paramaters = json.load(file)
+
+
+with open(os.path.join(folder_path_main, "properties_specific_parameters.json"), "r") as file:
+    properties_specific_parameters = json.load(file)
+
+
+
+# step 2: initiate the full proper map, including with different property types
+
+properties_filename = os.path.join(folder_path_main, "properties_initialised.pickle")
+if not os.path.exists(properties_filename):
+    property_setup_info = simulator.trial_simex_property_setup(folder_path_main, spatial_only_paramaters,properties_specific_parameters)
+else:
+    # load properties
+    with open(properties_filename, "rb") as file:
+        property_setup_info = pickle.load(file)
+
+
+exit(0)
 
 with open(os.path.join(folder_path_main, "scenario_params.json"), "r") as file:
     scenario_params = json.load(file)
@@ -38,15 +57,7 @@ with open(os.path.join(folder_path_main, "scenario_params.json"), "r") as file:
 with open(os.path.join(folder_path_main, "job_params.json"), "r") as file:
     job_params = json.load(file)
 
-# step 2: initiate the full proper map, including with different property types
 
-properties_filename = os.path.join(folder_path_main, "properties_initialised.pickle")
-if not os.path.exists(properties_filename):
-    property_setup_info = simulator.property_setup(folder_path_main, **set_up_params)
-else:
-    # load properties
-    with open(properties_filename, "rb") as file:
-        property_setup_info = pickle.load(file)
 
 
 (
