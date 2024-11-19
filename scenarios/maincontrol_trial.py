@@ -67,6 +67,9 @@ ylims = [
     round(spatial_only_paramaters["yrange"][1], 1) + 0.05,
 ]
 
+# parameters
+with open(os.path.join(folder_path_main, "disease_parameters.json"), "r") as file:
+    disease_parameters = json.load(file)
 
 # step 3: force initial seeding of a property in/near the center (call it a "stud farm") and save
 time = 0
@@ -76,26 +79,22 @@ if not os.path.exists(folder_path_seed):
 properties_seeded_filename = os.path.join(folder_path_seed, "properties_0")
 if not os.path.exists(properties_seeded_filename):
     # seed property
+    unique_output = "day0"
 
     properties, seed_property = simulator.seed_infection_at_property_type(
-        spatial_only_paramaters["xrange"], spatial_only_paramaters["yrange"], properties, "stud farm", time
-    )
-
-    # save new properties output figures and tables as necessary
-    simulator.plot_current_state(
+        spatial_only_paramaters["xrange"],
+        spatial_only_paramaters["yrange"],
         properties,
-        property_coordinates,
+        "stud farm",
         time,
         xlims,
         ylims,
         folder_path_seed,
-        controlzone={},
-        infectionpoly=False,
-        contacts_for_plotting={},
+        unique_output,
+        disease_parameters["latent_period"],
     )
+    # seeds infection at stud_farm and also saves new properties output figures and tables as necessary
 
-    unique_output = "day0"
-    simulator.save_current_state(properties, time, folder_path_seed, unique_output)
 else:
     with open(properties_seeded_filename, "rb") as file:
         properties = pickle.load(file)

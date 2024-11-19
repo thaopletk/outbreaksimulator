@@ -423,7 +423,18 @@ def property_setup(
     return property_setup_info
 
 
-def seed_infection_at_property_type(xrange, yrange, properties, property_type, time=0):
+def seed_infection_at_property_type(
+    xrange,
+    yrange,
+    properties,
+    property_type,
+    time=0,
+    xlims=[],
+    ylims=[],
+    folder_path="",
+    unique_output="",
+    latent_period=7,
+):
     seed_property = 0  # default
     seed_animal = 0  # default
 
@@ -448,10 +459,23 @@ def seed_infection_at_property_type(xrange, yrange, properties, property_type, t
     p = properties[seed_property]
     # TODO technically, to encapsulate this better, there should a function that allows you to infect a specific animal(s), and that will then update infection_status, prop_infections, cumulative_infections, and exposure_date, and anything else that may need to be updated
     p.infection_status = 1
-    p.exposure_date = premises.convert_time_to_date(time)
+    p.exposure_date = premises.convert_time_to_date(time - latent_period)
     p.animals[seed_animal].status = "infected"
     p.prop_infectious = 1 / p.size
     p.cumulative_infections = 1
+
+    plot_current_state(
+        properties,
+        time,
+        xlims,
+        ylims,
+        folder_path,
+        controlzone={},
+        infectionpoly=False,
+        contacts_for_plotting={},
+    )
+
+    save_current_state(properties, time, folder_path, unique_output)
 
     return properties, seed_property
 
