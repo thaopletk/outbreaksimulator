@@ -37,15 +37,28 @@ with open(os.path.join(folder_path_main, "properties_specific_parameters.json"),
 
 # step 2: initiate the full proper map, including with different property types
 
-properties_filename = os.path.join(folder_path_main, "properties_initialised.pickle")
+# properties_filename = os.path.join(folder_path_main, "properties_initialised.pickle")
+properties_filename = os.path.join(folder_path_main, "properties_init")
 if not os.path.exists(properties_filename):
     property_setup_info = simulator.trial_simex_property_setup(
         folder_path_main, spatial_only_paramaters, properties_specific_parameters
     )
+
+    (
+        properties,
+        property_coordinates,
+        adjacency_matrix,
+        neighbour_pairs,
+        neighbourhoods,
+        property_polygons,
+        property_polygons_puffed,
+        property_areas,
+    ) = property_setup_info
+
 else:
     # load properties
     with open(properties_filename, "rb") as file:
-        property_setup_info = pickle.load(file)
+        properties = pickle.load(file)
 
 
 exit(0)
@@ -55,18 +68,6 @@ with open(os.path.join(folder_path_main, "scenario_params.json"), "r") as file:
 
 with open(os.path.join(folder_path_main, "job_params.json"), "r") as file:
     job_params = json.load(file)
-
-
-(
-    properties,
-    property_coordinates,
-    adjacency_matrix,
-    neighbour_pairs,
-    neighbourhoods,
-    property_polygons,
-    property_polygons_puffed,
-    property_areas,
-) = property_setup_info
 
 
 time = 0
