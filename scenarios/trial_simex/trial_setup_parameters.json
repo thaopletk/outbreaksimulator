@@ -28,10 +28,10 @@
     },
     "movement_prop_animals": {
         "saleyard": 0.2,
-        "trader": 0.8,
+        "trader": 0.2,
         "feedlot": 0.1,
         "abbattoir": 0,
-        "farm": 0.2
+        "farm": 0.1
     },
     "extra_capacity_multiplier": {
         "saleyard": 3,

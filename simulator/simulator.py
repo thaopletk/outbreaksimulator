@@ -221,16 +221,19 @@ def seed_infection(xrange, yrange, properties, time=0):
             and coords[0] >= xrange[0] + x_width / 3
             and coords[1] <= yrange[1] - y_width / 3
             and coords[1] >= yrange[0] + y_width / 3
+            and properties[i].type == "farm"
         ):
             # seed this property
             seed_property = i
             break
 
-    properties[seed_property].infection_status = 1
-    properties[seed_property].exposure_date = premises.convert_time_to_date(time)
-    properties[seed_property].animals[seed_animal].status = "infected"
-    properties[seed_property].prop_infectious = 1 / properties[seed_property].size
-    properties[seed_property].cumulative_infections = 1
+    p = properties[seed_property]
+
+    p.infection_status = 1
+    p.exposure_date = premises.convert_time_to_date(time)
+    p.animals[seed_animal].status = "infected"
+    p.prop_infectious = 1 / p.size
+    p.cumulative_infections = 1
 
     return properties, seed_property
 
@@ -294,6 +297,26 @@ def plot_current_state(
     )
 
 
+def save_movement_record(folder_path, movement_records):
+    header = [
+        "time",
+        "moving from index",
+        "moving to index",
+        "report",
+    ]
+    file = os.path.join(folder_path, f"movement_records.csv")
+    with open(file, "w", newline="") as f:
+
+        # create the csv writer
+        writer = csv.writer(f)
+
+        # write the header
+        writer.writerow(header)
+
+        for row in movement_records:
+            writer.writerow(row)
+
+
 def save_reports(
     properties,
     folder_path,
@@ -334,24 +357,7 @@ def save_reports(
         file.write(to_save_narrative)
 
     # write movement records
-
-    header = [
-        "time",
-        "moving from index",
-        "moving to index",
-        "report",
-    ]
-    file = os.path.join(folder_path, f"movement_records.csv")
-    with open(file, "w", newline="") as f:
-
-        # create the csv writer
-        writer = csv.writer(f)
-
-        # write the header
-        writer.writerow(header)
-
-        for row in movement_records:
-            writer.writerow(row)
+    save_movement_record(folder_path, movement_records)
 
 
 def save_current_state(properties, time, folder_path, unique_output):
@@ -428,6 +434,108 @@ def save_outbreak_state(
         os.path.join(folder_path, "outbreak_state_other_" + str(time)), "wb"
     ) as file:
         pickle.dump(to_save, file)
+
+
+# TODO rather than passing these parameters all the time, wouldn't it be better to have a class object that just stores all these values? Or, the simulator itself should be a class object that stores these values
+def simulate_outbreak_spread_only(
+    time=0,
+    stop_time=7,
+    movement_records=[],
+    n=100,
+    plotting=True,
+    folder_path="",
+    properties=None,
+    property_coordinates=[],
+    xrange=[150.2503, 151.39695],
+    yrange=[-32.61181, -31.60829],
+    unique_output="",
+    r_wind=25,
+    beta_wind=0.01,
+    beta_animal=2,
+    latent_period=2,
+    infectious_period=2,
+    preclinical_period=2,
+    vax_modifier=0.3,
+    **_,
+):
+    """Run simulated outbreak, for undetected spread between (time+1) and (stop_time) [inclusive], with no management"""
+
+    controlzone = {}  # empty control zone
+    contacts_for_plotting = {}  # empty, as no contact tracing will occur here
+
+    # no reports needed
+
+    # limits for the figures
+    xlims = [round(xrange[0], 2) - 0.005, round(xrange[1], 2) + 0.005]
+    ylims = [round(yrange[0], 1) - 0.05, round(yrange[1], 1) + 0.05]
+
+    FOI = list(np.zeros(n))
+    while time < stop_time:
+        time += 1
+
+        # calculate FOI for each property
+        for i, premise in enumerate(properties):
+            if not premise.culled_status:
+                FOI[i] = SEIR.calculate_force_of_infection(
+                    properties, i, vax_modifier, r_wind, beta_wind, beta_animal
+                )
+
+        # run infection model for each property
+        for i, premise in enumerate(properties):
+            premise.infection_model(
+                latent_period, infectious_period, preclinical_period, FOI[i], time
+            )
+
+        # movement of animals
+        controlzone_movement_restrictions = None
+
+        movement_record = animal_movement.animal_movement(
+            properties,
+            day=time,
+            controlzone=controlzone_movement_restrictions,
+            max_movement_distance=500,
+        )
+        if movement_record != []:
+            movement_records.extend(movement_record)
+
+        # update counts
+        for i, premise in enumerate(properties):
+            premise.update_counts()
+
+        if plotting:
+            plot_current_state(
+                properties,
+                property_coordinates,
+                time,
+                xlims,
+                ylims,
+                folder_path,
+                controlzone,
+                infectionpoly=False,
+                contacts_for_plotting=contacts_for_plotting,
+            )
+            # should also save contacts_for_plotting
+            output.save_data(
+                properties, property_coordinates, time, controlzone, folder_path
+            )
+
+    if plotting:
+        output.make_video(folder_path, "map_underlying")
+        output.make_video(folder_path, "map_apparent")
+
+    save_outbreak_state(
+        properties,
+        time,
+        folder_path,
+        unique_output,
+        total_culled_animals=0,
+        movement_records=movement_records,
+        job_manager=None,
+    )
+
+    save_movement_record(folder_path, movement_records)
+
+    return properties, movement_records, time
 
 
 def simulate_outbreak_one_day(
@@ -658,9 +766,9 @@ def simulate_outbreak_one_day(
     # movement of animals
     movement_record = animal_movement.animal_movement(
         properties,
-        n=n,
         day=time,
         controlzone=controlzone_movement_restrictions,
+        max_movement_distance=500,
     )
     if movement_record != []:
         movement_records.extend(movement_record)
@@ -801,9 +909,6 @@ def simulate_outbreak(
     prob_vaccinate=0.5,
     clinical_reporting_threshold=0.01,
     prob_report=0.8,
-    movement_frequency=10,
-    movement_probability=0.1,
-    movement_prop_animals=0.1,
     lab_test_sensitivity=0.9,
     clinical_test_sensitivity=0.5,
     movement_standstill=False,  # should only trigger after a notification occurs
@@ -1103,19 +1208,16 @@ def simulate_outbreak(
         # movement of animals
         movement_record = animal_movement.animal_movement(
             properties,
-            n=n,
-            movement_frequency=movement_frequency,
-            movement_probability=movement_probability,
-            movement_prop_animals=movement_prop_animals,
             day=time,
             controlzone=controlzone_movement_restrictions,
+            max_movement_distance=500,
         )
         if movement_record != []:
             movement_records.extend(movement_record)
 
         # update counts
-        # simulation ends when infected_sum = 0
-        infected_sum = 0
+        # simulation ends when infected_sum = 0 [NOT TRUE ANYMORE]
+        # infected_sum = 0
         for i, premise in enumerate(properties):
             premise.update_counts()
             # TODO something like premise.update_status() # in the case all infected animals recover or are moved off the property, it may be considered no longer infected? or, to state "contaminated"
@@ -1124,7 +1226,7 @@ def simulate_outbreak(
                 cumulative_infection_proportions[i] = (
                     premise.cumulative_infections / len(premise.animals)
                 )
-                infected_sum += premise.number_infected
+                # infected_sum += premise.number_infected
 
         if plotting:
             plot_current_state(

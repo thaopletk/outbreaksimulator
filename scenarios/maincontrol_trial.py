@@ -16,9 +16,9 @@ import simulator.management as management
 
 # folder names
 folder_path_main = os.path.join(os.path.dirname(__file__), "trial_simex")
-folder_path_seed = os.path.join(os.path.dirname(__file__), "trial_simex", "01_seed")
+folder_path_seed = os.path.join(folder_path_main, "01_seed")
 folder_path_undetected_spread_1 = os.path.join(
-    os.path.dirname(__file__), "trial_simex", "02_undetected_spread_one_week"
+    folder_path_main, "02_undetected_spread_one_week"
 )
 
 # step 1: make folder for everything
@@ -61,6 +61,8 @@ else:
 ) = property_setup_info
 
 
+time = 0
+
 # step 3: force initial seeding of a property in/near the center (call it a "stud farm") and save
 if not os.path.exists(folder_path_seed):
     os.makedirs(folder_path_seed)
@@ -74,8 +76,8 @@ if not os.path.exists(properties_seeded_filename):
     )
 
     # rename property as the stud farm
-    premises = properties[seed_property]
-    premises.type = "stud farm"
+    p = properties[seed_property]
+    p.type = "stud farm"
 
     # save new properties output figures and tables as necessary
 
@@ -89,7 +91,6 @@ if not os.path.exists(properties_seeded_filename):
         round(set_up_params["yrange"][1], 1) + 0.05,
     ]
 
-    time = 0
     controlzone = {}
 
     simulator.plot_current_state(
@@ -118,42 +119,60 @@ stud_farm_i = None
 for i in range(len(properties)):
     if properties[i].type == "stud farm":
         stud_farm_i = i
-        premises = properties[i]
-        premises.movement_probability = 1
-        premises.movement_frequency = 1
-        premises.max_daily_movements = 6
+        p = properties[i]
+        p.movement_probability = 1
+        p.movement_start_day = 1
+        p.movement_frequency = 1
+        p.max_daily_movements = 6
         break
+
+if stud_farm_i == None:
+    raise ValueError("Stud farm not found for some reason")
 
 # run for one week (there shouldn't be any reporting - though if there is, we can force the probability of report down to zero)
 
-stop_time = 7
+stop_time = 3
 
 # initiate various things that start from empty:
-total_culled_animals = 0
 movement_records = []
-local_movement_restrictions = []
+
 unique_output = "02_undetected_spread_one_week"
-
-# initiate job_manager
-job_manager = management.JobManager(**job_params)
-
-simulator.simulate_outbreak_continue(
-    properties,
-    folder_path_undetected_spread_1,
-    stop_time,
-    unique_output,
-    total_culled_animals=total_culled_animals,
+properties, movement_records, time = simulator.simulate_outbreak_spread_only(
     time=time,
+    stop_time=stop_time,
     movement_records=movement_records,
-    local_movement_restrictions=local_movement_restrictions,
-    job_manager=job_manager,
+    plotting=True,
+    folder_path=folder_path_undetected_spread_1,
+    properties=properties,
+    property_coordinates=property_coordinates,
+    unique_output=unique_output,
+    **set_up_params,
+    **scenario_params
 )
 
+# total_culled_animals = 0
+# local_movement_restrictions = []
+
+# # initiate job_manager
+# job_manager = management.JobManager(**job_params)
+
+# simulator.simulate_outbreak_continue(
+#     properties,
+#     folder_path_undetected_spread_1,
+#     stop_time,
+#     unique_output,
+#     total_culled_animals=total_culled_animals,
+#     time=time,
+#     movement_records=movement_records,
+#     local_movement_restrictions=local_movement_restrictions,
+#     job_manager=job_manager,
+# )
+
 # and then adjust those movements down after a week
-premises = properties[stud_farm_i]
-premises.movement_probability = set_up_params["movement_probability"]["farm"]
-premises.movement_frequency = set_up_params["movement_frequency"]["farm"]
-premises.max_daily_movements = set_up_params["max_daily_movements"]["farm"]
+p = properties[stud_farm_i]
+p.movement_probability = set_up_params["movement_probability"]["farm"]
+p.movement_frequency = set_up_params["movement_frequency"]["farm"]
+p.max_daily_movements = set_up_params["max_daily_movements"]["farm"]
 
 # Step 5: continue running simulation until the first detection (default contact tracing can be done, but before the next day which might have wide-scale management) and output
 
