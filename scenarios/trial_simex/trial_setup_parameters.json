@@ -1,30 +1,32 @@
 {
-    "n": 2000, 
-    "r_wind": 25, 
+    "n": 2000,
+    "r_wind": 15, 
     "xrange":[147.5, 152.4],
     "yrange":[-32.5, -29],
     "average_property_ha": 3000, 
     "average_animals_per_ha": 0.2,
-    "property_types": {
-        "saleyard": 0.001,
-        "trader": 0.007,
-        "feedlot": 0.007,
-        "abbattoir": 0.001,
-        "farm": 0.984
+
+    "max_movement_km": 500,
+    "n_property_types": {
+        "saleyard": 2,
+        "trader": 5,
+        "feedlot": 10,
+        "abbattoir": 10,
+        "farm": 1973
     },
     "movement_frequency": {
         "saleyard": 1,
         "trader": 1,
         "feedlot": 1,
-        "abbattoir": 1,
+        "abbattoir": 1000,
         "farm": 5
     },
     "movement_probability": {
-        "saleyard": 1,
-        "trader": 1,
+        "saleyard": 0.8,
+        "trader": 0.8,
         "feedlot": 0.2,
         "abbattoir": 0,
-        "farm": 0.5
+        "farm": 0.4
     },
     "movement_prop_animals": {
         "saleyard": 0.2,
@@ -41,11 +43,12 @@
         "farm": 1
     },
     "allowed_movement": {
-        "saleyard": ["saleyard", "trader", "feedlot", "abbattoir", "farm"],
-        "trader": ["saleyard", "trader", "feedlot", "abbattoir", "farm"],
+        "saleyard": ["saleyard", "trader", "feedlot", "abbattoir", "farm", "stud farm"],
+        "trader": ["saleyard", "trader", "feedlot", "abbattoir", "farm", "stud farm"],
         "feedlot": ["abbattoir"],
         "abbattoir": [],
-        "farm": ["saleyard", "trader", "feedlot", "abbattoir", "farm"]
+        "farm": ["saleyard", "trader", "feedlot", "abbattoir", "farm", "stud farm"],
+        "stud farm": ["farm","saleyard", "trader"]
     },
     "max_daily_movements": {
         "saleyard": 6,

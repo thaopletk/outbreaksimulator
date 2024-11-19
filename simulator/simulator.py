@@ -11,6 +11,7 @@
 
 import sys
 import os
+import random
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import numpy as np
@@ -27,9 +28,240 @@ import simulator.output as output
 import simulator.animal_movement as animal_movement
 from iteround import saferound
 from shapely.ops import transform, unary_union
+from simulator.spatial_functions import quick_distance_haversine
 
 #
 #
+
+
+def trial_simex_property_setup(
+    folder_path,
+    spatial_only_paramaters={
+        "n": 10,
+        "r_wind": 25,
+        "xrange": [150.2503, 151.39695],
+        "yrange": [-32.61181, -31.60829],
+        "average_property_ha": 300,
+    },
+    properties_specific_parameters={
+        "average_animals_per_ha": 0.2,
+        "max_movement_km": 500,
+        "n_property_types": {
+            "saleyard": 2,
+            "trader": 5,
+            "feedlot": 10,
+            "abbattoir": 10,
+            "stud farm": 1,
+            "farm": 1972,
+        },
+        "movement_frequency": {
+            "saleyard": 1,
+            "trader": 1,
+            "feedlot": 1,
+            "abbattoir": 1000,
+            "stud farm": 7,
+            "farm": 5,
+        },
+        "movement_probability": {
+            "saleyard": 0.8,
+            "trader": 0.8,
+            "feedlot": 0.2,
+            "abbattoir": 0,
+            "stud farm": 0.8,
+            "farm": 0.4,
+        },
+        "movement_prop_animals": {
+            "saleyard": 0.2,
+            "trader": 0.2,
+            "feedlot": 0.1,
+            "abbattoir": 0,
+            "stud farm": 0.2,
+            "farm": 0.1,
+        },
+        "allowed_movement": {
+            "saleyard": {
+                "saleyard": 0.1,
+                "trader": 0.1,
+                "feedlot": 0.2,
+                "abbattoir": 0.1,
+                "farm": 0.4,
+                "stud farm": 0.1,
+            },
+            "trader": {
+                "saleyard": 0.1,
+                "trader": 0.05,
+                "feedlot": 0.3,
+                "abbattoir": 0.05,
+                "farm": 0.4,
+                "stud farm": 0.1,
+            },
+            "feedlot": {"abbattoir": 1},
+            "abbattoir": {},
+            "farm": {
+                "saleyard": 0.2,
+                "trader": 0.2,
+                "feedlot": 0.2,
+                "abbattoir": 0.1,
+                "farm": 0.2,
+                "stud farm": 0.1,
+            },
+            "stud farm": {"farm": 0.4, "saleyard": 0.4, "trader": 0.2},
+        },
+        "max_daily_movements": {
+            "saleyard": 6,
+            "trader": 3,
+            "feedlot": 2,
+            "abbattoir": 0,
+            "farm": 1,
+            "stud farm": 6,
+        },
+    },
+):
+
+    # 1. Spatial-only, property-type-agnostic setup
+    (
+        property_coordinates,
+        adjacency_matrix,
+        neighbour_pairs,
+        neighbourhoods,
+        property_polygons,
+        property_polygons_puffed,
+        property_areas,
+    ) = spatial_setup.generate_properties_with_land(
+        spatial_only_paramaters["n"],
+        spatial_only_paramaters["r_wind"],
+        spatial_only_paramaters["xrange"],
+        spatial_only_paramaters["yrange"],
+        spatial_only_paramaters["average_property_ha"],
+    )  # uses the spatial-setup specific generator, rather than the fmdmodelling property generator
+
+    output.plot_map_land(
+        property_polygons,
+        property_polygons_puffed,
+        spatial_only_paramaters["xrange"],
+        spatial_only_paramaters["yrange"],
+        folder_path,
+    )
+
+    # 2. Property-specific initialisation
+
+    # initialise properties
+    properties = []
+
+    # unique situation: select one of the center properties to be the stud farm (were infection will be seeded)
+    stud_farm_i = 0  # default
+    # property coordinates allocated at random, so we can just go through one-by-one to find a suitable property to see
+    x_width = (
+        spatial_only_paramaters["xrange"][1] - spatial_only_paramaters["xrange"][0]
+    )
+    y_width = (
+        spatial_only_paramaters["yrange"][1] - spatial_only_paramaters["yrange"][0]
+    )
+    for i in range(len(property_coordinates)):
+        coords = property_coordinates[i]
+        if (
+            coords[0] <= spatial_only_paramaters["xrange"][1] - x_width / 3
+            and coords[0] >= spatial_only_paramaters["xrange"][0] + x_width / 3
+            and coords[1] <= spatial_only_paramaters["yrange"][1] - y_width / 3
+            and coords[1] >= spatial_only_paramaters["yrange"][0] + y_width / 3
+        ):
+            # set this to be the stud farm
+            stud_farm_i = i
+            break
+
+    # now initialise all the properties
+    available_i_s = list(range(0, len(property_coordinates)))
+    available_i_s.remove(stud_farm_i)
+    random.shuffle(available_i_s)
+    for property_type, n_to_generate in properties_specific_parameters[
+        "n_property_types"
+    ].items():
+        if property_type == "stud farm":
+            if n_to_generate != 1:
+                raise ValueError("Code assumes that there will only be one stud farm")
+
+        for j in range(n_to_generate):
+            if property_type == "stud farm":
+                new_p_i = stud_farm_i
+            else:
+                new_p_i = available_i_s.pop()
+
+            animal_multiplier = 1
+            if property_type in ["saleyard", "feedlot"]:
+                animal_multiplier = 2  # double the number of animals on that property
+
+            new_p = premises.Premises(
+                num_animals=max(
+                    int(
+                        animal_multiplier
+                        * property_areas[new_p_i]
+                        * properties_specific_parameters["average_animals_per_ha"]
+                    ),
+                    animal_multiplier * 5,
+                ),  # at least five animals per property
+                movement_freq=properties_specific_parameters["movement_frequency"][
+                    property_type
+                ],
+                coordinates=property_coordinates[new_p_i],
+                area_ha=property_areas[new_p_i],
+                neighbourhood=neighbourhoods[new_p_i],
+                property_polygon=property_polygons[new_p_i],
+                property_polygon_puffed=property_polygons_puffed[new_p_i],
+                property_type=property_type,
+                movement_probability=properties_specific_parameters[
+                    "movement_probability"
+                ][property_type],
+                movement_prop_animals=properties_specific_parameters[
+                    "movement_prop_animals"
+                ][property_type],
+                allowed_movement=properties_specific_parameters["allowed_movement"][
+                    property_type
+                ],
+                max_daily_movements=properties_specific_parameters[
+                    "max_daily_movements"
+                ][property_type],
+            )
+
+            properties.append(new_p)
+            properties[i].init_animals(
+                None
+            )  # init with empty "params", as no parameters are actually used to initialise animals
+
+    # construct their movement information
+    for i, property_i in enumerate(properties):
+        property_i_neighbours = {}
+        for allowed_type in property_i.allowed_movement.keys():
+            property_i_neighbours[allowed_type] = []
+
+        for j, property_j in enumerate(properties):
+            if i == j:
+                continue
+            if property_j.type in property_i_neighbours:
+                if (
+                    quick_distance_haversine(
+                        property_i.coordinates,
+                        property_j.coordinates,
+                    )
+                    < properties_specific_parameters["max_movement_km"]
+                ):
+                    property_i_neighbours[property_j.type].append(j)
+
+        property_i.movement_neighbours = property_i_neighbours
+
+    property_setup_info = [
+        properties,
+        property_coordinates,
+        adjacency_matrix,
+        neighbour_pairs,
+        neighbourhoods,
+        property_polygons,
+        property_polygons_puffed,
+        property_areas,
+    ]
+
+    output.save_data_properties(property_setup_info, folder_path)
+
+    return property_setup_info
 
 
 # TODO this could be moved into the spatial_setup file...

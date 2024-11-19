@@ -76,7 +76,6 @@ class Premises(Property):
         property_type="NA",
         movement_probability=0,
         movement_prop_animals=0,
-        extra_capacity_multiplier=1,
         allowed_movement=["farm"],
         max_daily_movements=1,
     ):
@@ -117,10 +116,8 @@ class Premises(Property):
         # for movement
         self.movement_probability = movement_probability
         self.movement_prop_animals = movement_prop_animals
-        self.extra_capacity_multiplier = extra_capacity_multiplier
         self.movement_frequency = movement_freq
-
-        self.capacity = num_animals * extra_capacity_multiplier
+        self.movement_neighbours = None
 
         self.allowed_movement = allowed_movement
         self.max_daily_movements = max_daily_movements
