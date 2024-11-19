@@ -423,6 +423,39 @@ def property_setup(
     return property_setup_info
 
 
+def seed_infection_at_property_type(xrange, yrange, properties, property_type, time=0):
+    seed_property = 0  # default
+    seed_animal = 0  # default
+
+    # property coordinates allocated at random, so we can just go through one-by-one to find a suitable property to see
+    x_width = xrange[1] - xrange[0]
+    y_width = yrange[1] - yrange[0]
+
+    for i, property in enumerate(properties):
+        if property.type == property_type:
+            seed_property = i
+            coords = property.coordinates
+            if (
+                coords[0] <= xrange[1] - x_width / 3
+                and coords[0] >= xrange[0] + x_width / 3
+                and coords[1] <= yrange[1] - y_width / 3
+                and coords[1] >= yrange[0] + y_width / 3
+            ):
+                # seed this property
+                seed_property = i
+                break
+
+    p = properties[seed_property]
+    # TODO technically, to encapsulate this better, there should a function that allows you to infect a specific animal(s), and that will then update infection_status, prop_infections, cumulative_infections, and exposure_date, and anything else that may need to be updated
+    p.infection_status = 1
+    p.exposure_date = premises.convert_time_to_date(time)
+    p.animals[seed_animal].status = "infected"
+    p.prop_infectious = 1 / p.size
+    p.cumulative_infections = 1
+
+    return properties, seed_property
+
+
 def seed_infection(xrange, yrange, properties, time=0):
     """Send infection in the middle third of the map if possible (we don't want the outbreak spreading to edges and stop simply because of the unnatural map boundaries)"""
     seed_property = 0  # default
@@ -445,7 +478,7 @@ def seed_infection(xrange, yrange, properties, time=0):
             break
 
     p = properties[seed_property]
-
+    # TODO technically, to encapsulate this better, there should a function that allows you to infect a specific animal(s), and that will then update infection_status, prop_infections, cumulative_infections, and exposure_date, and anything else that may need to be updated
     p.infection_status = 1
     p.exposure_date = premises.convert_time_to_date(time)
     p.animals[seed_animal].status = "infected"
@@ -475,7 +508,6 @@ def initialise_infection_vaccination(properties, n, xrange, yrange, init_vax_pro
 
 def plot_current_state(
     properties,
-    property_coordinates,
     time,
     xlims,
     ylims,
@@ -486,7 +518,6 @@ def plot_current_state(
 ):
     output.plot_map(
         properties,
-        property_coordinates,
         time,
         xlims=xlims,
         ylims=ylims,
@@ -498,7 +529,6 @@ def plot_current_state(
     )
     output.plot_map(
         properties,
-        property_coordinates,
         time,
         xlims=xlims,
         ylims=ylims,
@@ -712,7 +742,6 @@ def simulate_outbreak_spread_only(
         if plotting:
             plot_current_state(
                 properties,
-                property_coordinates,
                 time,
                 xlims,
                 ylims,
@@ -971,7 +1000,6 @@ def simulate_outbreak_one_day(
 
     plot_current_state(
         properties,
-        property_coordinates,
         time,
         xlims,
         ylims,
@@ -1143,7 +1171,6 @@ def simulate_outbreak(
     if plotting:
         plot_current_state(
             properties,
-            property_coordinates,
             time,
             xlims,
             ylims,
@@ -1386,7 +1413,6 @@ def simulate_outbreak(
         if plotting:
             plot_current_state(
                 properties,
-                property_coordinates,
                 time,
                 xlims,
                 ylims,
