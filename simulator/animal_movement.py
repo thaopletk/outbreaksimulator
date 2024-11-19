@@ -13,10 +13,6 @@ from iteround import saferound
 
 def animal_movement(
     properties,
-    n,
-    movement_frequency,  # TODO ? remove this and have it as an attribute for each property?
-    movement_probability,  # TODO ? remove this and have it as an attribute for each property?
-    movement_prop_animals,  # TODO ? remove this and have it as an attribute for each property?
     day,
     controlzone,
     max_movement_distance=500,
@@ -27,14 +23,6 @@ def animal_movement(
     ----------
     properties : list
         list of premises
-    n : int
-        number of total properties (not used, TODO - remove it? and modify wherever animal_movement is called)
-    movement_frequency : int
-        properties might move animals every #movement_frequency days
-    movement_probability : double
-        probability of animal movement on a movement day
-    movement_prop_animals : double
-        proportion of animals that would move
     day : int
         current simulation day
     controlzone : polygon
@@ -81,6 +69,7 @@ def animal_movement(
                         i != premise_index
                     ):  # property hasn't been culled and isn't the moving from property
                         # check if distance is less than max distance max_movement_distance
+                        # actually, this should be pre-calculated at the start, to reduce time later on... TODO
                         if (
                             quick_distance_haversine(
                                 properties[premise_index].coordinates,
@@ -118,7 +107,7 @@ def animal_movement(
                     # how many different properties will the animals be moving to
                     num_properties_to_move_to = (
                         np.random.randint(
-                            1, properties[premise_index].max_daily_movements
+                            1, properties[premise_index].max_daily_movements + 1
                         )
                         if properties[premise_index].max_daily_movements > 1
                         else 1
@@ -167,6 +156,7 @@ def animal_movement(
                             moving_animal = properties[premise_index].animals.pop(
                                 moving_animal_index
                             )
+
                             moving_animal_list.append(moving_animal)
 
                         added_animals.append(

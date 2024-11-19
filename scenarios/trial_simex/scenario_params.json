@@ -1,8 +1,8 @@
 {
     "init_vax_probability": 0, 
     "vax_modifier": 0.3,
-    "beta_wind": 2,
-    "beta_animal": 2,
+    "beta_wind": 0.05,
+    "beta_animal": 0.9,
     "latent_period": 7,
     "infectious_period": 23.1,
     "preclinical_period": 7,

@@ -253,34 +253,34 @@ def plot_map(
 
         infected_coords = []
 
-        for index, premise in enumerate(properties):
-            long, lat = premise.coordinates
-            curr_farm = Point(long, lat)
+        # for index, premise in enumerate(properties):
+        #     long, lat = premise.coordinates
+        #     curr_farm = Point(long, lat)
 
-            # plot neighbours using edges
-            for farm in premise.neighbourhood:
-                # neigh = Point(property_coordinates[farm[0], 0],property_coordinates[farm[0], 1])
-                # network.append(LineString(curr_farm,neigh))
+        #     # plot neighbours using edges
+        #     for farm in premise.neighbourhood:
+        #         # neigh = Point(property_coordinates[farm[0], 0],property_coordinates[farm[0], 1])
+        #         # network.append(LineString(curr_farm,neigh))
 
-                # plots the lines between locations
-                if network_label_switch == False:
-                    plt.plot(
-                        [premise.coordinates[0], property_coordinates[farm[0], 0]],
-                        [premise.coordinates[1], property_coordinates[farm[0], 1]],
-                        alpha=0.01,
-                        color="black",
-                        label="network",
-                    )
-                    network_label_switch = (
-                        True  # to make sure that the labelling only occurs once
-                    )
-                else:
-                    plt.plot(
-                        [premise.coordinates[0], property_coordinates[farm[0], 0]],
-                        [premise.coordinates[1], property_coordinates[farm[0], 1]],
-                        alpha=0.01,
-                        color="black",
-                    )
+        #         # plots the lines between locations
+        #         if network_label_switch == False:
+        #             plt.plot(
+        #                 [premise.coordinates[0], property_coordinates[farm[0], 0]],
+        #                 [premise.coordinates[1], property_coordinates[farm[0], 1]],
+        #                 alpha=0.01,
+        #                 color="black",
+        #                 label="network",
+        #             )
+        #             network_label_switch = (
+        #                 True  # to make sure that the labelling only occurs once
+        #             )
+        #         else:
+        #             plt.plot(
+        #                 [premise.coordinates[0], property_coordinates[farm[0], 0]],
+        #                 [premise.coordinates[1], property_coordinates[farm[0], 1]],
+        #                 alpha=0.01,
+        #                 color="black",
+        #             )
 
         for index, premise in enumerate(properties):
             long, lat = premise.coordinates
