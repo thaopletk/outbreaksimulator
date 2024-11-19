@@ -19,9 +19,7 @@ import itertools
 from simulator.spatial_functions import calculate_area
 
 
-def convert_time_to_date(
-    time, start_date=datetime.datetime(year=2024, month=11, day=1)
-):
+def convert_time_to_date(time, start_date=datetime.datetime(year=2024, month=11, day=1)):
     """Converts outbreak days (0, 1, 2...) to fake dates, started at some specified date (day 0).
     Parameters
     ----------
@@ -58,9 +56,7 @@ class Premises(Property):
     """
 
     id_iter = itertools.count()
-    notified_iter = itertools.count(
-        start=1
-    )  # IP (infected properties) should start from 1
+    notified_iter = itertools.count(start=1)  # IP (infected properties) should start from 1
     geolocator = Nominatim(user_agent="http")
 
     # area in hectares
@@ -129,9 +125,7 @@ class Premises(Property):
 
         return 0
 
-    def vaccination(
-        self, prob_vaccinate, properties, time, culled_neighbours_only=True
-    ):
+    def vaccination(self, prob_vaccinate, properties, time, culled_neighbours_only=True):
         """Decide whether or not to vaccinate
 
         Since we will allow properties to vaccination *without* needing culled neighbours, this code has been adapted from the original definition
@@ -143,9 +137,7 @@ class Premises(Property):
             prop_culled_neighbours = 0
             if len(self.neighbourhood):  # premise has neighbours
                 neighbours = [el[0] for el in self.neighbourhood]
-                culled_neighbours = sum(
-                    [properties[i].culled_status for i in neighbours]
-                )
+                culled_neighbours = sum([properties[i].culled_status for i in neighbours])
                 prop_culled_neighbours = culled_neighbours / self.total_neighbours
 
             # vaccination
@@ -220,9 +212,7 @@ class Premises(Property):
                 return True
         return False
 
-    def reporting(
-        self, clinical_reporting_threshold, prob_report, time, force_report=False
-    ):
+    def reporting(self, clinical_reporting_threshold, prob_report, time, force_report=False):
         if not force_report:
             super().reporting(
                 {
@@ -248,9 +238,80 @@ class Premises(Property):
 
         return report, culled_animals
 
-    def infection_model(
-        self, latent_period, infectious_period, preclinical_period, FOI, time
-    ):
+    def movement_flag(self, day):
+        """Returns true if there is movement on this day, and no if not"""
+        # if it's a movement day for this property
+        if not ((day - self.movement_start_day) % self.movement_frequency):
+            # if there is movement
+            prob_movement = np.random.rand()
+            if prob_movement < self.movement_probability:
+                return True
+        return False
+
+    def calculate_allowed_movement_neighbours(self, property_indices_with_allowed_movement):
+        # this is because, during the simulation, control zones mean that movement is not allowed to all properties in "movement_neighbours", so we just need to re-calculate where you can actually move
+        allowed_movement_neighbours = {}
+        total_num_allowed = 0
+        for allowed_type in self.movement_neighbours.keys():
+            allowed_movement_neighbours[allowed_type] = []
+            for j in self.movement_neighbours[allowed_type]:
+                if j in property_indices_with_allowed_movement:
+                    allowed_movement_neighbours[allowed_type].append(j)
+                    total_num_allowed += 1
+
+        return allowed_movement_neighbours, total_num_allowed
+
+    def calculate_num_animals_to_move(self):
+        """note, this assumes that movement WILL occur; the return value can be zero"""
+        property_size = len(self.animals)
+        number_animals = int(np.floor(self.movement_prop_animals * property_size))
+        if property_size > 1 and number_animals == 0:
+            number_animals = 1  # keeping at least one animal in each property
+
+        return number_animals
+
+    def calculate_where_to_move(self, num_properties_to_move_to, allowed_movement_neighbours):
+        # I need self.allowed_movement
+
+        property_types_to_move_to = []
+        weights = []
+        for type, indices_list in allowed_movement_neighbours.items():
+            if len(indices_list) > 0:
+                property_types_to_move_to.append(type)
+                weights.append(self.allowed_movement[type])
+
+        if sum(weights) == 0:
+            return []
+        else:
+            weights = [i / sum(weights) for i in weights]
+
+        move_to_types_list = np.random.choice(
+            property_types_to_move_to, size=num_properties_to_move_to, replace=True, p=weights
+        )
+
+        return move_to_types_list
+
+    def move_out_animals(self, number_animals):
+        moving_animal_list = []
+        for _ in range(int(number_animals)):
+            moving_animal_index = np.random.randint(0, len(self.animals))
+
+            moving_animal = self.animals.pop(moving_animal_index)
+
+            moving_animal_list.append(moving_animal)
+
+        self.size = len(self.animals)  # updating this
+
+        return moving_animal_list
+
+    def add_animals(self, moving_animal_list):
+        for moving_animal in moving_animal_list:
+            self.animals.append(moving_animal)
+        self.size = len(self.animals)  # updating this
+
+        return 0
+
+    def infection_model(self, latent_period, infectious_period, preclinical_period, FOI, time):
         super().infection_model(
             {
                 "latent_period": latent_period,
@@ -312,13 +373,9 @@ class Premises(Property):
 
         """
 
-        if (
-            self.reported_status
-        ):  # if reported already, then all information can be provided
+        if self.reported_status:  # if reported already, then all information can be provided
             return self.return_output_row()
-        if (
-            self.culled_on_suspicion
-        ):  # if culled on suspicion, then exposure, clinical, notification dates should be NA
+        if self.culled_on_suspicion:  # if culled on suspicion, then exposure, clinical, notification dates should be NA
             return [
                 self.id,
                 self.status,

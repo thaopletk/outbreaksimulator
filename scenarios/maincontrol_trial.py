@@ -29,7 +29,7 @@ if not os.path.exists(folder_path_main):
 # step 2: initiate the full proper map, including with different property types
 # parameters
 with open(os.path.join(folder_path_main, "spatial_only_parameters.json"), "r") as file:
-    spatial_only_paramaters = json.load(file)
+    spatial_only_parameters = json.load(file)
 with open(os.path.join(folder_path_main, "properties_specific_parameters.json"), "r") as file:
     properties_specific_parameters = json.load(file)
 
@@ -37,7 +37,7 @@ with open(os.path.join(folder_path_main, "properties_specific_parameters.json"),
 properties_filename = os.path.join(folder_path_main, "properties_init")
 if not os.path.exists(properties_filename):
     property_setup_info = simulator.trial_simex_property_setup(
-        folder_path_main, spatial_only_paramaters, properties_specific_parameters
+        folder_path_main, spatial_only_parameters, properties_specific_parameters
     )
 
     (
@@ -59,12 +59,12 @@ else:
 
 # limits for the figures
 xlims = [
-    round(spatial_only_paramaters["xrange"][0], 2) - 0.005,
-    round(spatial_only_paramaters["xrange"][1], 2) + 0.005,
+    round(spatial_only_parameters["xrange"][0], 2) - 0.005,
+    round(spatial_only_parameters["xrange"][1], 2) + 0.005,
 ]
 ylims = [
-    round(spatial_only_paramaters["yrange"][0], 1) - 0.05,
-    round(spatial_only_paramaters["yrange"][1], 1) + 0.05,
+    round(spatial_only_parameters["yrange"][0], 1) - 0.05,
+    round(spatial_only_parameters["yrange"][1], 1) + 0.05,
 ]
 
 # parameters
@@ -82,8 +82,8 @@ if not os.path.exists(properties_seeded_filename):
     unique_output = "day0"
 
     properties, seed_property = simulator.seed_infection_at_property_type(
-        spatial_only_paramaters["xrange"],
-        spatial_only_paramaters["yrange"],
+        spatial_only_parameters["xrange"],
+        spatial_only_parameters["yrange"],
         properties,
         "stud farm",
         time,
@@ -99,20 +99,14 @@ else:
     with open(properties_seeded_filename, "rb") as file:
         properties = pickle.load(file)
 
-
-exit(0)
-
-with open(os.path.join(folder_path_main, "scenario_params.json"), "r") as file:
-    scenario_params = json.load(file)
-
-with open(os.path.join(folder_path_main, "job_params.json"), "r") as file:
-    job_params = json.load(file)
-
-
-# step 4: run the simulation, including forcing some initial movements from that center seeded property (say, over 7 days).
+# step 4: run the simulation, including forcing some initial movements from that center seeded property (over 7 days), with undetected spread
 if not os.path.exists(folder_path_undetected_spread_1):
     os.makedirs(folder_path_undetected_spread_1)
-# to force some initial movements from that center seeded property, simply adjust some of its movement parameters
+
+stop_time = 7
+unique_output = "02_undetected_spread_one_week"
+
+# to force some initial movements from that seeded property, adjust some of its movement parameters
 stud_farm_i = None
 for i in range(len(properties)):
     if properties[i].type == "stud farm":
@@ -123,30 +117,43 @@ for i in range(len(properties)):
         p.movement_frequency = 1
         p.max_daily_movements = 6
         break
-
 if stud_farm_i == None:
     raise ValueError("Stud farm not found for some reason")
 
-# run for one week (there shouldn't be any reporting - though if there is, we can force the probability of report down to zero)
-
-stop_time = 3
-
 # initiate various things that start from empty:
 movement_records = []
-
-unique_output = "02_undetected_spread_one_week"
-properties, movement_records, time = simulator.simulate_outbreak_spread_only(
-    time=time,
-    stop_time=stop_time,
+diseaseoutbreak = simulator.DiseaseSimulation(
     movement_records=movement_records,
-    plotting=True,
-    folder_path=folder_path_undetected_spread_1,
-    properties=properties,
-    property_coordinates=property_coordinates,
-    unique_output=unique_output,
-    **set_up_params,
-    **scenario_params
+    disease_parameters=disease_parameters,
+    spatial_only_parameters=spatial_only_parameters,
 )
+
+diseaseoutbreak.set_plotting_parameters(
+    xlims=xlims, ylims=ylims, plotting=True, folder_path=folder_path_undetected_spread_1, unique_output=unique_output
+)
+
+properties, movement_records, time = diseaseoutbreak.simulate_outbreak_spread_only(
+    properties=properties, time=time, stop_time=stop_time
+)
+
+# re-adjust the seeded property movements back to normal adjust those movements down after a week
+p = properties[stud_farm_i]
+p.movement_probability = properties_specific_parameters["movement_probability"]["stud farm"]
+p.movement_frequency = properties_specific_parameters["movement_frequency"]["stud farm"]
+p.max_daily_movements = properties_specific_parameters["max_daily_movements"]["stud farm"]
+
+
+# Step 5: force reporting at the stud farm
+
+
+exit(0)
+
+with open(os.path.join(folder_path_main, "scenario_params.json"), "r") as file:
+    scenario_params = json.load(file)
+
+with open(os.path.join(folder_path_main, "job_params.json"), "r") as file:
+    job_params = json.load(file)
+
 
 # total_culled_animals = 0
 # local_movement_restrictions = []
@@ -166,11 +173,6 @@ properties, movement_records, time = simulator.simulate_outbreak_spread_only(
 #     job_manager=job_manager,
 # )
 
-# and then adjust those movements down after a week
-p = properties[stud_farm_i]
-p.movement_probability = set_up_params["movement_probability"]["farm"]
-p.movement_frequency = set_up_params["movement_frequency"]["farm"]
-p.max_daily_movements = set_up_params["max_daily_movements"]["farm"]
 
 # Step 5: continue running simulation until the first detection (default contact tracing can be done, but before the next day which might have wide-scale management) and output
 
