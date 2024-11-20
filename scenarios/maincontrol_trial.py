@@ -109,55 +109,74 @@ if not os.path.exists(folder_path_undetected_spread_1):
     os.makedirs(folder_path_undetected_spread_1)
 
 
-# TODO: if certain file exists, don't run the following...
+undetected_spread_properties_filename = os.path.join(folder_path_undetected_spread_1, "properties_" + unique_output)
+if not os.path.exists(undetected_spread_properties_filename):
 
-stop_time = 7
-unique_output = "02_undetected_spread_one_week"
+    stop_time = 7
+    unique_output = "02_undetected_spread_one_week"
 
-# to force some initial movements from that seeded property, adjust some of its movement parameters
-stud_farm_i = None
-for i in range(len(properties)):
-    if properties[i].type == "stud farm":
-        stud_farm_i = i
-        p = properties[i]
-        p.movement_probability = 1
-        p.movement_start_day = 1
-        p.movement_frequency = 1
-        p.max_daily_movements = 6
-        break
-if stud_farm_i == None:
-    raise ValueError("Stud farm not found for some reason")
+    # to force some initial movements from that seeded property, adjust some of its movement parameters
+    stud_farm_i = None
+    for i in range(len(properties)):
+        if properties[i].type == "stud farm":
+            stud_farm_i = i
+            p = properties[i]
+            p.movement_probability = 1
+            p.movement_start_day = 1
+            p.movement_frequency = 1
+            p.max_daily_movements = 6
+            break
+    if stud_farm_i == None:
+        raise ValueError("Stud farm not found for some reason")
 
-# initiate various things that start from empty:
-movement_records = []
-diseaseoutbreak = simulator.DiseaseSimulation(
-    movement_records=movement_records,
-    disease_parameters=disease_parameters,
-    spatial_only_parameters=spatial_only_parameters,
-)
+    # initiate various things that start from empty:
+    movement_records = []
+    diseaseoutbreak = simulator.DiseaseSimulation(
+        movement_records=movement_records,
+        disease_parameters=disease_parameters,
+        spatial_only_parameters=spatial_only_parameters,
+    )
 
-diseaseoutbreak.set_plotting_parameters(
-    xlims=xlims, ylims=ylims, plotting=True, folder_path=folder_path_undetected_spread_1, unique_output=unique_output
-)
+    diseaseoutbreak.set_plotting_parameters(
+        xlims=xlims,
+        ylims=ylims,
+        plotting=True,
+        folder_path=folder_path_undetected_spread_1,
+        unique_output=unique_output,
+    )
 
-properties, movement_records, time = diseaseoutbreak.simulate_outbreak_spread_only(
-    properties=properties, time=time, stop_time=stop_time
-)
+    properties, movement_records, time = diseaseoutbreak.simulate_outbreak_spread_only(
+        properties=properties, time=time, stop_time=stop_time
+    )
 
-# re-adjust the seeded property movements back to normal adjust those movements down after a week
-p = properties[stud_farm_i]
-p.movement_probability = properties_specific_parameters["movement_probability"]["stud farm"]
-p.movement_frequency = properties_specific_parameters["movement_frequency"]["stud farm"]
-p.max_daily_movements = properties_specific_parameters["max_daily_movements"]["stud farm"]
+    # re-adjust the seeded property movements back to normal adjust those movements down after a week
+    p = properties[stud_farm_i]
+    p.movement_probability = properties_specific_parameters["movement_probability"]["stud farm"]
+    p.movement_frequency = properties_specific_parameters["movement_frequency"]["stud farm"]
+    p.max_daily_movements = properties_specific_parameters["max_daily_movements"]["stud farm"]
 
+    # and then resave the end state
+    with open(undetected_spread_properties_filename, "wb") as file:
+        pickle.dump(properties, file)
+else:
+    with open(undetected_spread_properties_filename, "rb") as file:
+        properties = pickle.load(file)
 
-# Step 5: day 8: force reporting at the stud farm at the start of the day, followed by the default processes (contact tracing, assume that clinical confirmation is immediate, lab testing in process); the day will probably end with minimal movement restrictions for the infected property and the contact traced properties.
+# Step 5: continue running the simulation until the first report; start the default processes (contact tracing, assume that clinical confirmation is immediate, lab testing in process); the day will probably end with minimal movement restrictions for the infected property and the contact traced properties.
 # These properties should shown on a map
 # Then stop the simulation, and allow for some options for the next day of simulation
 # Options: complete movement standstill, and certain radii around the infected property
 
 if not os.path.exists(folder_path_first_report):
     os.makedirs(folder_path_first_report)
+
+# beginning serious simulation now
+total_culled_animals = 0
+local_movement_restrictions = []
+
+# TODO: we need to save the disease outbreak object -- or recreate it each time
+
+diseaseoutbreak.simulate_outbreak_til_first_report(properties, time=7)
 
 
 exit(0)
@@ -168,9 +187,6 @@ with open(os.path.join(folder_path_main, "scenario_params.json"), "r") as file:
 with open(os.path.join(folder_path_main, "job_params.json"), "r") as file:
     job_params = json.load(file)
 
-
-# total_culled_animals = 0
-# local_movement_restrictions = []
 
 # # initiate job_manager
 # job_manager = management.JobManager(**job_params)

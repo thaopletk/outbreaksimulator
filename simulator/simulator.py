@@ -827,6 +827,17 @@ class DiseaseSimulation:
 
         return properties, self.movement_records, time
 
+    def simulate_outbreak_til_first_report(self, properties, time=7):
+        """Run simulated outbreak, for undetected spread between (time+1) and (stop_time) [inclusive], with no management"""
+
+        if self.folder_path == "":
+            raise Warning("Default folder path hasn't changed - recommend that set_plotting_parameters() be run first")
+
+        controlzone = {}  # empty control zone
+        contacts_for_plotting = {}  # empty, as no contact tracing will occur here
+
+        # TODO !!
+
 
 def simulate_outbreak_one_day(
     total_culled_animals,
