@@ -40,7 +40,8 @@ with open(os.path.join(folder_path_main, "properties_specific_parameters.json"),
     properties_specific_parameters = json.load(file)
 with open(os.path.join(folder_path_main, "job_parameters.json"), "r") as file:
     job_parameters = json.load(file)
-
+with open(os.path.join(folder_path_main, "scenario_parameters.json"), "r") as file:
+    scenario_parameters = json.load(file)
 # properties_filename = os.path.join(folder_path_main, "properties_initialised.pickle")
 properties_filename = os.path.join(folder_path_main, "properties_init")
 if not os.path.exists(properties_filename):
@@ -143,6 +144,7 @@ if not os.path.exists(undetected_spread_properties_filename) or not os.path.exis
         disease_parameters=disease_parameters,
         spatial_only_parameters=spatial_only_parameters,
         job_parameters=job_parameters,
+        scenario_parameters=scenario_parameters,
     )
 
     diseaseoutbreak.set_plotting_parameters(
@@ -188,7 +190,6 @@ if not os.path.exists(folder_path_first_report):
     os.makedirs(folder_path_first_report)
 unique_output = "03_spread_til_first_report"
 
-
 # adjust the plotting parameters for this new scenario
 diseaseoutbreak.set_plotting_parameters(
     xlims=xlims,
@@ -198,8 +199,24 @@ diseaseoutbreak.set_plotting_parameters(
     unique_output=unique_output,
 )
 
-diseaseoutbreak.simulate_outbreak_til_first_report(properties, time=7)
+properties, movement_records, time, total_culled_animals, job_manager = (
+    diseaseoutbreak.simulate_outbreak_til_first_report(properties)
+)
 
-# then, management options: complete standstill, or standstill of certain radius
+spread_properties_filename = os.path.join(folder_path_first_report, "properties_" + unique_output)
+spread_diseaseoutbreak_filename = os.path.join(folder_path_first_report, "outbreakobject_" + unique_output)
+# and then resave the end state
+with open(spread_properties_filename, "wb") as file:
+    pickle.dump(properties, file)
 
-# run a few days, and then give options regarding ring surveillance, ring culling, ring testing...
+# and save the diseaseoutbreak object
+with open(spread_diseaseoutbreak_filename, "wb") as file:
+    pickle.dump(diseaseoutbreak, file)
+
+# Step 6. Give management options: complete standstill, or standstill of certain radius. Run for TWO WEEKS,
+
+# and then give options regarding ring surveillance, ring culling, OR ring testing. run for TWO WEEKS,
+
+# give options regarding movement radius, ring surveillance, ring culling, ring testing, and ring *vaccination* run for FOUR WEEKS
+
+# and then run for another four weeks, give options again / or until the outbreak dies out
