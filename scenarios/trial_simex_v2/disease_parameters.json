@@ -1,5 +1,5 @@
-{"beta_wind": 0.05,
-    "beta_animal": 0.9,
+{"beta_wind": 0.1,
+    "beta_animal": 1,
     "latent_period": 7,
     "infectious_period": 23.1,
     "preclinical_period": 7
