@@ -13,6 +13,7 @@ import pickle
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import simulator.simulator as simulator
 import simulator.management as management
+import simulator.disease_simulation as disease_simulation
 
 # folder names
 folder_path_main = os.path.join(os.path.dirname(__file__), "trial_simex_v2")
@@ -37,6 +38,8 @@ with open(os.path.join(folder_path_main, "spatial_only_parameters.json"), "r") a
     spatial_only_parameters = json.load(file)
 with open(os.path.join(folder_path_main, "properties_specific_parameters.json"), "r") as file:
     properties_specific_parameters = json.load(file)
+with open(os.path.join(folder_path_main, "job_parameters.json"), "r") as file:
+    job_parameters = json.load(file)
 
 # properties_filename = os.path.join(folder_path_main, "properties_initialised.pickle")
 properties_filename = os.path.join(folder_path_main, "properties_init")
@@ -108,12 +111,15 @@ else:
 if not os.path.exists(folder_path_undetected_spread_1):
     os.makedirs(folder_path_undetected_spread_1)
 
-
+stop_time = 7
+unique_output = "02_undetected_spread_one_week"
 undetected_spread_properties_filename = os.path.join(folder_path_undetected_spread_1, "properties_" + unique_output)
-if not os.path.exists(undetected_spread_properties_filename):
-
-    stop_time = 7
-    unique_output = "02_undetected_spread_one_week"
+undetected_spread_diseaseoutbreak_filename = os.path.join(
+    folder_path_undetected_spread_1, "outbreakobject_" + unique_output
+)
+if not os.path.exists(undetected_spread_properties_filename) or not os.path.exists(
+    undetected_spread_diseaseoutbreak_filename
+):
 
     # to force some initial movements from that seeded property, adjust some of its movement parameters
     stud_farm_i = None
@@ -131,10 +137,12 @@ if not os.path.exists(undetected_spread_properties_filename):
 
     # initiate various things that start from empty:
     movement_records = []
-    diseaseoutbreak = simulator.DiseaseSimulation(
+    diseaseoutbreak = disease_simulation.DiseaseSimulation(
+        time=time,
         movement_records=movement_records,
         disease_parameters=disease_parameters,
         spatial_only_parameters=spatial_only_parameters,
+        job_parameters=job_parameters,
     )
 
     diseaseoutbreak.set_plotting_parameters(
@@ -158,9 +166,18 @@ if not os.path.exists(undetected_spread_properties_filename):
     # and then resave the end state
     with open(undetected_spread_properties_filename, "wb") as file:
         pickle.dump(properties, file)
+
+    # and save the diseaseoutbreak object
+    with open(undetected_spread_diseaseoutbreak_filename, "wb") as file:
+        pickle.dump(diseaseoutbreak, file)
+
 else:
+
     with open(undetected_spread_properties_filename, "rb") as file:
         properties = pickle.load(file)
+    with open(undetected_spread_diseaseoutbreak_filename, "rb") as file:
+        diseaseoutbreak = pickle.load(file)
+
 
 # Step 5: continue running the simulation until the first report; start the default processes (contact tracing, assume that clinical confirmation is immediate, lab testing in process); the day will probably end with minimal movement restrictions for the infected property and the contact traced properties.
 # These properties should shown on a map
@@ -169,43 +186,19 @@ else:
 
 if not os.path.exists(folder_path_first_report):
     os.makedirs(folder_path_first_report)
+unique_output = "03_spread_til_first_report"
 
-# beginning serious simulation now
-total_culled_animals = 0
-local_movement_restrictions = []
 
-# TODO: we need to save the disease outbreak object -- or recreate it each time
+# adjust the plotting parameters for this new scenario
+diseaseoutbreak.set_plotting_parameters(
+    xlims=xlims,
+    ylims=ylims,
+    plotting=True,
+    folder_path=folder_path_first_report,
+    unique_output=unique_output,
+)
 
 diseaseoutbreak.simulate_outbreak_til_first_report(properties, time=7)
-
-
-exit(0)
-
-with open(os.path.join(folder_path_main, "scenario_params.json"), "r") as file:
-    scenario_params = json.load(file)
-
-with open(os.path.join(folder_path_main, "job_params.json"), "r") as file:
-    job_params = json.load(file)
-
-
-# # initiate job_manager
-# job_manager = management.JobManager(**job_params)
-
-# simulator.simulate_outbreak_continue(
-#     properties,
-#     folder_path_undetected_spread_1,
-#     stop_time,
-#     unique_output,
-#     total_culled_animals=total_culled_animals,
-#     time=time,
-#     movement_records=movement_records,
-#     local_movement_restrictions=local_movement_restrictions,
-#     job_manager=job_manager,
-# )
-
-
-# Step 5: continue running simulation until the first detection (default contact tracing can be done, but before the next day which might have wide-scale management) and output
-
 
 # then, management options: complete standstill, or standstill of certain radius
 
