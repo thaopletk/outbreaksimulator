@@ -108,6 +108,9 @@ else:
 if not os.path.exists(folder_path_undetected_spread_1):
     os.makedirs(folder_path_undetected_spread_1)
 
+
+# TODO: if certain file exists, don't run the following...
+
 stop_time = 7
 unique_output = "02_undetected_spread_one_week"
 

@@ -2,12 +2,12 @@
     "average_animals_per_ha": 0.2,
     "max_movement_km": 500,
     "n_property_types": {
-        "saleyard": 1,
-        "trader": 1,
-        "feedlot": 1,
+        "saleyard": 4,
+        "trader": 4,
+        "feedlot": 4,
         "abbattoir": 1,
         "stud farm": 1,
-        "farm": 45
+        "farm": 286
     },
     "movement_frequency": {
         "saleyard": 1,
