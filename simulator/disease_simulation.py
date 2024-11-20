@@ -61,6 +61,7 @@ class DiseaseSimulation:
             "lab_test_delay": 1.5,
             "clinical_delay": 0.5,
         },
+        scenario_parameters={"clinical_reporting_threshold": 0.05, "prob_report": 0.7},
     ):
 
         self.time = time
@@ -74,9 +75,15 @@ class DiseaseSimulation:
 
         self.r_wind = spatial_only_parameters["r_wind"]
 
+        self.clinical_reporting_threshold = scenario_parameters["clinical_reporting_threshold"]
+        self.prob_report = scenario_parameters["prob_report"]
+
         self.vax_modifier = 0  # TODO - can set up a function to input in vaccination-relevant parameters
 
-        # TODO : to add in reports as something that can be instantiated here
+        self.combined_narrative = ""
+        self.contact_tracing_reports = ""
+        self.testing_reports = ""
+        self.other_reports = ""
 
         # default set for plotting limits
         # limits for the figures
@@ -93,6 +100,9 @@ class DiseaseSimulation:
         self.unique_output = ""
 
         self.job_manager = management.JobManager(**job_parameters)
+        self.total_culled_animals = 0
+        self.controlzone = {}  # empty control zone
+        self.contacts_for_plotting = {}  # empty, as no contact tracing will occur here
 
     def set_plotting_parameters(self, xlims, ylims, plotting=True, folder_path="", unique_output=""):
         self.xlims = xlims
@@ -109,9 +119,6 @@ class DiseaseSimulation:
 
         if self.folder_path == "":
             raise Warning("Default folder path hasn't changed - recommend that set_plotting_parameters() be run first")
-
-        controlzone = {}  # empty control zone
-        contacts_for_plotting = {}  # empty, as no contact tracing will occur here
 
         FOI = list(np.zeros(len(properties)))
         while self.time < stop_time:
@@ -149,14 +156,15 @@ class DiseaseSimulation:
                     self.xlims,
                     self.ylims,
                     self.folder_path,
-                    controlzone,
+                    self.controlzone,
                     infectionpoly=False,
-                    contacts_for_plotting=contacts_for_plotting,
+                    contacts_for_plotting=self.contacts_for_plotting,
                 )
                 # should also save things for plotting: i.e., everything that I had used to actually plot
                 with open(os.path.join(self.folder_path, "plotting_data" + str(self.time)), "wb") as file:
                     pickle.dump(
-                        [properties, self.time, self.xlims, self.ylims, controlzone, contacts_for_plotting], file
+                        [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
+                        file,
                     )
 
         if self.plotting:
@@ -185,12 +193,177 @@ class DiseaseSimulation:
 
         if self.folder_path == "":
             raise Warning("Default folder path hasn't changed - recommend that set_plotting_parameters() be run first")
-        if self.job_manager == None:
-            raise ValueError("Job manager needs to be set")
 
-        total_culled_animals = 0
-        local_movement_restrictions = []
-        controlzone = {}
-        contacts_for_plotting = {}
+        first_report_flag = False
 
-        return total_culled_animals, local_movement_restrictions
+        FOI = list(np.zeros(len(properties)))
+        time_list = []
+        while first_report_flag == False:
+            self.time += 1
+
+            # calculate FOI for each property
+            for i, property_i in enumerate(properties):
+                if not property_i.culled_status:
+                    FOI[i] = SEIR.calculate_force_of_infection(
+                        properties, i, self.vax_modifier, self.r_wind, self.beta_wind, self.beta_animal
+                    )
+
+            # check if any property wants to report
+            for i, property_i in enumerate(properties):
+                if not property_i.culled_status and property_i.prob_of_reporting_only(
+                    self.clinical_reporting_threshold, self.prob_report
+                ):
+                    # essentially the same as a positive clinical observation
+                    first_report_flag = True
+
+                    report = property_i.report_suspicion(self.time)
+                    self.other_reports += report
+                    self.combined_narrative += report
+
+                    # enact local movement restrictions around this property, just in case
+                    self.job_manager.local_movement_restrictions.append(property_i.polygon)
+                    report = "No movements are now allowed to or from this property.\n"
+                    self.other_reports += report
+                    self.combined_narrative += report
+
+                    # schedule contact tracing
+                    s_report = self.job_manager.schedule_contract_tracing(i, self.time)
+                    self.contact_tracing_reports += s_report
+                    self.combined_narrative += s_report
+
+                    # schedule lab testing
+                    report = self.job_manager.schedule_lab_testing(i, self.time)
+                    self.other_reports += report  #  TODO should this actually go in testing reports?
+                    self.combined_narrative += report
+
+            # TODO: should update the JobManager so that I don't have to do this
+            for job in self.job_manager.new_jobs:
+                self.job_manager.add_job_to_queue(job)
+            self.job_manager.new_jobs = []
+
+            # run infection model for each property
+            for i, property_i in enumerate(properties):
+                property_i.infection_model(
+                    self.latent_period, self.infectious_period, self.preclinical_period, FOI[i], self.time
+                )
+
+            # movement of animals
+            # there may be movement restrictions if a property has reported, so this needs to be checked
+            controlzone_movement_restrictions = None
+            if self.job_manager.local_movement_restrictions != []:
+                controlzone_movement_restrictions = unary_union(self.job_manager.local_movement_restrictions)
+                self.controlzone["movement restrictions"] = controlzone_movement_restrictions
+
+            movement_record = animal_movement.trialsimex_animal_movement(
+                properties, day=self.time, controlzone=controlzone_movement_restrictions
+            )
+            if movement_record != []:
+                self.movement_records.extend(movement_record)
+
+            # update counts
+            for i, property_i in enumerate(properties):
+                property_i.update_counts()
+
+            time_list.append(self.time)
+            if self.plotting:
+                simulator.plot_current_state(
+                    properties,
+                    self.time,
+                    self.xlims,
+                    self.ylims,
+                    self.folder_path,
+                    self.controlzone,
+                    infectionpoly=False,
+                    contacts_for_plotting=self.contacts_for_plotting,
+                )
+                # should also save things for plotting: i.e., everything that I had used to actually plot
+                with open(os.path.join(self.folder_path, "plotting_data" + str(self.time)), "wb") as file:
+                    pickle.dump(
+                        [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
+                        file,
+                    )
+
+            # advance time by a half, to see if there are any jobs that should now be complete
+            # Go through jobs in the queue
+            (
+                new_report,
+                new_testing_reports,
+                new_combined_narrative,
+                new_contact_tracing_reports,
+                local_movement_restrictions,
+                newly_culled_animals,
+                contacts_for_plotting,
+            ) = self.job_manager.job_manager(self.time + 0.5, properties, self.movement_records)
+
+            self.contacts_for_plotting = contacts_for_plotting
+            self.combined_narrative += new_combined_narrative
+            self.contact_tracing_reports += new_contact_tracing_reports
+            self.testing_reports += new_testing_reports
+            self.other_reports += new_report
+            self.total_culled_animals += newly_culled_animals
+
+            time_list.append(self.time + 0.5)
+            if self.plotting:
+                simulator.plot_current_state(
+                    properties,
+                    self.time + 0.5,
+                    self.xlims,
+                    self.ylims,
+                    self.folder_path,
+                    self.controlzone,
+                    infectionpoly=False,
+                    contacts_for_plotting=self.contacts_for_plotting,
+                )
+                # should also save things for plotting: i.e., everything that I had used to actually plot
+                with open(os.path.join(self.folder_path, "plotting_data" + str(self.time + 0.5)), "wb") as file:
+                    pickle.dump(
+                        [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
+                        file,
+                    )
+
+        if self.plotting:
+            output.make_video(self.folder_path, "map_underlying", times=time_list)
+            output.make_video(self.folder_path, "map_apparent", times=time_list)
+
+        simulator.save_outbreak_state(
+            properties,
+            self.time,
+            self.folder_path,
+            self.unique_output,
+            total_culled_animals=self.total_culled_animals,
+            movement_records=self.movement_records,
+            job_manager=self.job_manager,
+        )
+
+        simulator.save_movement_record(self.folder_path, self.movement_records)
+
+        total_culled = 0
+        total_vaccinated = 0
+        for property in properties:
+            if property.culled_status:
+                total_culled += 1
+            if property.vaccination_status:
+                total_vaccinated += 1
+
+        to_save_narrative = (
+            self.combined_narrative
+            + f"\n==============\nTotal culled properties: {total_culled}; total vaccinated properties: {total_vaccinated}; total culled animals: {self.total_culled_animals}"
+        )
+
+        # output "reports" report
+        with open(os.path.join(self.folder_path, "report.txt"), "w") as file:
+            file.write(self.other_reports)
+
+        # output contact tracing reports
+        with open(os.path.join(self.folder_path, "report_contact_tracing.txt"), "w") as file:
+            file.write(self.contact_tracing_reports)
+
+        # output testing reports
+        with open(os.path.join(self.folder_path, "report_testing.txt"), "w") as file:
+            file.write(self.testing_reports)
+
+        # output the inter-twined narrative (of known occurences)
+        with open(os.path.join(self.folder_path, "report_combined_narrative.txt"), "w") as file:
+            file.write(to_save_narrative)
+
+        return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager

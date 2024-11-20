@@ -140,18 +140,14 @@ def contact_tracing(properties, property_index, movement_records, time):
                 if record[1] == property_index:
                     properties_found = True
                     traced_property_indices.append(record[2])
-                    contact_tracing_report = (
-                        contact_tracing_report + " - " + record[3] + "\n"
-                    )
+                    contact_tracing_report = contact_tracing_report + " - " + record[3] + "\n"
     if not properties_found:
         contact_tracing_report += " - no movements found\n"
 
     return contact_tracing_report, traced_property_indices
 
 
-def test_property(
-    properties, property_index, time, test_sensitivity, test_type="Lab test"
-):
+def test_property(properties, property_index, time, test_sensitivity, test_type="Lab test"):
     positive = False
     premise = properties[property_index]
 
@@ -166,9 +162,7 @@ def test_property(
             testing_report += f"Property index {property_index} at location (x,y)=({round(x,2)}, {round(y,2)}) report POSITIVE result\n"
             positive = True
         else:
-            testing_report += (
-                f"Property index {property_index} report negative result\n"
-            )
+            testing_report += f"Property index {property_index} report negative result\n"
     else:
         testing_report += f"Property index {property_index} report negative result\n"
     return testing_report, positive
@@ -184,9 +178,7 @@ def testing(properties, property_indices, time, test_sensitivity):
     positive_indices = []
 
     for index in property_indices:
-        small_testing_report, positive = test_property(
-            properties, index, time, test_sensitivity
-        )
+        small_testing_report, positive = test_property(properties, index, time, test_sensitivity)
         testing_report += small_testing_report
 
         if positive:
@@ -221,11 +213,7 @@ class JobManager:
         # TODO if the new job completion time is earlier, then it should be added
         # could probably also add in checks around whether this premise still exists and still needs to have this job completed or not
         for j in self.jobs_queue:
-            if (
-                j["status"] == "in progress"
-                and j["type"] == job["type"]
-                and j["property_i"] == job["property_i"]
-            ):
+            if j["status"] == "in progress" and j["type"] == job["type"] and j["property_i"] == job["property_i"]:
                 exists = True
                 break
 
@@ -240,9 +228,7 @@ class JobManager:
             self.lab_test_sensitivity,
             test_type="lab test",
         )
-        job["status"] = (
-            "complete"  # mark job as complete, slated for removal from the job queue
-        )
+        job["status"] = "complete"  # mark job as complete, slated for removal from the job queue
         return testing_report, positive
 
     def conduct_clinicalobservation(self, properties, job, time):
@@ -253,9 +239,7 @@ class JobManager:
             self.clinical_test_sensitivity,
             test_type="clinical observation",
         )
-        job["status"] = (
-            "complete"  # mark job as complete, slated for removal from the job queue
-        )
+        job["status"] = "complete"  # mark job as complete, slated for removal from the job queue
         return testing_report, positive
 
     def decision_to_cull(self, property_i, time):
@@ -295,9 +279,7 @@ class JobManager:
         }
         self.new_jobs.append(new_job)
 
-        mini_report = (
-            f"Personnel will be sent to property {property_i} for lab testing\n"
-        )
+        mini_report = f"Personnel will be sent to property {property_i} for lab testing\n"
         return mini_report
 
     def schedule_clinical_observation(self, property_i, time):
@@ -332,17 +314,13 @@ class JobManager:
             new_combined_narrative += report
 
             # enact local movement restrictions around this property, just in case
-            self.local_movement_restrictions.append(
-                properties[job["property_i"]].polygon
-            )
+            self.local_movement_restrictions.append(properties[job["property_i"]].polygon)
 
             report = self.schedule_contract_tracing(job["property_i"], time)
             new_combined_narrative += report
         else:
             # remove any local movement restrictions
-            self.local_movement_restrictions.remove(
-                properties[job["property_i"]].polygon
-            )
+            self.local_movement_restrictions.remove(properties[job["property_i"]].polygon)
 
             # may have ongoing surveillance here in the future
         return new_report, new_testing_reports, new_combined_narrative
@@ -364,17 +342,15 @@ class JobManager:
             if job["status"] == "in progress" and job["day"] <= time:
                 # job should now be complete
                 if job["type"] == jobtype.LabTesting:
-                    temp_report, temp_testing_reports, temp_combined_narrative = (
-                        self.run_lab_testing_now(properties, job, time)
+                    temp_report, temp_testing_reports, temp_combined_narrative = self.run_lab_testing_now(
+                        properties, job, time
                     )
                     new_report += temp_report
                     new_testing_reports += temp_testing_reports
                     new_combined_narrative += temp_combined_narrative
 
                 elif job["type"] == jobtype.ClinicalObservation:
-                    testing_report, positive = self.conduct_clinicalobservation(
-                        properties, job, time
-                    )
+                    testing_report, positive = self.conduct_clinicalobservation(properties, job, time)
                     new_testing_reports += testing_report
                     new_combined_narrative += testing_report
 
@@ -382,9 +358,11 @@ class JobManager:
                         premise = properties[job["property_i"]]
 
                         # enact local movement restrictions around this property, just in case
-                        self.local_movement_restrictions.append(
-                            properties[job["property_i"]].polygon
-                        )
+                        self.local_movement_restrictions.append(properties[job["property_i"]].polygon)
+                        # TODO there should be a report here, like
+                        # report = "No movements are now allowed to or from this property.\n"
+                        # new_report += report
+                        # new_combined_narrative += report
 
                         # schedule contact tracing
                         report = self.schedule_contract_tracing(job["property_i"], time)
@@ -397,9 +375,7 @@ class JobManager:
                     else:
                         # remove any local movement restrictions
                         # technically, should check if it's still under lab testing, which means we might still want some movement restrictions lol...
-                        self.local_movement_restrictions.remove(
-                            properties[job["property_i"]].polygon
-                        )
+                        self.local_movement_restrictions.remove(properties[job["property_i"]].polygon)
 
                         # may have ongoing surveillance here in the future
                 elif job["type"] == jobtype.Cull:
@@ -409,9 +385,7 @@ class JobManager:
                     new_report += premise_report
                     new_combined_narrative += premise_report
 
-                    job["status"] = (
-                        "complete"  # mark job as complete, slated for removal from the job queue
-                    )
+                    job["status"] = "complete"  # mark job as complete, slated for removal from the job queue
                 elif job["type"] == jobtype.ContactTracing:
                     contact_tracing_report, traced_property_indices = contact_tracing(
                         properties, job["property_i"], movement_records, time
@@ -434,14 +408,10 @@ class JobManager:
                         report = self.schedule_lab_testing(job["property_i"], time)
                         new_report += report
 
-                    job["status"] = (
-                        "complete"  # mark job as complete, slated for removal from the job queue
-                    )
+                    job["status"] = "complete"  # mark job as complete, slated for removal from the job queue
 
         # clean up job queue
-        self.jobs_queue = [
-            job for job in self.jobs_queue if job["status"] == "in progress"
-        ]
+        self.jobs_queue = [job for job in self.jobs_queue if job["status"] == "in progress"]
 
         # add in new jobs; this checks for any repeat jobs and doesn't add repeat jobs
         for job in self.new_jobs:

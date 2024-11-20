@@ -33,6 +33,9 @@ def convert_time_to_date(time, start_date=datetime.datetime(year=2024, month=11,
     date : string
         Formatted string d/m/Y representing the physical date
     """
+    if type(time) != int:
+        time = int(np.floor(time))
+        # TODO : here, I should allow for "morning" vs "afternoon" or some other time thing
     current_date = start_date + datetime.timedelta(days=time)
     return current_date.strftime("%d/%m/%Y")
 
@@ -118,6 +121,10 @@ class Premises(Property):
         self.allowed_movement = allowed_movement
         self.max_daily_movements = max_daily_movements
 
+        self.x, self.y = self.coordinates
+
+        self.location = self.geolocator.reverse(f"{self.y},{self.x}")
+
     #
     def vaccinate(self, time):
         self.vaccination_status = 1
@@ -164,10 +171,8 @@ class Premises(Property):
         # no change in "IP" status
         # self.reported_status = False # no change
         self.culled_on_suspicion = True
-        x, y = self.coordinates
 
-        location = self.geolocator.reverse(f"{y},{x}")
-        report = f"DAY {self.removal_date} - Property ID {self.id}, {round(self.area,1)} ha cattle property at location (x,y)=({round(x,2)}, {round(y,2)}), {location}, is within the ring culling zone.\nA total of {self.size} animal(s) have been culled.\n"
+        report = f"DAY {self.removal_date} - Property ID {self.id}, {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, is within the ring culling zone.\nA total of {self.size} animal(s) have been culled.\n"
 
         return report, self.size
 
@@ -178,11 +183,9 @@ class Premises(Property):
         self.ip = next(Premises.notified_iter)
         self.reported_status = True
 
-        x, y = self.coordinates
         culled_animals = self.size
 
-        location = self.geolocator.reverse(f"{y},{x}")
-        report = f"DAY {self.notification_date} - IP {self.ip} (ID {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(x,2)}, {round(y,2)}), {location}, has been found infected. A total of {culled_animals} animal(s) will be culled.\n"
+        report = f"DAY {self.notification_date} - IP {self.ip} (ID {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been found infected. A total of {culled_animals} animal(s) will be culled.\n"
 
         return report
 
@@ -195,10 +198,7 @@ class Premises(Property):
         report = ""
         culled_animals = self.size
 
-        x, y = self.coordinates
-
-        location = self.geolocator.reverse(f"{y},{x}")
-        report = f"DAY {convert_time_to_date(time)} - IP {self.ip} (ID {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(x,2)}, {round(y,2)}), {location}, has been depopulated.\nA total of {culled_animals} animal(s) have been culled.\n"
+        report = f"DAY {convert_time_to_date(time)} - IP {self.ip} (ID {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been depopulated.\nA total of {culled_animals} animal(s) have been culled.\n"
 
         return report, culled_animals
 
@@ -211,6 +211,11 @@ class Premises(Property):
             if reporting_rand < chance_of_reporting:
                 return True
         return False
+
+    def report_suspicion(self, time):
+        report = f"DAY {convert_time_to_date(time)} - Property ID {self.id} ({self.type}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been reported possible infection.\n"
+
+        return report
 
     def reporting(self, clinical_reporting_threshold, prob_report, time, force_report=False):
         if not force_report:
@@ -231,10 +236,8 @@ class Premises(Property):
         if self.culled_status == 1:
             culled_animals = self.size
             report += self.report_only(time)
-            x, y = self.coordinates
 
-            location = self.geolocator.reverse(f"{y},{x}")
-            report = f"DAY {self.notification_date} - IP {self.ip} (ID {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(x,2)}, {round(y,2)}), {location}, has been reported infected.\nA total of {culled_animals} animal(s) have been culled.\n"
+            report = f"DAY {self.notification_date} - IP {self.ip} (ID {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been reported infected.\nA total of {culled_animals} animal(s) have been culled.\n"
 
         return report, culled_animals
 
