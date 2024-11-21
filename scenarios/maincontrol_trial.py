@@ -305,42 +305,42 @@ if not os.path.exists(radius_50km_B_properties_filename) or not os.path.exists(r
     with open(radius_50km_B_diseaseoutbreak_filename, "wb") as file:
         pickle.dump(diseaseoutbreak, file)
 
+# NOT DOING THIS - too many options
+# # 6C: movement radius of 25km
+# if not os.path.exists(folder_path_radius_25km_C):
+#     os.makedirs(folder_path_radius_25km_C)
+# unique_output = "04C_movement_radius_25km_two_weeks"
 
-# 6C: movement radius of 25km
-if not os.path.exists(folder_path_radius_25km_C):
-    os.makedirs(folder_path_radius_25km_C)
-unique_output = "04C_movement_radius_25km_two_weeks"
+# radius_25km_C_properties_filename = os.path.join(folder_path_radius_25km_C, "properties_" + unique_output)
+# radius_25km_C_diseaseoutbreak_filename = os.path.join(folder_path_radius_25km_C, "outbreakobject_" + unique_output)
+# if not os.path.exists(radius_25km_C_properties_filename) or not os.path.exists(radius_25km_C_diseaseoutbreak_filename):
+#     with open(spread_properties_filename, "rb") as file:
+#         properties = pickle.load(file)
+#     with open(spread_diseaseoutbreak_filename, "rb") as file:
+#         diseaseoutbreak = pickle.load(file)
 
-radius_25km_C_properties_filename = os.path.join(folder_path_radius_25km_C, "properties_" + unique_output)
-radius_25km_C_diseaseoutbreak_filename = os.path.join(folder_path_radius_25km_C, "outbreakobject_" + unique_output)
-if not os.path.exists(radius_25km_C_properties_filename) or not os.path.exists(radius_25km_C_diseaseoutbreak_filename):
-    with open(spread_properties_filename, "rb") as file:
-        properties = pickle.load(file)
-    with open(spread_diseaseoutbreak_filename, "rb") as file:
-        diseaseoutbreak = pickle.load(file)
+#     # adjust the plotting parameters for this new scenario
+#     diseaseoutbreak.set_plotting_parameters(
+#         xlims=xlims,
+#         ylims=ylims,
+#         plotting=True,
+#         folder_path=folder_path_radius_25km_C,
+#         unique_output=unique_output,
+#     )
 
-    # adjust the plotting parameters for this new scenario
-    diseaseoutbreak.set_plotting_parameters(
-        xlims=xlims,
-        ylims=ylims,
-        plotting=True,
-        folder_path=folder_path_radius_25km_C,
-        unique_output=unique_output,
-    )
+#     management_parameters = [{"type": "movement_restriction", "radius_km": 25, "convex": False}]
 
-    management_parameters = [{"type": "movement_restriction", "radius_km": 25, "convex": False}]
+#     properties, movement_records, time, total_culled_animals, job_manager = (
+#         diseaseoutbreak.simulate_outbreak_management(properties, management_parameters, days_to_run_for)
+#     )
 
-    properties, movement_records, time, total_culled_animals, job_manager = (
-        diseaseoutbreak.simulate_outbreak_management(properties, management_parameters, days_to_run_for)
-    )
+#     # and then resave the end state
+#     with open(radius_25km_C_properties_filename, "wb") as file:
+#         pickle.dump(properties, file)
 
-    # and then resave the end state
-    with open(radius_25km_C_properties_filename, "wb") as file:
-        pickle.dump(properties, file)
-
-    # and save the diseaseoutbreak object
-    with open(radius_25km_C_diseaseoutbreak_filename, "wb") as file:
-        pickle.dump(diseaseoutbreak, file)
+#     # and save the diseaseoutbreak object
+#     with open(radius_25km_C_diseaseoutbreak_filename, "wb") as file:
+#         pickle.dump(diseaseoutbreak, file)
 
 
 # Step 7: now there are options regarding ring culling, OR ring testing (at fixed radius, maybe 25km, no ring surveillance, too many options...). There should also be options regarding the changing (or not) of movement restriction radius. Run for TWO WEEKS,
@@ -348,7 +348,7 @@ days_to_run_for = 14
 previous_outbreak_step_filenames = [
     [movement_standstill_A_properties_filename, movement_standstill_A_diseaseoutbreak_filename, "04A"],
     [radius_50km_B_properties_filename, radius_50km_B_diseaseoutbreak_filename, "04B"],
-    [radius_25km_C_properties_filename, radius_25km_C_diseaseoutbreak_filename, "04C"],
+    # [radius_25km_C_properties_filename, radius_25km_C_diseaseoutbreak_filename, "04C"],
 ]
 
 outbreak_step_7_filenames = []
@@ -359,7 +359,8 @@ outbreak_step_7_filenames = []
 for properties_filename, diseaseoutbreak_filename, identifier in previous_outbreak_step_filenames:
     long_name = ""
     short_code = identifier
-    for new_movement_option in ["standstill", "restriction50km", "restriction25km"]:
+    # NOTE: taking out 25km, to limit options
+    for new_movement_option in ["standstill", "restriction50km"]:  # , "restriction25km"]:
         short_code_1 = short_code
         long_name_1 = new_movement_option
         if new_movement_option == "standstill":
@@ -371,11 +372,13 @@ for properties_filename, diseaseoutbreak_filename, identifier in previous_outbre
         elif new_movement_option == "restriction25km":
             management_parameters = [{"type": "movement_restriction", "radius_km": 25, "convex": False}]
             short_code_1 += "-05C"
+        else:
+            raise ValueError("Ring management option not identified")
 
         # should also include the option of NOT doing anything more
         for ring_management_option, management_identifier in [
-            ["", "_only"],
-            ["ring culling", "_cull25km"],
+            # ["", "_only"], # taking this out too, to say that "outbreak is intensifying, need more management--i.e., ring testing in addition to contact tracing"
+            # ["ring culling", "_cull25km"], # NOTE ring cullinng is not considered; reason: "no social license / too much protesting"
             ["ring testing", "_test25km"],
         ]:
             long_name_2 = long_name_1 + management_identifier
@@ -430,14 +433,18 @@ for properties_filename, diseaseoutbreak_filename, identifier in previous_outbre
                     pickle.dump(diseaseoutbreak, file)
 
 
-# Step 8: give options regarding movement radius, ring culling, ring testing, and ring *vaccination* run for FOUR WEEKS
-days_to_run_for = 28
+# Step 8: give options regarding movement radius, ring culling, ring testing, and ring *vaccination* run until the invasion dies out (hopefully)
+# days_to_run_for = 28
+days_to_run_for = 120
 
 outbreak_step_8_filenames = []
 for properties_filename, diseaseoutbreak_filename, identifier in outbreak_step_7_filenames:
     long_name = ""
     short_code = identifier
-    for new_movement_option in ["standstill", "restriction50km", "restriction25km"]:
+    for new_movement_option in [
+        "standstill",
+        "restriction50km",
+    ]:  # , "restriction25km"]: # taking out 25km to reduce decision space
         short_code_1 = short_code
         long_name_1 = new_movement_option
         if new_movement_option == "standstill":
@@ -452,10 +459,10 @@ for properties_filename, diseaseoutbreak_filename, identifier in outbreak_step_7
 
         # should also include the option of NOT doing anything more
         for ring_management_option, management_identifier in [
-            ["", "_only"],
-            ["ring culling", "cull25km"],
+            # ["", "_only"],
+            # ["ring culling", "cull25km"],
             ["ring testing", "test25km"],
-            ["ring vaccination", "vaccinate25km"],
+            ["ring vaccination", "vaccinate50km"],  # 50km, to vaccinate ahead of the front?
         ]:
             long_name_2 = long_name_1 + management_identifier
             short_code_2 = short_code_1
@@ -468,7 +475,7 @@ for properties_filename, diseaseoutbreak_filename, identifier in outbreak_step_7
                 management_parameters.append({"type": "ring_testing", "radius_km": 25, "convex": False})
                 short_code_2 += "C"
             elif ring_management_option == "ring vaccination":
-                management_parameters.append({"type": "ring_vaccination", "radius_km": 25, "convex": False})
+                management_parameters.append({"type": "ring_vaccination", "radius_km": 50, "convex": False})
                 short_code_2 += "D"
             else:
                 raise ValueError("Ring management option not identified")
@@ -511,82 +518,82 @@ for properties_filename, diseaseoutbreak_filename, identifier in outbreak_step_7
                     pickle.dump(diseaseoutbreak, file)
 
 
-# and then run for another four weeks, give options again / or until the outbreak dies out
-days_to_run_for = 28
+# # and then run for another four weeks, give options again / or until the outbreak dies out
+# days_to_run_for = 28
 
-outbreak_step_9_filenames = []
-for properties_filename, diseaseoutbreak_filename, identifier in outbreak_step_8_filenames:
-    long_name = ""
-    short_code = identifier
-    for new_movement_option in ["standstill", "restriction50km", "restriction25km"]:
-        short_code_1 = short_code
-        long_name_1 = new_movement_option
-        if new_movement_option == "standstill":
-            management_parameters = [{"type": "movement_standstill"}]
-            short_code_1 += "-07A"
-        elif new_movement_option == "restriction50km":
-            management_parameters = [{"type": "movement_restriction", "radius_km": 50, "convex": False}]
-            short_code_1 += "-07B"
-        elif new_movement_option == "restriction25km":
-            management_parameters = [{"type": "movement_restriction", "radius_km": 25, "convex": False}]
-            short_code_1 += "-07C"
+# outbreak_step_9_filenames = []
+# for properties_filename, diseaseoutbreak_filename, identifier in outbreak_step_8_filenames:
+#     long_name = ""
+#     short_code = identifier
+#     for new_movement_option in ["standstill", "restriction50km", "restriction25km"]:
+#         short_code_1 = short_code
+#         long_name_1 = new_movement_option
+#         if new_movement_option == "standstill":
+#             management_parameters = [{"type": "movement_standstill"}]
+#             short_code_1 += "-07A"
+#         elif new_movement_option == "restriction50km":
+#             management_parameters = [{"type": "movement_restriction", "radius_km": 50, "convex": False}]
+#             short_code_1 += "-07B"
+#         elif new_movement_option == "restriction25km":
+#             management_parameters = [{"type": "movement_restriction", "radius_km": 25, "convex": False}]
+#             short_code_1 += "-07C"
 
-        # should also include the option of NOT doing anything more
-        for ring_management_option, management_identifier in [
-            ["", "_only"],
-            ["ring culling", "cull25km"],
-            ["ring testing", "test25km"],
-            ["ring vaccination", "vaccinate25km"],
-        ]:
-            long_name_2 = long_name_1 + management_identifier
-            short_code_2 = short_code_1
-            if ring_management_option == "":
-                short_code_2 += "A"
-            elif ring_management_option == "ring culling":
-                management_parameters.append({"type": "ring_culling", "radius_km": 25, "convex": False})
-                short_code_2 += "B"
-            elif ring_management_option == "ring testing":
-                management_parameters.append({"type": "ring_testing", "radius_km": 25, "convex": False})
-                short_code_2 += "C"
-            elif ring_management_option == "ring vaccination":
-                management_parameters.append({"type": "ring_vaccination", "radius_km": 25, "convex": False})
-                short_code_2 += "D"
-            else:
-                raise ValueError("Management option not identified")
+#         # should also include the option of NOT doing anything more
+#         for ring_management_option, management_identifier in [
+#             ["", "_only"],
+#             ["ring culling", "cull25km"],
+#             ["ring testing", "test25km"],
+#             ["ring vaccination", "vaccinate25km"],
+#         ]:
+#             long_name_2 = long_name_1 + management_identifier
+#             short_code_2 = short_code_1
+#             if ring_management_option == "":
+#                 short_code_2 += "A"
+#             elif ring_management_option == "ring culling":
+#                 management_parameters.append({"type": "ring_culling", "radius_km": 25, "convex": False})
+#                 short_code_2 += "B"
+#             elif ring_management_option == "ring testing":
+#                 management_parameters.append({"type": "ring_testing", "radius_km": 25, "convex": False})
+#                 short_code_2 += "C"
+#             elif ring_management_option == "ring vaccination":
+#                 management_parameters.append({"type": "ring_vaccination", "radius_km": 25, "convex": False})
+#                 short_code_2 += "D"
+#             else:
+#                 raise ValueError("Management option not identified")
 
-            unique_output = short_code_2 + "_" + long_name_2
-            folder_path_local = os.path.join(folder_path_main, unique_output)
-            if not os.path.exists(folder_path_local):
-                os.makedirs(folder_path_local)
-            local_properties_filename = os.path.join(folder_path_local, "properties_" + unique_output)
-            local_diseaseoutbreak_filename = os.path.join(folder_path_local, "outbreakobject_" + unique_output)
+#             unique_output = short_code_2 + "_" + long_name_2
+#             folder_path_local = os.path.join(folder_path_main, unique_output)
+#             if not os.path.exists(folder_path_local):
+#                 os.makedirs(folder_path_local)
+#             local_properties_filename = os.path.join(folder_path_local, "properties_" + unique_output)
+#             local_diseaseoutbreak_filename = os.path.join(folder_path_local, "outbreakobject_" + unique_output)
 
-            outbreak_step_9_filenames.append([local_properties_filename, local_diseaseoutbreak_filename, short_code_2])
+#             outbreak_step_9_filenames.append([local_properties_filename, local_diseaseoutbreak_filename, short_code_2])
 
-            if not os.path.exists(local_properties_filename) or not os.path.exists(local_diseaseoutbreak_filename):
+#             if not os.path.exists(local_properties_filename) or not os.path.exists(local_diseaseoutbreak_filename):
 
-                with open(properties_filename, "rb") as file:
-                    properties = pickle.load(file)
-                with open(diseaseoutbreak_filename, "rb") as file:
-                    diseaseoutbreak = pickle.load(file)
+#                 with open(properties_filename, "rb") as file:
+#                     properties = pickle.load(file)
+#                 with open(diseaseoutbreak_filename, "rb") as file:
+#                     diseaseoutbreak = pickle.load(file)
 
-                # adjust the plotting parameters for this new scenario
-                diseaseoutbreak.set_plotting_parameters(
-                    xlims=xlims,
-                    ylims=ylims,
-                    plotting=True,
-                    folder_path=folder_path_local,
-                    unique_output=unique_output,
-                )
+#                 # adjust the plotting parameters for this new scenario
+#                 diseaseoutbreak.set_plotting_parameters(
+#                     xlims=xlims,
+#                     ylims=ylims,
+#                     plotting=True,
+#                     folder_path=folder_path_local,
+#                     unique_output=unique_output,
+#                 )
 
-                properties, movement_records, time, total_culled_animals, job_manager = (
-                    diseaseoutbreak.simulate_outbreak_management(properties, management_parameters, days_to_run_for)
-                )
+#                 properties, movement_records, time, total_culled_animals, job_manager = (
+#                     diseaseoutbreak.simulate_outbreak_management(properties, management_parameters, days_to_run_for)
+#                 )
 
-                # and then resave the end state
-                with open(local_properties_filename, "wb") as file:
-                    pickle.dump(properties, file)
+#                 # and then resave the end state
+#                 with open(local_properties_filename, "wb") as file:
+#                     pickle.dump(properties, file)
 
-                # and save the diseaseoutbreak object
-                with open(local_diseaseoutbreak_filename, "wb") as file:
-                    pickle.dump(diseaseoutbreak, file)
+#                 # and save the diseaseoutbreak object
+#                 with open(local_diseaseoutbreak_filename, "wb") as file:
+#                     pickle.dump(diseaseoutbreak, file)
