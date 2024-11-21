@@ -1,0 +1,448 @@
+DAY 20/11/2024 - lab test report for property index 199
+Property index 199 at location (x,y)=(151.05, -32.13) report POSITIVE result
+DAY 20/11/2024 - clinical observation report for property index 199
+Property index 199 at location (x,y)=(151.05, -32.13) report POSITIVE result
+DAY 21/11/2024 - lab test report for property index 199
+No testing: property index 199 (IP 133) has already been culled
+DAY 21/11/2024 - lab test report for property index 51
+Property index 51 at location (x,y)=(151.12, -32.23) report POSITIVE result
+DAY 21/11/2024 - lab test report for property index 113
+Property index 113 report negative result
+DAY 21/11/2024 - clinical observation report for property index 51
+Property index 51 report negative result
+DAY 21/11/2024 - clinical observation report for property index 113
+Property index 113 at location (x,y)=(151.02, -32.09) report POSITIVE result
+DAY 22/11/2024 - clinical observation report for property index 199
+No testing: property index 199 (IP 133) has already been culled
+DAY 22/11/2024 - lab test report for property index 113
+Property index 113 at location (x,y)=(151.02, -32.09) report POSITIVE result
+DAY 22/11/2024 - clinical observation report for property index 113
+Property index 113 report negative result
+DAY 23/11/2024 - lab test report for property index 199
+No testing: property index 199 (IP 133) has already been culled
+DAY 23/11/2024 - clinical observation report for property index 51
+No testing: property index 51 (IP 134) has already been culled
+DAY 23/11/2024 - lab test report for property index 113
+No testing: property index 113 (IP 135) has already been culled
+DAY 23/11/2024 - lab test report for property index 236
+Property index 236 at location (x,y)=(150.77, -32.09) report POSITIVE result
+DAY 23/11/2024 - lab test report for property index 252
+Property index 252 at location (x,y)=(151.23, -31.84) report POSITIVE result
+DAY 23/11/2024 - clinical observation report for property index 236
+Property index 236 report negative result
+DAY 23/11/2024 - clinical observation report for property index 252
+Property index 252 at location (x,y)=(151.23, -31.84) report POSITIVE result
+DAY 24/11/2024 - lab test report for property index 51
+No testing: property index 51 (IP 134) has already been culled
+DAY 24/11/2024 - lab test report for property index 252
+No testing: property index 252 (IP 137) has already been culled
+DAY 25/11/2024 - clinical observation report for property index 236
+No testing: property index 236 (IP 136) has already been culled
+DAY 25/11/2024 - clinical observation report for property index 252
+No testing: property index 252 (IP 137) has already been culled
+DAY 25/11/2024 - lab test report for property index 107
+Property index 107 at location (x,y)=(151.11, -32.19) report POSITIVE result
+DAY 25/11/2024 - lab test report for property index 220
+Property index 220 at location (x,y)=(151.26, -32.49) report POSITIVE result
+DAY 25/11/2024 - lab test report for property index 253
+Property index 253 at location (x,y)=(151.01, -32.47) report POSITIVE result
+DAY 25/11/2024 - clinical observation report for property index 107
+Property index 107 at location (x,y)=(151.11, -32.19) report POSITIVE result
+DAY 25/11/2024 - clinical observation report for property index 253
+Property index 253 report negative result
+DAY 26/11/2024 - lab test report for property index 236
+No testing: property index 236 (IP 136) has already been culled
+DAY 26/11/2024 - lab test report for property index 252
+No testing: property index 252 (IP 137) has already been culled
+DAY 26/11/2024 - lab test report for property index 107
+No testing: property index 107 (IP 138) has already been culled
+DAY 26/11/2024 - lab test report for property index 67
+Property index 67 at location (x,y)=(151.29, -31.97) report POSITIVE result
+DAY 26/11/2024 - lab test report for property index 115
+Property index 115 at location (x,y)=(151.08, -32.46) report POSITIVE result
+DAY 26/11/2024 - lab test report for property index 117
+Property index 117 at location (x,y)=(150.37, -32.12) report POSITIVE result
+DAY 26/11/2024 - lab test report for property index 137
+Property index 137 at location (x,y)=(150.87, -32.05) report POSITIVE result
+DAY 26/11/2024 - lab test report for property index 194
+Property index 194 at location (x,y)=(151.01, -32.44) report POSITIVE result
+DAY 26/11/2024 - lab test report for property index 235
+Property index 235 at location (x,y)=(151.06, -32.35) report POSITIVE result
+DAY 26/11/2024 - lab test report for property index 253
+No testing: property index 253 (IP 140) has already been culled
+DAY 26/11/2024 - lab test report for property index 260
+Property index 260 at location (x,y)=(150.92, -32.47) report POSITIVE result
+DAY 26/11/2024 - clinical observation report for property index 67
+Property index 67 at location (x,y)=(151.29, -31.97) report POSITIVE result
+DAY 26/11/2024 - clinical observation report for property index 115
+Property index 115 at location (x,y)=(151.08, -32.46) report POSITIVE result
+DAY 26/11/2024 - clinical observation report for property index 137
+Property index 137 at location (x,y)=(150.87, -32.05) report POSITIVE result
+DAY 26/11/2024 - clinical observation report for property index 194
+Property index 194 report negative result
+DAY 26/11/2024 - clinical observation report for property index 235
+Property index 235 at location (x,y)=(151.06, -32.35) report POSITIVE result
+DAY 26/11/2024 - clinical observation report for property index 253
+No testing: property index 253 (IP 140) has already been culled
+DAY 26/11/2024 - clinical observation report for property index 260
+Property index 260 report negative result
+DAY 27/11/2024 - clinical observation report for property index 107
+No testing: property index 107 (IP 138) has already been culled
+DAY 27/11/2024 - lab test report for property index 67
+No testing: property index 67 (IP 141) has already been culled
+DAY 27/11/2024 - lab test report for property index 115
+No testing: property index 115 (IP 142) has already been culled
+DAY 27/11/2024 - lab test report for property index 0
+Property index 0 at location (x,y)=(151.08, -32.15) report POSITIVE result
+DAY 27/11/2024 - lab test report for property index 17
+Property index 17 at location (x,y)=(150.98, -31.87) report POSITIVE result
+DAY 27/11/2024 - lab test report for property index 95
+Property index 95 at location (x,y)=(151.07, -32.0) report POSITIVE result
+DAY 27/11/2024 - lab test report for property index 111
+Property index 111 at location (x,y)=(150.3, -31.95) report POSITIVE result
+DAY 27/11/2024 - lab test report for property index 137
+No testing: property index 137 (IP 144) has already been culled
+DAY 27/11/2024 - lab test report for property index 191
+Property index 191 at location (x,y)=(151.3, -32.04) report POSITIVE result
+DAY 27/11/2024 - lab test report for property index 194
+No testing: property index 194 (IP 145) has already been culled
+DAY 27/11/2024 - lab test report for property index 202
+Property index 202 at location (x,y)=(151.08, -32.53) report POSITIVE result
+DAY 27/11/2024 - lab test report for property index 235
+No testing: property index 235 (IP 146) has already been culled
+DAY 27/11/2024 - lab test report for property index 260
+No testing: property index 260 (IP 147) has already been culled
+DAY 27/11/2024 - lab test report for property index 295
+Property index 295 at location (x,y)=(151.06, -32.41) report POSITIVE result
+DAY 27/11/2024 - clinical observation report for property index 0
+Property index 0 at location (x,y)=(151.08, -32.15) report POSITIVE result
+DAY 27/11/2024 - clinical observation report for property index 17
+Property index 17 report negative result
+DAY 27/11/2024 - clinical observation report for property index 95
+Property index 95 at location (x,y)=(151.07, -32.0) report POSITIVE result
+DAY 27/11/2024 - clinical observation report for property index 137
+No testing: property index 137 (IP 144) has already been culled
+DAY 27/11/2024 - clinical observation report for property index 194
+No testing: property index 194 (IP 145) has already been culled
+DAY 27/11/2024 - clinical observation report for property index 202
+Property index 202 report negative result
+DAY 27/11/2024 - clinical observation report for property index 235
+No testing: property index 235 (IP 146) has already been culled
+DAY 27/11/2024 - clinical observation report for property index 260
+No testing: property index 260 (IP 147) has already been culled
+DAY 27/11/2024 - clinical observation report for property index 295
+Property index 295 report negative result
+DAY 28/11/2024 - lab test report for property index 107
+No testing: property index 107 (IP 138) has already been culled
+DAY 28/11/2024 - clinical observation report for property index 67
+No testing: property index 67 (IP 141) has already been culled
+DAY 28/11/2024 - clinical observation report for property index 115
+No testing: property index 115 (IP 142) has already been culled
+DAY 28/11/2024 - lab test report for property index 95
+No testing: property index 95 (IP 150) has already been culled
+DAY 28/11/2024 - lab test report for property index 0
+No testing: property index 0 (IP 148) has already been culled
+DAY 28/11/2024 - lab test report for property index 21
+Property index 21 report negative result
+DAY 28/11/2024 - lab test report for property index 127
+Property index 127 at location (x,y)=(151.18, -32.11) report POSITIVE result
+DAY 28/11/2024 - lab test report for property index 191
+No testing: property index 191 (IP 152) has already been culled
+DAY 28/11/2024 - lab test report for property index 198
+Property index 198 at location (x,y)=(150.46, -32.01) report POSITIVE result
+DAY 28/11/2024 - clinical observation report for property index 0
+No testing: property index 0 (IP 148) has already been culled
+DAY 28/11/2024 - clinical observation report for property index 21
+Property index 21 report negative result
+DAY 28/11/2024 - clinical observation report for property index 127
+Property index 127 report negative result
+DAY 28/11/2024 - clinical observation report for property index 198
+Property index 198 report negative result
+DAY 29/11/2024 - lab test report for property index 67
+No testing: property index 67 (IP 141) has already been culled
+DAY 29/11/2024 - lab test report for property index 115
+No testing: property index 115 (IP 142) has already been culled
+DAY 29/11/2024 - clinical observation report for property index 17
+No testing: property index 17 (IP 149) has already been culled
+DAY 29/11/2024 - clinical observation report for property index 95
+No testing: property index 95 (IP 150) has already been culled
+DAY 29/11/2024 - clinical observation report for property index 202
+No testing: property index 202 (IP 153) has already been culled
+DAY 29/11/2024 - clinical observation report for property index 295
+No testing: property index 295 (IP 154) has already been culled
+DAY 29/11/2024 - lab test report for property index 9
+Property index 9 at location (x,y)=(151.11, -32.51) report POSITIVE result
+DAY 29/11/2024 - lab test report for property index 14
+Property index 14 at location (x,y)=(151.04, -32.45) report POSITIVE result
+DAY 29/11/2024 - lab test report for property index 26
+Property index 26 at location (x,y)=(150.85, -31.95) report POSITIVE result
+DAY 29/11/2024 - lab test report for property index 53
+Property index 53 at location (x,y)=(150.96, -32.36) report POSITIVE result
+DAY 29/11/2024 - lab test report for property index 81
+Property index 81 at location (x,y)=(151.09, -32.07) report POSITIVE result
+DAY 29/11/2024 - lab test report for property index 127
+No testing: property index 127 (IP 155) has already been culled
+DAY 29/11/2024 - lab test report for property index 206
+Property index 206 at location (x,y)=(150.39, -31.99) report POSITIVE result
+DAY 29/11/2024 - lab test report for property index 212
+Property index 212 at location (x,y)=(150.83, -32.4) report POSITIVE result
+DAY 29/11/2024 - lab test report for property index 223
+Property index 223 at location (x,y)=(150.71, -32.38) report POSITIVE result
+DAY 29/11/2024 - lab test report for property index 264
+Property index 264 at location (x,y)=(150.82, -32.38) report POSITIVE result
+DAY 29/11/2024 - clinical observation report for property index 9
+Property index 9 report negative result
+DAY 29/11/2024 - clinical observation report for property index 14
+Property index 14 report negative result
+DAY 29/11/2024 - clinical observation report for property index 26
+Property index 26 at location (x,y)=(150.85, -31.95) report POSITIVE result
+DAY 29/11/2024 - clinical observation report for property index 53
+Property index 53 at location (x,y)=(150.96, -32.36) report POSITIVE result
+DAY 29/11/2024 - clinical observation report for property index 81
+Property index 81 at location (x,y)=(151.09, -32.07) report POSITIVE result
+DAY 29/11/2024 - clinical observation report for property index 127
+No testing: property index 127 (IP 155) has already been culled
+DAY 29/11/2024 - clinical observation report for property index 206
+Property index 206 at location (x,y)=(150.39, -31.99) report POSITIVE result
+DAY 29/11/2024 - clinical observation report for property index 212
+Property index 212 at location (x,y)=(150.83, -32.4) report POSITIVE result
+DAY 29/11/2024 - clinical observation report for property index 223
+Property index 223 report negative result
+DAY 29/11/2024 - clinical observation report for property index 264
+Property index 264 report negative result
+DAY 30/11/2024 - lab test report for property index 17
+No testing: property index 17 (IP 149) has already been culled
+DAY 30/11/2024 - lab test report for property index 95
+No testing: property index 95 (IP 150) has already been culled
+DAY 30/11/2024 - lab test report for property index 202
+No testing: property index 202 (IP 153) has already been culled
+DAY 30/11/2024 - lab test report for property index 295
+No testing: property index 295 (IP 154) has already been culled
+DAY 30/11/2024 - clinical observation report for property index 198
+No testing: property index 198 (IP 156) has already been culled
+DAY 30/11/2024 - lab test report for property index 26
+No testing: property index 26 (IP 159) has already been culled
+DAY 30/11/2024 - lab test report for property index 53
+No testing: property index 53 (IP 160) has already been culled
+DAY 30/11/2024 - lab test report for property index 81
+No testing: property index 81 (IP 161) has already been culled
+DAY 30/11/2024 - lab test report for property index 206
+No testing: property index 206 (IP 162) has already been culled
+DAY 30/11/2024 - lab test report for property index 212
+No testing: property index 212 (IP 163) has already been culled
+DAY 30/11/2024 - lab test report for property index 18
+Property index 18 at location (x,y)=(151.04, -32.18) report POSITIVE result
+DAY 30/11/2024 - lab test report for property index 21
+Property index 21 at location (x,y)=(151.18, -32.06) report POSITIVE result
+DAY 30/11/2024 - lab test report for property index 97
+Property index 97 at location (x,y)=(151.09, -32.13) report POSITIVE result
+DAY 30/11/2024 - lab test report for property index 156
+Property index 156 at location (x,y)=(150.28, -32.13) report POSITIVE result
+DAY 30/11/2024 - lab test report for property index 200
+Property index 200 at location (x,y)=(150.72, -32.61) report POSITIVE result
+DAY 30/11/2024 - lab test report for property index 203
+Property index 203 at location (x,y)=(150.88, -32.35) report POSITIVE result
+DAY 30/11/2024 - lab test report for property index 210
+Property index 210 at location (x,y)=(151.07, -31.64) report POSITIVE result
+DAY 30/11/2024 - lab test report for property index 223
+No testing: property index 223 (IP 164) has already been culled
+DAY 30/11/2024 - lab test report for property index 240
+Property index 240 at location (x,y)=(150.76, -32.54) report POSITIVE result
+DAY 30/11/2024 - lab test report for property index 294
+Property index 294 at location (x,y)=(150.5, -31.91) report POSITIVE result
+DAY 30/11/2024 - clinical observation report for property index 18
+Property index 18 at location (x,y)=(151.04, -32.18) report POSITIVE result
+DAY 30/11/2024 - clinical observation report for property index 21
+Property index 21 report negative result
+DAY 30/11/2024 - clinical observation report for property index 156
+Property index 156 report negative result
+DAY 30/11/2024 - clinical observation report for property index 200
+Property index 200 report negative result
+DAY 30/11/2024 - clinical observation report for property index 203
+Property index 203 at location (x,y)=(150.88, -32.35) report POSITIVE result
+DAY 30/11/2024 - clinical observation report for property index 210
+Property index 210 report negative result
+DAY 30/11/2024 - clinical observation report for property index 223
+No testing: property index 223 (IP 164) has already been culled
+DAY 01/12/2024 - lab test report for property index 198
+No testing: property index 198 (IP 156) has already been culled
+DAY 01/12/2024 - clinical observation report for property index 9
+No testing: property index 9 (IP 157) has already been culled
+DAY 01/12/2024 - clinical observation report for property index 14
+No testing: property index 14 (IP 158) has already been culled
+DAY 01/12/2024 - clinical observation report for property index 26
+No testing: property index 26 (IP 159) has already been culled
+DAY 01/12/2024 - clinical observation report for property index 53
+No testing: property index 53 (IP 160) has already been culled
+DAY 01/12/2024 - clinical observation report for property index 206
+No testing: property index 206 (IP 162) has already been culled
+DAY 01/12/2024 - clinical observation report for property index 212
+No testing: property index 212 (IP 163) has already been culled
+DAY 01/12/2024 - clinical observation report for property index 264
+No testing: property index 264 (IP 165) has already been culled
+DAY 01/12/2024 - lab test report for property index 18
+No testing: property index 18 (IP 166) has already been culled
+DAY 01/12/2024 - lab test report for property index 203
+No testing: property index 203 (IP 171) has already been culled
+DAY 01/12/2024 - lab test report for property index 21
+No testing: property index 21 (IP 167) has already been culled
+DAY 01/12/2024 - lab test report for property index 73
+Property index 73 at location (x,y)=(150.98, -32.31) report POSITIVE result
+DAY 01/12/2024 - lab test report for property index 83
+Property index 83 at location (x,y)=(151.35, -32.16) report POSITIVE result
+DAY 01/12/2024 - lab test report for property index 93
+Property index 93 at location (x,y)=(151.21, -32.45) report POSITIVE result
+DAY 01/12/2024 - lab test report for property index 102
+Property index 102 at location (x,y)=(150.39, -32.11) report POSITIVE result
+DAY 01/12/2024 - lab test report for property index 151
+Property index 151 at location (x,y)=(151.1, -31.97) report POSITIVE result
+DAY 01/12/2024 - lab test report for property index 156
+No testing: property index 156 (IP 169) has already been culled
+DAY 01/12/2024 - lab test report for property index 200
+No testing: property index 200 (IP 170) has already been culled
+DAY 01/12/2024 - lab test report for property index 231
+Property index 231 at location (x,y)=(150.7, -32.56) report POSITIVE result
+DAY 01/12/2024 - lab test report for property index 240
+No testing: property index 240 (IP 173) has already been culled
+DAY 01/12/2024 - lab test report for property index 258
+Property index 258 at location (x,y)=(151.06, -32.2) report POSITIVE result
+DAY 01/12/2024 - lab test report for property index 268
+Property index 268 at location (x,y)=(151.06, -32.48) report POSITIVE result
+DAY 01/12/2024 - lab test report for property index 290
+Property index 290 report negative result
+DAY 01/12/2024 - lab test report for property index 291
+Property index 291 report negative result
+DAY 01/12/2024 - clinical observation report for property index 21
+No testing: property index 21 (IP 167) has already been culled
+DAY 01/12/2024 - clinical observation report for property index 73
+Property index 73 report negative result
+DAY 01/12/2024 - clinical observation report for property index 83
+Property index 83 report negative result
+DAY 01/12/2024 - clinical observation report for property index 156
+No testing: property index 156 (IP 169) has already been culled
+DAY 01/12/2024 - clinical observation report for property index 200
+No testing: property index 200 (IP 170) has already been culled
+DAY 01/12/2024 - clinical observation report for property index 258
+Property index 258 at location (x,y)=(151.06, -32.2) report POSITIVE result
+DAY 01/12/2024 - clinical observation report for property index 268
+Property index 268 at location (x,y)=(151.06, -32.48) report POSITIVE result
+DAY 01/12/2024 - clinical observation report for property index 290
+Property index 290 at location (x,y)=(151.36, -32.18) report POSITIVE result
+DAY 01/12/2024 - clinical observation report for property index 291
+Property index 291 report negative result
+DAY 02/12/2024 - lab test report for property index 9
+No testing: property index 9 (IP 157) has already been culled
+DAY 02/12/2024 - lab test report for property index 14
+No testing: property index 14 (IP 158) has already been culled
+DAY 02/12/2024 - lab test report for property index 26
+No testing: property index 26 (IP 159) has already been culled
+DAY 02/12/2024 - lab test report for property index 53
+No testing: property index 53 (IP 160) has already been culled
+DAY 02/12/2024 - lab test report for property index 206
+No testing: property index 206 (IP 162) has already been culled
+DAY 02/12/2024 - lab test report for property index 212
+No testing: property index 212 (IP 163) has already been culled
+DAY 02/12/2024 - lab test report for property index 264
+No testing: property index 264 (IP 165) has already been culled
+DAY 02/12/2024 - clinical observation report for property index 18
+No testing: property index 18 (IP 166) has already been culled
+DAY 02/12/2024 - clinical observation report for property index 210
+No testing: property index 210 (IP 172) has already been culled
+DAY 02/12/2024 - lab test report for property index 258
+No testing: property index 258 (IP 181) has already been culled
+DAY 02/12/2024 - lab test report for property index 268
+No testing: property index 268 (IP 182) has already been culled
+DAY 02/12/2024 - lab test report for property index 290
+Property index 290 at location (x,y)=(151.36, -32.18) report POSITIVE result
+DAY 02/12/2024 - lab test report for property index 131
+Property index 131 report negative result
+DAY 02/12/2024 - lab test report for property index 152
+Property index 152 at location (x,y)=(150.31, -32.04) report POSITIVE result
+DAY 02/12/2024 - lab test report for property index 213
+Property index 213 at location (x,y)=(150.36, -32.0) report POSITIVE result
+DAY 02/12/2024 - lab test report for property index 214
+Property index 214 at location (x,y)=(150.42, -31.96) report POSITIVE result
+DAY 02/12/2024 - lab test report for property index 242
+Property index 242 report negative result
+DAY 02/12/2024 - lab test report for property index 262
+Property index 262 at location (x,y)=(151.12, -31.87) report POSITIVE result
+DAY 02/12/2024 - lab test report for property index 272
+Property index 272 at location (x,y)=(150.35, -31.92) report POSITIVE result
+DAY 02/12/2024 - clinical observation report for property index 131
+Property index 131 report negative result
+DAY 02/12/2024 - clinical observation report for property index 152
+Property index 152 report negative result
+DAY 02/12/2024 - clinical observation report for property index 213
+Property index 213 at location (x,y)=(150.36, -32.0) report POSITIVE result
+DAY 02/12/2024 - clinical observation report for property index 214
+Property index 214 at location (x,y)=(150.42, -31.96) report POSITIVE result
+DAY 02/12/2024 - clinical observation report for property index 242
+Property index 242 at location (x,y)=(150.36, -32.17) report POSITIVE result
+DAY 02/12/2024 - clinical observation report for property index 262
+Property index 262 at location (x,y)=(151.12, -31.87) report POSITIVE result
+DAY 02/12/2024 - clinical observation report for property index 272
+Property index 272 report negative result
+DAY 03/12/2024 - lab test report for property index 18
+No testing: property index 18 (IP 166) has already been culled
+DAY 03/12/2024 - lab test report for property index 210
+No testing: property index 210 (IP 172) has already been culled
+DAY 03/12/2024 - clinical observation report for property index 73
+No testing: property index 73 (IP 175) has already been culled
+DAY 03/12/2024 - clinical observation report for property index 83
+No testing: property index 83 (IP 176) has already been culled
+DAY 03/12/2024 - clinical observation report for property index 258
+No testing: property index 258 (IP 181) has already been culled
+DAY 03/12/2024 - clinical observation report for property index 268
+No testing: property index 268 (IP 182) has already been culled
+DAY 03/12/2024 - clinical observation report for property index 290
+Property index 290 at location (x,y)=(151.36, -32.18) report POSITIVE result
+DAY 03/12/2024 - lab test report for property index 213
+No testing: property index 213 (IP 185) has already been culled
+DAY 03/12/2024 - lab test report for property index 214
+No testing: property index 214 (IP 186) has already been culled
+DAY 03/12/2024 - lab test report for property index 262
+No testing: property index 262 (IP 187) has already been culled
+DAY 03/12/2024 - lab test report for property index 1
+Property index 1 at location (x,y)=(150.61, -32.45) report POSITIVE result
+DAY 03/12/2024 - lab test report for property index 22
+Property index 22 at location (x,y)=(151.18, -32.37) report POSITIVE result
+DAY 03/12/2024 - lab test report for property index 43
+Property index 43 at location (x,y)=(151.02, -32.3) report POSITIVE result
+DAY 03/12/2024 - lab test report for property index 139
+Property index 139 report negative result
+DAY 03/12/2024 - lab test report for property index 140
+Property index 140 report negative result
+DAY 03/12/2024 - lab test report for property index 152
+No testing: property index 152 (IP 184) has already been culled
+DAY 03/12/2024 - lab test report for property index 168
+Property index 168 report negative result
+DAY 03/12/2024 - lab test report for property index 171
+Property index 171 at location (x,y)=(150.35, -31.93) report POSITIVE result
+DAY 03/12/2024 - lab test report for property index 174
+Property index 174 report negative result
+DAY 03/12/2024 - lab test report for property index 211
+Property index 211 at location (x,y)=(150.59, -32.41) report POSITIVE result
+DAY 03/12/2024 - lab test report for property index 242
+Property index 242 at location (x,y)=(150.36, -32.17) report POSITIVE result
+DAY 03/12/2024 - lab test report for property index 287
+Property index 287 at location (x,y)=(150.36, -31.94) report POSITIVE result
+DAY 03/12/2024 - clinical observation report for property index 1
+Property index 1 report negative result
+DAY 03/12/2024 - clinical observation report for property index 22
+Property index 22 report negative result
+DAY 03/12/2024 - clinical observation report for property index 43
+Property index 43 report negative result
+DAY 03/12/2024 - clinical observation report for property index 139
+Property index 139 at location (x,y)=(151.05, -32.3) report POSITIVE result
+DAY 03/12/2024 - clinical observation report for property index 140
+Property index 140 report negative result
+DAY 03/12/2024 - clinical observation report for property index 152
+No testing: property index 152 (IP 184) has already been culled
+DAY 03/12/2024 - clinical observation report for property index 168
+Property index 168 report negative result
+DAY 03/12/2024 - clinical observation report for property index 171
+Property index 171 at location (x,y)=(150.35, -31.93) report POSITIVE result
+DAY 03/12/2024 - clinical observation report for property index 242
+Property index 242 report negative result
+DAY 03/12/2024 - clinical observation report for property index 287
+Property index 287 at location (x,y)=(150.36, -31.94) report POSITIVE result

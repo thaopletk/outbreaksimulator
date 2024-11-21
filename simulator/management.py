@@ -18,6 +18,7 @@ from simulator.premises import convert_time_to_date
 import numpy as np
 from simulator.spatial_functions import *
 from enum import Enum
+import warnings
 
 
 # discrete job type list syntax
@@ -210,15 +211,21 @@ class JobManager:
 
     def add_job_to_queue(self, job):
         exists = False
-        # TODO if the new job completion time is earlier, then it should be added
-        # could probably also add in checks around whether this premise still exists and still needs to have this job completed or not
+        # TODO could probably add in checks around whether this premise still exists and still needs to have this job completed or not
         for j in self.jobs_queue:
             if j["status"] == "in progress" and j["type"] == job["type"] and j["property_i"] == job["property_i"]:
-                exists = True
-                break
+                if j["day"] > job["day"]:
+                    self.jobs_queue.remove(j)
+                    self.jobs_queue.append(job)
+                    return 0
+                else:
+                    exists = True
+                    break
 
         if not exists:
             self.jobs_queue.append(job)
+
+        return 0
 
     def conduct_labtesting(self, properties, job, time):
         testing_report, positive = test_property(
@@ -282,6 +289,19 @@ class JobManager:
         mini_report = f"Personnel will be sent to property {property_i} for lab testing\n"
         return mini_report
 
+    def schedule_lab_testing_after_observation(self, property_i, time):
+        # reduced delay
+        new_job = {
+            "status": "in progress",
+            "day": time + self.lab_test_delay - 0.5,
+            "type": jobtype.LabTesting,
+            "property_i": property_i,
+        }
+        self.new_jobs.append(new_job)
+
+        mini_report = f"Personnel will be sent to property {property_i} for lab testing\n"
+        return mini_report
+
     def schedule_clinical_observation(self, property_i, time):
         new_job = {
             "status": "in progress",
@@ -320,7 +340,10 @@ class JobManager:
             new_combined_narrative += report
         else:
             # remove any local movement restrictions
-            self.local_movement_restrictions.remove(properties[job["property_i"]].polygon)
+            try:
+                self.local_movement_restrictions.remove(properties[job["property_i"]].polygon)
+            except:
+                warnings.warn("Local polygon doesn't exist in the local movement restrictions for some reason...")
 
             # may have ongoing surveillance here in the future
         return new_report, new_testing_reports, new_combined_narrative
@@ -369,7 +392,7 @@ class JobManager:
                         new_combined_narrative += report
 
                         # schedule lab testing (if not yet done)
-                        report = self.schedule_lab_testing(job["property_i"], time)
+                        report = self.schedule_lab_testing_after_observation(job["property_i"], time)
                         new_report += report
                         new_combined_narrative += report
                     else:
@@ -387,6 +410,9 @@ class JobManager:
                     new_combined_narrative += premise_report
 
                     job["status"] = "complete"  # mark job as complete, slated for removal from the job queue
+
+                    # TODO - should also remove ANY OTHER JOBS related to this property
+
                 elif job["type"] == jobtype.ContactTracing:
                     contact_tracing_report, traced_property_indices = contact_tracing(
                         properties, job["property_i"], movement_records, time
@@ -397,17 +423,20 @@ class JobManager:
                     contacts_for_plotting[job["property_i"]] = traced_property_indices
 
                     for t_i in traced_property_indices:
-                        # to be honest, this kind of thing should only be notified after successful adding, not before TODO
-                        mini_report = f"Personnel will be sent to traced property {t_i} for clinical observation and lab testing\n"
-                        new_report += mini_report
-                        new_combined_narrative += mini_report
+                        # check if property is not yet culled
+                        if not properties[t_i].culled_status:
 
-                        self.schedule_clinical_observation(job["property_i"], time)
+                            # to be honest, this kind of thing should only be notified after successful adding, not before TODO
+                            mini_report = f"Personnel will be sent to traced property {t_i} for clinical observation and lab testing\n"
+                            new_report += mini_report
+                            new_combined_narrative += mini_report
 
-                        # schedule lab testing (if not yet done)
-                        # technically this might require a longer delay...
-                        report = self.schedule_lab_testing(job["property_i"], time)
-                        new_report += report
+                            self.schedule_clinical_observation(job["property_i"], time)
+
+                            # schedule lab testing (if not yet done)
+                            # technically this might require a longer delay...
+                            report = self.schedule_lab_testing(job["property_i"], time)
+                            new_report += report
 
                     job["status"] = "complete"  # mark job as complete, slated for removal from the job queue
 
