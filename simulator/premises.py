@@ -360,7 +360,7 @@ class Premises(Property):
             self.coordinates[1],
             self.area,
             self.type,
-            len(self.animals),  # self.size,
+            self.size,
         ]
 
     def return_known_output_row(self):
@@ -396,7 +396,7 @@ class Premises(Property):
                 self.coordinates[1],
                 self.area,
                 self.type,
-                len(self.animals),  # self.size,
+                self.size,
             ]
         else:
             return [
@@ -416,5 +416,5 @@ class Premises(Property):
                 self.coordinates[1],
                 self.area,
                 self.type,
-                len(self.animals),  # self.size,
+                self.size,
             ]
