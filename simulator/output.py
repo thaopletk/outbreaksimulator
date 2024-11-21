@@ -10,6 +10,7 @@ from matplotlib.path import Path
 from matplotlib.patches import PathPatch
 from matplotlib.collections import PatchCollection
 from matplotlib_scalebar.scalebar import ScaleBar
+from matplotlib import markers
 import numpy as np
 import os
 import matplotlib.pyplot as plt
@@ -194,28 +195,30 @@ def plot_map(
 
     if controlzone != None and controlzone != {}:
         for control_type, zone in controlzone.items():
-            try:
-                plot_polygon(
-                    ax,
-                    zone,
-                    facecolor=colour_dictionary[control_type],
-                    edgecolor="maroon",
-                    alpha=0.2,
-                    label=control_type,
-                )
-
-            except:
-                for subpoly in zone:
+            if zone != None:
+                try:
                     plot_polygon(
                         ax,
-                        subpoly,
+                        zone,
                         facecolor=colour_dictionary[control_type],
                         edgecolor="maroon",
                         alpha=0.2,
                         label=control_type,
                     )
 
+                except:
+                    for subpoly in zone:
+                        plot_polygon(
+                            ax,
+                            subpoly,
+                            facecolor=colour_dictionary[control_type],
+                            edgecolor="maroon",
+                            alpha=0.2,
+                            label=control_type,
+                        )
+
     geometry_infected = []
+    geometry_confirmed_infected = []
     geometry_culled = []
     geometry_vaccinated = []
     geometry_susceptible = []
@@ -229,7 +232,7 @@ def plot_map(
             plt.plot(
                 [premise.coordinates[0], contact.coordinates[0]],
                 [premise.coordinates[1], contact.coordinates[1]],
-                alpha=1,
+                alpha=0.5,
                 color="black",
             )
 
@@ -273,6 +276,9 @@ def plot_map(
 
             if premise.infection_status:
                 geometry_infected.append(curr_farm)
+                infected_coords.append(premise.coordinates)
+            elif premise.reported_status == True:
+                geometry_confirmed_infected.append(curr_farm)
                 infected_coords.append(premise.coordinates)
             elif premise.culled_status:
                 if premise.reported_status:
@@ -322,7 +328,9 @@ def plot_map(
                     geometry_culled_on_suspicion.append(curr_farm)
                 else:
                     raise Exception("Culled yet neither reported nor culled on suspicion")
-
+            elif premise.reported_status == True:
+                geometry_confirmed_infected.append(curr_farm)
+                infected_coords.append(premise.coordinates)
             elif premise.vaccination_status:
                 geometry_vaccinated.append(curr_farm)
             else:
@@ -342,7 +350,8 @@ def plot_map(
 
     for geometry, colour, marker, markerlabel, markersize in [
         [geometry_infected, "purple", "x", "infected", 30],
-        [geometry_culled, "firebrick", "X", "notified", 150],
+        [geometry_confirmed_infected, "firebrick", markers.CARETDOWN, "confirmed infection", 150],
+        [geometry_culled, "firebrick", "X", "culled on confirmation", 150],
         [geometry_culled_on_suspicion, "black", "X", "culled on suspicion", 150],
         [
             geomtry_culled_on_suspicion_actually_infected,

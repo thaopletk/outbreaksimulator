@@ -375,7 +375,8 @@ class JobManager:
                     else:
                         # remove any local movement restrictions
                         # technically, should check if it's still under lab testing, which means we might still want some movement restrictions lol...
-                        self.local_movement_restrictions.remove(properties[job["property_i"]].polygon)
+                        pass
+                        # self.local_movement_restrictions.remove(properties[job["property_i"]].polygon)
 
                         # may have ongoing surveillance here in the future
                 elif job["type"] == jobtype.Cull:
