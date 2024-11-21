@@ -508,7 +508,7 @@ class DiseaseSimulation:
 
                     self.controlzone["ring testing"] = controlzone_ring_testing
                     for i, premise in enumerate(properties):
-                        if not premise.culled_status and premise.polygon.intersects(controlzone_ring_testing):
+                        if not premise.reported_status and premise.polygon.intersects(controlzone_ring_testing):
                             # clinical observation is immediate
                             job = {
                                 "status": "in progress",
@@ -517,7 +517,7 @@ class DiseaseSimulation:
                                 "property_i": i,
                             }
                             testing_report, positive = self.job_manager.conduct_clinicalobservation(
-                                properties, job, time
+                                properties, job, self.time
                             )
                             self.testing_reports += testing_report
                             self.combined_narrative += testing_report
@@ -541,6 +541,20 @@ class DiseaseSimulation:
                                 # schedule contact tracing
                                 report = self.job_manager.schedule_contract_tracing(i, self.time)
                                 self.combined_narrative += report
+                elif management_policy["type"] == "ring_vaccination":
+                    controlzone_ring_vaccination = management.define_control_zone_polygons(
+                        properties,
+                        source_indices,
+                        management_policy["radius_km"],
+                        convex=management_policy["convex"],
+                    )
+
+                    self.controlzone["ring vaccination"] = controlzone_ring_vaccination
+
+                    for premise in properties:
+                        # originally it was culled_status, but it really should be reported status, right?
+                        if not premise.reported_status and premise.polygon.intersects(controlzone_ring_vaccination):
+                            premise.vaccinate(self.time)
                 else:
                     raise ValueError(
                         f"Management policy type {management_policy['type']} doesn't exist, or is not yet implemented"
