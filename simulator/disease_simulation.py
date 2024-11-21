@@ -407,9 +407,7 @@ class DiseaseSimulation:
         return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
 
     def simulate_outbreak_management(self, properties, management_parameters, days_to_run_for, time=None):
-        """Run simulated outbreak with management, for spread starting from self.time+1 for days_to_run_for, with potential management
-        NOTE: it currently assumes just ONE management option, not multiple
-        """
+        """Run simulated outbreak with management, for spread starting from self.time+1 for days_to_run_for, with potential management"""
 
         if time != None:
             self.time = time
@@ -449,35 +447,36 @@ class DiseaseSimulation:
 
             # conduct any management
             controlzone_large_movement_restrictions = None
-            if management_parameters["type"] == "movement_standstill":
-                map_polygon = {
-                    "type": "Polygon",
-                    "coordinates": [
-                        [
-                            [self.xlims[0], self.ylims[0]],
-                            [self.xlims[1], self.ylims[0]],
-                            [self.xlims[1], self.ylims[1]],
-                            [self.xlims[0], self.ylims[1]],
-                            [self.xlims[0], self.ylims[0]],
-                        ]
-                    ],
-                }
-                controlzone_large_movement_restrictions = spatial_setup.convert_dict_poly_to_Polygon(map_polygon)
-            elif management_parameters["type"] == "movement_restriction":
-                # calculate the properties around which movement restrictions are enacted
-                # TODO: need to think about whether there would be movement restrictions around suspect properties, or only around confirmed properties; currently, it should only be around confirmed properties (i.e., after lab testing)
-                source_indices = []
-                for i, premise in enumerate(properties):
-                    if premise.reported_status == True:
-                        source_indices.append(i)
+            for management_policy in management_parameters:
+                if management_policy["type"] == "movement_standstill":
+                    map_polygon = {
+                        "type": "Polygon",
+                        "coordinates": [
+                            [
+                                [self.xlims[0], self.ylims[0]],
+                                [self.xlims[1], self.ylims[0]],
+                                [self.xlims[1], self.ylims[1]],
+                                [self.xlims[0], self.ylims[1]],
+                                [self.xlims[0], self.ylims[0]],
+                            ]
+                        ],
+                    }
+                    controlzone_large_movement_restrictions = spatial_setup.convert_dict_poly_to_Polygon(map_polygon)
+                elif management_policy["type"] == "movement_restriction":
+                    # calculate the properties around which movement restrictions are enacted
+                    # TODO: need to think about whether there would be movement restrictions around suspect properties, or only around confirmed properties; currently, it should only be around confirmed properties (i.e., after lab testing)
+                    source_indices = []
+                    for i, premise in enumerate(properties):
+                        if premise.reported_status == True:
+                            source_indices.append(i)
 
-                if source_indices != []:
-                    controlzone_large_movement_restrictions = management.define_control_zone_polygons(
-                        properties,
-                        source_indices,
-                        management_parameters["radius_km"],
-                        convex=management_parameters["convex"],
-                    )
+                    if source_indices != []:
+                        controlzone_large_movement_restrictions = management.define_control_zone_polygons(
+                            properties,
+                            source_indices,
+                            management_policy["radius_km"],
+                            convex=management_policy["convex"],
+                        )
 
             # check if any property wants to report
             self.simulate_property_reporting(properties)
@@ -549,21 +548,22 @@ class DiseaseSimulation:
             self.total_culled_animals += newly_culled_animals
 
             # there may have been more confirmations, so control zones may have changed
-            if management_parameters["type"] == "movement_restrictions":
-                # calculate the properties around which movement restrictions are enacted
-                # TODO: need to think about whether there would be movement restrictions around suspect properties, or only around confirmed properties; currently, it should only be around confirmed properties (i.e., after lab testing)
-                source_indices = []
-                for i, premise in enumerate(properties):
-                    if premise.reported_status == True:
-                        source_indices.append(i)
+            for management_policy in management_parameters:
+                if management_policy["type"] == "movement_restrictions":
+                    # calculate the properties around which movement restrictions are enacted
+                    # TODO: need to think about whether there would be movement restrictions around suspect properties, or only around confirmed properties; currently, it should only be around confirmed properties (i.e., after lab testing)
+                    source_indices = []
+                    for i, premise in enumerate(properties):
+                        if premise.reported_status == True:
+                            source_indices.append(i)
 
-                if source_indices != []:
-                    controlzone_large_movement_restrictions = management.define_control_zone_polygons(
-                        properties,
-                        source_indices,
-                        management_parameters["radius_km"],
-                        convex=management_parameters["convex"],
-                    )
+                    if source_indices != []:
+                        controlzone_large_movement_restrictions = management.define_control_zone_polygons(
+                            properties,
+                            source_indices,
+                            management_policy["radius_km"],
+                            convex=management_policy["convex"],
+                        )
 
             # the local_movement_restrictions might have changed, so re-calculate the control zone for movement
             controlzone_movement_restrictions = controlzone_large_movement_restrictions  # this could just be None
