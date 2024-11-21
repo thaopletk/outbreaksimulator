@@ -187,7 +187,7 @@ class DiseaseSimulation:
                 self.combined_narrative += s_report
 
                 # schedule lab testing
-                report = self.job_manager.schedule_lab_testing(i, self.time)
+                report = self.job_manager.schedule_lab_testing_after_observation(i, self.time)
                 self.other_reports += report  #  TODO should this actually go in testing reports?
                 self.combined_narrative += report
 
@@ -418,7 +418,8 @@ class DiseaseSimulation:
         FOI = list(np.zeros(len(properties)))
         time_list = []
         stop_time = self.time + days_to_run_for
-        while self.time < stop_time:
+        nothing_left_to_do = False
+        while self.time < stop_time and not nothing_left_to_do:
             self.time += 1
             # calculate FOI for each property
             for i, property_i in enumerate(properties):
@@ -445,7 +446,14 @@ class DiseaseSimulation:
             self.other_reports += new_report
             self.total_culled_animals += newly_culled_animals
 
-            # conduct any management
+            # conduct any management:
+
+            # first, calculate the properties around which movement restrictions/other policies are enacted
+            # TODO: need to think about whether there would be movement restrictions/actions around suspect properties, or only around confirmed properties; currently, it should only be around confirmed properties (i.e., after lab testing)
+            source_indices = []
+            for i, premise in enumerate(properties):
+                if premise.reported_status == True:
+                    source_indices.append(i)
             controlzone_large_movement_restrictions = None
             for management_policy in management_parameters:
                 if management_policy["type"] == "movement_standstill":
@@ -463,13 +471,6 @@ class DiseaseSimulation:
                     }
                     controlzone_large_movement_restrictions = spatial_setup.convert_dict_poly_to_Polygon(map_polygon)
                 elif management_policy["type"] == "movement_restriction":
-                    # calculate the properties around which movement restrictions are enacted
-                    # TODO: need to think about whether there would be movement restrictions around suspect properties, or only around confirmed properties; currently, it should only be around confirmed properties (i.e., after lab testing)
-                    source_indices = []
-                    for i, premise in enumerate(properties):
-                        if premise.reported_status == True:
-                            source_indices.append(i)
-
                     if source_indices != []:
                         controlzone_large_movement_restrictions = management.define_control_zone_polygons(
                             properties,
@@ -477,6 +478,77 @@ class DiseaseSimulation:
                             management_policy["radius_km"],
                             convex=management_policy["convex"],
                         )
+                elif management_policy["type"] == "ring_culling":
+                    if source_indices != []:
+                        controlzone_ring_culling = management.define_control_zone_polygons(
+                            properties,
+                            source_indices,
+                            management_policy["radius_km"],
+                            convex=management_policy["convex"],
+                        )
+
+                        self.controlzone["ring culling"] = controlzone_ring_culling
+
+                        for property_i in properties:
+                            if not property_i.culled_status and property_i.polygon.intersects(controlzone_ring_culling):
+                                premise_report, culled_animals = property_i.cull_without_reporting(self.time)
+                                self.total_culled_animals += culled_animals
+                                self.other_reports += premise_report
+                                self.combined_narrative += premise_report
+
+                elif management_policy["type"] == "ring_testing":
+                    # ring testing is probably a combination of clinical observation and lab testing
+                    if source_indices != []:
+                        controlzone_ring_testing = management.define_control_zone_polygons(
+                            properties,
+                            source_indices,
+                            management_policy["radius_km"],
+                            convex=management_policy["convex"],
+                        )
+
+                    self.controlzone["ring testing"] = controlzone_ring_testing
+                    for i, premise in enumerate(properties):
+                        if not premise.culled_status and premise.polygon.intersects(controlzone_ring_testing):
+                            # clinical observation is immediate
+                            job = {
+                                "status": "in progress",
+                                "day": self.time,
+                                "type": management.jobtype.ClinicalObservation,
+                                "property_i": i,
+                            }
+                            testing_report, positive = self.job_manager.conduct_clinicalobservation(
+                                properties, job, time
+                            )
+                            self.testing_reports += testing_report
+                            self.combined_narrative += testing_report
+
+                            # regardless of whether or not it's a positive result
+
+                            # enact local movement restrictions around this property, just in case (will be removed after negative test lab result)
+                            self.job_manager.local_movement_restrictions.append(premise.polygon)
+                            # TODO there should be a report here, like
+                            # report = "No movements are now allowed to or from this property.\n"
+                            # new_report += report
+                            # new_combined_narrative += report
+
+                            # and regardless of whether or not it's a positive result, schedule lab testing
+                            report = self.job_manager.schedule_lab_testing_after_observation(i, self.time)
+                            new_report += report
+                            new_combined_narrative += report
+
+                            # however, if it is positive, then do contact tracing too
+                            if positive:
+                                # schedule contact tracing
+                                report = self.job_manager.schedule_contract_tracing(i, self.time)
+                                self.combined_narrative += report
+                else:
+                    raise ValueError(
+                        f"Management policy type {management_policy['type']} doesn't exist, or is not yet implemented"
+                    )
+
+            for job in self.job_manager.new_jobs:
+                self.job_manager.add_job_to_queue(job)
+            self.job_manager.new_jobs = []
 
             # check if any property wants to report
             self.simulate_property_reporting(properties)
@@ -548,6 +620,7 @@ class DiseaseSimulation:
             self.total_culled_animals += newly_culled_animals
 
             # there may have been more confirmations, so control zones may have changed
+            # other "active" policies don't happen twice a day
             for management_policy in management_parameters:
                 if management_policy["type"] == "movement_restrictions":
                     # calculate the properties around which movement restrictions are enacted
@@ -594,6 +667,15 @@ class DiseaseSimulation:
                         [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
                         file,
                     )
+
+            # check if there are no more infected properties
+            # and check if there are no more jobs
+            if len(self.job_manager.jobs_queue) == 0 and len(self.job_manager.new_jobs) == 0:
+                infected_sum = 0
+                for i, premise in enumerate(properties):
+                    if not premise.culled_status:
+                        infected_sum += premise.number_infected
+                nothing_left_to_do = True
 
         if self.plotting:
             output.make_video(self.folder_path, "map_underlying", times=time_list)
