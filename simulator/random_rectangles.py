@@ -81,19 +81,13 @@ def square_subregion(rect):
     w, h = rect.width, rect.height  # cache properties
     if w < h:
         offset = (h - w) // 2
-        return Rect(
-            rect.min.x, rect.min.y + offset, rect.max.x, rect.min.y + offset + w
-        )
+        return Rect(rect.min.x, rect.min.y + offset, rect.max.x, rect.min.y + offset + w)
     else:
         offset = (w - h) // 2
-        return Rect(
-            rect.min.x + offset, rect.min.y, rect.min.x + offset + h, rect.max.y
-        )
+        return Rect(rect.min.x + offset, rect.min.y, rect.min.x + offset + h, rect.max.y)
 
 
-def return_random_rectangles(
-    num_rectangles, num_recs_to_generate=20, region=Rect(0, 0, 640, 480)
-):
+def return_random_rectangles(num_rectangles, num_recs_to_generate=20, region=Rect(0, 0, 640, 480)):
     """Return a list of random rectangles across the landscape region (noting that the rectangle sizes are also random)
 
     Parameters
@@ -114,7 +108,7 @@ def return_random_rectangles(
     # call quadsect() until at least the number of rects wanted has been generated
     rects = [region]  # seed output list
     while len(rects) <= num_recs_to_generate:
-        rects = [subrect for rect in rects for subrect in quadsect(rect, 3)]
+        rects = [subrect for rect in rects for subrect in quadsect(rect, 5)]
 
     random.shuffle(rects)  # mix them up
     sample = random.sample(rects, num_rectangles)  # select the desired number

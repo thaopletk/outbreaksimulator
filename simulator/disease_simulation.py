@@ -455,8 +455,10 @@ class DiseaseSimulation:
                 if premise.reported_status == True:
                     source_indices.append(i)
             controlzone_large_movement_restrictions = None
+            movement_standstill = False
             for management_policy in management_parameters:
                 if management_policy["type"] == "movement_standstill":
+                    movement_standstill = True
                     map_polygon = {
                         "type": "Polygon",
                         "coordinates": [
@@ -585,11 +587,12 @@ class DiseaseSimulation:
                     )
             self.controlzone["movement restrictions"] = controlzone_movement_restrictions
 
-            movement_record = animal_movement.trialsimex_animal_movement(
-                properties, day=self.time, controlzone=controlzone_movement_restrictions
-            )
-            if movement_record != []:
-                self.movement_records.extend(movement_record)
+            if not movement_standstill:
+                movement_record = animal_movement.trialsimex_animal_movement(
+                    properties, day=self.time, controlzone=controlzone_movement_restrictions
+                )
+                if movement_record != []:
+                    self.movement_records.extend(movement_record)
 
             # update counts
             for i, property_i in enumerate(properties):

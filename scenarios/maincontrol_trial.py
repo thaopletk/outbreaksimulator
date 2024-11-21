@@ -17,7 +17,7 @@ import simulator.simulator as simulator
 import simulator.disease_simulation as disease_simulation
 
 # folder names
-folder_path_main = os.path.join(os.path.dirname(__file__), "trial_simex_v2")
+folder_path_main = os.path.join(os.path.dirname(__file__), "trial_simex")
 folder_path_seed = os.path.join(folder_path_main, "01_seed")
 folder_path_undetected_spread_1 = os.path.join(folder_path_main, "02_undetected_spread_one_week")
 folder_path_first_report = os.path.join(folder_path_main, "03_spread_til_first_report")
