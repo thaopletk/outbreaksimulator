@@ -254,7 +254,7 @@ if not os.path.exists(movement_standstill_A_properties_filename) or not os.path.
         unique_output=unique_output,
     )
 
-    management_parameters = {"type": "movement_standstill"}
+    management_parameters = [{"type": "movement_standstill"}]
 
     properties, movement_records, time, total_culled_animals, job_manager = (
         diseaseoutbreak.simulate_outbreak_management(properties, management_parameters, days_to_run_for)
@@ -291,7 +291,7 @@ if not os.path.exists(radius_50km_B_properties_filename) or not os.path.exists(r
         unique_output=unique_output,
     )
 
-    management_parameters = {"type": "movement_restriction", "radius_km": 50, "convex": False}
+    management_parameters = [{"type": "movement_restriction", "radius_km": 50, "convex": False}]
 
     properties, movement_records, time, total_culled_animals, job_manager = (
         diseaseoutbreak.simulate_outbreak_management(properties, management_parameters, days_to_run_for)
@@ -328,7 +328,7 @@ if not os.path.exists(radius_25km_C_properties_filename) or not os.path.exists(r
         unique_output=unique_output,
     )
 
-    management_parameters = {"type": "movement_restriction", "radius_km": 25, "convex": False}
+    management_parameters = [{"type": "movement_restriction", "radius_km": 25, "convex": False}]
 
     properties, movement_records, time, total_culled_animals, job_manager = (
         diseaseoutbreak.simulate_outbreak_management(properties, management_parameters, days_to_run_for)
@@ -357,11 +357,11 @@ for properties_filename, diseaseoutbreak_filename, identifier in previous_outbre
     for new_movement_option in ["standstill", "50km", "25km"]:
         unique_output += "_" + new_movement_option
         if new_movement_option == "standstill":
-            management_parameters = {"type": "movement_standstill"}
+            management_parameters = [{"type": "movement_standstill"}]
         elif new_movement_option == "50km":
-            management_parameters = {"type": "movement_restriction", "radius_km": 50, "convex": False}
+            management_parameters = [{"type": "movement_restriction", "radius_km": 50, "convex": False}]
         elif new_movement_option == "25km":
-            management_parameters = {"type": "movement_restriction", "radius_km": 25, "convex": False}
+            management_parameters = [{"type": "movement_restriction", "radius_km": 25, "convex": False}]
 
         # should also include the option of NOT doing anything more
         for ring_management_option, management_identifier in []:
