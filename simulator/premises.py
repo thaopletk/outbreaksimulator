@@ -40,6 +40,11 @@ def convert_time_to_date(time, start_date=datetime.datetime(year=2024, month=11,
     return current_date.strftime("%d/%m/%Y")
 
 
+def convert_date_to_time(date, start_date=datetime.datetime(year=2024, month=11, day=1)):
+    d1 = datetime.strptime(date, "%d/%m/%Y")
+    return abs((d1 - start_date).days)
+
+
 # for now, we need additional parameters, hence inheriting from the fmdmodelling code
 class Premises(Property):
     """

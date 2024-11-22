@@ -488,15 +488,21 @@ class DiseaseSimulation:
                             management_policy["radius_km"],
                             convex=management_policy["convex"],
                         )
-
-                        self.controlzone["ring culling"] = controlzone_ring_culling
+                        if self.controlzone["ring culling"]:
+                            difference = controlzone_ring_culling.difference(self.controlzone["ring culling"])
+                        else:
+                            difference = controlzone_ring_culling
 
                         for property_i in properties:
-                            if not property_i.culled_status and property_i.polygon.intersects(controlzone_ring_culling):
+                            if not (
+                                property_i.reported_status or property_i.culled_status
+                            ) and property_i.polygon.intersects(difference):
                                 premise_report, culled_animals = property_i.cull_without_reporting(self.time)
                                 self.total_culled_animals += culled_animals
                                 self.other_reports += premise_report
                                 self.combined_narrative += premise_report
+
+                        self.controlzone["ring culling"] = controlzone_ring_culling
 
                 elif management_policy["type"] == "ring_testing":
                     # ring testing is probably a combination of clinical observation and lab testing
@@ -508,9 +514,15 @@ class DiseaseSimulation:
                             convex=management_policy["convex"],
                         )
 
-                    self.controlzone["ring testing"] = controlzone_ring_testing
+                    if self.controlzone["ring testing"]:
+                        difference = controlzone_ring_testing.difference(self.controlzone["ring testing"])
+                    else:
+                        difference = controlzone_ring_testing
+
                     for i, premise in enumerate(properties):
-                        if not premise.reported_status and premise.polygon.intersects(controlzone_ring_testing):
+                        if not (premise.reported_status or premise.culled_status) and premise.polygon.intersects(
+                            difference
+                        ):
                             # clinical observation is immediate
                             job = {
                                 "status": "in progress",
@@ -543,6 +555,9 @@ class DiseaseSimulation:
                                 # schedule contact tracing
                                 report = self.job_manager.schedule_contract_tracing(i, self.time)
                                 self.combined_narrative += report
+
+                    self.controlzone["ring testing"] = controlzone_ring_testing
+
                 elif management_policy["type"] == "ring_vaccination":
                     controlzone_ring_vaccination = management.define_control_zone_polygons(
                         properties,
@@ -551,12 +566,18 @@ class DiseaseSimulation:
                         convex=management_policy["convex"],
                     )
 
-                    self.controlzone["ring vaccination"] = controlzone_ring_vaccination
+                    if self.controlzone["ring vaccination"]:
+                        difference = controlzone_ring_vaccination.difference(self.controlzone["ring vaccination"])
+                    else:
+                        difference = controlzone_ring_vaccination
 
                     for premise in properties:
-                        # originally it was culled_status, but it really should be reported status, right?
-                        if not premise.reported_status and premise.polygon.intersects(controlzone_ring_vaccination):
+                        if not (premise.reported_status or premise.culled_status) and premise.polygon.intersects(
+                            difference
+                        ):
                             premise.vaccinate(self.time)
+
+                    self.controlzone["ring vaccination"] = controlzone_ring_vaccination
                 else:
                     raise ValueError(
                         f"Management policy type {management_policy['type']} doesn't exist, or is not yet implemented"
@@ -685,14 +706,18 @@ class DiseaseSimulation:
                         file,
                     )
 
+            # NOTE: taken the following code out, because even if there are no infected properties, there might still be vectors carrying disease
             # check if there are no more infected properties
             # and check if there are no more jobs
-            if len(self.job_manager.jobs_queue) == 0 and len(self.job_manager.new_jobs) == 0:
-                infected_sum = 0
-                for i, premise in enumerate(properties):
-                    if not premise.culled_status:
-                        infected_sum += premise.number_infected
-                nothing_left_to_do = True
+            # if len(self.job_manager.jobs_queue) == 0 and len(self.job_manager.new_jobs) == 0:
+            # infected_sum = 0
+            # for i, premise in enumerate(properties):
+            #     if not premise.culled_status:
+            #         infected_sum += premise.number_infected
+            # if infected_sum >0:
+            #     nothing_left_to_do = True
+
+            #     print( f"Job manager queue with no more infection: {len(self.job_manager.jobs_queue)}" )
 
         if self.plotting:
             output.make_video(self.folder_path, "map_underlying", times=time_list)
