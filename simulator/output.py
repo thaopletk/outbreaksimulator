@@ -273,14 +273,7 @@ def plot_map(
         for index, premise in enumerate(properties):
             long, lat = premise.coordinates
             curr_farm = Point(long, lat)
-
-            if premise.infection_status:
-                geometry_infected.append(curr_farm)
-                infected_coords.append(premise.coordinates)
-            elif premise.reported_status == True:
-                geometry_confirmed_infected.append(curr_farm)
-                infected_coords.append(premise.coordinates)
-            elif premise.culled_status:
+            if premise.culled_status:
                 if premise.reported_status:
                     geometry_culled.append(curr_farm)
                     infected_coords.append(premise.coordinates)
@@ -293,7 +286,12 @@ def plot_map(
 
                 else:
                     raise Exception("Culled yet neither reported nor culled on suspicion")
-
+            elif premise.reported_status == True:
+                geometry_confirmed_infected.append(curr_farm)
+                infected_coords.append(premise.coordinates)
+            elif premise.infection_status:
+                geometry_infected.append(curr_farm)
+                infected_coords.append(premise.coordinates)
             elif premise.vaccination_status:
                 geometry_vaccinated.append(curr_farm)
             else:

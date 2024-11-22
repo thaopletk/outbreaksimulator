@@ -6,6 +6,7 @@
 import sys
 import os
 import rasterio
+import numpy as np
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "FMD_modelling"))
@@ -18,9 +19,10 @@ from simulator.spatial_functions import (
 
 from shapely.ops import nearest_points
 from shapely.geometry import Point, Polygon
+from simulator.premises import convert_date_to_time
 
 
-def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind):
+def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mortality_rate=0.04):
     """Adapted from FMD modelling code
 
     In order to change the definition of circle creation
@@ -43,9 +45,7 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind):
     # unsafe_disc_i = properties[premise_index].puff_poly
     A_is = properties[premise_index].puffed_poly_area
 
-    vector_val = [
-        x for x in vectors_img.sample([properties[premise_index].coordinates])
-    ][0][0]
+    vector_val = [x for x in vectors_img.sample([properties[premise_index].coordinates])][0][0]
 
     FOI += vector_val * beta_wind * C_i * A_i / A_is
 
@@ -57,33 +57,33 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind):
 
         # calculating area overlap
         unsafe_disc_j = properties[index].puffed_poly
-        A_js = properties[
-            index
-        ].puffed_poly_area  # area of unsafe_disc_j of properties[index]
+        A_js = properties[index].puffed_poly_area  # area of unsafe_disc_j of properties[index]
 
         A_ijs = calculate_area(property_i_polygon.intersection(unsafe_disc_j))
 
         # calculating min distance centre j to boundary of i, in km
-        p1, p2 = nearest_points(
-            property_i_polygon, Point(*properties[index].coordinates)
-        )
+        p1, p2 = nearest_points(property_i_polygon, Point(*properties[index].coordinates))
 
         d_ij = quick_distance_haversine([p1.x, p1.y], [p2.x, p2.y])
         distance_modifier = max(0.001, 1 - (d_ij / r_wind))
 
-        vector_val_neighbour = [
-            x for x in vectors_img.sample([properties[index].coordinates])
-        ][0][0]
+        # vector-relevant parts
+
+        vector_val_neighbour = [x for x in vectors_img.sample([properties[index].coordinates])][0][0]
+
+        # also, if this neighbouring property has already been culled, then calculate how long they have been culled, and implement a basic death rate for the vectors
+        vector_mortality_adjustment = 1
+        if properties[index].culled_status:
+            days_since_culled = convert_date_to_time(properties[index].removal_date)
+            vector_mortality_adjustment = np.exp(-vector_mortality_rate * days_since_culled)
 
         # update FOI
-        FOI += vector_val_neighbour * beta_wind * C_j * distance_modifier * A_ijs / A_js
+        FOI += vector_mortality_adjustment * vector_val_neighbour * beta_wind * C_j * distance_modifier * A_ijs / A_js
 
     return FOI
 
 
-def calculate_force_of_infection(
-    properties, premise_index, vax_modifier, r_wind, beta_wind, beta_animal
-):
+def calculate_force_of_infection(properties, premise_index, vax_modifier, r_wind, beta_wind, beta_animal):
     """Calculate the force of infection
     Adapted from the FOI calculations from the FMD modelling code
     Reason: due to the differing units...
@@ -91,9 +91,7 @@ def calculate_force_of_infection(
     vax_status = (vax_modifier - 1) * properties[premise_index].vaccination_status + 1
 
     FOI_wind = wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind)
-    FOI_animal = FOI_calculation_fns.animal_FOI(
-        properties[premise_index], {"beta_animal": beta_animal}
-    )
+    FOI_animal = FOI_calculation_fns.animal_FOI(properties[premise_index], {"beta_animal": beta_animal})
 
     FOI = vax_status * (FOI_animal + FOI_wind)
 
@@ -115,8 +113,6 @@ def calculate_FOI_point_properties(premise, params, infected_props):
         dist = farm[1]
         x += (1 - (dist / params["r"])) * infected_props[index]
 
-    FOI = (
-        params["beta_between"] * x + params["beta_within"] * premise.prop_infectious
-    ) * vax_status
+    FOI = (params["beta_between"] * x + params["beta_within"] * premise.prop_infectious) * vax_status
 
     return FOI
