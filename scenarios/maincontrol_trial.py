@@ -305,6 +305,7 @@ if not os.path.exists(radius_50km_B_properties_filename) or not os.path.exists(r
     with open(radius_50km_B_diseaseoutbreak_filename, "wb") as file:
         pickle.dump(diseaseoutbreak, file)
 
+
 # NOT DOING THIS - too many options
 # # 6C: movement radius of 25km
 # if not os.path.exists(folder_path_radius_25km_C):
@@ -418,7 +419,7 @@ for properties_filename, diseaseoutbreak_filename, identifier in previous_outbre
         for ring_management_option, management_identifier in [
             # ["", "_only"], # taking this out too, to say that "outbreak is intensifying, need more management--i.e., ring testing in addition to contact tracing"
             # ["ring culling", "_cull25km"], # NOTE ring cullinng is not considered; reason: "no social license / too much protesting"
-            ["ring testing", "_test25km"],
+            ["ring testing", "_test30km"],
         ]:
             long_name_2 = long_name_1 + management_identifier
             short_code_2 = short_code_1
@@ -428,7 +429,7 @@ for properties_filename, diseaseoutbreak_filename, identifier in previous_outbre
                 management_parameters.append({"type": "ring_culling", "radius_km": 25, "convex": False})
                 short_code_2 += "B"
             elif ring_management_option == "ring testing":
-                management_parameters.append({"type": "ring_testing", "radius_km": 25, "convex": False})
+                management_parameters.append({"type": "ring_testing", "radius_km": 30, "convex": False})
                 short_code_2 += "C"
             else:
                 raise ValueError("Ring management option not identified")
@@ -484,7 +485,7 @@ for properties_filename, diseaseoutbreak_filename, identifier in outbreak_step_7
         for ring_management_option, management_identifier in [
             # ["", "_only"],
             # ["ring culling", "cull25km"],
-            ["ring testing", "test25km"],
+            ["ring testing", "test50km"],
             ["ring vaccination", "vaccinate50km"],  # 50km, to vaccinate ahead of the front?
         ]:
             long_name_2 = long_name_1 + management_identifier
@@ -495,7 +496,7 @@ for properties_filename, diseaseoutbreak_filename, identifier in outbreak_step_7
                 management_parameters.append({"type": "ring_culling", "radius_km": 25, "convex": False})
                 short_code_2 += "B"
             elif ring_management_option == "ring testing":
-                management_parameters.append({"type": "ring_testing", "radius_km": 25, "convex": False})
+                management_parameters.append({"type": "ring_testing", "radius_km": 50, "convex": False})
                 short_code_2 += "C"
             elif ring_management_option == "ring vaccination":
                 management_parameters.append({"type": "ring_vaccination", "radius_km": 50, "convex": False})
@@ -522,3 +523,5 @@ for properties_filename, diseaseoutbreak_filename, identifier in outbreak_step_7
                 management_parameters,
                 days_to_run_for,
             )
+
+exit(1)
