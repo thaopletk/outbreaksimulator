@@ -224,6 +224,7 @@ def plot_map(
     geometry_susceptible = []
     geometry_culled_on_suspicion = []
     geomtry_culled_on_suspicion_actually_infected = []
+    geometry_undergoing_testing = []
 
     for key, value in contacts_for_plotting.items():
         premise = properties[key]
@@ -329,6 +330,8 @@ def plot_map(
             elif premise.reported_status == True:
                 geometry_confirmed_infected.append(curr_farm)
                 infected_coords.append(premise.coordinates)
+            elif premise.undergoing_testing == True:
+                geometry_undergoing_testing.append(curr_farm)
             elif premise.vaccination_status:
                 geometry_vaccinated.append(curr_farm)
             else:
@@ -358,6 +361,7 @@ def plot_map(
             "culled on suspicion, actually infected",
             150,
         ],
+        [geometry_undergoing_testing, "orange", r"$?$", "undergoing testing", 200],
         [geometry_vaccinated, "deepskyblue", "s", "vaccinated", 100],
         [geometry_susceptible, "orange", "o", "susceptible", 30],
     ]:

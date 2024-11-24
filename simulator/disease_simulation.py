@@ -191,6 +191,8 @@ class DiseaseSimulation:
                 self.other_reports += report  #  TODO should this actually go in testing reports?
                 self.combined_narrative += report
 
+                property_i.undergoing_testing = True
+
         # TODO: should update the JobManager so that I don't have to do this
         for job in self.job_manager.new_jobs:
             self.job_manager.add_job_to_queue(job)
@@ -488,7 +490,7 @@ class DiseaseSimulation:
                             management_policy["radius_km"],
                             convex=management_policy["convex"],
                         )
-                        if self.controlzone["ring culling"]:
+                        if "ring culling" in self.controlzone:
                             difference = controlzone_ring_culling.difference(self.controlzone["ring culling"])
                         else:
                             difference = controlzone_ring_culling
@@ -514,47 +516,52 @@ class DiseaseSimulation:
                             convex=management_policy["convex"],
                         )
 
-                    if self.controlzone["ring testing"]:
-                        difference = controlzone_ring_testing.difference(self.controlzone["ring testing"])
-                    else:
-                        difference = controlzone_ring_testing
+                    # if "ring testing" in self.controlzone:
+                    #     difference = controlzone_ring_testing.difference(self.controlzone["ring testing"])
+                    # else:
+                    #     difference = controlzone_ring_testing
 
                     for i, premise in enumerate(properties):
                         if not (premise.reported_status or premise.culled_status) and premise.polygon.intersects(
-                            difference
+                            controlzone_ring_testing
                         ):
-                            # clinical observation is immediate
-                            job = {
-                                "status": "in progress",
-                                "day": self.time,
-                                "type": management.jobtype.ClinicalObservation,
-                                "property_i": i,
-                            }
-                            testing_report, positive = self.job_manager.conduct_clinicalobservation(
-                                properties, job, self.time
-                            )
-                            self.testing_reports += testing_report
-                            self.combined_narrative += testing_report
+                            if premise.day_of_last_lab_test == None or (
+                                self.time - premise.day_of_last_lab_test > 13
+                            ):  # at least two weeks between testing
+                                # clinical observation is immediate
+                                job = {
+                                    "status": "in progress",
+                                    "day": self.time,
+                                    "type": management.jobtype.ClinicalObservation,
+                                    "property_i": i,
+                                }
+                                testing_report, positive = self.job_manager.conduct_clinicalobservation(
+                                    properties, job, self.time
+                                )
+                                self.testing_reports += testing_report
+                                self.combined_narrative += testing_report
 
-                            # regardless of whether or not it's a positive result
+                                # regardless of whether or not it's a positive result
 
-                            # enact local movement restrictions around this property, just in case (will be removed after negative test lab result)
-                            self.job_manager.local_movement_restrictions.append(premise.polygon)
-                            # TODO there should be a report here, like
-                            # report = "No movements are now allowed to or from this property.\n"
-                            # new_report += report
-                            # new_combined_narrative += report
+                                # enact local movement restrictions around this property, just in case (will be removed after negative test lab result)
+                                self.job_manager.local_movement_restrictions.append(premise.polygon)
+                                # TODO there should be a report here, like
+                                # report = "No movements are now allowed to or from this property.\n"
+                                # new_report += report
+                                # new_combined_narrative += report
 
-                            # and regardless of whether or not it's a positive result, schedule lab testing
-                            report = self.job_manager.schedule_lab_testing_after_observation(i, self.time)
-                            new_report += report
-                            new_combined_narrative += report
+                                # and regardless of whether or not it's a positive result, schedule lab testing
+                                report = self.job_manager.schedule_lab_testing_after_observation(i, self.time)
+                                new_report += report
+                                new_combined_narrative += report
 
-                            # however, if it is positive, then do contact tracing too
-                            if positive:
-                                # schedule contact tracing
-                                report = self.job_manager.schedule_contract_tracing(i, self.time)
-                                self.combined_narrative += report
+                                premise.undergoing_testing = True
+
+                                # however, if it is positive, then do contact tracing too
+                                if positive:
+                                    # schedule contact tracing
+                                    report = self.job_manager.schedule_contract_tracing(i, self.time)
+                                    self.combined_narrative += report
 
                     self.controlzone["ring testing"] = controlzone_ring_testing
 
@@ -566,7 +573,7 @@ class DiseaseSimulation:
                         convex=management_policy["convex"],
                     )
 
-                    if self.controlzone["ring vaccination"]:
+                    if "ring vaccination" in self.controlzone:
                         difference = controlzone_ring_vaccination.difference(self.controlzone["ring vaccination"])
                     else:
                         difference = controlzone_ring_vaccination

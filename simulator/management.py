@@ -372,6 +372,9 @@ class JobManager:
                     new_testing_reports += temp_testing_reports
                     new_combined_narrative += temp_combined_narrative
 
+                    properties[job["property_i"]].undergoing_testing = False
+                    properties[job["property_i"]].day_of_last_lab_test = time
+
                 elif job["type"] == jobtype.ClinicalObservation:
                     testing_report, positive = self.conduct_clinicalobservation(properties, job, time)
                     new_testing_reports += testing_report
@@ -395,6 +398,9 @@ class JobManager:
                         report = self.schedule_lab_testing_after_observation(job["property_i"], time)
                         new_report += report
                         new_combined_narrative += report
+
+                        properties[job["property_i"]].undergoing_testing = True
+
                     else:
                         # remove any local movement restrictions
                         # technically, should check if it's still under lab testing, which means we might still want some movement restrictions lol...
@@ -431,12 +437,15 @@ class JobManager:
                             new_report += mini_report
                             new_combined_narrative += mini_report
 
-                            self.schedule_clinical_observation(job["property_i"], time)
+                            self.schedule_clinical_observation(t_i, time)
 
                             # schedule lab testing (if not yet done)
                             # technically this might require a longer delay...
-                            report = self.schedule_lab_testing(job["property_i"], time)
+
+                            report = self.schedule_lab_testing(t_i, time)
                             new_report += report
+
+                            properties[t_i].undergoing_testing = True
 
                     job["status"] = "complete"  # mark job as complete, slated for removal from the job queue
 

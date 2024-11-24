@@ -41,7 +41,7 @@ def convert_time_to_date(time, start_date=datetime.datetime(year=2024, month=11,
 
 
 def convert_date_to_time(date, start_date=datetime.datetime(year=2024, month=11, day=1)):
-    d1 = datetime.strptime(date, "%d/%m/%Y")
+    d1 = datetime.datetime.strptime(date, "%d/%m/%Y")
     return abs((d1 - start_date).days)
 
 
@@ -130,6 +130,9 @@ class Premises(Property):
 
         self.location = self.geolocator.reverse(f"{self.y},{self.x}")
 
+        self.undergoing_testing = False
+        self.day_of_last_lab_test = None
+
     #
     def vaccinate(self, time):
         self.vaccination_status = 1
@@ -200,6 +203,8 @@ class Premises(Property):
         # all animals culled
         self.animals = []
 
+        self.removal_date = convert_time_to_date(time)
+
         report = ""
         culled_animals = self.size
 
@@ -235,6 +240,7 @@ class Premises(Property):
             self.culled_status = 1
             # all animals culled
             self.animals = []
+            self.removal_date = convert_time_to_date(time)
 
         report = ""
         culled_animals = 0
