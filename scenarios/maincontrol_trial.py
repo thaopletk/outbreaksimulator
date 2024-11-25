@@ -455,10 +455,9 @@ for properties_filename, diseaseoutbreak_filename, identifier in previous_outbre
                 days_to_run_for,
             )
 
-
 # Step 8: give options regarding movement radius, ring culling, ring testing, and ring *vaccination* run until the invasion dies out (hopefully)
 # days_to_run_for = 28
-days_to_run_for = 120
+days_to_run_for = 60
 
 
 outbreak_step_8_filenames = []
@@ -523,5 +522,6 @@ for properties_filename, diseaseoutbreak_filename, identifier in outbreak_step_7
                 management_parameters,
                 days_to_run_for,
             )
+
 
 exit(1)
