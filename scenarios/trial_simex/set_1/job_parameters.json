@@ -1,0 +1,8 @@
+{
+    "lab_test_sensitivity": 0.9,
+    "clinical_test_sensitivity": 0.5,
+    "cull_delay":1,
+    "contact_tracing_delay":0.5,
+    "lab_test_delay":1.5,
+    "clinical_delay":0.5
+}
