@@ -1,0 +1,2059 @@
+DAY 29/11/2024 - Property ID 803 (farm), 116.4 ha cattle property at location (x,y)=(148.11, -31.99), Gin Gin, Narromine Shire Council, New South Wales, 2823, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Property 803 has been scheduled for contact tracing
+Personnel will be sent to property 803 for lab testing
+DAY 29/11/2024 - contact tracing report compiled for movements from IP NA (ID 803)
+ - DAY 11/11/2024 - moved 2 animals from property ID 803 (farm) to property ID 776 (trader)
+ - DAY 21/11/2024 - moved 2 animals from property ID 803 (farm) to property ID 429 (feedlot)
+Personnel will be sent to traced property 776 for clinical observation and lab testing
+Personnel will be sent to traced property 429 for clinical observation and lab testing
+DAY 30/11/2024 - lab test report for property index 803
+Property index 803 at location (x,y)=(148.11, -31.99) report POSITIVE result
+DAY 30/11/2024 - IP 1 (ID 803), 116.4 ha cattle property at location (x,y)=(148.11, -31.99), Gin Gin, Narromine Shire Council, New South Wales, 2823, Australia, has been found infected. A total of 19 animal(s) will be culled.
+Property 803 has been scheduled for culling
+Property 803 has been scheduled for contact tracing
+DAY 30/11/2024 - clinical observation report for property index 776
+Property index 776 at location (x,y)=(147.63, -31.92) report POSITIVE result
+Property 776 has been scheduled for contact tracing
+Personnel will be sent to property 776 for lab testing
+DAY 30/11/2024 - clinical observation report for property index 429
+Property index 429 report negative result
+DAY 30/11/2024 - Property ID 444 (farm), 56.5 ha cattle property at location (x,y)=(148.22, -31.62), Collie, Warren Shire Council, New South Wales, 2827, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Property 444 has been scheduled for contact tracing
+Personnel will be sent to property 444 for lab testing
+DAY 30/11/2024 - contact tracing report compiled for movements from IP NA (ID 444)
+ - DAY 15/11/2024 - moved 1 animals from property ID 444 (farm) to property ID 1898 (saleyard)
+Personnel will be sent to traced property 1898 for clinical observation and lab testing
+DAY 01/12/2024 - lab test report for property index 776
+Property index 776 at location (x,y)=(147.63, -31.92) report POSITIVE result
+DAY 01/12/2024 - IP 2 (ID 776), 448.0 ha cattle property at location (x,y)=(147.63, -31.92), Nevertire, Warren Shire Council, New South Wales, 2826, Australia, has been found infected. A total of 143 animal(s) will be culled.
+Property 776 has been scheduled for culling
+Property 776 has been scheduled for contact tracing
+DAY 01/12/2024 - lab test report for property index 429
+Property index 429 report negative result
+DAY 01/12/2024 - IP 1 (ID 803), 116.4 ha cattle property at location (x,y)=(148.11, -31.99), Gin Gin, Narromine Shire Council, New South Wales, 2823, Australia, has been depopulated.
+A total of 19 animal(s) have been culled.
+DAY 01/12/2024 - contact tracing report compiled for movements from IP 1 (ID 803)
+ - DAY 11/11/2024 - moved 2 animals from property ID 803 (farm) to property ID 776 (trader)
+ - DAY 21/11/2024 - moved 2 animals from property ID 803 (farm) to property ID 429 (feedlot)
+Personnel will be sent to traced property 776 for clinical observation and lab testing
+Personnel will be sent to traced property 429 for clinical observation and lab testing
+DAY 01/12/2024 - contact tracing report compiled for movements from IP 2 (ID 776)
+ - DAY 02/11/2024 - moved 5 animals from property ID 776 (trader) to property ID 637 (farm)
+ - DAY 02/11/2024 - moved 6 animals from property ID 776 (trader) to property ID 1159 (farm)
+ - DAY 02/11/2024 - moved 6 animals from property ID 776 (trader) to property ID 908 (saleyard)
+ - DAY 04/11/2024 - moved 9 animals from property ID 776 (trader) to property ID 872 (farm)
+ - DAY 04/11/2024 - moved 8 animals from property ID 776 (trader) to property ID 1900 (farm)
+ - DAY 04/11/2024 - moved 8 animals from property ID 776 (trader) to property ID 6 (stud farm)
+ - DAY 07/11/2024 - moved 15 animals from property ID 776 (trader) to property ID 167 (farm)
+ - DAY 07/11/2024 - moved 14 animals from property ID 776 (trader) to property ID 1253 (feedlot)
+ - DAY 08/11/2024 - moved 12 animals from property ID 776 (trader) to property ID 1635 (feedlot)
+ - DAY 08/11/2024 - moved 11 animals from property ID 776 (trader) to property ID 1635 (feedlot)
+ - DAY 08/11/2024 - moved 11 animals from property ID 776 (trader) to property ID 1213 (farm)
+ - DAY 10/11/2024 - moved 13 animals from property ID 776 (trader) to property ID 1379 (feedlot)
+ - DAY 10/11/2024 - moved 13 animals from property ID 776 (trader) to property ID 1253 (feedlot)
+ - DAY 10/11/2024 - moved 13 animals from property ID 776 (trader) to property ID 1414 (farm)
+ - DAY 12/11/2024 - moved 42 animals from property ID 776 (trader) to property ID 6 (stud farm)
+ - DAY 13/11/2024 - moved 22 animals from property ID 776 (trader) to property ID 6 (stud farm)
+ - DAY 13/11/2024 - moved 22 animals from property ID 776 (trader) to property ID 1277 (farm)
+ - DAY 15/11/2024 - moved 46 animals from property ID 776 (trader) to property ID 193 (farm)
+ - DAY 16/11/2024 - moved 43 animals from property ID 776 (trader) to property ID 908 (saleyard)
+ - DAY 17/11/2024 - moved 21 animals from property ID 776 (trader) to property ID 908 (saleyard)
+ - DAY 17/11/2024 - moved 20 animals from property ID 776 (trader) to property ID 1253 (feedlot)
+ - DAY 18/11/2024 - moved 19 animals from property ID 776 (trader) to property ID 429 (feedlot)
+ - DAY 18/11/2024 - moved 20 animals from property ID 776 (trader) to property ID 1758 (farm)
+ - DAY 20/11/2024 - moved 45 animals from property ID 776 (trader) to property ID 1617 (farm)
+ - DAY 21/11/2024 - moved 15 animals from property ID 776 (trader) to property ID 1253 (feedlot)
+ - DAY 21/11/2024 - moved 15 animals from property ID 776 (trader) to property ID 1373 (farm)
+ - DAY 21/11/2024 - moved 15 animals from property ID 776 (trader) to property ID 6 (stud farm)
+ - DAY 22/11/2024 - moved 19 animals from property ID 776 (trader) to property ID 6 (stud farm)
+ - DAY 22/11/2024 - moved 20 animals from property ID 776 (trader) to property ID 908 (saleyard)
+ - DAY 23/11/2024 - moved 43 animals from property ID 776 (trader) to property ID 908 (saleyard)
+ - DAY 24/11/2024 - moved 24 animals from property ID 776 (trader) to property ID 1735 (farm)
+ - DAY 24/11/2024 - moved 24 animals from property ID 776 (trader) to property ID 908 (saleyard)
+ - DAY 25/11/2024 - moved 22 animals from property ID 776 (trader) to property ID 1768 (feedlot)
+ - DAY 25/11/2024 - moved 22 animals from property ID 776 (trader) to property ID 6 (stud farm)
+ - DAY 26/11/2024 - moved 13 animals from property ID 776 (trader) to property ID 1253 (feedlot)
+ - DAY 26/11/2024 - moved 13 animals from property ID 776 (trader) to property ID 1752 (farm)
+ - DAY 26/11/2024 - moved 13 animals from property ID 776 (trader) to property ID 429 (feedlot)
+ - DAY 27/11/2024 - moved 38 animals from property ID 776 (trader) to property ID 370 (farm)
+ - DAY 28/11/2024 - moved 12 animals from property ID 776 (trader) to property ID 1404 (farm)
+ - DAY 28/11/2024 - moved 11 animals from property ID 776 (trader) to property ID 1253 (feedlot)
+ - DAY 28/11/2024 - moved 11 animals from property ID 776 (trader) to property ID 6 (stud farm)
+ - DAY 29/11/2024 - moved 16 animals from property ID 776 (trader) to property ID 1983 (farm)
+ - DAY 29/11/2024 - moved 16 animals from property ID 776 (trader) to property ID 1769 (farm)
+Personnel will be sent to traced property 637 for clinical observation and lab testing
+Personnel will be sent to traced property 1159 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 872 for clinical observation and lab testing
+Personnel will be sent to traced property 1900 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 167 for clinical observation and lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to traced property 1213 for clinical observation and lab testing
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to traced property 1414 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 1277 for clinical observation and lab testing
+Personnel will be sent to traced property 193 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to traced property 429 for clinical observation and lab testing
+Personnel will be sent to traced property 1758 for clinical observation and lab testing
+Personnel will be sent to traced property 1617 for clinical observation and lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to traced property 1373 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 1735 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 1768 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to traced property 1752 for clinical observation and lab testing
+Personnel will be sent to traced property 429 for clinical observation and lab testing
+Personnel will be sent to traced property 370 for clinical observation and lab testing
+Personnel will be sent to traced property 1404 for clinical observation and lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 1983 for clinical observation and lab testing
+Personnel will be sent to traced property 1769 for clinical observation and lab testing
+DAY 01/12/2024 - lab test report for property index 444
+Property index 444 at location (x,y)=(148.22, -31.62) report POSITIVE result
+DAY 01/12/2024 - IP 3 (ID 444), 56.5 ha cattle property at location (x,y)=(148.22, -31.62), Collie, Warren Shire Council, New South Wales, 2827, Australia, has been found infected. A total of 16 animal(s) will be culled.
+Property 444 has been scheduled for culling
+Property 444 has been scheduled for contact tracing
+DAY 01/12/2024 - clinical observation report for property index 1898
+Property index 1898 at location (x,y)=(148.54, -31.38) report POSITIVE result
+Property 1898 has been scheduled for contact tracing
+Personnel will be sent to property 1898 for lab testing
+DAY 02/12/2024 - lab test report for property index 1898
+Property index 1898 at location (x,y)=(148.54, -31.38) report POSITIVE result
+DAY 02/12/2024 - IP 4 (ID 1898), 846.6 ha cattle property at location (x,y)=(148.54, -31.38), Gulargambone, Coonamble Shire Council, New South Wales, 2828, Australia, has been found infected. A total of 245 animal(s) will be culled.
+Property 1898 has been scheduled for culling
+Property 1898 has been scheduled for contact tracing
+DAY 02/12/2024 - IP 2 (ID 776), 448.0 ha cattle property at location (x,y)=(147.63, -31.92), Nevertire, Warren Shire Council, New South Wales, 2826, Australia, has been depopulated.
+A total of 143 animal(s) have been culled.
+DAY 02/12/2024 - contact tracing report compiled for movements from IP 2 (ID 776)
+ - DAY 02/11/2024 - moved 5 animals from property ID 776 (trader) to property ID 637 (farm)
+ - DAY 02/11/2024 - moved 6 animals from property ID 776 (trader) to property ID 1159 (farm)
+ - DAY 02/11/2024 - moved 6 animals from property ID 776 (trader) to property ID 908 (saleyard)
+ - DAY 04/11/2024 - moved 9 animals from property ID 776 (trader) to property ID 872 (farm)
+ - DAY 04/11/2024 - moved 8 animals from property ID 776 (trader) to property ID 1900 (farm)
+ - DAY 04/11/2024 - moved 8 animals from property ID 776 (trader) to property ID 6 (stud farm)
+ - DAY 07/11/2024 - moved 15 animals from property ID 776 (trader) to property ID 167 (farm)
+ - DAY 07/11/2024 - moved 14 animals from property ID 776 (trader) to property ID 1253 (feedlot)
+ - DAY 08/11/2024 - moved 12 animals from property ID 776 (trader) to property ID 1635 (feedlot)
+ - DAY 08/11/2024 - moved 11 animals from property ID 776 (trader) to property ID 1635 (feedlot)
+ - DAY 08/11/2024 - moved 11 animals from property ID 776 (trader) to property ID 1213 (farm)
+ - DAY 10/11/2024 - moved 13 animals from property ID 776 (trader) to property ID 1379 (feedlot)
+ - DAY 10/11/2024 - moved 13 animals from property ID 776 (trader) to property ID 1253 (feedlot)
+ - DAY 10/11/2024 - moved 13 animals from property ID 776 (trader) to property ID 1414 (farm)
+ - DAY 12/11/2024 - moved 42 animals from property ID 776 (trader) to property ID 6 (stud farm)
+ - DAY 13/11/2024 - moved 22 animals from property ID 776 (trader) to property ID 6 (stud farm)
+ - DAY 13/11/2024 - moved 22 animals from property ID 776 (trader) to property ID 1277 (farm)
+ - DAY 15/11/2024 - moved 46 animals from property ID 776 (trader) to property ID 193 (farm)
+ - DAY 16/11/2024 - moved 43 animals from property ID 776 (trader) to property ID 908 (saleyard)
+ - DAY 17/11/2024 - moved 21 animals from property ID 776 (trader) to property ID 908 (saleyard)
+ - DAY 17/11/2024 - moved 20 animals from property ID 776 (trader) to property ID 1253 (feedlot)
+ - DAY 18/11/2024 - moved 19 animals from property ID 776 (trader) to property ID 429 (feedlot)
+ - DAY 18/11/2024 - moved 20 animals from property ID 776 (trader) to property ID 1758 (farm)
+ - DAY 20/11/2024 - moved 45 animals from property ID 776 (trader) to property ID 1617 (farm)
+ - DAY 21/11/2024 - moved 15 animals from property ID 776 (trader) to property ID 1253 (feedlot)
+ - DAY 21/11/2024 - moved 15 animals from property ID 776 (trader) to property ID 1373 (farm)
+ - DAY 21/11/2024 - moved 15 animals from property ID 776 (trader) to property ID 6 (stud farm)
+ - DAY 22/11/2024 - moved 19 animals from property ID 776 (trader) to property ID 6 (stud farm)
+ - DAY 22/11/2024 - moved 20 animals from property ID 776 (trader) to property ID 908 (saleyard)
+ - DAY 23/11/2024 - moved 43 animals from property ID 776 (trader) to property ID 908 (saleyard)
+ - DAY 24/11/2024 - moved 24 animals from property ID 776 (trader) to property ID 1735 (farm)
+ - DAY 24/11/2024 - moved 24 animals from property ID 776 (trader) to property ID 908 (saleyard)
+ - DAY 25/11/2024 - moved 22 animals from property ID 776 (trader) to property ID 1768 (feedlot)
+ - DAY 25/11/2024 - moved 22 animals from property ID 776 (trader) to property ID 6 (stud farm)
+ - DAY 26/11/2024 - moved 13 animals from property ID 776 (trader) to property ID 1253 (feedlot)
+ - DAY 26/11/2024 - moved 13 animals from property ID 776 (trader) to property ID 1752 (farm)
+ - DAY 26/11/2024 - moved 13 animals from property ID 776 (trader) to property ID 429 (feedlot)
+ - DAY 27/11/2024 - moved 38 animals from property ID 776 (trader) to property ID 370 (farm)
+ - DAY 28/11/2024 - moved 12 animals from property ID 776 (trader) to property ID 1404 (farm)
+ - DAY 28/11/2024 - moved 11 animals from property ID 776 (trader) to property ID 1253 (feedlot)
+ - DAY 28/11/2024 - moved 11 animals from property ID 776 (trader) to property ID 6 (stud farm)
+ - DAY 29/11/2024 - moved 16 animals from property ID 776 (trader) to property ID 1983 (farm)
+ - DAY 29/11/2024 - moved 16 animals from property ID 776 (trader) to property ID 1769 (farm)
+Personnel will be sent to traced property 637 for clinical observation and lab testing
+Personnel will be sent to traced property 1159 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 872 for clinical observation and lab testing
+Personnel will be sent to traced property 1900 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 167 for clinical observation and lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to traced property 1213 for clinical observation and lab testing
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to traced property 1414 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 1277 for clinical observation and lab testing
+Personnel will be sent to traced property 193 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to traced property 429 for clinical observation and lab testing
+Personnel will be sent to traced property 1758 for clinical observation and lab testing
+Personnel will be sent to traced property 1617 for clinical observation and lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to traced property 1373 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 1735 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 1768 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to traced property 1752 for clinical observation and lab testing
+Personnel will be sent to traced property 429 for clinical observation and lab testing
+Personnel will be sent to traced property 370 for clinical observation and lab testing
+Personnel will be sent to traced property 1404 for clinical observation and lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 1983 for clinical observation and lab testing
+Personnel will be sent to traced property 1769 for clinical observation and lab testing
+DAY 02/12/2024 - clinical observation report for property index 776
+No testing: property index 776 (IP 2) has already been culled
+DAY 02/12/2024 - clinical observation report for property index 429
+Property index 429 report negative result
+DAY 02/12/2024 - clinical observation report for property index 637
+Property index 637 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1159
+Property index 1159 report negative result
+DAY 02/12/2024 - clinical observation report for property index 908
+Property index 908 report negative result
+DAY 02/12/2024 - clinical observation report for property index 872
+Property index 872 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1900
+Property index 1900 report negative result
+DAY 02/12/2024 - clinical observation report for property index 6
+Property index 6 at location (x,y)=(148.53, -31.54) report POSITIVE result
+Property 6 has been scheduled for contact tracing
+Personnel will be sent to property 6 for lab testing
+DAY 02/12/2024 - clinical observation report for property index 167
+Property index 167 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1253
+Property index 1253 at location (x,y)=(148.06, -31.92) report POSITIVE result
+Property 1253 has been scheduled for contact tracing
+Personnel will be sent to property 1253 for lab testing
+DAY 02/12/2024 - clinical observation report for property index 1635
+Property index 1635 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1213
+Property index 1213 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1379
+Property index 1379 at location (x,y)=(148.24, -31.58) report POSITIVE result
+Property 1379 has been scheduled for contact tracing
+Personnel will be sent to property 1379 for lab testing
+DAY 02/12/2024 - clinical observation report for property index 1414
+Property index 1414 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1277
+Property index 1277 report negative result
+DAY 02/12/2024 - clinical observation report for property index 193
+Property index 193 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1758
+Property index 1758 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1617
+Property index 1617 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1373
+Property index 1373 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1735
+Property index 1735 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1768
+Property index 1768 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1752
+Property index 1752 report negative result
+DAY 02/12/2024 - clinical observation report for property index 370
+Property index 370 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1404
+Property index 1404 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1983
+Property index 1983 at location (x,y)=(148.57, -31.6) report POSITIVE result
+Property 1983 has been scheduled for contact tracing
+Personnel will be sent to property 1983 for lab testing
+DAY 02/12/2024 - clinical observation report for property index 1769
+Property index 1769 report negative result
+DAY 02/12/2024 - IP 3 (ID 444), 56.5 ha cattle property at location (x,y)=(148.22, -31.62), Collie, Warren Shire Council, New South Wales, 2827, Australia, has been depopulated.
+A total of 16 animal(s) have been culled.
+DAY 02/12/2024 - contact tracing report compiled for movements from IP 3 (ID 444)
+ - DAY 15/11/2024 - moved 1 animals from property ID 444 (farm) to property ID 1898 (saleyard)
+Personnel will be sent to traced property 1898 for clinical observation and lab testing
+DAY 02/12/2024 - contact tracing report compiled for movements from IP 4 (ID 1898)
+ - DAY 02/11/2024 - moved 12 animals from property ID 1898 (saleyard) to property ID 1379 (feedlot)
+ - DAY 02/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 292 (farm)
+ - DAY 02/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 303 (farm)
+ - DAY 02/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 386 (farm)
+ - DAY 02/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 1635 (feedlot)
+ - DAY 02/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 1358 (farm)
+ - DAY 04/11/2024 - moved 12 animals from property ID 1898 (saleyard) to property ID 303 (farm)
+ - DAY 04/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 1447 (farm)
+ - DAY 04/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 1379 (feedlot)
+ - DAY 04/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 982 (farm)
+ - DAY 04/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 1573 (farm)
+ - DAY 04/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 1536 (feedlot)
+ - DAY 05/11/2024 - moved 10 animals from property ID 1898 (saleyard) to property ID 908 (saleyard)
+ - DAY 05/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 1447 (farm)
+ - DAY 05/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 908 (saleyard)
+ - DAY 05/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 1462 (farm)
+ - DAY 05/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 1375 (farm)
+ - DAY 06/11/2024 - moved 13 animals from property ID 1898 (saleyard) to property ID 348 (farm)
+ - DAY 06/11/2024 - moved 13 animals from property ID 1898 (saleyard) to property ID 6 (stud farm)
+ - DAY 06/11/2024 - moved 12 animals from property ID 1898 (saleyard) to property ID 1635 (feedlot)
+ - DAY 06/11/2024 - moved 12 animals from property ID 1898 (saleyard) to property ID 6 (stud farm)
+ - DAY 07/11/2024 - moved 20 animals from property ID 1898 (saleyard) to property ID 908 (saleyard)
+ - DAY 07/11/2024 - moved 20 animals from property ID 1898 (saleyard) to property ID 1487 (feedlot)
+ - DAY 08/11/2024 - moved 17 animals from property ID 1898 (saleyard) to property ID 6 (stud farm)
+ - DAY 08/11/2024 - moved 17 animals from property ID 1898 (saleyard) to property ID 41 (farm)
+ - DAY 10/11/2024 - moved 6 animals from property ID 1898 (saleyard) to property ID 6 (stud farm)
+ - DAY 10/11/2024 - moved 6 animals from property ID 1898 (saleyard) to property ID 908 (saleyard)
+ - DAY 10/11/2024 - moved 5 animals from property ID 1898 (saleyard) to property ID 348 (farm)
+ - DAY 10/11/2024 - moved 5 animals from property ID 1898 (saleyard) to property ID 6 (stud farm)
+ - DAY 10/11/2024 - moved 5 animals from property ID 1898 (saleyard) to property ID 1635 (feedlot)
+ - DAY 10/11/2024 - moved 5 animals from property ID 1898 (saleyard) to property ID 6 (stud farm)
+ - DAY 11/11/2024 - moved 9 animals from property ID 1898 (saleyard) to property ID 72 (farm)
+ - DAY 11/11/2024 - moved 9 animals from property ID 1898 (saleyard) to property ID 1253 (feedlot)
+ - DAY 11/11/2024 - moved 9 animals from property ID 1898 (saleyard) to property ID 6 (stud farm)
+ - DAY 15/11/2024 - moved 10 animals from property ID 1898 (saleyard) to property ID 1763 (farm)
+ - DAY 15/11/2024 - moved 9 animals from property ID 1898 (saleyard) to property ID 1732 (farm)
+ - DAY 15/11/2024 - moved 9 animals from property ID 1898 (saleyard) to property ID 908 (saleyard)
+ - DAY 15/11/2024 - moved 9 animals from property ID 1898 (saleyard) to property ID 908 (saleyard)
+ - DAY 15/11/2024 - moved 9 animals from property ID 1898 (saleyard) to property ID 587 (farm)
+ - DAY 16/11/2024 - moved 41 animals from property ID 1898 (saleyard) to property ID 851 (farm)
+ - DAY 17/11/2024 - moved 16 animals from property ID 1898 (saleyard) to property ID 1067 (farm)
+ - DAY 17/11/2024 - moved 15 animals from property ID 1898 (saleyard) to property ID 462 (farm)
+ - DAY 17/11/2024 - moved 15 animals from property ID 1898 (saleyard) to property ID 1635 (feedlot)
+ - DAY 18/11/2024 - moved 9 animals from property ID 1898 (saleyard) to property ID 1487 (feedlot)
+ - DAY 18/11/2024 - moved 10 animals from property ID 1898 (saleyard) to property ID 1635 (feedlot)
+ - DAY 18/11/2024 - moved 10 animals from property ID 1898 (saleyard) to property ID 425 (feedlot)
+ - DAY 18/11/2024 - moved 10 animals from property ID 1898 (saleyard) to property ID 908 (saleyard)
+ - DAY 21/11/2024 - moved 8 animals from property ID 1898 (saleyard) to property ID 1400 (farm)
+ - DAY 21/11/2024 - moved 8 animals from property ID 1898 (saleyard) to property ID 1838 (farm)
+ - DAY 21/11/2024 - moved 8 animals from property ID 1898 (saleyard) to property ID 1811 (farm)
+ - DAY 21/11/2024 - moved 8 animals from property ID 1898 (saleyard) to property ID 6 (stud farm)
+ - DAY 21/11/2024 - moved 8 animals from property ID 1898 (saleyard) to property ID 326 (farm)
+ - DAY 21/11/2024 - moved 8 animals from property ID 1898 (saleyard) to property ID 1653 (farm)
+ - DAY 22/11/2024 - moved 10 animals from property ID 1898 (saleyard) to property ID 1253 (feedlot)
+ - DAY 22/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 429 (feedlot)
+ - DAY 22/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 66 (farm)
+ - DAY 22/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 260 (farm)
+ - DAY 22/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 1115 (farm)
+ - DAY 23/11/2024 - moved 10 animals from property ID 1898 (saleyard) to property ID 868 (farm)
+ - DAY 23/11/2024 - moved 10 animals from property ID 1898 (saleyard) to property ID 463 (farm)
+ - DAY 23/11/2024 - moved 9 animals from property ID 1898 (saleyard) to property ID 611 (farm)
+ - DAY 23/11/2024 - moved 9 animals from property ID 1898 (saleyard) to property ID 1268 (farm)
+ - DAY 23/11/2024 - moved 9 animals from property ID 1898 (saleyard) to property ID 1379 (feedlot)
+ - DAY 23/11/2024 - moved 9 animals from property ID 1898 (saleyard) to property ID 485 (farm)
+ - DAY 24/11/2024 - moved 52 animals from property ID 1898 (saleyard) to property ID 643 (farm)
+ - DAY 25/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 908 (saleyard)
+ - DAY 25/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 1435 (farm)
+ - DAY 25/11/2024 - moved 12 animals from property ID 1898 (saleyard) to property ID 868 (farm)
+ - DAY 25/11/2024 - moved 12 animals from property ID 1898 (saleyard) to property ID 217 (farm)
+ - DAY 25/11/2024 - moved 12 animals from property ID 1898 (saleyard) to property ID 1635 (feedlot)
+ - DAY 26/11/2024 - moved 10 animals from property ID 1898 (saleyard) to property ID 1253 (feedlot)
+ - DAY 26/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 6 (stud farm)
+ - DAY 26/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 1050 (farm)
+ - DAY 26/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 504 (farm)
+ - DAY 26/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 994 (farm)
+ - DAY 27/11/2024 - moved 12 animals from property ID 1898 (saleyard) to property ID 292 (farm)
+ - DAY 27/11/2024 - moved 12 animals from property ID 1898 (saleyard) to property ID 1379 (feedlot)
+ - DAY 27/11/2024 - moved 12 animals from property ID 1898 (saleyard) to property ID 908 (saleyard)
+ - DAY 27/11/2024 - moved 12 animals from property ID 1898 (saleyard) to property ID 485 (farm)
+ - DAY 28/11/2024 - moved 53 animals from property ID 1898 (saleyard) to property ID 948 (farm)
+ - DAY 29/11/2024 - moved 29 animals from property ID 1898 (saleyard) to property ID 1253 (feedlot)
+ - DAY 29/11/2024 - moved 29 animals from property ID 1898 (saleyard) to property ID 1536 (feedlot)
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+Personnel will be sent to traced property 292 for clinical observation and lab testing
+Personnel will be sent to traced property 303 for clinical observation and lab testing
+Personnel will be sent to traced property 386 for clinical observation and lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to traced property 1358 for clinical observation and lab testing
+Personnel will be sent to traced property 303 for clinical observation and lab testing
+Personnel will be sent to traced property 1447 for clinical observation and lab testing
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+Personnel will be sent to traced property 982 for clinical observation and lab testing
+Personnel will be sent to traced property 1573 for clinical observation and lab testing
+Personnel will be sent to traced property 1536 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 1447 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 1462 for clinical observation and lab testing
+Personnel will be sent to traced property 1375 for clinical observation and lab testing
+Personnel will be sent to traced property 348 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 1487 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 41 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 348 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 72 for clinical observation and lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 1763 for clinical observation and lab testing
+Personnel will be sent to traced property 1732 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 587 for clinical observation and lab testing
+Personnel will be sent to traced property 851 for clinical observation and lab testing
+Personnel will be sent to traced property 1067 for clinical observation and lab testing
+Personnel will be sent to traced property 462 for clinical observation and lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to traced property 1487 for clinical observation and lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to traced property 425 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 1400 for clinical observation and lab testing
+Personnel will be sent to traced property 1838 for clinical observation and lab testing
+Personnel will be sent to traced property 1811 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 326 for clinical observation and lab testing
+Personnel will be sent to traced property 1653 for clinical observation and lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to traced property 429 for clinical observation and lab testing
+Personnel will be sent to traced property 66 for clinical observation and lab testing
+Personnel will be sent to traced property 260 for clinical observation and lab testing
+Personnel will be sent to traced property 1115 for clinical observation and lab testing
+Personnel will be sent to traced property 868 for clinical observation and lab testing
+Personnel will be sent to traced property 463 for clinical observation and lab testing
+Personnel will be sent to traced property 611 for clinical observation and lab testing
+Personnel will be sent to traced property 1268 for clinical observation and lab testing
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+Personnel will be sent to traced property 485 for clinical observation and lab testing
+Personnel will be sent to traced property 643 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 1435 for clinical observation and lab testing
+Personnel will be sent to traced property 868 for clinical observation and lab testing
+Personnel will be sent to traced property 217 for clinical observation and lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 1050 for clinical observation and lab testing
+Personnel will be sent to traced property 504 for clinical observation and lab testing
+Personnel will be sent to traced property 994 for clinical observation and lab testing
+Personnel will be sent to traced property 292 for clinical observation and lab testing
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 485 for clinical observation and lab testing
+Personnel will be sent to traced property 948 for clinical observation and lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to traced property 1536 for clinical observation and lab testing
+DAY 03/12/2024 - lab test report for property index 776
+No testing: property index 776 (IP 2) has already been culled
+DAY 03/12/2024 - lab test report for property index 429
+Property index 429 at location (x,y)=(148.55, -32.14) report POSITIVE result
+DAY 03/12/2024 - IP 5 (ID 429), 190.1 ha cattle property at location (x,y)=(148.55, -32.14), Terramungamine, Dubbo Regional Council, New South Wales, 2830, Australia, has been found infected. A total of 382 animal(s) will be culled.
+Property 429 has been scheduled for culling
+Property 429 has been scheduled for contact tracing
+DAY 03/12/2024 - lab test report for property index 637
+Property index 637 report negative result
+DAY 03/12/2024 - lab test report for property index 1159
+Property index 1159 report negative result
+DAY 03/12/2024 - lab test report for property index 908
+Property index 908 at location (x,y)=(148.04, -32.1) report POSITIVE result
+DAY 03/12/2024 - IP 6 (ID 908), 212.6 ha cattle property at location (x,y)=(148.04, -32.1), Trangie, Narromine Shire Council, New South Wales, 2823, Australia, has been found infected. A total of 249 animal(s) will be culled.
+Property 908 has been scheduled for culling
+Property 908 has been scheduled for contact tracing
+DAY 03/12/2024 - lab test report for property index 872
+Property index 872 report negative result
+DAY 03/12/2024 - lab test report for property index 1900
+Property index 1900 report negative result
+DAY 03/12/2024 - lab test report for property index 6
+Property index 6 at location (x,y)=(148.53, -31.54) report POSITIVE result
+DAY 03/12/2024 - IP 7 (ID 6), 89.9 ha cattle property at location (x,y)=(148.53, -31.54), Bardens Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been found infected. A total of 546 animal(s) will be culled.
+Property 6 has been scheduled for culling
+Property 6 has been scheduled for contact tracing
+DAY 03/12/2024 - lab test report for property index 167
+Property index 167 report negative result
+DAY 03/12/2024 - lab test report for property index 1253
+Property index 1253 at location (x,y)=(148.06, -31.92) report POSITIVE result
+DAY 03/12/2024 - IP 8 (ID 1253), 179.4 ha cattle property at location (x,y)=(148.06, -31.92), Gin Gin, Narromine Shire Council, New South Wales, 2823, Australia, has been found infected. A total of 450 animal(s) will be culled.
+Property 1253 has been scheduled for culling
+Property 1253 has been scheduled for contact tracing
+DAY 03/12/2024 - lab test report for property index 1635
+Property index 1635 at location (x,y)=(147.54, -31.56) report POSITIVE result
+DAY 03/12/2024 - IP 9 (ID 1635), 82.8 ha cattle property at location (x,y)=(147.54, -31.56), Eenaweena Woolshed, 4148, Eenaweena, Warren Shire Council, New South Wales, 2824, Australia, has been found infected. A total of 470 animal(s) will be culled.
+Property 1635 has been scheduled for culling
+Property 1635 has been scheduled for contact tracing
+DAY 03/12/2024 - lab test report for property index 1213
+Property index 1213 report negative result
+DAY 03/12/2024 - lab test report for property index 1379
+Property index 1379 report negative result
+DAY 03/12/2024 - lab test report for property index 1414
+Property index 1414 report negative result
+DAY 03/12/2024 - lab test report for property index 1277
+Property index 1277 report negative result
+DAY 03/12/2024 - lab test report for property index 193
+Property index 193 report negative result
+DAY 03/12/2024 - lab test report for property index 1758
+Property index 1758 report negative result
+DAY 03/12/2024 - lab test report for property index 1617
+Property index 1617 report negative result
+DAY 03/12/2024 - lab test report for property index 1373
+Property index 1373 at location (x,y)=(147.8, -32.0) report POSITIVE result
+DAY 03/12/2024 - IP 10 (ID 1373), 180.0 ha cattle property at location (x,y)=(147.8, -32.0), Gordons Lane, Trangie, Narromine Shire Council, New South Wales, 2823, Australia, has been found infected. A total of 102 animal(s) will be culled.
+Property 1373 has been scheduled for culling
+Property 1373 has been scheduled for contact tracing
+DAY 03/12/2024 - lab test report for property index 1735
+Property index 1735 at location (x,y)=(148.18, -31.58) report POSITIVE result
+DAY 03/12/2024 - IP 11 (ID 1735), 85.6 ha cattle property at location (x,y)=(148.18, -31.58), Pigeonbah, Warren Shire Council, New South Wales, 2824, Australia, has been found infected. A total of 36 animal(s) will be culled.
+Property 1735 has been scheduled for culling
+Property 1735 has been scheduled for contact tracing
+DAY 03/12/2024 - lab test report for property index 1768
+Property index 1768 report negative result
+DAY 03/12/2024 - lab test report for property index 1752
+Property index 1752 report negative result
+DAY 03/12/2024 - lab test report for property index 370
+Property index 370 report negative result
+DAY 03/12/2024 - lab test report for property index 1404
+Property index 1404 report negative result
+DAY 03/12/2024 - lab test report for property index 1983
+Property index 1983 at location (x,y)=(148.57, -31.6) report POSITIVE result
+DAY 03/12/2024 - IP 12 (ID 1983), 265.8 ha cattle property at location (x,y)=(148.57, -31.6), Gilgandra, Gilgandra Shire Council, New South Wales, 2827, Australia, has been found infected. A total of 74 animal(s) will be culled.
+Property 1983 has been scheduled for culling
+Property 1983 has been scheduled for contact tracing
+DAY 03/12/2024 - lab test report for property index 1769
+Property index 1769 report negative result
+DAY 03/12/2024 - IP 4 (ID 1898), 846.6 ha cattle property at location (x,y)=(148.54, -31.38), Gulargambone, Coonamble Shire Council, New South Wales, 2828, Australia, has been depopulated.
+A total of 245 animal(s) have been culled.
+DAY 03/12/2024 - contact tracing report compiled for movements from IP 4 (ID 1898)
+ - DAY 02/11/2024 - moved 12 animals from property ID 1898 (saleyard) to property ID 1379 (feedlot)
+ - DAY 02/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 292 (farm)
+ - DAY 02/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 303 (farm)
+ - DAY 02/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 386 (farm)
+ - DAY 02/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 1635 (feedlot)
+ - DAY 02/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 1358 (farm)
+ - DAY 04/11/2024 - moved 12 animals from property ID 1898 (saleyard) to property ID 303 (farm)
+ - DAY 04/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 1447 (farm)
+ - DAY 04/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 1379 (feedlot)
+ - DAY 04/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 982 (farm)
+ - DAY 04/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 1573 (farm)
+ - DAY 04/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 1536 (feedlot)
+ - DAY 05/11/2024 - moved 10 animals from property ID 1898 (saleyard) to property ID 908 (saleyard)
+ - DAY 05/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 1447 (farm)
+ - DAY 05/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 908 (saleyard)
+ - DAY 05/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 1462 (farm)
+ - DAY 05/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 1375 (farm)
+ - DAY 06/11/2024 - moved 13 animals from property ID 1898 (saleyard) to property ID 348 (farm)
+ - DAY 06/11/2024 - moved 13 animals from property ID 1898 (saleyard) to property ID 6 (stud farm)
+ - DAY 06/11/2024 - moved 12 animals from property ID 1898 (saleyard) to property ID 1635 (feedlot)
+ - DAY 06/11/2024 - moved 12 animals from property ID 1898 (saleyard) to property ID 6 (stud farm)
+ - DAY 07/11/2024 - moved 20 animals from property ID 1898 (saleyard) to property ID 908 (saleyard)
+ - DAY 07/11/2024 - moved 20 animals from property ID 1898 (saleyard) to property ID 1487 (feedlot)
+ - DAY 08/11/2024 - moved 17 animals from property ID 1898 (saleyard) to property ID 6 (stud farm)
+ - DAY 08/11/2024 - moved 17 animals from property ID 1898 (saleyard) to property ID 41 (farm)
+ - DAY 10/11/2024 - moved 6 animals from property ID 1898 (saleyard) to property ID 6 (stud farm)
+ - DAY 10/11/2024 - moved 6 animals from property ID 1898 (saleyard) to property ID 908 (saleyard)
+ - DAY 10/11/2024 - moved 5 animals from property ID 1898 (saleyard) to property ID 348 (farm)
+ - DAY 10/11/2024 - moved 5 animals from property ID 1898 (saleyard) to property ID 6 (stud farm)
+ - DAY 10/11/2024 - moved 5 animals from property ID 1898 (saleyard) to property ID 1635 (feedlot)
+ - DAY 10/11/2024 - moved 5 animals from property ID 1898 (saleyard) to property ID 6 (stud farm)
+ - DAY 11/11/2024 - moved 9 animals from property ID 1898 (saleyard) to property ID 72 (farm)
+ - DAY 11/11/2024 - moved 9 animals from property ID 1898 (saleyard) to property ID 1253 (feedlot)
+ - DAY 11/11/2024 - moved 9 animals from property ID 1898 (saleyard) to property ID 6 (stud farm)
+ - DAY 15/11/2024 - moved 10 animals from property ID 1898 (saleyard) to property ID 1763 (farm)
+ - DAY 15/11/2024 - moved 9 animals from property ID 1898 (saleyard) to property ID 1732 (farm)
+ - DAY 15/11/2024 - moved 9 animals from property ID 1898 (saleyard) to property ID 908 (saleyard)
+ - DAY 15/11/2024 - moved 9 animals from property ID 1898 (saleyard) to property ID 908 (saleyard)
+ - DAY 15/11/2024 - moved 9 animals from property ID 1898 (saleyard) to property ID 587 (farm)
+ - DAY 16/11/2024 - moved 41 animals from property ID 1898 (saleyard) to property ID 851 (farm)
+ - DAY 17/11/2024 - moved 16 animals from property ID 1898 (saleyard) to property ID 1067 (farm)
+ - DAY 17/11/2024 - moved 15 animals from property ID 1898 (saleyard) to property ID 462 (farm)
+ - DAY 17/11/2024 - moved 15 animals from property ID 1898 (saleyard) to property ID 1635 (feedlot)
+ - DAY 18/11/2024 - moved 9 animals from property ID 1898 (saleyard) to property ID 1487 (feedlot)
+ - DAY 18/11/2024 - moved 10 animals from property ID 1898 (saleyard) to property ID 1635 (feedlot)
+ - DAY 18/11/2024 - moved 10 animals from property ID 1898 (saleyard) to property ID 425 (feedlot)
+ - DAY 18/11/2024 - moved 10 animals from property ID 1898 (saleyard) to property ID 908 (saleyard)
+ - DAY 21/11/2024 - moved 8 animals from property ID 1898 (saleyard) to property ID 1400 (farm)
+ - DAY 21/11/2024 - moved 8 animals from property ID 1898 (saleyard) to property ID 1838 (farm)
+ - DAY 21/11/2024 - moved 8 animals from property ID 1898 (saleyard) to property ID 1811 (farm)
+ - DAY 21/11/2024 - moved 8 animals from property ID 1898 (saleyard) to property ID 6 (stud farm)
+ - DAY 21/11/2024 - moved 8 animals from property ID 1898 (saleyard) to property ID 326 (farm)
+ - DAY 21/11/2024 - moved 8 animals from property ID 1898 (saleyard) to property ID 1653 (farm)
+ - DAY 22/11/2024 - moved 10 animals from property ID 1898 (saleyard) to property ID 1253 (feedlot)
+ - DAY 22/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 429 (feedlot)
+ - DAY 22/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 66 (farm)
+ - DAY 22/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 260 (farm)
+ - DAY 22/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 1115 (farm)
+ - DAY 23/11/2024 - moved 10 animals from property ID 1898 (saleyard) to property ID 868 (farm)
+ - DAY 23/11/2024 - moved 10 animals from property ID 1898 (saleyard) to property ID 463 (farm)
+ - DAY 23/11/2024 - moved 9 animals from property ID 1898 (saleyard) to property ID 611 (farm)
+ - DAY 23/11/2024 - moved 9 animals from property ID 1898 (saleyard) to property ID 1268 (farm)
+ - DAY 23/11/2024 - moved 9 animals from property ID 1898 (saleyard) to property ID 1379 (feedlot)
+ - DAY 23/11/2024 - moved 9 animals from property ID 1898 (saleyard) to property ID 485 (farm)
+ - DAY 24/11/2024 - moved 52 animals from property ID 1898 (saleyard) to property ID 643 (farm)
+ - DAY 25/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 908 (saleyard)
+ - DAY 25/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 1435 (farm)
+ - DAY 25/11/2024 - moved 12 animals from property ID 1898 (saleyard) to property ID 868 (farm)
+ - DAY 25/11/2024 - moved 12 animals from property ID 1898 (saleyard) to property ID 217 (farm)
+ - DAY 25/11/2024 - moved 12 animals from property ID 1898 (saleyard) to property ID 1635 (feedlot)
+ - DAY 26/11/2024 - moved 10 animals from property ID 1898 (saleyard) to property ID 1253 (feedlot)
+ - DAY 26/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 6 (stud farm)
+ - DAY 26/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 1050 (farm)
+ - DAY 26/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 504 (farm)
+ - DAY 26/11/2024 - moved 11 animals from property ID 1898 (saleyard) to property ID 994 (farm)
+ - DAY 27/11/2024 - moved 12 animals from property ID 1898 (saleyard) to property ID 292 (farm)
+ - DAY 27/11/2024 - moved 12 animals from property ID 1898 (saleyard) to property ID 1379 (feedlot)
+ - DAY 27/11/2024 - moved 12 animals from property ID 1898 (saleyard) to property ID 908 (saleyard)
+ - DAY 27/11/2024 - moved 12 animals from property ID 1898 (saleyard) to property ID 485 (farm)
+ - DAY 28/11/2024 - moved 53 animals from property ID 1898 (saleyard) to property ID 948 (farm)
+ - DAY 29/11/2024 - moved 29 animals from property ID 1898 (saleyard) to property ID 1253 (feedlot)
+ - DAY 29/11/2024 - moved 29 animals from property ID 1898 (saleyard) to property ID 1536 (feedlot)
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+Personnel will be sent to traced property 292 for clinical observation and lab testing
+Personnel will be sent to traced property 303 for clinical observation and lab testing
+Personnel will be sent to traced property 386 for clinical observation and lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to traced property 1358 for clinical observation and lab testing
+Personnel will be sent to traced property 303 for clinical observation and lab testing
+Personnel will be sent to traced property 1447 for clinical observation and lab testing
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+Personnel will be sent to traced property 982 for clinical observation and lab testing
+Personnel will be sent to traced property 1573 for clinical observation and lab testing
+Personnel will be sent to traced property 1536 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 1447 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 1462 for clinical observation and lab testing
+Personnel will be sent to traced property 1375 for clinical observation and lab testing
+Personnel will be sent to traced property 348 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 1487 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 41 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 348 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 72 for clinical observation and lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 1763 for clinical observation and lab testing
+Personnel will be sent to traced property 1732 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 587 for clinical observation and lab testing
+Personnel will be sent to traced property 851 for clinical observation and lab testing
+Personnel will be sent to traced property 1067 for clinical observation and lab testing
+Personnel will be sent to traced property 462 for clinical observation and lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to traced property 1487 for clinical observation and lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to traced property 425 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 1400 for clinical observation and lab testing
+Personnel will be sent to traced property 1838 for clinical observation and lab testing
+Personnel will be sent to traced property 1811 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 326 for clinical observation and lab testing
+Personnel will be sent to traced property 1653 for clinical observation and lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to traced property 429 for clinical observation and lab testing
+Personnel will be sent to traced property 66 for clinical observation and lab testing
+Personnel will be sent to traced property 260 for clinical observation and lab testing
+Personnel will be sent to traced property 1115 for clinical observation and lab testing
+Personnel will be sent to traced property 868 for clinical observation and lab testing
+Personnel will be sent to traced property 463 for clinical observation and lab testing
+Personnel will be sent to traced property 611 for clinical observation and lab testing
+Personnel will be sent to traced property 1268 for clinical observation and lab testing
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+Personnel will be sent to traced property 485 for clinical observation and lab testing
+Personnel will be sent to traced property 643 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 1435 for clinical observation and lab testing
+Personnel will be sent to traced property 868 for clinical observation and lab testing
+Personnel will be sent to traced property 217 for clinical observation and lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 1050 for clinical observation and lab testing
+Personnel will be sent to traced property 504 for clinical observation and lab testing
+Personnel will be sent to traced property 994 for clinical observation and lab testing
+Personnel will be sent to traced property 292 for clinical observation and lab testing
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 485 for clinical observation and lab testing
+Personnel will be sent to traced property 948 for clinical observation and lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to traced property 1536 for clinical observation and lab testing
+DAY 03/12/2024 - clinical observation report for property index 637
+Property index 637 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1159
+Property index 1159 report negative result
+DAY 03/12/2024 - clinical observation report for property index 908
+Property index 908 at location (x,y)=(148.04, -32.1) report POSITIVE result
+Property 908 has been scheduled for contact tracing
+Personnel will be sent to property 908 for lab testing
+DAY 03/12/2024 - clinical observation report for property index 872
+Property index 872 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1900
+Property index 1900 report negative result
+DAY 03/12/2024 - clinical observation report for property index 6
+Property index 6 report negative result
+DAY 03/12/2024 - clinical observation report for property index 167
+Property index 167 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1253
+Property index 1253 at location (x,y)=(148.06, -31.92) report POSITIVE result
+Property 1253 has been scheduled for contact tracing
+Personnel will be sent to property 1253 for lab testing
+DAY 03/12/2024 - clinical observation report for property index 1635
+Property index 1635 at location (x,y)=(147.54, -31.56) report POSITIVE result
+Property 1635 has been scheduled for contact tracing
+Personnel will be sent to property 1635 for lab testing
+DAY 03/12/2024 - clinical observation report for property index 1213
+Property index 1213 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1379
+Property index 1379 at location (x,y)=(148.24, -31.58) report POSITIVE result
+Property 1379 has been scheduled for contact tracing
+Personnel will be sent to property 1379 for lab testing
+DAY 03/12/2024 - clinical observation report for property index 1414
+Property index 1414 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1277
+Property index 1277 report negative result
+DAY 03/12/2024 - clinical observation report for property index 193
+Property index 193 report negative result
+DAY 03/12/2024 - clinical observation report for property index 429
+Property index 429 at location (x,y)=(148.55, -32.14) report POSITIVE result
+Property 429 has been scheduled for contact tracing
+Personnel will be sent to property 429 for lab testing
+DAY 03/12/2024 - clinical observation report for property index 1758
+Property index 1758 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1617
+Property index 1617 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1373
+Property index 1373 at location (x,y)=(147.8, -32.0) report POSITIVE result
+Property 1373 has been scheduled for contact tracing
+Personnel will be sent to property 1373 for lab testing
+DAY 03/12/2024 - clinical observation report for property index 1735
+Property index 1735 at location (x,y)=(148.18, -31.58) report POSITIVE result
+Property 1735 has been scheduled for contact tracing
+Personnel will be sent to property 1735 for lab testing
+DAY 03/12/2024 - clinical observation report for property index 1768
+Property index 1768 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1752
+Property index 1752 report negative result
+DAY 03/12/2024 - clinical observation report for property index 370
+Property index 370 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1404
+Property index 1404 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1983
+Property index 1983 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1769
+Property index 1769 report negative result
+DAY 03/12/2024 - contact tracing report compiled for movements from IP 7 (ID 6)
+ - DAY 02/11/2024 - moved 1 animals from property ID 6 (stud farm) to property ID 908 (saleyard)
+ - DAY 02/11/2024 - moved 1 animals from property ID 6 (stud farm) to property ID 1277 (farm)
+ - DAY 02/11/2024 - moved 1 animals from property ID 6 (stud farm) to property ID 908 (saleyard)
+ - DAY 03/11/2024 - moved 1 animals from property ID 6 (stud farm) to property ID 908 (saleyard)
+ - DAY 03/11/2024 - moved 1 animals from property ID 6 (stud farm) to property ID 908 (saleyard)
+ - DAY 03/11/2024 - moved 1 animals from property ID 6 (stud farm) to property ID 908 (saleyard)
+ - DAY 03/11/2024 - moved 1 animals from property ID 6 (stud farm) to property ID 776 (trader)
+ - DAY 04/11/2024 - moved 2 animals from property ID 6 (stud farm) to property ID 776 (trader)
+ - DAY 04/11/2024 - moved 2 animals from property ID 6 (stud farm) to property ID 1898 (saleyard)
+ - DAY 04/11/2024 - moved 2 animals from property ID 6 (stud farm) to property ID 1589 (farm)
+ - DAY 04/11/2024 - moved 2 animals from property ID 6 (stud farm) to property ID 776 (trader)
+ - DAY 04/11/2024 - moved 2 animals from property ID 6 (stud farm) to property ID 1580 (farm)
+ - DAY 05/11/2024 - moved 5 animals from property ID 6 (stud farm) to property ID 908 (saleyard)
+ - DAY 05/11/2024 - moved 4 animals from property ID 6 (stud farm) to property ID 1898 (saleyard)
+ - DAY 05/11/2024 - moved 4 animals from property ID 6 (stud farm) to property ID 1898 (saleyard)
+ - DAY 06/11/2024 - moved 9 animals from property ID 6 (stud farm) to property ID 480 (farm)
+ - DAY 06/11/2024 - moved 9 animals from property ID 6 (stud farm) to property ID 776 (trader)
+ - DAY 07/11/2024 - moved 10 animals from property ID 6 (stud farm) to property ID 908 (saleyard)
+ - DAY 07/11/2024 - moved 10 animals from property ID 6 (stud farm) to property ID 776 (trader)
+ - DAY 08/11/2024 - moved 5 animals from property ID 6 (stud farm) to property ID 1898 (saleyard)
+ - DAY 08/11/2024 - moved 5 animals from property ID 6 (stud farm) to property ID 908 (saleyard)
+ - DAY 08/11/2024 - moved 6 animals from property ID 6 (stud farm) to property ID 1627 (farm)
+ - DAY 08/11/2024 - moved 6 animals from property ID 6 (stud farm) to property ID 1734 (farm)
+ - DAY 16/11/2024 - moved 17 animals from property ID 6 (stud farm) to property ID 1489 (farm)
+ - DAY 16/11/2024 - moved 17 animals from property ID 6 (stud farm) to property ID 979 (farm)
+ - DAY 16/11/2024 - moved 17 animals from property ID 6 (stud farm) to property ID 908 (saleyard)
+ - DAY 16/11/2024 - moved 17 animals from property ID 6 (stud farm) to property ID 776 (trader)
+ - DAY 23/11/2024 - moved 46 animals from property ID 6 (stud farm) to property ID 1373 (farm)
+ - DAY 23/11/2024 - moved 46 animals from property ID 6 (stud farm) to property ID 776 (trader)
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 1277 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 1589 for clinical observation and lab testing
+Personnel will be sent to traced property 1580 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 480 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 1627 for clinical observation and lab testing
+Personnel will be sent to traced property 1734 for clinical observation and lab testing
+Personnel will be sent to traced property 1489 for clinical observation and lab testing
+Personnel will be sent to traced property 979 for clinical observation and lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to traced property 1373 for clinical observation and lab testing
+DAY 03/12/2024 - contact tracing report compiled for movements from IP 8 (ID 1253)
+ - no movements found
+DAY 03/12/2024 - contact tracing report compiled for movements from IP NA (ID 1379)
+ - no movements found
+DAY 03/12/2024 - contact tracing report compiled for movements from IP 12 (ID 1983)
+ - DAY 09/11/2024 - moved 5 animals from property ID 1983 (farm) to property ID 735 (farm)
+ - DAY 24/11/2024 - moved 4 animals from property ID 1983 (farm) to property ID 1898 (saleyard)
+Personnel will be sent to traced property 735 for clinical observation and lab testing
+DAY 03/12/2024 - clinical observation report for property index 1898
+No testing: property index 1898 (IP 4) has already been culled
+DAY 03/12/2024 - clinical observation report for property index 292
+Property index 292 report negative result
+DAY 03/12/2024 - clinical observation report for property index 303
+Property index 303 report negative result
+DAY 03/12/2024 - clinical observation report for property index 386
+Property index 386 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1358
+Property index 1358 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1447
+Property index 1447 report negative result
+DAY 03/12/2024 - clinical observation report for property index 982
+Property index 982 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1573
+Property index 1573 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1536
+Property index 1536 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1462
+Property index 1462 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1375
+Property index 1375 report negative result
+DAY 03/12/2024 - clinical observation report for property index 348
+Property index 348 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1487
+Property index 1487 report negative result
+DAY 03/12/2024 - clinical observation report for property index 41
+Property index 41 at location (x,y)=(147.58, -31.63) report POSITIVE result
+Property 41 has been scheduled for contact tracing
+Personnel will be sent to property 41 for lab testing
+DAY 03/12/2024 - clinical observation report for property index 72
+Property index 72 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1763
+Property index 1763 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1732
+Property index 1732 report negative result
+DAY 03/12/2024 - clinical observation report for property index 587
+Property index 587 report negative result
+DAY 03/12/2024 - clinical observation report for property index 851
+Property index 851 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1067
+Property index 1067 report negative result
+DAY 03/12/2024 - clinical observation report for property index 462
+Property index 462 report negative result
+DAY 03/12/2024 - clinical observation report for property index 425
+Property index 425 at location (x,y)=(148.71, -31.48) report POSITIVE result
+Property 425 has been scheduled for contact tracing
+Personnel will be sent to property 425 for lab testing
+DAY 03/12/2024 - clinical observation report for property index 1400
+Property index 1400 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1838
+Property index 1838 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1811
+Property index 1811 report negative result
+DAY 03/12/2024 - clinical observation report for property index 326
+Property index 326 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1653
+Property index 1653 report negative result
+DAY 03/12/2024 - clinical observation report for property index 66
+Property index 66 report negative result
+DAY 03/12/2024 - clinical observation report for property index 260
+Property index 260 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1115
+Property index 1115 report negative result
+DAY 03/12/2024 - clinical observation report for property index 868
+Property index 868 report negative result
+DAY 03/12/2024 - clinical observation report for property index 463
+Property index 463 report negative result
+DAY 03/12/2024 - clinical observation report for property index 611
+Property index 611 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1268
+Property index 1268 report negative result
+DAY 03/12/2024 - clinical observation report for property index 485
+Property index 485 report negative result
+DAY 03/12/2024 - clinical observation report for property index 643
+Property index 643 at location (x,y)=(149.14, -31.3) report POSITIVE result
+Property 643 has been scheduled for contact tracing
+Personnel will be sent to property 643 for lab testing
+DAY 03/12/2024 - clinical observation report for property index 1435
+Property index 1435 report negative result
+DAY 03/12/2024 - clinical observation report for property index 217
+Property index 217 at location (x,y)=(148.75, -31.29) report POSITIVE result
+Property 217 has been scheduled for contact tracing
+Personnel will be sent to property 217 for lab testing
+DAY 03/12/2024 - clinical observation report for property index 1050
+Property index 1050 report negative result
+DAY 03/12/2024 - clinical observation report for property index 504
+Property index 504 at location (x,y)=(148.21, -31.64) report POSITIVE result
+Property 504 has been scheduled for contact tracing
+Personnel will be sent to property 504 for lab testing
+DAY 03/12/2024 - clinical observation report for property index 994
+Property index 994 at location (x,y)=(149.06, -31.04) report POSITIVE result
+Property 994 has been scheduled for contact tracing
+Personnel will be sent to property 994 for lab testing
+DAY 03/12/2024 - clinical observation report for property index 948
+Property index 948 at location (x,y)=(148.94, -30.62) report POSITIVE result
+Property 948 has been scheduled for contact tracing
+Personnel will be sent to property 948 for lab testing
+DAY 03/12/2024 - Property ID 1268 (farm), 279.0 ha cattle property at location (x,y)=(148.52, -31.52), Bardens Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Property 1268 has been scheduled for contact tracing
+Personnel will be sent to property 1268 for lab testing
+DAY 03/12/2024 - contact tracing report compiled for movements from IP NA (ID 1268)
+ - DAY 27/11/2024 - moved 6 animals from property ID 1268 (farm) to property ID 444 (farm)
+DAY 04/12/2024 - lab test report for property index 1898
+No testing: property index 1898 (IP 4) has already been culled
+DAY 04/12/2024 - lab test report for property index 292
+Property index 292 at location (x,y)=(149.33, -30.87) report POSITIVE result
+DAY 04/12/2024 - IP 13 (ID 292), 290.2 ha cattle property at location (x,y)=(149.33, -30.87), Dipper Road, Baradine, Warrumbungle Shire Council, New South Wales, Australia, has been found infected. A total of 97 animal(s) will be culled.
+Property 292 has been scheduled for culling
+Property 292 has been scheduled for contact tracing
+DAY 04/12/2024 - lab test report for property index 303
+Property index 303 report negative result
+DAY 04/12/2024 - lab test report for property index 386
+Property index 386 report negative result
+DAY 04/12/2024 - lab test report for property index 1358
+Property index 1358 report negative result
+DAY 04/12/2024 - lab test report for property index 1447
+Property index 1447 report negative result
+DAY 04/12/2024 - lab test report for property index 982
+Property index 982 report negative result
+DAY 04/12/2024 - lab test report for property index 1573
+Property index 1573 report negative result
+DAY 04/12/2024 - lab test report for property index 1536
+Property index 1536 at location (x,y)=(148.78, -31.84) report POSITIVE result
+DAY 04/12/2024 - IP 14 (ID 1536), 177.7 ha cattle property at location (x,y)=(148.78, -31.84), Mudfords Road, Gilgandra Shire Council, New South Wales, Australia, has been found infected. A total of 352 animal(s) will be culled.
+Property 1536 has been scheduled for culling
+Property 1536 has been scheduled for contact tracing
+DAY 04/12/2024 - lab test report for property index 1462
+Property index 1462 report negative result
+DAY 04/12/2024 - lab test report for property index 1375
+Property index 1375 report negative result
+DAY 04/12/2024 - lab test report for property index 348
+Property index 348 report negative result
+DAY 04/12/2024 - lab test report for property index 1487
+Property index 1487 report negative result
+DAY 04/12/2024 - lab test report for property index 41
+Property index 41 at location (x,y)=(147.58, -31.63) report POSITIVE result
+DAY 04/12/2024 - IP 15 (ID 41), 124.3 ha cattle property at location (x,y)=(147.58, -31.63), Gunningbar West, 1381, Eenaweena, Warren Shire Council, New South Wales, 2824, Australia, has been found infected. A total of 37 animal(s) will be culled.
+Property 41 has been scheduled for culling
+Property 41 has been scheduled for contact tracing
+DAY 04/12/2024 - lab test report for property index 72
+Property index 72 report negative result
+DAY 04/12/2024 - lab test report for property index 1763
+Property index 1763 report negative result
+DAY 04/12/2024 - lab test report for property index 1732
+Property index 1732 report negative result
+DAY 04/12/2024 - lab test report for property index 587
+Property index 587 report negative result
+DAY 04/12/2024 - lab test report for property index 851
+Property index 851 report negative result
+DAY 04/12/2024 - lab test report for property index 1067
+Property index 1067 report negative result
+DAY 04/12/2024 - lab test report for property index 462
+Property index 462 at location (x,y)=(148.73, -31.58) report POSITIVE result
+DAY 04/12/2024 - IP 16 (ID 462), 827.5 ha cattle property at location (x,y)=(148.73, -31.58), Biddon, Gilgandra Shire Council, New South Wales, 2827, Australia, has been found infected. A total of 130 animal(s) will be culled.
+Property 462 has been scheduled for culling
+Property 462 has been scheduled for contact tracing
+DAY 04/12/2024 - lab test report for property index 425
+Property index 425 at location (x,y)=(148.71, -31.48) report POSITIVE result
+DAY 04/12/2024 - IP 17 (ID 425), 168.1 ha cattle property at location (x,y)=(148.71, -31.48), Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been found infected. A total of 333 animal(s) will be culled.
+Property 425 has been scheduled for culling
+Property 425 has been scheduled for contact tracing
+DAY 04/12/2024 - lab test report for property index 1400
+Property index 1400 report negative result
+DAY 04/12/2024 - lab test report for property index 1838
+Property index 1838 report negative result
+DAY 04/12/2024 - lab test report for property index 1811
+Property index 1811 report negative result
+DAY 04/12/2024 - lab test report for property index 326
+Property index 326 report negative result
+DAY 04/12/2024 - lab test report for property index 1653
+Property index 1653 report negative result
+DAY 04/12/2024 - lab test report for property index 66
+Property index 66 report negative result
+DAY 04/12/2024 - lab test report for property index 260
+Property index 260 at location (x,y)=(148.09, -32.19) report POSITIVE result
+DAY 04/12/2024 - IP 18 (ID 260), 95.6 ha cattle property at location (x,y)=(148.09, -32.19), Narromine, Narromine Shire Council, New South Wales, 2821, Australia, has been found infected. A total of 29 animal(s) will be culled.
+Property 260 has been scheduled for culling
+Property 260 has been scheduled for contact tracing
+DAY 04/12/2024 - lab test report for property index 1115
+Property index 1115 report negative result
+DAY 04/12/2024 - lab test report for property index 868
+Property index 868 report negative result
+DAY 04/12/2024 - lab test report for property index 463
+Property index 463 report negative result
+DAY 04/12/2024 - lab test report for property index 611
+Property index 611 report negative result
+DAY 04/12/2024 - lab test report for property index 1268
+Property index 1268 report negative result
+DAY 04/12/2024 - lab test report for property index 485
+Property index 485 report negative result
+DAY 04/12/2024 - lab test report for property index 643
+Property index 643 at location (x,y)=(149.14, -31.3) report POSITIVE result
+DAY 04/12/2024 - IP 19 (ID 643), 460.8 ha cattle property at location (x,y)=(149.14, -31.3), Coonabarabran, Warrumbungle Shire Council, New South Wales, 2357, Australia, has been found infected. A total of 133 animal(s) will be culled.
+Property 643 has been scheduled for culling
+Property 643 has been scheduled for contact tracing
+DAY 04/12/2024 - lab test report for property index 1435
+Property index 1435 at location (x,y)=(148.58, -31.46) report POSITIVE result
+DAY 04/12/2024 - IP 20 (ID 1435), 388.8 ha cattle property at location (x,y)=(148.58, -31.46), Nalders Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been found infected. A total of 80 animal(s) will be culled.
+Property 1435 has been scheduled for culling
+Property 1435 has been scheduled for contact tracing
+DAY 04/12/2024 - lab test report for property index 217
+Property index 217 at location (x,y)=(148.75, -31.29) report POSITIVE result
+DAY 04/12/2024 - IP 21 (ID 217), 386.5 ha cattle property at location (x,y)=(148.75, -31.29), Tonderburine, Gilgandra Shire Council, New South Wales, 2817, Australia, has been found infected. A total of 89 animal(s) will be culled.
+Property 217 has been scheduled for culling
+Property 217 has been scheduled for contact tracing
+DAY 04/12/2024 - lab test report for property index 1050
+Property index 1050 report negative result
+DAY 04/12/2024 - lab test report for property index 504
+Property index 504 at location (x,y)=(148.21, -31.64) report POSITIVE result
+DAY 04/12/2024 - IP 22 (ID 504), 66.8 ha cattle property at location (x,y)=(148.21, -31.64), Collie, Warren Shire Council, New South Wales, 2827, Australia, has been found infected. A total of 20 animal(s) will be culled.
+Property 504 has been scheduled for culling
+Property 504 has been scheduled for contact tracing
+DAY 04/12/2024 - lab test report for property index 994
+Property index 994 at location (x,y)=(149.06, -31.04) report POSITIVE result
+DAY 04/12/2024 - IP 23 (ID 994), 152.2 ha cattle property at location (x,y)=(149.06, -31.04), Pig Road, Bugaldie, Baradine, Warrumbungle Shire Council, New South Wales, 2396, Australia, has been found infected. A total of 32 animal(s) will be culled.
+Property 994 has been scheduled for culling
+Property 994 has been scheduled for contact tracing
+DAY 04/12/2024 - lab test report for property index 948
+Property index 948 at location (x,y)=(148.94, -30.62) report POSITIVE result
+DAY 04/12/2024 - IP 24 (ID 948), 245.5 ha cattle property at location (x,y)=(148.94, -30.62), Gwabegar, Narrabri Shire Council, New South Wales, 2356, Australia, has been found infected. A total of 87 animal(s) will be culled.
+Property 948 has been scheduled for culling
+Property 948 has been scheduled for contact tracing
+DAY 04/12/2024 - IP 5 (ID 429), 190.1 ha cattle property at location (x,y)=(148.55, -32.14), Terramungamine, Dubbo Regional Council, New South Wales, 2830, Australia, has been depopulated.
+A total of 382 animal(s) have been culled.
+DAY 04/12/2024 - contact tracing report compiled for movements from IP 5 (ID 429)
+ - no movements found
+DAY 04/12/2024 - IP 6 (ID 908), 212.6 ha cattle property at location (x,y)=(148.04, -32.1), Trangie, Narromine Shire Council, New South Wales, 2823, Australia, has been depopulated.
+A total of 249 animal(s) have been culled.
+DAY 04/12/2024 - contact tracing report compiled for movements from IP 6 (ID 908)
+ - DAY 02/11/2024 - moved 5 animals from property ID 908 (saleyard) to property ID 776 (trader)
+ - DAY 02/11/2024 - moved 6 animals from property ID 908 (saleyard) to property ID 6 (stud farm)
+ - DAY 02/11/2024 - moved 6 animals from property ID 908 (saleyard) to property ID 1752 (farm)
+ - DAY 03/11/2024 - moved 2 animals from property ID 908 (saleyard) to property ID 6 (stud farm)
+ - DAY 03/11/2024 - moved 3 animals from property ID 908 (saleyard) to property ID 1267 (farm)
+ - DAY 03/11/2024 - moved 3 animals from property ID 908 (saleyard) to property ID 884 (farm)
+ - DAY 03/11/2024 - moved 3 animals from property ID 908 (saleyard) to property ID 1898 (saleyard)
+ - DAY 03/11/2024 - moved 3 animals from property ID 908 (saleyard) to property ID 6 (stud farm)
+ - DAY 03/11/2024 - moved 3 animals from property ID 908 (saleyard) to property ID 1898 (saleyard)
+ - DAY 04/11/2024 - moved 4 animals from property ID 908 (saleyard) to property ID 1768 (feedlot)
+ - DAY 04/11/2024 - moved 4 animals from property ID 908 (saleyard) to property ID 1635 (feedlot)
+ - DAY 04/11/2024 - moved 4 animals from property ID 908 (saleyard) to property ID 1732 (farm)
+ - DAY 04/11/2024 - moved 4 animals from property ID 908 (saleyard) to property ID 493 (farm)
+ - DAY 05/11/2024 - moved 4 animals from property ID 908 (saleyard) to property ID 1898 (saleyard)
+ - DAY 05/11/2024 - moved 4 animals from property ID 908 (saleyard) to property ID 1536 (feedlot)
+ - DAY 05/11/2024 - moved 4 animals from property ID 908 (saleyard) to property ID 1524 (farm)
+ - DAY 05/11/2024 - moved 4 animals from property ID 908 (saleyard) to property ID 776 (trader)
+ - DAY 06/11/2024 - moved 7 animals from property ID 908 (saleyard) to property ID 1768 (feedlot)
+ - DAY 06/11/2024 - moved 8 animals from property ID 908 (saleyard) to property ID 1437 (farm)
+ - DAY 06/11/2024 - moved 8 animals from property ID 908 (saleyard) to property ID 501 (farm)
+ - DAY 07/11/2024 - moved 26 animals from property ID 908 (saleyard) to property ID 366 (farm)
+ - DAY 08/11/2024 - moved 10 animals from property ID 908 (saleyard) to property ID 776 (trader)
+ - DAY 08/11/2024 - moved 10 animals from property ID 908 (saleyard) to property ID 1898 (saleyard)
+ - DAY 08/11/2024 - moved 10 animals from property ID 908 (saleyard) to property ID 66 (farm)
+ - DAY 10/11/2024 - moved 8 animals from property ID 908 (saleyard) to property ID 1962 (farm)
+ - DAY 10/11/2024 - moved 7 animals from property ID 908 (saleyard) to property ID 1373 (farm)
+ - DAY 10/11/2024 - moved 7 animals from property ID 908 (saleyard) to property ID 6 (stud farm)
+ - DAY 10/11/2024 - moved 7 animals from property ID 908 (saleyard) to property ID 611 (farm)
+ - DAY 10/11/2024 - moved 7 animals from property ID 908 (saleyard) to property ID 1898 (saleyard)
+ - DAY 11/11/2024 - moved 35 animals from property ID 908 (saleyard) to property ID 6 (stud farm)
+ - DAY 12/11/2024 - moved 15 animals from property ID 908 (saleyard) to property ID 1898 (saleyard)
+ - DAY 12/11/2024 - moved 14 animals from property ID 908 (saleyard) to property ID 6 (stud farm)
+ - DAY 12/11/2024 - moved 14 animals from property ID 908 (saleyard) to property ID 6 (stud farm)
+ - DAY 13/11/2024 - moved 12 animals from property ID 908 (saleyard) to property ID 1898 (saleyard)
+ - DAY 13/11/2024 - moved 12 animals from property ID 908 (saleyard) to property ID 6 (stud farm)
+ - DAY 13/11/2024 - moved 12 animals from property ID 908 (saleyard) to property ID 1400 (farm)
+ - DAY 16/11/2024 - moved 7 animals from property ID 908 (saleyard) to property ID 6 (stud farm)
+ - DAY 16/11/2024 - moved 8 animals from property ID 908 (saleyard) to property ID 426 (farm)
+ - DAY 16/11/2024 - moved 8 animals from property ID 908 (saleyard) to property ID 376 (farm)
+ - DAY 16/11/2024 - moved 8 animals from property ID 908 (saleyard) to property ID 1036 (farm)
+ - DAY 16/11/2024 - moved 8 animals from property ID 908 (saleyard) to property ID 1423 (farm)
+ - DAY 16/11/2024 - moved 8 animals from property ID 908 (saleyard) to property ID 1898 (saleyard)
+ - DAY 17/11/2024 - moved 54 animals from property ID 908 (saleyard) to property ID 6 (stud farm)
+ - DAY 18/11/2024 - moved 17 animals from property ID 908 (saleyard) to property ID 1347 (farm)
+ - DAY 18/11/2024 - moved 17 animals from property ID 908 (saleyard) to property ID 1962 (farm)
+ - DAY 18/11/2024 - moved 17 animals from property ID 908 (saleyard) to property ID 1948 (farm)
+ - DAY 20/11/2024 - moved 10 animals from property ID 908 (saleyard) to property ID 1253 (feedlot)
+ - DAY 20/11/2024 - moved 10 animals from property ID 908 (saleyard) to property ID 1755 (farm)
+ - DAY 20/11/2024 - moved 10 animals from property ID 908 (saleyard) to property ID 6 (stud farm)
+ - DAY 20/11/2024 - moved 10 animals from property ID 908 (saleyard) to property ID 776 (trader)
+ - DAY 20/11/2024 - moved 10 animals from property ID 908 (saleyard) to property ID 776 (trader)
+ - DAY 21/11/2024 - moved 45 animals from property ID 908 (saleyard) to property ID 1281 (farm)
+ - DAY 22/11/2024 - moved 9 animals from property ID 908 (saleyard) to property ID 1768 (feedlot)
+ - DAY 22/11/2024 - moved 9 animals from property ID 908 (saleyard) to property ID 1882 (farm)
+ - DAY 22/11/2024 - moved 10 animals from property ID 908 (saleyard) to property ID 776 (trader)
+ - DAY 22/11/2024 - moved 10 animals from property ID 908 (saleyard) to property ID 153 (farm)
+ - DAY 24/11/2024 - moved 26 animals from property ID 908 (saleyard) to property ID 1399 (farm)
+ - DAY 24/11/2024 - moved 26 animals from property ID 908 (saleyard) to property ID 99 (farm)
+ - DAY 25/11/2024 - moved 12 animals from property ID 908 (saleyard) to property ID 429 (feedlot)
+ - DAY 25/11/2024 - moved 13 animals from property ID 908 (saleyard) to property ID 1379 (feedlot)
+ - DAY 25/11/2024 - moved 13 animals from property ID 908 (saleyard) to property ID 1983 (farm)
+ - DAY 25/11/2024 - moved 13 animals from property ID 908 (saleyard) to property ID 1643 (farm)
+ - DAY 27/11/2024 - moved 54 animals from property ID 908 (saleyard) to property ID 1898 (saleyard)
+ - DAY 29/11/2024 - moved 19 animals from property ID 908 (saleyard) to property ID 655 (farm)
+ - DAY 29/11/2024 - moved 18 animals from property ID 908 (saleyard) to property ID 6 (stud farm)
+ - DAY 29/11/2024 - moved 18 animals from property ID 908 (saleyard) to property ID 1253 (feedlot)
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 1752 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 1267 for clinical observation and lab testing
+Personnel will be sent to traced property 884 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 1768 for clinical observation and lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to traced property 1732 for clinical observation and lab testing
+Personnel will be sent to traced property 493 for clinical observation and lab testing
+Personnel will be sent to traced property 1536 for clinical observation and lab testing
+Personnel will be sent to traced property 1524 for clinical observation and lab testing
+Personnel will be sent to traced property 1768 for clinical observation and lab testing
+Personnel will be sent to traced property 1437 for clinical observation and lab testing
+Personnel will be sent to traced property 501 for clinical observation and lab testing
+Personnel will be sent to traced property 366 for clinical observation and lab testing
+Personnel will be sent to traced property 66 for clinical observation and lab testing
+Personnel will be sent to traced property 1962 for clinical observation and lab testing
+Personnel will be sent to traced property 1373 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 611 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 1400 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 426 for clinical observation and lab testing
+Personnel will be sent to traced property 376 for clinical observation and lab testing
+Personnel will be sent to traced property 1036 for clinical observation and lab testing
+Personnel will be sent to traced property 1423 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 1347 for clinical observation and lab testing
+Personnel will be sent to traced property 1962 for clinical observation and lab testing
+Personnel will be sent to traced property 1948 for clinical observation and lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to traced property 1755 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 1281 for clinical observation and lab testing
+Personnel will be sent to traced property 1768 for clinical observation and lab testing
+Personnel will be sent to traced property 1882 for clinical observation and lab testing
+Personnel will be sent to traced property 153 for clinical observation and lab testing
+Personnel will be sent to traced property 1399 for clinical observation and lab testing
+Personnel will be sent to traced property 99 for clinical observation and lab testing
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+Personnel will be sent to traced property 1983 for clinical observation and lab testing
+Personnel will be sent to traced property 1643 for clinical observation and lab testing
+Personnel will be sent to traced property 655 for clinical observation and lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+DAY 04/12/2024 - IP 7 (ID 6), 89.9 ha cattle property at location (x,y)=(148.53, -31.54), Bardens Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been depopulated.
+A total of 546 animal(s) have been culled.
+DAY 04/12/2024 - contact tracing report compiled for movements from IP 7 (ID 6)
+ - DAY 02/11/2024 - moved 1 animals from property ID 6 (stud farm) to property ID 908 (saleyard)
+ - DAY 02/11/2024 - moved 1 animals from property ID 6 (stud farm) to property ID 1277 (farm)
+ - DAY 02/11/2024 - moved 1 animals from property ID 6 (stud farm) to property ID 908 (saleyard)
+ - DAY 03/11/2024 - moved 1 animals from property ID 6 (stud farm) to property ID 908 (saleyard)
+ - DAY 03/11/2024 - moved 1 animals from property ID 6 (stud farm) to property ID 908 (saleyard)
+ - DAY 03/11/2024 - moved 1 animals from property ID 6 (stud farm) to property ID 908 (saleyard)
+ - DAY 03/11/2024 - moved 1 animals from property ID 6 (stud farm) to property ID 776 (trader)
+ - DAY 04/11/2024 - moved 2 animals from property ID 6 (stud farm) to property ID 776 (trader)
+ - DAY 04/11/2024 - moved 2 animals from property ID 6 (stud farm) to property ID 1898 (saleyard)
+ - DAY 04/11/2024 - moved 2 animals from property ID 6 (stud farm) to property ID 1589 (farm)
+ - DAY 04/11/2024 - moved 2 animals from property ID 6 (stud farm) to property ID 776 (trader)
+ - DAY 04/11/2024 - moved 2 animals from property ID 6 (stud farm) to property ID 1580 (farm)
+ - DAY 05/11/2024 - moved 5 animals from property ID 6 (stud farm) to property ID 908 (saleyard)
+ - DAY 05/11/2024 - moved 4 animals from property ID 6 (stud farm) to property ID 1898 (saleyard)
+ - DAY 05/11/2024 - moved 4 animals from property ID 6 (stud farm) to property ID 1898 (saleyard)
+ - DAY 06/11/2024 - moved 9 animals from property ID 6 (stud farm) to property ID 480 (farm)
+ - DAY 06/11/2024 - moved 9 animals from property ID 6 (stud farm) to property ID 776 (trader)
+ - DAY 07/11/2024 - moved 10 animals from property ID 6 (stud farm) to property ID 908 (saleyard)
+ - DAY 07/11/2024 - moved 10 animals from property ID 6 (stud farm) to property ID 776 (trader)
+ - DAY 08/11/2024 - moved 5 animals from property ID 6 (stud farm) to property ID 1898 (saleyard)
+ - DAY 08/11/2024 - moved 5 animals from property ID 6 (stud farm) to property ID 908 (saleyard)
+ - DAY 08/11/2024 - moved 6 animals from property ID 6 (stud farm) to property ID 1627 (farm)
+ - DAY 08/11/2024 - moved 6 animals from property ID 6 (stud farm) to property ID 1734 (farm)
+ - DAY 16/11/2024 - moved 17 animals from property ID 6 (stud farm) to property ID 1489 (farm)
+ - DAY 16/11/2024 - moved 17 animals from property ID 6 (stud farm) to property ID 979 (farm)
+ - DAY 16/11/2024 - moved 17 animals from property ID 6 (stud farm) to property ID 908 (saleyard)
+ - DAY 16/11/2024 - moved 17 animals from property ID 6 (stud farm) to property ID 776 (trader)
+ - DAY 23/11/2024 - moved 46 animals from property ID 6 (stud farm) to property ID 1373 (farm)
+ - DAY 23/11/2024 - moved 46 animals from property ID 6 (stud farm) to property ID 776 (trader)
+Personnel will be sent to traced property 1277 for clinical observation and lab testing
+Personnel will be sent to traced property 1589 for clinical observation and lab testing
+Personnel will be sent to traced property 1580 for clinical observation and lab testing
+Personnel will be sent to traced property 480 for clinical observation and lab testing
+Personnel will be sent to traced property 1627 for clinical observation and lab testing
+Personnel will be sent to traced property 1734 for clinical observation and lab testing
+Personnel will be sent to traced property 1489 for clinical observation and lab testing
+Personnel will be sent to traced property 979 for clinical observation and lab testing
+Personnel will be sent to traced property 1373 for clinical observation and lab testing
+DAY 04/12/2024 - IP 8 (ID 1253), 179.4 ha cattle property at location (x,y)=(148.06, -31.92), Gin Gin, Narromine Shire Council, New South Wales, 2823, Australia, has been depopulated.
+A total of 450 animal(s) have been culled.
+DAY 04/12/2024 - contact tracing report compiled for movements from IP 8 (ID 1253)
+ - no movements found
+DAY 04/12/2024 - IP 9 (ID 1635), 82.8 ha cattle property at location (x,y)=(147.54, -31.56), Eenaweena Woolshed, 4148, Eenaweena, Warren Shire Council, New South Wales, 2824, Australia, has been depopulated.
+A total of 470 animal(s) have been culled.
+DAY 04/12/2024 - contact tracing report compiled for movements from IP 9 (ID 1635)
+ - no movements found
+DAY 04/12/2024 - IP 10 (ID 1373), 180.0 ha cattle property at location (x,y)=(147.8, -32.0), Gordons Lane, Trangie, Narromine Shire Council, New South Wales, 2823, Australia, has been depopulated.
+A total of 102 animal(s) have been culled.
+DAY 04/12/2024 - contact tracing report compiled for movements from IP 10 (ID 1373)
+ - DAY 06/11/2024 - moved 3 animals from property ID 1373 (farm) to property ID 908 (saleyard)
+ - DAY 11/11/2024 - moved 4 animals from property ID 1373 (farm) to property ID 908 (saleyard)
+ - DAY 21/11/2024 - moved 4 animals from property ID 1373 (farm) to property ID 1768 (feedlot)
+Personnel will be sent to traced property 1768 for clinical observation and lab testing
+DAY 04/12/2024 - IP 11 (ID 1735), 85.6 ha cattle property at location (x,y)=(148.18, -31.58), Pigeonbah, Warren Shire Council, New South Wales, 2824, Australia, has been depopulated.
+A total of 36 animal(s) have been culled.
+DAY 04/12/2024 - contact tracing report compiled for movements from IP 11 (ID 1735)
+ - DAY 18/11/2024 - moved 1 animals from property ID 1735 (farm) to property ID 6 (stud farm)
+ - DAY 28/11/2024 - moved 4 animals from property ID 1735 (farm) to property ID 1536 (feedlot)
+Personnel will be sent to traced property 1536 for clinical observation and lab testing
+DAY 04/12/2024 - IP 12 (ID 1983), 265.8 ha cattle property at location (x,y)=(148.57, -31.6), Gilgandra, Gilgandra Shire Council, New South Wales, 2827, Australia, has been depopulated.
+A total of 74 animal(s) have been culled.
+DAY 04/12/2024 - contact tracing report compiled for movements from IP 12 (ID 1983)
+ - DAY 09/11/2024 - moved 5 animals from property ID 1983 (farm) to property ID 735 (farm)
+ - DAY 24/11/2024 - moved 4 animals from property ID 1983 (farm) to property ID 1898 (saleyard)
+Personnel will be sent to traced property 735 for clinical observation and lab testing
+DAY 04/12/2024 - clinical observation report for property index 1379
+Property index 1379 report negative result
+DAY 04/12/2024 - clinical observation report for property index 292
+Property index 292 report negative result
+DAY 04/12/2024 - clinical observation report for property index 303
+Property index 303 report negative result
+DAY 04/12/2024 - clinical observation report for property index 386
+Property index 386 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1635
+No testing: property index 1635 (IP 9) has already been culled
+DAY 04/12/2024 - clinical observation report for property index 1358
+Property index 1358 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1447
+Property index 1447 report negative result
+DAY 04/12/2024 - clinical observation report for property index 982
+Property index 982 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1573
+Property index 1573 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1536
+Property index 1536 report negative result
+DAY 04/12/2024 - clinical observation report for property index 908
+No testing: property index 908 (IP 6) has already been culled
+DAY 04/12/2024 - clinical observation report for property index 1462
+Property index 1462 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1375
+Property index 1375 report negative result
+DAY 04/12/2024 - clinical observation report for property index 348
+Property index 348 report negative result
+DAY 04/12/2024 - clinical observation report for property index 6
+No testing: property index 6 (IP 7) has already been culled
+DAY 04/12/2024 - clinical observation report for property index 1487
+Property index 1487 report negative result
+DAY 04/12/2024 - clinical observation report for property index 41
+Property index 41 report negative result
+DAY 04/12/2024 - clinical observation report for property index 72
+Property index 72 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1253
+No testing: property index 1253 (IP 8) has already been culled
+DAY 04/12/2024 - clinical observation report for property index 1763
+Property index 1763 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1732
+Property index 1732 report negative result
+DAY 04/12/2024 - clinical observation report for property index 587
+Property index 587 report negative result
+DAY 04/12/2024 - clinical observation report for property index 851
+Property index 851 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1067
+Property index 1067 report negative result
+DAY 04/12/2024 - clinical observation report for property index 462
+Property index 462 at location (x,y)=(148.73, -31.58) report POSITIVE result
+Property 462 has been scheduled for contact tracing
+Personnel will be sent to property 462 for lab testing
+DAY 04/12/2024 - clinical observation report for property index 425
+Property index 425 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1400
+Property index 1400 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1838
+Property index 1838 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1811
+Property index 1811 report negative result
+DAY 04/12/2024 - clinical observation report for property index 326
+Property index 326 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1653
+Property index 1653 report negative result
+DAY 04/12/2024 - clinical observation report for property index 429
+No testing: property index 429 (IP 5) has already been culled
+DAY 04/12/2024 - clinical observation report for property index 66
+Property index 66 report negative result
+DAY 04/12/2024 - clinical observation report for property index 260
+Property index 260 at location (x,y)=(148.09, -32.19) report POSITIVE result
+Property 260 has been scheduled for contact tracing
+Personnel will be sent to property 260 for lab testing
+DAY 04/12/2024 - clinical observation report for property index 1115
+Property index 1115 report negative result
+DAY 04/12/2024 - clinical observation report for property index 868
+Property index 868 report negative result
+DAY 04/12/2024 - clinical observation report for property index 463
+Property index 463 report negative result
+DAY 04/12/2024 - clinical observation report for property index 611
+Property index 611 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1268
+Property index 1268 at location (x,y)=(148.52, -31.52) report POSITIVE result
+Property 1268 has been scheduled for contact tracing
+Personnel will be sent to property 1268 for lab testing
+DAY 04/12/2024 - clinical observation report for property index 485
+Property index 485 report negative result
+DAY 04/12/2024 - clinical observation report for property index 643
+Property index 643 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1435
+Property index 1435 at location (x,y)=(148.58, -31.46) report POSITIVE result
+Property 1435 has been scheduled for contact tracing
+Personnel will be sent to property 1435 for lab testing
+DAY 04/12/2024 - clinical observation report for property index 217
+Property index 217 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1050
+Property index 1050 report negative result
+DAY 04/12/2024 - clinical observation report for property index 504
+Property index 504 report negative result
+DAY 04/12/2024 - clinical observation report for property index 994
+Property index 994 at location (x,y)=(149.06, -31.04) report POSITIVE result
+Property 994 has been scheduled for contact tracing
+Personnel will be sent to property 994 for lab testing
+DAY 04/12/2024 - clinical observation report for property index 948
+Property index 948 report negative result
+DAY 04/12/2024 - lab test report for property index 908
+No testing: property index 908 (IP 6) has already been culled
+DAY 04/12/2024 - lab test report for property index 1253
+No testing: property index 1253 (IP 8) has already been culled
+DAY 04/12/2024 - lab test report for property index 1635
+No testing: property index 1635 (IP 9) has already been culled
+DAY 04/12/2024 - contact tracing report compiled for movements from IP NA (ID 1379)
+ - no movements found
+DAY 04/12/2024 - lab test report for property index 1379
+Property index 1379 report negative result
+DAY 04/12/2024 - lab test report for property index 429
+No testing: property index 429 (IP 5) has already been culled
+DAY 04/12/2024 - lab test report for property index 1373
+No testing: property index 1373 (IP 10) has already been culled
+DAY 04/12/2024 - lab test report for property index 1735
+No testing: property index 1735 (IP 11) has already been culled
+DAY 04/12/2024 - clinical observation report for property index 1277
+Property index 1277 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1589
+Property index 1589 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1580
+Property index 1580 report negative result
+DAY 04/12/2024 - clinical observation report for property index 480
+Property index 480 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1627
+Property index 1627 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1734
+Property index 1734 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1489
+Property index 1489 report negative result
+DAY 04/12/2024 - clinical observation report for property index 979
+Property index 979 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1373
+No testing: property index 1373 (IP 10) has already been culled
+DAY 04/12/2024 - clinical observation report for property index 735
+Property index 735 report negative result
+DAY 04/12/2024 - contact tracing report compiled for movements from IP 15 (ID 41)
+ - DAY 17/11/2024 - moved 4 animals from property ID 41 (farm) to property ID 776 (trader)
+DAY 04/12/2024 - contact tracing report compiled for movements from IP 17 (ID 425)
+ - no movements found
+DAY 04/12/2024 - contact tracing report compiled for movements from IP 19 (ID 643)
+ - DAY 03/11/2024 - moved 9 animals from property ID 643 (farm) to property ID 1898 (saleyard)
+ - DAY 28/11/2024 - moved 14 animals from property ID 643 (farm) to property ID 1898 (saleyard)
+DAY 04/12/2024 - contact tracing report compiled for movements from IP 21 (ID 217)
+ - DAY 03/11/2024 - moved 7 animals from property ID 217 (farm) to property ID 1536 (feedlot)
+ - DAY 13/11/2024 - moved 9 animals from property ID 217 (farm) to property ID 1050 (farm)
+ - DAY 28/11/2024 - moved 9 animals from property ID 217 (farm) to property ID 1898 (saleyard)
+Personnel will be sent to traced property 1536 for clinical observation and lab testing
+Personnel will be sent to traced property 1050 for clinical observation and lab testing
+DAY 04/12/2024 - contact tracing report compiled for movements from IP 22 (ID 504)
+ - DAY 18/11/2024 - moved 1 animals from property ID 504 (farm) to property ID 1442 (farm)
+ - DAY 23/11/2024 - moved 1 animals from property ID 504 (farm) to property ID 6 (stud farm)
+ - DAY 28/11/2024 - moved 2 animals from property ID 504 (farm) to property ID 1768 (feedlot)
+Personnel will be sent to traced property 1442 for clinical observation and lab testing
+Personnel will be sent to traced property 1768 for clinical observation and lab testing
+DAY 04/12/2024 - contact tracing report compiled for movements from IP 23 (ID 994)
+ - DAY 05/11/2024 - moved 3 animals from property ID 994 (farm) to property ID 1898 (saleyard)
+ - DAY 10/11/2024 - moved 2 animals from property ID 994 (farm) to property ID 6 (stud farm)
+ - DAY 15/11/2024 - moved 2 animals from property ID 994 (farm) to property ID 922 (farm)
+ - DAY 20/11/2024 - moved 2 animals from property ID 994 (farm) to property ID 1379 (feedlot)
+Personnel will be sent to traced property 922 for clinical observation and lab testing
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+DAY 04/12/2024 - contact tracing report compiled for movements from IP 24 (ID 948)
+ - DAY 03/11/2024 - moved 4 animals from property ID 948 (farm) to property ID 172 (farm)
+ - DAY 13/11/2024 - moved 4 animals from property ID 948 (farm) to property ID 1332 (farm)
+ - DAY 18/11/2024 - moved 4 animals from property ID 948 (farm) to property ID 1662 (feedlot)
+ - DAY 28/11/2024 - moved 3 animals from property ID 948 (farm) to property ID 1662 (feedlot)
+Personnel will be sent to traced property 172 for clinical observation and lab testing
+Personnel will be sent to traced property 1332 for clinical observation and lab testing
+Personnel will be sent to traced property 1662 for clinical observation and lab testing
+Personnel will be sent to traced property 1662 for clinical observation and lab testing
+DAY 05/12/2024 - lab test report for property index 6
+No testing: property index 6 (IP 7) has already been culled
+DAY 05/12/2024 - lab test report for property index 1277
+Property index 1277 report negative result
+DAY 05/12/2024 - lab test report for property index 1589
+Property index 1589 report negative result
+DAY 05/12/2024 - lab test report for property index 1580
+Property index 1580 report negative result
+DAY 05/12/2024 - lab test report for property index 480
+Property index 480 report negative result
+DAY 05/12/2024 - lab test report for property index 1627
+Property index 1627 report negative result
+DAY 05/12/2024 - lab test report for property index 1734
+Property index 1734 report negative result
+DAY 05/12/2024 - lab test report for property index 1489
+Property index 1489 report negative result
+DAY 05/12/2024 - lab test report for property index 979
+Property index 979 report negative result
+DAY 05/12/2024 - lab test report for property index 735
+Property index 735 at location (x,y)=(147.59, -31.46) report POSITIVE result
+DAY 05/12/2024 - IP 25 (ID 735), 143.8 ha cattle property at location (x,y)=(147.59, -31.46), Mumblebone Plain, Warren Shire Council, New South Wales, 2824, Australia, has been found infected. A total of 32 animal(s) will be culled.
+Property 735 has been scheduled for culling
+Property 735 has been scheduled for contact tracing
+DAY 05/12/2024 - IP 13 (ID 292), 290.2 ha cattle property at location (x,y)=(149.33, -30.87), Dipper Road, Baradine, Warrumbungle Shire Council, New South Wales, Australia, has been depopulated.
+A total of 97 animal(s) have been culled.
+DAY 05/12/2024 - contact tracing report compiled for movements from IP 13 (ID 292)
+ - DAY 15/11/2024 - moved 10 animals from property ID 292 (farm) to property ID 1898 (saleyard)
+ - DAY 25/11/2024 - moved 9 animals from property ID 292 (farm) to property ID 1898 (saleyard)
+DAY 05/12/2024 - IP 14 (ID 1536), 177.7 ha cattle property at location (x,y)=(148.78, -31.84), Mudfords Road, Gilgandra Shire Council, New South Wales, Australia, has been depopulated.
+A total of 352 animal(s) have been culled.
+DAY 05/12/2024 - contact tracing report compiled for movements from IP 14 (ID 1536)
+ - no movements found
+DAY 05/12/2024 - IP 15 (ID 41), 124.3 ha cattle property at location (x,y)=(147.58, -31.63), Gunningbar West, 1381, Eenaweena, Warren Shire Council, New South Wales, 2824, Australia, has been depopulated.
+A total of 37 animal(s) have been culled.
+DAY 05/12/2024 - contact tracing report compiled for movements from IP 15 (ID 41)
+ - DAY 17/11/2024 - moved 4 animals from property ID 41 (farm) to property ID 776 (trader)
+DAY 05/12/2024 - IP 16 (ID 462), 827.5 ha cattle property at location (x,y)=(148.73, -31.58), Biddon, Gilgandra Shire Council, New South Wales, 2827, Australia, has been depopulated.
+A total of 130 animal(s) have been culled.
+DAY 05/12/2024 - contact tracing report compiled for movements from IP 16 (ID 462)
+ - DAY 03/11/2024 - moved 16 animals from property ID 462 (farm) to property ID 1213 (farm)
+ - DAY 08/11/2024 - moved 14 animals from property ID 462 (farm) to property ID 1768 (feedlot)
+ - DAY 13/11/2024 - moved 13 animals from property ID 462 (farm) to property ID 6 (stud farm)
+ - DAY 18/11/2024 - moved 13 animals from property ID 462 (farm) to property ID 1536 (feedlot)
+Personnel will be sent to traced property 1213 for clinical observation and lab testing
+Personnel will be sent to traced property 1768 for clinical observation and lab testing
+DAY 05/12/2024 - IP 17 (ID 425), 168.1 ha cattle property at location (x,y)=(148.71, -31.48), Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been depopulated.
+A total of 333 animal(s) have been culled.
+DAY 05/12/2024 - contact tracing report compiled for movements from IP 17 (ID 425)
+ - no movements found
+DAY 05/12/2024 - IP 18 (ID 260), 95.6 ha cattle property at location (x,y)=(148.09, -32.19), Narromine, Narromine Shire Council, New South Wales, 2821, Australia, has been depopulated.
+A total of 29 animal(s) have been culled.
+DAY 05/12/2024 - contact tracing report compiled for movements from IP 18 (ID 260)
+ - DAY 06/11/2024 - moved 1 animals from property ID 260 (farm) to property ID 988 (farm)
+ - DAY 11/11/2024 - moved 1 animals from property ID 260 (farm) to property ID 776 (trader)
+ - DAY 26/11/2024 - moved 3 animals from property ID 260 (farm) to property ID 1287 (farm)
+Personnel will be sent to traced property 988 for clinical observation and lab testing
+Personnel will be sent to traced property 1287 for clinical observation and lab testing
+DAY 05/12/2024 - IP 19 (ID 643), 460.8 ha cattle property at location (x,y)=(149.14, -31.3), Coonabarabran, Warrumbungle Shire Council, New South Wales, 2357, Australia, has been depopulated.
+A total of 133 animal(s) have been culled.
+DAY 05/12/2024 - contact tracing report compiled for movements from IP 19 (ID 643)
+ - DAY 03/11/2024 - moved 9 animals from property ID 643 (farm) to property ID 1898 (saleyard)
+ - DAY 28/11/2024 - moved 14 animals from property ID 643 (farm) to property ID 1898 (saleyard)
+DAY 05/12/2024 - IP 20 (ID 1435), 388.8 ha cattle property at location (x,y)=(148.58, -31.46), Nalders Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been depopulated.
+A total of 80 animal(s) have been culled.
+DAY 05/12/2024 - contact tracing report compiled for movements from IP 20 (ID 1435)
+ - DAY 28/11/2024 - moved 8 animals from property ID 1435 (farm) to property ID 88 (farm)
+Personnel will be sent to traced property 88 for clinical observation and lab testing
+DAY 05/12/2024 - IP 21 (ID 217), 386.5 ha cattle property at location (x,y)=(148.75, -31.29), Tonderburine, Gilgandra Shire Council, New South Wales, 2817, Australia, has been depopulated.
+A total of 89 animal(s) have been culled.
+DAY 05/12/2024 - contact tracing report compiled for movements from IP 21 (ID 217)
+ - DAY 03/11/2024 - moved 7 animals from property ID 217 (farm) to property ID 1536 (feedlot)
+ - DAY 13/11/2024 - moved 9 animals from property ID 217 (farm) to property ID 1050 (farm)
+ - DAY 28/11/2024 - moved 9 animals from property ID 217 (farm) to property ID 1898 (saleyard)
+Personnel will be sent to traced property 1050 for clinical observation and lab testing
+DAY 05/12/2024 - IP 22 (ID 504), 66.8 ha cattle property at location (x,y)=(148.21, -31.64), Collie, Warren Shire Council, New South Wales, 2827, Australia, has been depopulated.
+A total of 20 animal(s) have been culled.
+DAY 05/12/2024 - contact tracing report compiled for movements from IP 22 (ID 504)
+ - DAY 18/11/2024 - moved 1 animals from property ID 504 (farm) to property ID 1442 (farm)
+ - DAY 23/11/2024 - moved 1 animals from property ID 504 (farm) to property ID 6 (stud farm)
+ - DAY 28/11/2024 - moved 2 animals from property ID 504 (farm) to property ID 1768 (feedlot)
+Personnel will be sent to traced property 1442 for clinical observation and lab testing
+Personnel will be sent to traced property 1768 for clinical observation and lab testing
+DAY 05/12/2024 - IP 23 (ID 994), 152.2 ha cattle property at location (x,y)=(149.06, -31.04), Pig Road, Bugaldie, Baradine, Warrumbungle Shire Council, New South Wales, 2396, Australia, has been depopulated.
+A total of 32 animal(s) have been culled.
+DAY 05/12/2024 - contact tracing report compiled for movements from IP 23 (ID 994)
+ - DAY 05/11/2024 - moved 3 animals from property ID 994 (farm) to property ID 1898 (saleyard)
+ - DAY 10/11/2024 - moved 2 animals from property ID 994 (farm) to property ID 6 (stud farm)
+ - DAY 15/11/2024 - moved 2 animals from property ID 994 (farm) to property ID 922 (farm)
+ - DAY 20/11/2024 - moved 2 animals from property ID 994 (farm) to property ID 1379 (feedlot)
+Personnel will be sent to traced property 922 for clinical observation and lab testing
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+DAY 05/12/2024 - IP 24 (ID 948), 245.5 ha cattle property at location (x,y)=(148.94, -30.62), Gwabegar, Narrabri Shire Council, New South Wales, 2356, Australia, has been depopulated.
+A total of 87 animal(s) have been culled.
+DAY 05/12/2024 - contact tracing report compiled for movements from IP 24 (ID 948)
+ - DAY 03/11/2024 - moved 4 animals from property ID 948 (farm) to property ID 172 (farm)
+ - DAY 13/11/2024 - moved 4 animals from property ID 948 (farm) to property ID 1332 (farm)
+ - DAY 18/11/2024 - moved 4 animals from property ID 948 (farm) to property ID 1662 (feedlot)
+ - DAY 28/11/2024 - moved 3 animals from property ID 948 (farm) to property ID 1662 (feedlot)
+Personnel will be sent to traced property 172 for clinical observation and lab testing
+Personnel will be sent to traced property 1332 for clinical observation and lab testing
+Personnel will be sent to traced property 1662 for clinical observation and lab testing
+Personnel will be sent to traced property 1662 for clinical observation and lab testing
+DAY 05/12/2024 - clinical observation report for property index 6
+No testing: property index 6 (IP 7) has already been culled
+DAY 05/12/2024 - clinical observation report for property index 1752
+Property index 1752 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1267
+Property index 1267 report negative result
+DAY 05/12/2024 - clinical observation report for property index 884
+Property index 884 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1768
+Property index 1768 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1635
+No testing: property index 1635 (IP 9) has already been culled
+DAY 05/12/2024 - clinical observation report for property index 1732
+Property index 1732 report negative result
+DAY 05/12/2024 - clinical observation report for property index 493
+Property index 493 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1536
+No testing: property index 1536 (IP 14) has already been culled
+DAY 05/12/2024 - clinical observation report for property index 1524
+Property index 1524 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1437
+Property index 1437 report negative result
+DAY 05/12/2024 - clinical observation report for property index 501
+Property index 501 report negative result
+DAY 05/12/2024 - clinical observation report for property index 366
+Property index 366 report negative result
+DAY 05/12/2024 - clinical observation report for property index 66
+Property index 66 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1962
+Property index 1962 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1373
+No testing: property index 1373 (IP 10) has already been culled
+DAY 05/12/2024 - clinical observation report for property index 611
+Property index 611 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1400
+Property index 1400 report negative result
+DAY 05/12/2024 - clinical observation report for property index 426
+Property index 426 report negative result
+DAY 05/12/2024 - clinical observation report for property index 376
+Property index 376 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1036
+Property index 1036 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1423
+Property index 1423 at location (x,y)=(148.01, -32.13) report POSITIVE result
+Property 1423 has been scheduled for contact tracing
+Personnel will be sent to property 1423 for lab testing
+DAY 05/12/2024 - clinical observation report for property index 1347
+Property index 1347 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1948
+Property index 1948 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1253
+No testing: property index 1253 (IP 8) has already been culled
+DAY 05/12/2024 - clinical observation report for property index 1755
+Property index 1755 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1281
+Property index 1281 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1882
+Property index 1882 report negative result
+DAY 05/12/2024 - clinical observation report for property index 153
+Property index 153 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1399
+Property index 1399 report negative result
+DAY 05/12/2024 - clinical observation report for property index 99
+Property index 99 at location (x,y)=(148.01, -32.02) report POSITIVE result
+Property 99 has been scheduled for contact tracing
+Personnel will be sent to property 99 for lab testing
+DAY 05/12/2024 - clinical observation report for property index 1379
+Property index 1379 at location (x,y)=(148.24, -31.58) report POSITIVE result
+Property 1379 has been scheduled for contact tracing
+Personnel will be sent to property 1379 for lab testing
+DAY 05/12/2024 - clinical observation report for property index 1983
+No testing: property index 1983 (IP 12) has already been culled
+DAY 05/12/2024 - clinical observation report for property index 1643
+Property index 1643 report negative result
+DAY 05/12/2024 - clinical observation report for property index 655
+Property index 655 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1277
+Property index 1277 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1589
+Property index 1589 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1580
+Property index 1580 report negative result
+DAY 05/12/2024 - clinical observation report for property index 480
+Property index 480 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1627
+Property index 1627 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1734
+Property index 1734 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1489
+Property index 1489 report negative result
+DAY 05/12/2024 - clinical observation report for property index 979
+Property index 979 report negative result
+DAY 05/12/2024 - clinical observation report for property index 735
+Property index 735 at location (x,y)=(147.59, -31.46) report POSITIVE result
+Property 735 has been scheduled for contact tracing
+Personnel will be sent to property 735 for lab testing
+DAY 05/12/2024 - lab test report for property index 462
+No testing: property index 462 (IP 16) has already been culled
+DAY 05/12/2024 - lab test report for property index 260
+No testing: property index 260 (IP 18) has already been culled
+DAY 05/12/2024 - contact tracing report compiled for movements from IP NA (ID 1268)
+ - DAY 27/11/2024 - moved 6 animals from property ID 1268 (farm) to property ID 444 (farm)
+DAY 05/12/2024 - lab test report for property index 1268
+Property index 1268 report negative result
+DAY 05/12/2024 - lab test report for property index 1435
+No testing: property index 1435 (IP 20) has already been culled
+DAY 05/12/2024 - lab test report for property index 994
+No testing: property index 994 (IP 23) has already been culled
+DAY 05/12/2024 - clinical observation report for property index 1050
+Property index 1050 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1442
+Property index 1442 report negative result
+DAY 05/12/2024 - clinical observation report for property index 922
+Property index 922 report negative result
+DAY 05/12/2024 - clinical observation report for property index 172
+Property index 172 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1332
+Property index 1332 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1662
+Property index 1662 report negative result
+DAY 05/12/2024 - Property ID 1248 (farm), 568.1 ha cattle property at location (x,y)=(148.47, -31.47), Armatree, Gilgandra Shire Council, New South Wales, 2828, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Property 1248 has been scheduled for contact tracing
+Personnel will be sent to property 1248 for lab testing
+DAY 05/12/2024 - Property ID 1268 (farm), 279.0 ha cattle property at location (x,y)=(148.52, -31.52), Bardens Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Property 1268 has been scheduled for contact tracing
+Personnel will be sent to property 1268 for lab testing
+DAY 05/12/2024 - contact tracing report compiled for movements from IP NA (ID 1248)
+ - DAY 07/11/2024 - moved 12 animals from property ID 1248 (farm) to property ID 6 (stud farm)
+DAY 05/12/2024 - contact tracing report compiled for movements from IP NA (ID 1268)
+ - DAY 27/11/2024 - moved 6 animals from property ID 1268 (farm) to property ID 444 (farm)
+DAY 06/12/2024 - lab test report for property index 1752
+Property index 1752 report negative result
+DAY 06/12/2024 - lab test report for property index 1267
+Property index 1267 report negative result
+DAY 06/12/2024 - lab test report for property index 884
+Property index 884 report negative result
+DAY 06/12/2024 - lab test report for property index 1768
+Property index 1768 report negative result
+DAY 06/12/2024 - lab test report for property index 1635
+No testing: property index 1635 (IP 9) has already been culled
+DAY 06/12/2024 - lab test report for property index 1732
+Property index 1732 report negative result
+DAY 06/12/2024 - lab test report for property index 493
+Property index 493 report negative result
+DAY 06/12/2024 - lab test report for property index 1536
+No testing: property index 1536 (IP 14) has already been culled
+DAY 06/12/2024 - lab test report for property index 1524
+Property index 1524 report negative result
+DAY 06/12/2024 - lab test report for property index 1437
+Property index 1437 report negative result
+DAY 06/12/2024 - lab test report for property index 501
+Property index 501 report negative result
+DAY 06/12/2024 - lab test report for property index 366
+Property index 366 report negative result
+DAY 06/12/2024 - lab test report for property index 66
+Property index 66 report negative result
+DAY 06/12/2024 - lab test report for property index 1962
+Property index 1962 report negative result
+DAY 06/12/2024 - lab test report for property index 1373
+No testing: property index 1373 (IP 10) has already been culled
+DAY 06/12/2024 - lab test report for property index 611
+Property index 611 report negative result
+DAY 06/12/2024 - lab test report for property index 1400
+Property index 1400 report negative result
+DAY 06/12/2024 - lab test report for property index 426
+Property index 426 report negative result
+DAY 06/12/2024 - lab test report for property index 376
+Property index 376 report negative result
+DAY 06/12/2024 - lab test report for property index 1036
+Property index 1036 report negative result
+DAY 06/12/2024 - lab test report for property index 1423
+Property index 1423 report negative result
+DAY 06/12/2024 - lab test report for property index 1347
+Property index 1347 report negative result
+DAY 06/12/2024 - lab test report for property index 1948
+Property index 1948 report negative result
+DAY 06/12/2024 - lab test report for property index 1253
+No testing: property index 1253 (IP 8) has already been culled
+DAY 06/12/2024 - lab test report for property index 1755
+Property index 1755 report negative result
+DAY 06/12/2024 - lab test report for property index 1281
+Property index 1281 report negative result
+DAY 06/12/2024 - lab test report for property index 1882
+Property index 1882 report negative result
+DAY 06/12/2024 - lab test report for property index 153
+Property index 153 report negative result
+DAY 06/12/2024 - lab test report for property index 1399
+Property index 1399 report negative result
+DAY 06/12/2024 - lab test report for property index 99
+Property index 99 at location (x,y)=(148.01, -32.02) report POSITIVE result
+DAY 06/12/2024 - IP 26 (ID 99), 76.4 ha cattle property at location (x,y)=(148.01, -32.02), Trangie, Narromine Shire Council, New South Wales, 2823, Australia, has been found infected. A total of 43 animal(s) will be culled.
+Property 99 has been scheduled for culling
+Property 99 has been scheduled for contact tracing
+DAY 06/12/2024 - lab test report for property index 1379
+Property index 1379 at location (x,y)=(148.24, -31.58) report POSITIVE result
+DAY 06/12/2024 - IP 27 (ID 1379), 64.7 ha cattle property at location (x,y)=(148.24, -31.58), Collie, Warren Shire Council, New South Wales, 2827, Australia, has been found infected. A total of 287 animal(s) will be culled.
+Property 1379 has been scheduled for culling
+Property 1379 has been scheduled for contact tracing
+DAY 06/12/2024 - lab test report for property index 1983
+No testing: property index 1983 (IP 12) has already been culled
+DAY 06/12/2024 - lab test report for property index 1643
+Property index 1643 report negative result
+DAY 06/12/2024 - lab test report for property index 655
+Property index 655 at location (x,y)=(148.15, -32.02) report POSITIVE result
+DAY 06/12/2024 - IP 28 (ID 655), 58.7 ha cattle property at location (x,y)=(148.15, -32.02), Trangie, Narromine Shire Council, New South Wales, 2823, Australia, has been found infected. A total of 30 animal(s) will be culled.
+Property 655 has been scheduled for culling
+Property 655 has been scheduled for contact tracing
+DAY 06/12/2024 - lab test report for property index 1050
+Property index 1050 report negative result
+DAY 06/12/2024 - lab test report for property index 1442
+Property index 1442 report negative result
+DAY 06/12/2024 - lab test report for property index 922
+Property index 922 report negative result
+DAY 06/12/2024 - lab test report for property index 172
+Property index 172 at location (x,y)=(148.64, -31.3) report POSITIVE result
+DAY 06/12/2024 - IP 29 (ID 172), 420.7 ha cattle property at location (x,y)=(148.64, -31.3), Seven Mile Road, Gulargambone, Gilgandra Shire Council, New South Wales, Australia, has been found infected. A total of 77 animal(s) will be culled.
+Property 172 has been scheduled for culling
+Property 172 has been scheduled for contact tracing
+DAY 06/12/2024 - lab test report for property index 1332
+Property index 1332 report negative result
+DAY 06/12/2024 - lab test report for property index 1662
+Property index 1662 report negative result
+DAY 06/12/2024 - IP 25 (ID 735), 143.8 ha cattle property at location (x,y)=(147.59, -31.46), Mumblebone Plain, Warren Shire Council, New South Wales, 2824, Australia, has been depopulated.
+A total of 32 animal(s) have been culled.
+DAY 06/12/2024 - contact tracing report compiled for movements from IP 25 (ID 735)
+ - DAY 08/11/2024 - moved 2 animals from property ID 735 (farm) to property ID 6 (stud farm)
+ - DAY 18/11/2024 - moved 3 animals from property ID 735 (farm) to property ID 776 (trader)
+DAY 06/12/2024 - clinical observation report for property index 1213
+Property index 1213 report negative result
+DAY 06/12/2024 - clinical observation report for property index 1768
+Property index 1768 report negative result
+DAY 06/12/2024 - clinical observation report for property index 988
+Property index 988 report negative result
+DAY 06/12/2024 - clinical observation report for property index 1287
+Property index 1287 report negative result
+DAY 06/12/2024 - clinical observation report for property index 88
+Property index 88 report negative result
+DAY 06/12/2024 - clinical observation report for property index 1050
+Property index 1050 report negative result
+DAY 06/12/2024 - clinical observation report for property index 1442
+Property index 1442 report negative result
+DAY 06/12/2024 - clinical observation report for property index 922
+Property index 922 report negative result
+DAY 06/12/2024 - clinical observation report for property index 1379
+Property index 1379 at location (x,y)=(148.24, -31.58) report POSITIVE result
+Property 1379 has been scheduled for contact tracing
+Personnel will be sent to property 1379 for lab testing
+DAY 06/12/2024 - clinical observation report for property index 172
+Property index 172 at location (x,y)=(148.64, -31.3) report POSITIVE result
+Property 172 has been scheduled for contact tracing
+Personnel will be sent to property 172 for lab testing
+DAY 06/12/2024 - clinical observation report for property index 1332
+Property index 1332 report negative result
+DAY 06/12/2024 - clinical observation report for property index 1662
+Property index 1662 report negative result
+DAY 06/12/2024 - contact tracing report compiled for movements from IP NA (ID 1423)
+ - DAY 06/11/2024 - moved 3 animals from property ID 1423 (farm) to property ID 908 (saleyard)
+ - DAY 11/11/2024 - moved 3 animals from property ID 1423 (farm) to property ID 908 (saleyard)
+ - DAY 16/11/2024 - moved 2 animals from property ID 1423 (farm) to property ID 1253 (feedlot)
+DAY 06/12/2024 - contact tracing report compiled for movements from IP 26 (ID 99)
+ - DAY 09/11/2024 - moved 1 animals from property ID 99 (farm) to property ID 6 (stud farm)
+ - DAY 14/11/2024 - moved 1 animals from property ID 99 (farm) to property ID 776 (trader)
+ - DAY 19/11/2024 - moved 1 animals from property ID 99 (farm) to property ID 429 (feedlot)
+DAY 06/12/2024 - contact tracing report compiled for movements from IP 27 (ID 1379)
+ - no movements found
+DAY 06/12/2024 - lab test report for property index 735
+No testing: property index 735 (IP 25) has already been culled
+DAY 06/12/2024 - lab test report for property index 1248
+Property index 1248 report negative result
+DAY 06/12/2024 - lab test report for property index 1268
+Property index 1268 at location (x,y)=(148.52, -31.52) report POSITIVE result
+DAY 06/12/2024 - IP 30 (ID 1268), 279.0 ha cattle property at location (x,y)=(148.52, -31.52), Bardens Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been found infected. A total of 58 animal(s) will be culled.
+Property 1268 has been scheduled for culling
+Property 1268 has been scheduled for contact tracing
+DAY 06/12/2024 - Property ID 485 (farm), 92.4 ha cattle property at location (x,y)=(148.91, -31.84), Mendooran, Warrumbungle Shire Council, New South Wales, 2842, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Property 485 has been scheduled for contact tracing
+Personnel will be sent to property 485 for lab testing
+DAY 06/12/2024 - Property ID 1268 (farm), 279.0 ha cattle property at location (x,y)=(148.52, -31.52), Bardens Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Property 1268 has been scheduled for contact tracing
+Personnel will be sent to property 1268 for lab testing
+DAY 06/12/2024 - Property ID 1570 (farm), 251.3 ha cattle property at location (x,y)=(148.61, -31.47), Nalders Access Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Property 1570 has been scheduled for contact tracing
+Personnel will be sent to property 1570 for lab testing
+DAY 06/12/2024 - contact tracing report compiled for movements from IP NA (ID 485)
+ - DAY 09/11/2024 - moved 1 animals from property ID 485 (farm) to property ID 1379 (feedlot)
+ - DAY 14/11/2024 - moved 1 animals from property ID 485 (farm) to property ID 908 (saleyard)
+ - DAY 19/11/2024 - moved 1 animals from property ID 485 (farm) to property ID 6 (stud farm)
+ - DAY 29/11/2024 - moved 3 animals from property ID 485 (farm) to property ID 1898 (saleyard)
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+DAY 06/12/2024 - contact tracing report compiled for movements from IP 30 (ID 1268)
+ - DAY 27/11/2024 - moved 6 animals from property ID 1268 (farm) to property ID 444 (farm)
+DAY 06/12/2024 - contact tracing report compiled for movements from IP NA (ID 1570)
+ - DAY 13/11/2024 - moved 5 animals from property ID 1570 (farm) to property ID 99 (farm)
+ - DAY 23/11/2024 - moved 4 animals from property ID 1570 (farm) to property ID 1007 (farm)
+Personnel will be sent to traced property 99 for clinical observation and lab testing
+Personnel will be sent to traced property 1007 for clinical observation and lab testing
+DAY 07/12/2024 - lab test report for property index 1213
+Property index 1213 report negative result
+DAY 07/12/2024 - lab test report for property index 988
+Property index 988 report negative result
+DAY 07/12/2024 - lab test report for property index 1287
+Property index 1287 report negative result
+DAY 07/12/2024 - lab test report for property index 88
+Property index 88 at location (x,y)=(148.46, -31.56) report POSITIVE result
+DAY 07/12/2024 - IP 31 (ID 88), 362.9 ha cattle property at location (x,y)=(148.46, -31.56), Malabar, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been found infected. A total of 68 animal(s) will be culled.
+Property 88 has been scheduled for culling
+Property 88 has been scheduled for contact tracing
+DAY 07/12/2024 - IP 26 (ID 99), 76.4 ha cattle property at location (x,y)=(148.01, -32.02), Trangie, Narromine Shire Council, New South Wales, 2823, Australia, has been depopulated.
+A total of 43 animal(s) have been culled.
+DAY 07/12/2024 - contact tracing report compiled for movements from IP 26 (ID 99)
+ - DAY 09/11/2024 - moved 1 animals from property ID 99 (farm) to property ID 6 (stud farm)
+ - DAY 14/11/2024 - moved 1 animals from property ID 99 (farm) to property ID 776 (trader)
+ - DAY 19/11/2024 - moved 1 animals from property ID 99 (farm) to property ID 429 (feedlot)
+DAY 07/12/2024 - IP 27 (ID 1379), 64.7 ha cattle property at location (x,y)=(148.24, -31.58), Collie, Warren Shire Council, New South Wales, 2827, Australia, has been depopulated.
+A total of 287 animal(s) have been culled.
+DAY 07/12/2024 - contact tracing report compiled for movements from IP 27 (ID 1379)
+ - no movements found
+DAY 07/12/2024 - IP 28 (ID 655), 58.7 ha cattle property at location (x,y)=(148.15, -32.02), Trangie, Narromine Shire Council, New South Wales, 2823, Australia, has been depopulated.
+A total of 30 animal(s) have been culled.
+DAY 07/12/2024 - contact tracing report compiled for movements from IP 28 (ID 655)
+ - no movements found
+DAY 07/12/2024 - IP 29 (ID 172), 420.7 ha cattle property at location (x,y)=(148.64, -31.3), Seven Mile Road, Gulargambone, Gilgandra Shire Council, New South Wales, Australia, has been depopulated.
+A total of 77 animal(s) have been culled.
+DAY 07/12/2024 - contact tracing report compiled for movements from IP 29 (ID 172)
+ - DAY 02/11/2024 - moved 8 animals from property ID 172 (farm) to property ID 1662 (feedlot)
+ - DAY 12/11/2024 - moved 8 animals from property ID 172 (farm) to property ID 1587 (farm)
+ - DAY 22/11/2024 - moved 8 animals from property ID 172 (farm) to property ID 425 (feedlot)
+Personnel will be sent to traced property 1662 for clinical observation and lab testing
+Personnel will be sent to traced property 1587 for clinical observation and lab testing
+DAY 07/12/2024 - lab test report for property index 1379
+No testing: property index 1379 (IP 27) has already been culled
+DAY 07/12/2024 - lab test report for property index 172
+No testing: property index 172 (IP 29) has already been culled
+DAY 07/12/2024 - IP 30 (ID 1268), 279.0 ha cattle property at location (x,y)=(148.52, -31.52), Bardens Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been depopulated.
+A total of 58 animal(s) have been culled.
+DAY 07/12/2024 - lab test report for property index 485
+Property index 485 at location (x,y)=(148.91, -31.84) report POSITIVE result
+DAY 07/12/2024 - IP 32 (ID 485), 92.4 ha cattle property at location (x,y)=(148.91, -31.84), Mendooran, Warrumbungle Shire Council, New South Wales, 2842, Australia, has been found infected. A total of 34 animal(s) will be culled.
+Property 485 has been scheduled for culling
+Property 485 has been scheduled for contact tracing
+DAY 07/12/2024 - lab test report for property index 1268
+No testing: property index 1268 (IP 30) has already been culled
+DAY 07/12/2024 - lab test report for property index 1570
+Property index 1570 at location (x,y)=(148.61, -31.47) report POSITIVE result
+DAY 07/12/2024 - IP 33 (ID 1570), 251.3 ha cattle property at location (x,y)=(148.61, -31.47), Nalders Access Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been found infected. A total of 44 animal(s) will be culled.
+Property 1570 has been scheduled for culling
+Property 1570 has been scheduled for contact tracing
+DAY 07/12/2024 - clinical observation report for property index 1379
+No testing: property index 1379 (IP 27) has already been culled
+DAY 07/12/2024 - clinical observation report for property index 99
+No testing: property index 99 (IP 26) has already been culled
+DAY 07/12/2024 - clinical observation report for property index 1007
+Property index 1007 report negative result
+DAY 07/12/2024 - Property ID 628 (farm), 546.6 ha cattle property at location (x,y)=(147.64, -31.5), Mumblebone Plain, Warren Shire Council, New South Wales, 2824, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Property 628 has been scheduled for contact tracing
+Personnel will be sent to property 628 for lab testing
+DAY 07/12/2024 - contact tracing report compiled for movements from IP NA (ID 628)
+ - DAY 13/11/2024 - moved 10 animals from property ID 628 (farm) to property ID 1253 (feedlot)
+ - DAY 23/11/2024 - moved 9 animals from property ID 628 (farm) to property ID 6 (stud farm)
+DAY 08/12/2024 - lab test report for property index 99
+No testing: property index 99 (IP 26) has already been culled
+DAY 08/12/2024 - lab test report for property index 1007
+Property index 1007 report negative result
+DAY 08/12/2024 - IP 31 (ID 88), 362.9 ha cattle property at location (x,y)=(148.46, -31.56), Malabar, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been depopulated.
+A total of 68 animal(s) have been culled.
+DAY 08/12/2024 - contact tracing report compiled for movements from IP 31 (ID 88)
+ - DAY 02/11/2024 - moved 7 animals from property ID 88 (farm) to property ID 1898 (saleyard)
+ - DAY 07/11/2024 - moved 6 animals from property ID 88 (farm) to property ID 776 (trader)
+ - DAY 27/11/2024 - moved 6 animals from property ID 88 (farm) to property ID 6 (stud farm)
+DAY 08/12/2024 - clinical observation report for property index 1662
+Property index 1662 report negative result
+DAY 08/12/2024 - clinical observation report for property index 1587
+Property index 1587 report negative result
+DAY 08/12/2024 - IP 32 (ID 485), 92.4 ha cattle property at location (x,y)=(148.91, -31.84), Mendooran, Warrumbungle Shire Council, New South Wales, 2842, Australia, has been depopulated.
+A total of 34 animal(s) have been culled.
+DAY 08/12/2024 - contact tracing report compiled for movements from IP 32 (ID 485)
+ - DAY 09/11/2024 - moved 1 animals from property ID 485 (farm) to property ID 1379 (feedlot)
+ - DAY 14/11/2024 - moved 1 animals from property ID 485 (farm) to property ID 908 (saleyard)
+ - DAY 19/11/2024 - moved 1 animals from property ID 485 (farm) to property ID 6 (stud farm)
+ - DAY 29/11/2024 - moved 3 animals from property ID 485 (farm) to property ID 1898 (saleyard)
+DAY 08/12/2024 - IP 33 (ID 1570), 251.3 ha cattle property at location (x,y)=(148.61, -31.47), Nalders Access Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been depopulated.
+A total of 44 animal(s) have been culled.
+DAY 08/12/2024 - contact tracing report compiled for movements from IP 33 (ID 1570)
+ - DAY 13/11/2024 - moved 5 animals from property ID 1570 (farm) to property ID 99 (farm)
+ - DAY 23/11/2024 - moved 4 animals from property ID 1570 (farm) to property ID 1007 (farm)
+Personnel will be sent to traced property 1007 for clinical observation and lab testing
+DAY 08/12/2024 - lab test report for property index 628
+Property index 628 at location (x,y)=(147.64, -31.5) report POSITIVE result
+DAY 08/12/2024 - IP 34 (ID 628), 546.6 ha cattle property at location (x,y)=(147.64, -31.5), Mumblebone Plain, Warren Shire Council, New South Wales, 2824, Australia, has been found infected. A total of 90 animal(s) will be culled.
+Property 628 has been scheduled for culling
+Property 628 has been scheduled for contact tracing
+DAY 09/12/2024 - lab test report for property index 1662
+Property index 1662 report negative result
+DAY 09/12/2024 - lab test report for property index 1587
+Property index 1587 report negative result
+DAY 09/12/2024 - clinical observation report for property index 1007
+Property index 1007 report negative result
+DAY 09/12/2024 - IP 34 (ID 628), 546.6 ha cattle property at location (x,y)=(147.64, -31.5), Mumblebone Plain, Warren Shire Council, New South Wales, 2824, Australia, has been depopulated.
+A total of 90 animal(s) have been culled.
+DAY 09/12/2024 - contact tracing report compiled for movements from IP 34 (ID 628)
+ - DAY 13/11/2024 - moved 10 animals from property ID 628 (farm) to property ID 1253 (feedlot)
+ - DAY 23/11/2024 - moved 9 animals from property ID 628 (farm) to property ID 6 (stud farm)
+DAY 09/12/2024 - Property ID 78 (farm), 354.8 ha cattle property at location (x,y)=(148.43, -31.51), Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Property 78 has been scheduled for contact tracing
+Personnel will be sent to property 78 for lab testing
+DAY 09/12/2024 - Property ID 246 (farm), 315.5 ha cattle property at location (x,y)=(148.07, -32.02), Trangie, Narromine Shire Council, New South Wales, 2823, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Property 246 has been scheduled for contact tracing
+Personnel will be sent to property 246 for lab testing
+DAY 09/12/2024 - Property ID 1248 (farm), 568.1 ha cattle property at location (x,y)=(148.47, -31.47), Armatree, Gilgandra Shire Council, New South Wales, 2828, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Property 1248 has been scheduled for contact tracing
+Personnel will be sent to property 1248 for lab testing
+DAY 09/12/2024 - contact tracing report compiled for movements from IP NA (ID 78)
+ - DAY 14/11/2024 - moved 7 animals from property ID 78 (farm) to property ID 908 (saleyard)
+ - DAY 24/11/2024 - moved 6 animals from property ID 78 (farm) to property ID 6 (stud farm)
+DAY 09/12/2024 - contact tracing report compiled for movements from IP NA (ID 246)
+ - DAY 16/11/2024 - moved 6 animals from property ID 246 (farm) to property ID 776 (trader)
+ - DAY 21/11/2024 - moved 5 animals from property ID 246 (farm) to property ID 908 (saleyard)
+ - DAY 26/11/2024 - moved 5 animals from property ID 246 (farm) to property ID 908 (saleyard)
+DAY 09/12/2024 - contact tracing report compiled for movements from IP NA (ID 1248)
+ - DAY 07/11/2024 - moved 12 animals from property ID 1248 (farm) to property ID 6 (stud farm)
+DAY 10/12/2024 - lab test report for property index 1007
+Property index 1007 report negative result
+DAY 10/12/2024 - lab test report for property index 78
+Property index 78 at location (x,y)=(148.43, -31.51) report POSITIVE result
+DAY 10/12/2024 - IP 35 (ID 78), 354.8 ha cattle property at location (x,y)=(148.43, -31.51), Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been found infected. A total of 57 animal(s) will be culled.
+Property 78 has been scheduled for culling
+Property 78 has been scheduled for contact tracing
+DAY 10/12/2024 - lab test report for property index 246
+Property index 246 report negative result
+DAY 10/12/2024 - lab test report for property index 1248
+Property index 1248 at location (x,y)=(148.47, -31.47) report POSITIVE result
+DAY 10/12/2024 - IP 36 (ID 1248), 568.1 ha cattle property at location (x,y)=(148.47, -31.47), Armatree, Gilgandra Shire Council, New South Wales, 2828, Australia, has been found infected. A total of 141 animal(s) will be culled.
+Property 1248 has been scheduled for culling
+Property 1248 has been scheduled for contact tracing
+DAY 10/12/2024 - Property ID 78 (farm), 354.8 ha cattle property at location (x,y)=(148.43, -31.51), Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Property 78 has been scheduled for contact tracing
+Personnel will be sent to property 78 for lab testing
+DAY 10/12/2024 - Property ID 392 (farm), 587.3 ha cattle property at location (x,y)=(147.4, -31.59), Nyngan, Bogan Shire Council, New South Wales, 2825, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Property 392 has been scheduled for contact tracing
+Personnel will be sent to property 392 for lab testing
+DAY 10/12/2024 - Property ID 1248 (farm), 568.1 ha cattle property at location (x,y)=(148.47, -31.47), Armatree, Gilgandra Shire Council, New South Wales, 2828, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Property 1248 has been scheduled for contact tracing
+Personnel will be sent to property 1248 for lab testing
+DAY 10/12/2024 - contact tracing report compiled for movements from IP 35 (ID 78)
+ - DAY 14/11/2024 - moved 7 animals from property ID 78 (farm) to property ID 908 (saleyard)
+ - DAY 24/11/2024 - moved 6 animals from property ID 78 (farm) to property ID 6 (stud farm)
+DAY 10/12/2024 - contact tracing report compiled for movements from IP NA (ID 392)
+ - DAY 03/11/2024 - moved 11 animals from property ID 392 (farm) to property ID 1379 (feedlot)
+ - DAY 08/11/2024 - moved 10 animals from property ID 392 (farm) to property ID 1635 (feedlot)
+ - DAY 18/11/2024 - moved 9 animals from property ID 392 (farm) to property ID 691 (farm)
+ - DAY 23/11/2024 - moved 8 animals from property ID 392 (farm) to property ID 908 (saleyard)
+Personnel will be sent to traced property 691 for clinical observation and lab testing
+DAY 10/12/2024 - contact tracing report compiled for movements from IP 36 (ID 1248)
+ - DAY 07/11/2024 - moved 12 animals from property ID 1248 (farm) to property ID 6 (stud farm)
+DAY 11/12/2024 - IP 35 (ID 78), 354.8 ha cattle property at location (x,y)=(148.43, -31.51), Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been depopulated.
+A total of 57 animal(s) have been culled.
+DAY 11/12/2024 - IP 36 (ID 1248), 568.1 ha cattle property at location (x,y)=(148.47, -31.47), Armatree, Gilgandra Shire Council, New South Wales, 2828, Australia, has been depopulated.
+A total of 141 animal(s) have been culled.
+DAY 11/12/2024 - lab test report for property index 78
+No testing: property index 78 (IP 35) has already been culled
+DAY 11/12/2024 - lab test report for property index 392
+Property index 392 at location (x,y)=(147.4, -31.59) report POSITIVE result
+DAY 11/12/2024 - IP 37 (ID 392), 587.3 ha cattle property at location (x,y)=(147.4, -31.59), Nyngan, Bogan Shire Council, New South Wales, 2825, Australia, has been found infected. A total of 81 animal(s) will be culled.
+Property 392 has been scheduled for culling
+Property 392 has been scheduled for contact tracing
+DAY 11/12/2024 - lab test report for property index 1248
+No testing: property index 1248 (IP 36) has already been culled
+DAY 11/12/2024 - clinical observation report for property index 691
+Property index 691 report negative result
+DAY 11/12/2024 - Property ID 246 (farm), 315.5 ha cattle property at location (x,y)=(148.07, -32.02), Trangie, Narromine Shire Council, New South Wales, 2823, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Property 246 has been scheduled for contact tracing
+Personnel will be sent to property 246 for lab testing
+DAY 11/12/2024 - Property ID 757 (farm), 156.4 ha cattle property at location (x,y)=(148.48, -31.53), Beveridges Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Property 757 has been scheduled for contact tracing
+Personnel will be sent to property 757 for lab testing
+DAY 11/12/2024 - contact tracing report compiled for movements from IP NA (ID 246)
+ - DAY 16/11/2024 - moved 6 animals from property ID 246 (farm) to property ID 776 (trader)
+ - DAY 21/11/2024 - moved 5 animals from property ID 246 (farm) to property ID 908 (saleyard)
+ - DAY 26/11/2024 - moved 5 animals from property ID 246 (farm) to property ID 908 (saleyard)
+DAY 11/12/2024 - contact tracing report compiled for movements from IP NA (ID 757)
+ - DAY 05/11/2024 - moved 3 animals from property ID 757 (farm) to property ID 1536 (feedlot)
+ - DAY 15/11/2024 - moved 2 animals from property ID 757 (farm) to property ID 260 (farm)
+ - DAY 25/11/2024 - moved 2 animals from property ID 757 (farm) to property ID 1898 (saleyard)
+DAY 12/12/2024 - lab test report for property index 691
+Property index 691 report negative result
+DAY 12/12/2024 - IP 37 (ID 392), 587.3 ha cattle property at location (x,y)=(147.4, -31.59), Nyngan, Bogan Shire Council, New South Wales, 2825, Australia, has been depopulated.
+A total of 81 animal(s) have been culled.
+DAY 12/12/2024 - contact tracing report compiled for movements from IP 37 (ID 392)
+ - DAY 03/11/2024 - moved 11 animals from property ID 392 (farm) to property ID 1379 (feedlot)
+ - DAY 08/11/2024 - moved 10 animals from property ID 392 (farm) to property ID 1635 (feedlot)
+ - DAY 18/11/2024 - moved 9 animals from property ID 392 (farm) to property ID 691 (farm)
+ - DAY 23/11/2024 - moved 8 animals from property ID 392 (farm) to property ID 908 (saleyard)
+Personnel will be sent to traced property 691 for clinical observation and lab testing
+DAY 12/12/2024 - lab test report for property index 246
+Property index 246 at location (x,y)=(148.07, -32.02) report POSITIVE result
+DAY 12/12/2024 - IP 38 (ID 246), 315.5 ha cattle property at location (x,y)=(148.07, -32.02), Trangie, Narromine Shire Council, New South Wales, 2823, Australia, has been found infected. A total of 47 animal(s) will be culled.
+Property 246 has been scheduled for culling
+Property 246 has been scheduled for contact tracing
+DAY 12/12/2024 - lab test report for property index 757
+Property index 757 report negative result
+DAY 13/12/2024 - clinical observation report for property index 691
+Property index 691 report negative result
+DAY 13/12/2024 - IP 38 (ID 246), 315.5 ha cattle property at location (x,y)=(148.07, -32.02), Trangie, Narromine Shire Council, New South Wales, 2823, Australia, has been depopulated.
+A total of 47 animal(s) have been culled.
+DAY 13/12/2024 - contact tracing report compiled for movements from IP 38 (ID 246)
+ - DAY 16/11/2024 - moved 6 animals from property ID 246 (farm) to property ID 776 (trader)
+ - DAY 21/11/2024 - moved 5 animals from property ID 246 (farm) to property ID 908 (saleyard)
+ - DAY 26/11/2024 - moved 5 animals from property ID 246 (farm) to property ID 908 (saleyard)
+DAY 13/12/2024 - Property ID 330 (farm), 254.5 ha cattle property at location (x,y)=(148.67, -31.39), Gulargambone, Coonamble Shire Council, New South Wales, 2828, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Property 330 has been scheduled for contact tracing
+Personnel will be sent to property 330 for lab testing
+DAY 13/12/2024 - Property ID 757 (farm), 156.4 ha cattle property at location (x,y)=(148.48, -31.53), Beveridges Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Property 757 has been scheduled for contact tracing
+Personnel will be sent to property 757 for lab testing
+DAY 13/12/2024 - contact tracing report compiled for movements from IP NA (ID 330)
+ - DAY 03/11/2024 - moved 5 animals from property ID 330 (farm) to property ID 1898 (saleyard)
+ - DAY 08/11/2024 - moved 4 animals from property ID 330 (farm) to property ID 908 (saleyard)
+ - DAY 13/11/2024 - moved 4 animals from property ID 330 (farm) to property ID 187 (farm)
+ - DAY 28/11/2024 - moved 3 animals from property ID 330 (farm) to property ID 908 (saleyard)
+Personnel will be sent to traced property 187 for clinical observation and lab testing
+DAY 13/12/2024 - contact tracing report compiled for movements from IP NA (ID 757)
+ - DAY 05/11/2024 - moved 3 animals from property ID 757 (farm) to property ID 1536 (feedlot)
+ - DAY 15/11/2024 - moved 2 animals from property ID 757 (farm) to property ID 260 (farm)
+ - DAY 25/11/2024 - moved 2 animals from property ID 757 (farm) to property ID 1898 (saleyard)
+
+==============
+Total culled properties: 38; total vaccinated properties: 0; total culled animals: 5240

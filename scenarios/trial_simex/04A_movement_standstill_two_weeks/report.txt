@@ -1,0 +1,980 @@
+DAY 29/11/2024 - Property ID 803 (farm), 116.4 ha cattle property at location (x,y)=(148.11, -31.99), Gin Gin, Narromine Shire Council, New South Wales, 2823, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Personnel will be sent to property 803 for lab testing
+Personnel will be sent to traced property 776 for clinical observation and lab testing
+Personnel will be sent to property 776 for lab testing
+Personnel will be sent to traced property 429 for clinical observation and lab testing
+Personnel will be sent to property 429 for lab testing
+DAY 30/11/2024 - IP 1 (ID 803), 116.4 ha cattle property at location (x,y)=(148.11, -31.99), Gin Gin, Narromine Shire Council, New South Wales, 2823, Australia, has been found infected. A total of 19 animal(s) will be culled.
+Property 803 has been scheduled for culling
+Personnel will be sent to property 776 for lab testing
+DAY 30/11/2024 - Property ID 444 (farm), 56.5 ha cattle property at location (x,y)=(148.22, -31.62), Collie, Warren Shire Council, New South Wales, 2827, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Personnel will be sent to property 444 for lab testing
+Personnel will be sent to traced property 1898 for clinical observation and lab testing
+Personnel will be sent to property 1898 for lab testing
+DAY 01/12/2024 - IP 2 (ID 776), 448.0 ha cattle property at location (x,y)=(147.63, -31.92), Nevertire, Warren Shire Council, New South Wales, 2826, Australia, has been found infected. A total of 143 animal(s) will be culled.
+Property 776 has been scheduled for culling
+DAY 01/12/2024 - IP 1 (ID 803), 116.4 ha cattle property at location (x,y)=(148.11, -31.99), Gin Gin, Narromine Shire Council, New South Wales, 2823, Australia, has been depopulated.
+A total of 19 animal(s) have been culled.
+Personnel will be sent to traced property 776 for clinical observation and lab testing
+Personnel will be sent to property 776 for lab testing
+Personnel will be sent to traced property 429 for clinical observation and lab testing
+Personnel will be sent to property 429 for lab testing
+Personnel will be sent to traced property 637 for clinical observation and lab testing
+Personnel will be sent to property 637 for lab testing
+Personnel will be sent to traced property 1159 for clinical observation and lab testing
+Personnel will be sent to property 1159 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 872 for clinical observation and lab testing
+Personnel will be sent to property 872 for lab testing
+Personnel will be sent to traced property 1900 for clinical observation and lab testing
+Personnel will be sent to property 1900 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 167 for clinical observation and lab testing
+Personnel will be sent to property 167 for lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to property 1253 for lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to property 1635 for lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to property 1635 for lab testing
+Personnel will be sent to traced property 1213 for clinical observation and lab testing
+Personnel will be sent to property 1213 for lab testing
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+Personnel will be sent to property 1379 for lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to property 1253 for lab testing
+Personnel will be sent to traced property 1414 for clinical observation and lab testing
+Personnel will be sent to property 1414 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 1277 for clinical observation and lab testing
+Personnel will be sent to property 1277 for lab testing
+Personnel will be sent to traced property 193 for clinical observation and lab testing
+Personnel will be sent to property 193 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to property 1253 for lab testing
+Personnel will be sent to traced property 429 for clinical observation and lab testing
+Personnel will be sent to property 429 for lab testing
+Personnel will be sent to traced property 1758 for clinical observation and lab testing
+Personnel will be sent to property 1758 for lab testing
+Personnel will be sent to traced property 1617 for clinical observation and lab testing
+Personnel will be sent to property 1617 for lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to property 1253 for lab testing
+Personnel will be sent to traced property 1373 for clinical observation and lab testing
+Personnel will be sent to property 1373 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 1735 for clinical observation and lab testing
+Personnel will be sent to property 1735 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 1768 for clinical observation and lab testing
+Personnel will be sent to property 1768 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to property 1253 for lab testing
+Personnel will be sent to traced property 1752 for clinical observation and lab testing
+Personnel will be sent to property 1752 for lab testing
+Personnel will be sent to traced property 429 for clinical observation and lab testing
+Personnel will be sent to property 429 for lab testing
+Personnel will be sent to traced property 370 for clinical observation and lab testing
+Personnel will be sent to property 370 for lab testing
+Personnel will be sent to traced property 1404 for clinical observation and lab testing
+Personnel will be sent to property 1404 for lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to property 1253 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 1983 for clinical observation and lab testing
+Personnel will be sent to property 1983 for lab testing
+Personnel will be sent to traced property 1769 for clinical observation and lab testing
+Personnel will be sent to property 1769 for lab testing
+DAY 01/12/2024 - IP 3 (ID 444), 56.5 ha cattle property at location (x,y)=(148.22, -31.62), Collie, Warren Shire Council, New South Wales, 2827, Australia, has been found infected. A total of 16 animal(s) will be culled.
+Property 444 has been scheduled for culling
+Personnel will be sent to property 1898 for lab testing
+DAY 02/12/2024 - IP 4 (ID 1898), 846.6 ha cattle property at location (x,y)=(148.54, -31.38), Gulargambone, Coonamble Shire Council, New South Wales, 2828, Australia, has been found infected. A total of 245 animal(s) will be culled.
+Property 1898 has been scheduled for culling
+DAY 02/12/2024 - IP 2 (ID 776), 448.0 ha cattle property at location (x,y)=(147.63, -31.92), Nevertire, Warren Shire Council, New South Wales, 2826, Australia, has been depopulated.
+A total of 143 animal(s) have been culled.
+Personnel will be sent to traced property 637 for clinical observation and lab testing
+Personnel will be sent to property 637 for lab testing
+Personnel will be sent to traced property 1159 for clinical observation and lab testing
+Personnel will be sent to property 1159 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 872 for clinical observation and lab testing
+Personnel will be sent to property 872 for lab testing
+Personnel will be sent to traced property 1900 for clinical observation and lab testing
+Personnel will be sent to property 1900 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 167 for clinical observation and lab testing
+Personnel will be sent to property 167 for lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to property 1253 for lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to property 1635 for lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to property 1635 for lab testing
+Personnel will be sent to traced property 1213 for clinical observation and lab testing
+Personnel will be sent to property 1213 for lab testing
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+Personnel will be sent to property 1379 for lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to property 1253 for lab testing
+Personnel will be sent to traced property 1414 for clinical observation and lab testing
+Personnel will be sent to property 1414 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 1277 for clinical observation and lab testing
+Personnel will be sent to property 1277 for lab testing
+Personnel will be sent to traced property 193 for clinical observation and lab testing
+Personnel will be sent to property 193 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to property 1253 for lab testing
+Personnel will be sent to traced property 429 for clinical observation and lab testing
+Personnel will be sent to property 429 for lab testing
+Personnel will be sent to traced property 1758 for clinical observation and lab testing
+Personnel will be sent to property 1758 for lab testing
+Personnel will be sent to traced property 1617 for clinical observation and lab testing
+Personnel will be sent to property 1617 for lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to property 1253 for lab testing
+Personnel will be sent to traced property 1373 for clinical observation and lab testing
+Personnel will be sent to property 1373 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 1735 for clinical observation and lab testing
+Personnel will be sent to property 1735 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 1768 for clinical observation and lab testing
+Personnel will be sent to property 1768 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to property 1253 for lab testing
+Personnel will be sent to traced property 1752 for clinical observation and lab testing
+Personnel will be sent to property 1752 for lab testing
+Personnel will be sent to traced property 429 for clinical observation and lab testing
+Personnel will be sent to property 429 for lab testing
+Personnel will be sent to traced property 370 for clinical observation and lab testing
+Personnel will be sent to property 370 for lab testing
+Personnel will be sent to traced property 1404 for clinical observation and lab testing
+Personnel will be sent to property 1404 for lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to property 1253 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 1983 for clinical observation and lab testing
+Personnel will be sent to property 1983 for lab testing
+Personnel will be sent to traced property 1769 for clinical observation and lab testing
+Personnel will be sent to property 1769 for lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to property 1253 for lab testing
+Personnel will be sent to property 1379 for lab testing
+Personnel will be sent to property 1983 for lab testing
+DAY 02/12/2024 - IP 3 (ID 444), 56.5 ha cattle property at location (x,y)=(148.22, -31.62), Collie, Warren Shire Council, New South Wales, 2827, Australia, has been depopulated.
+A total of 16 animal(s) have been culled.
+Personnel will be sent to traced property 1898 for clinical observation and lab testing
+Personnel will be sent to property 1898 for lab testing
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+Personnel will be sent to property 1379 for lab testing
+Personnel will be sent to traced property 292 for clinical observation and lab testing
+Personnel will be sent to property 292 for lab testing
+Personnel will be sent to traced property 303 for clinical observation and lab testing
+Personnel will be sent to property 303 for lab testing
+Personnel will be sent to traced property 386 for clinical observation and lab testing
+Personnel will be sent to property 386 for lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to property 1635 for lab testing
+Personnel will be sent to traced property 1358 for clinical observation and lab testing
+Personnel will be sent to property 1358 for lab testing
+Personnel will be sent to traced property 303 for clinical observation and lab testing
+Personnel will be sent to property 303 for lab testing
+Personnel will be sent to traced property 1447 for clinical observation and lab testing
+Personnel will be sent to property 1447 for lab testing
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+Personnel will be sent to property 1379 for lab testing
+Personnel will be sent to traced property 982 for clinical observation and lab testing
+Personnel will be sent to property 982 for lab testing
+Personnel will be sent to traced property 1573 for clinical observation and lab testing
+Personnel will be sent to property 1573 for lab testing
+Personnel will be sent to traced property 1536 for clinical observation and lab testing
+Personnel will be sent to property 1536 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 1447 for clinical observation and lab testing
+Personnel will be sent to property 1447 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 1462 for clinical observation and lab testing
+Personnel will be sent to property 1462 for lab testing
+Personnel will be sent to traced property 1375 for clinical observation and lab testing
+Personnel will be sent to property 1375 for lab testing
+Personnel will be sent to traced property 348 for clinical observation and lab testing
+Personnel will be sent to property 348 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to property 1635 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 1487 for clinical observation and lab testing
+Personnel will be sent to property 1487 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 41 for clinical observation and lab testing
+Personnel will be sent to property 41 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 348 for clinical observation and lab testing
+Personnel will be sent to property 348 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to property 1635 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 72 for clinical observation and lab testing
+Personnel will be sent to property 72 for lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to property 1253 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 1763 for clinical observation and lab testing
+Personnel will be sent to property 1763 for lab testing
+Personnel will be sent to traced property 1732 for clinical observation and lab testing
+Personnel will be sent to property 1732 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 587 for clinical observation and lab testing
+Personnel will be sent to property 587 for lab testing
+Personnel will be sent to traced property 851 for clinical observation and lab testing
+Personnel will be sent to property 851 for lab testing
+Personnel will be sent to traced property 1067 for clinical observation and lab testing
+Personnel will be sent to property 1067 for lab testing
+Personnel will be sent to traced property 462 for clinical observation and lab testing
+Personnel will be sent to property 462 for lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to property 1635 for lab testing
+Personnel will be sent to traced property 1487 for clinical observation and lab testing
+Personnel will be sent to property 1487 for lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to property 1635 for lab testing
+Personnel will be sent to traced property 425 for clinical observation and lab testing
+Personnel will be sent to property 425 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 1400 for clinical observation and lab testing
+Personnel will be sent to property 1400 for lab testing
+Personnel will be sent to traced property 1838 for clinical observation and lab testing
+Personnel will be sent to property 1838 for lab testing
+Personnel will be sent to traced property 1811 for clinical observation and lab testing
+Personnel will be sent to property 1811 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 326 for clinical observation and lab testing
+Personnel will be sent to property 326 for lab testing
+Personnel will be sent to traced property 1653 for clinical observation and lab testing
+Personnel will be sent to property 1653 for lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to property 1253 for lab testing
+Personnel will be sent to traced property 429 for clinical observation and lab testing
+Personnel will be sent to property 429 for lab testing
+Personnel will be sent to traced property 66 for clinical observation and lab testing
+Personnel will be sent to property 66 for lab testing
+Personnel will be sent to traced property 260 for clinical observation and lab testing
+Personnel will be sent to property 260 for lab testing
+Personnel will be sent to traced property 1115 for clinical observation and lab testing
+Personnel will be sent to property 1115 for lab testing
+Personnel will be sent to traced property 868 for clinical observation and lab testing
+Personnel will be sent to property 868 for lab testing
+Personnel will be sent to traced property 463 for clinical observation and lab testing
+Personnel will be sent to property 463 for lab testing
+Personnel will be sent to traced property 611 for clinical observation and lab testing
+Personnel will be sent to property 611 for lab testing
+Personnel will be sent to traced property 1268 for clinical observation and lab testing
+Personnel will be sent to property 1268 for lab testing
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+Personnel will be sent to property 1379 for lab testing
+Personnel will be sent to traced property 485 for clinical observation and lab testing
+Personnel will be sent to property 485 for lab testing
+Personnel will be sent to traced property 643 for clinical observation and lab testing
+Personnel will be sent to property 643 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 1435 for clinical observation and lab testing
+Personnel will be sent to property 1435 for lab testing
+Personnel will be sent to traced property 868 for clinical observation and lab testing
+Personnel will be sent to property 868 for lab testing
+Personnel will be sent to traced property 217 for clinical observation and lab testing
+Personnel will be sent to property 217 for lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to property 1635 for lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to property 1253 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 1050 for clinical observation and lab testing
+Personnel will be sent to property 1050 for lab testing
+Personnel will be sent to traced property 504 for clinical observation and lab testing
+Personnel will be sent to property 504 for lab testing
+Personnel will be sent to traced property 994 for clinical observation and lab testing
+Personnel will be sent to property 994 for lab testing
+Personnel will be sent to traced property 292 for clinical observation and lab testing
+Personnel will be sent to property 292 for lab testing
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+Personnel will be sent to property 1379 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 485 for clinical observation and lab testing
+Personnel will be sent to property 485 for lab testing
+Personnel will be sent to traced property 948 for clinical observation and lab testing
+Personnel will be sent to property 948 for lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to property 1253 for lab testing
+Personnel will be sent to traced property 1536 for clinical observation and lab testing
+Personnel will be sent to property 1536 for lab testing
+DAY 03/12/2024 - IP 5 (ID 429), 190.1 ha cattle property at location (x,y)=(148.55, -32.14), Terramungamine, Dubbo Regional Council, New South Wales, 2830, Australia, has been found infected. A total of 382 animal(s) will be culled.
+Property 429 has been scheduled for culling
+DAY 03/12/2024 - IP 6 (ID 908), 212.6 ha cattle property at location (x,y)=(148.04, -32.1), Trangie, Narromine Shire Council, New South Wales, 2823, Australia, has been found infected. A total of 249 animal(s) will be culled.
+Property 908 has been scheduled for culling
+DAY 03/12/2024 - IP 7 (ID 6), 89.9 ha cattle property at location (x,y)=(148.53, -31.54), Bardens Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been found infected. A total of 546 animal(s) will be culled.
+Property 6 has been scheduled for culling
+DAY 03/12/2024 - IP 8 (ID 1253), 179.4 ha cattle property at location (x,y)=(148.06, -31.92), Gin Gin, Narromine Shire Council, New South Wales, 2823, Australia, has been found infected. A total of 450 animal(s) will be culled.
+Property 1253 has been scheduled for culling
+DAY 03/12/2024 - IP 9 (ID 1635), 82.8 ha cattle property at location (x,y)=(147.54, -31.56), Eenaweena Woolshed, 4148, Eenaweena, Warren Shire Council, New South Wales, 2824, Australia, has been found infected. A total of 470 animal(s) will be culled.
+Property 1635 has been scheduled for culling
+DAY 03/12/2024 - IP 10 (ID 1373), 180.0 ha cattle property at location (x,y)=(147.8, -32.0), Gordons Lane, Trangie, Narromine Shire Council, New South Wales, 2823, Australia, has been found infected. A total of 102 animal(s) will be culled.
+Property 1373 has been scheduled for culling
+DAY 03/12/2024 - IP 11 (ID 1735), 85.6 ha cattle property at location (x,y)=(148.18, -31.58), Pigeonbah, Warren Shire Council, New South Wales, 2824, Australia, has been found infected. A total of 36 animal(s) will be culled.
+Property 1735 has been scheduled for culling
+DAY 03/12/2024 - IP 12 (ID 1983), 265.8 ha cattle property at location (x,y)=(148.57, -31.6), Gilgandra, Gilgandra Shire Council, New South Wales, 2827, Australia, has been found infected. A total of 74 animal(s) will be culled.
+Property 1983 has been scheduled for culling
+DAY 03/12/2024 - IP 4 (ID 1898), 846.6 ha cattle property at location (x,y)=(148.54, -31.38), Gulargambone, Coonamble Shire Council, New South Wales, 2828, Australia, has been depopulated.
+A total of 245 animal(s) have been culled.
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+Personnel will be sent to property 1379 for lab testing
+Personnel will be sent to traced property 292 for clinical observation and lab testing
+Personnel will be sent to property 292 for lab testing
+Personnel will be sent to traced property 303 for clinical observation and lab testing
+Personnel will be sent to property 303 for lab testing
+Personnel will be sent to traced property 386 for clinical observation and lab testing
+Personnel will be sent to property 386 for lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to property 1635 for lab testing
+Personnel will be sent to traced property 1358 for clinical observation and lab testing
+Personnel will be sent to property 1358 for lab testing
+Personnel will be sent to traced property 303 for clinical observation and lab testing
+Personnel will be sent to property 303 for lab testing
+Personnel will be sent to traced property 1447 for clinical observation and lab testing
+Personnel will be sent to property 1447 for lab testing
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+Personnel will be sent to property 1379 for lab testing
+Personnel will be sent to traced property 982 for clinical observation and lab testing
+Personnel will be sent to property 982 for lab testing
+Personnel will be sent to traced property 1573 for clinical observation and lab testing
+Personnel will be sent to property 1573 for lab testing
+Personnel will be sent to traced property 1536 for clinical observation and lab testing
+Personnel will be sent to property 1536 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 1447 for clinical observation and lab testing
+Personnel will be sent to property 1447 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 1462 for clinical observation and lab testing
+Personnel will be sent to property 1462 for lab testing
+Personnel will be sent to traced property 1375 for clinical observation and lab testing
+Personnel will be sent to property 1375 for lab testing
+Personnel will be sent to traced property 348 for clinical observation and lab testing
+Personnel will be sent to property 348 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to property 1635 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 1487 for clinical observation and lab testing
+Personnel will be sent to property 1487 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 41 for clinical observation and lab testing
+Personnel will be sent to property 41 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 348 for clinical observation and lab testing
+Personnel will be sent to property 348 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to property 1635 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 72 for clinical observation and lab testing
+Personnel will be sent to property 72 for lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to property 1253 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 1763 for clinical observation and lab testing
+Personnel will be sent to property 1763 for lab testing
+Personnel will be sent to traced property 1732 for clinical observation and lab testing
+Personnel will be sent to property 1732 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 587 for clinical observation and lab testing
+Personnel will be sent to property 587 for lab testing
+Personnel will be sent to traced property 851 for clinical observation and lab testing
+Personnel will be sent to property 851 for lab testing
+Personnel will be sent to traced property 1067 for clinical observation and lab testing
+Personnel will be sent to property 1067 for lab testing
+Personnel will be sent to traced property 462 for clinical observation and lab testing
+Personnel will be sent to property 462 for lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to property 1635 for lab testing
+Personnel will be sent to traced property 1487 for clinical observation and lab testing
+Personnel will be sent to property 1487 for lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to property 1635 for lab testing
+Personnel will be sent to traced property 425 for clinical observation and lab testing
+Personnel will be sent to property 425 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 1400 for clinical observation and lab testing
+Personnel will be sent to property 1400 for lab testing
+Personnel will be sent to traced property 1838 for clinical observation and lab testing
+Personnel will be sent to property 1838 for lab testing
+Personnel will be sent to traced property 1811 for clinical observation and lab testing
+Personnel will be sent to property 1811 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 326 for clinical observation and lab testing
+Personnel will be sent to property 326 for lab testing
+Personnel will be sent to traced property 1653 for clinical observation and lab testing
+Personnel will be sent to property 1653 for lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to property 1253 for lab testing
+Personnel will be sent to traced property 429 for clinical observation and lab testing
+Personnel will be sent to property 429 for lab testing
+Personnel will be sent to traced property 66 for clinical observation and lab testing
+Personnel will be sent to property 66 for lab testing
+Personnel will be sent to traced property 260 for clinical observation and lab testing
+Personnel will be sent to property 260 for lab testing
+Personnel will be sent to traced property 1115 for clinical observation and lab testing
+Personnel will be sent to property 1115 for lab testing
+Personnel will be sent to traced property 868 for clinical observation and lab testing
+Personnel will be sent to property 868 for lab testing
+Personnel will be sent to traced property 463 for clinical observation and lab testing
+Personnel will be sent to property 463 for lab testing
+Personnel will be sent to traced property 611 for clinical observation and lab testing
+Personnel will be sent to property 611 for lab testing
+Personnel will be sent to traced property 1268 for clinical observation and lab testing
+Personnel will be sent to property 1268 for lab testing
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+Personnel will be sent to property 1379 for lab testing
+Personnel will be sent to traced property 485 for clinical observation and lab testing
+Personnel will be sent to property 485 for lab testing
+Personnel will be sent to traced property 643 for clinical observation and lab testing
+Personnel will be sent to property 643 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 1435 for clinical observation and lab testing
+Personnel will be sent to property 1435 for lab testing
+Personnel will be sent to traced property 868 for clinical observation and lab testing
+Personnel will be sent to property 868 for lab testing
+Personnel will be sent to traced property 217 for clinical observation and lab testing
+Personnel will be sent to property 217 for lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to property 1635 for lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to property 1253 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 1050 for clinical observation and lab testing
+Personnel will be sent to property 1050 for lab testing
+Personnel will be sent to traced property 504 for clinical observation and lab testing
+Personnel will be sent to property 504 for lab testing
+Personnel will be sent to traced property 994 for clinical observation and lab testing
+Personnel will be sent to property 994 for lab testing
+Personnel will be sent to traced property 292 for clinical observation and lab testing
+Personnel will be sent to property 292 for lab testing
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+Personnel will be sent to property 1379 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 485 for clinical observation and lab testing
+Personnel will be sent to property 485 for lab testing
+Personnel will be sent to traced property 948 for clinical observation and lab testing
+Personnel will be sent to property 948 for lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to property 1253 for lab testing
+Personnel will be sent to traced property 1536 for clinical observation and lab testing
+Personnel will be sent to property 1536 for lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to property 1253 for lab testing
+Personnel will be sent to property 1635 for lab testing
+Personnel will be sent to property 1379 for lab testing
+Personnel will be sent to property 429 for lab testing
+Personnel will be sent to property 1373 for lab testing
+Personnel will be sent to property 1735 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 1277 for clinical observation and lab testing
+Personnel will be sent to property 1277 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 1589 for clinical observation and lab testing
+Personnel will be sent to property 1589 for lab testing
+Personnel will be sent to traced property 1580 for clinical observation and lab testing
+Personnel will be sent to property 1580 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 480 for clinical observation and lab testing
+Personnel will be sent to property 480 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 1627 for clinical observation and lab testing
+Personnel will be sent to property 1627 for lab testing
+Personnel will be sent to traced property 1734 for clinical observation and lab testing
+Personnel will be sent to property 1734 for lab testing
+Personnel will be sent to traced property 1489 for clinical observation and lab testing
+Personnel will be sent to property 1489 for lab testing
+Personnel will be sent to traced property 979 for clinical observation and lab testing
+Personnel will be sent to property 979 for lab testing
+Personnel will be sent to traced property 908 for clinical observation and lab testing
+Personnel will be sent to property 908 for lab testing
+Personnel will be sent to traced property 1373 for clinical observation and lab testing
+Personnel will be sent to property 1373 for lab testing
+Personnel will be sent to traced property 735 for clinical observation and lab testing
+Personnel will be sent to property 735 for lab testing
+Personnel will be sent to property 41 for lab testing
+Personnel will be sent to property 425 for lab testing
+Personnel will be sent to property 643 for lab testing
+Personnel will be sent to property 217 for lab testing
+Personnel will be sent to property 504 for lab testing
+Personnel will be sent to property 994 for lab testing
+Personnel will be sent to property 948 for lab testing
+DAY 03/12/2024 - Property ID 1268 (farm), 279.0 ha cattle property at location (x,y)=(148.52, -31.52), Bardens Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Personnel will be sent to property 1268 for lab testing
+DAY 04/12/2024 - IP 13 (ID 292), 290.2 ha cattle property at location (x,y)=(149.33, -30.87), Dipper Road, Baradine, Warrumbungle Shire Council, New South Wales, Australia, has been found infected. A total of 97 animal(s) will be culled.
+Property 292 has been scheduled for culling
+DAY 04/12/2024 - IP 14 (ID 1536), 177.7 ha cattle property at location (x,y)=(148.78, -31.84), Mudfords Road, Gilgandra Shire Council, New South Wales, Australia, has been found infected. A total of 352 animal(s) will be culled.
+Property 1536 has been scheduled for culling
+DAY 04/12/2024 - IP 15 (ID 41), 124.3 ha cattle property at location (x,y)=(147.58, -31.63), Gunningbar West, 1381, Eenaweena, Warren Shire Council, New South Wales, 2824, Australia, has been found infected. A total of 37 animal(s) will be culled.
+Property 41 has been scheduled for culling
+DAY 04/12/2024 - IP 16 (ID 462), 827.5 ha cattle property at location (x,y)=(148.73, -31.58), Biddon, Gilgandra Shire Council, New South Wales, 2827, Australia, has been found infected. A total of 130 animal(s) will be culled.
+Property 462 has been scheduled for culling
+DAY 04/12/2024 - IP 17 (ID 425), 168.1 ha cattle property at location (x,y)=(148.71, -31.48), Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been found infected. A total of 333 animal(s) will be culled.
+Property 425 has been scheduled for culling
+DAY 04/12/2024 - IP 18 (ID 260), 95.6 ha cattle property at location (x,y)=(148.09, -32.19), Narromine, Narromine Shire Council, New South Wales, 2821, Australia, has been found infected. A total of 29 animal(s) will be culled.
+Property 260 has been scheduled for culling
+DAY 04/12/2024 - IP 19 (ID 643), 460.8 ha cattle property at location (x,y)=(149.14, -31.3), Coonabarabran, Warrumbungle Shire Council, New South Wales, 2357, Australia, has been found infected. A total of 133 animal(s) will be culled.
+Property 643 has been scheduled for culling
+DAY 04/12/2024 - IP 20 (ID 1435), 388.8 ha cattle property at location (x,y)=(148.58, -31.46), Nalders Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been found infected. A total of 80 animal(s) will be culled.
+Property 1435 has been scheduled for culling
+DAY 04/12/2024 - IP 21 (ID 217), 386.5 ha cattle property at location (x,y)=(148.75, -31.29), Tonderburine, Gilgandra Shire Council, New South Wales, 2817, Australia, has been found infected. A total of 89 animal(s) will be culled.
+Property 217 has been scheduled for culling
+DAY 04/12/2024 - IP 22 (ID 504), 66.8 ha cattle property at location (x,y)=(148.21, -31.64), Collie, Warren Shire Council, New South Wales, 2827, Australia, has been found infected. A total of 20 animal(s) will be culled.
+Property 504 has been scheduled for culling
+DAY 04/12/2024 - IP 23 (ID 994), 152.2 ha cattle property at location (x,y)=(149.06, -31.04), Pig Road, Bugaldie, Baradine, Warrumbungle Shire Council, New South Wales, 2396, Australia, has been found infected. A total of 32 animal(s) will be culled.
+Property 994 has been scheduled for culling
+DAY 04/12/2024 - IP 24 (ID 948), 245.5 ha cattle property at location (x,y)=(148.94, -30.62), Gwabegar, Narrabri Shire Council, New South Wales, 2356, Australia, has been found infected. A total of 87 animal(s) will be culled.
+Property 948 has been scheduled for culling
+DAY 04/12/2024 - IP 5 (ID 429), 190.1 ha cattle property at location (x,y)=(148.55, -32.14), Terramungamine, Dubbo Regional Council, New South Wales, 2830, Australia, has been depopulated.
+A total of 382 animal(s) have been culled.
+DAY 04/12/2024 - IP 6 (ID 908), 212.6 ha cattle property at location (x,y)=(148.04, -32.1), Trangie, Narromine Shire Council, New South Wales, 2823, Australia, has been depopulated.
+A total of 249 animal(s) have been culled.
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 1752 for clinical observation and lab testing
+Personnel will be sent to property 1752 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 1267 for clinical observation and lab testing
+Personnel will be sent to property 1267 for lab testing
+Personnel will be sent to traced property 884 for clinical observation and lab testing
+Personnel will be sent to property 884 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 1768 for clinical observation and lab testing
+Personnel will be sent to property 1768 for lab testing
+Personnel will be sent to traced property 1635 for clinical observation and lab testing
+Personnel will be sent to property 1635 for lab testing
+Personnel will be sent to traced property 1732 for clinical observation and lab testing
+Personnel will be sent to property 1732 for lab testing
+Personnel will be sent to traced property 493 for clinical observation and lab testing
+Personnel will be sent to property 493 for lab testing
+Personnel will be sent to traced property 1536 for clinical observation and lab testing
+Personnel will be sent to property 1536 for lab testing
+Personnel will be sent to traced property 1524 for clinical observation and lab testing
+Personnel will be sent to property 1524 for lab testing
+Personnel will be sent to traced property 1768 for clinical observation and lab testing
+Personnel will be sent to property 1768 for lab testing
+Personnel will be sent to traced property 1437 for clinical observation and lab testing
+Personnel will be sent to property 1437 for lab testing
+Personnel will be sent to traced property 501 for clinical observation and lab testing
+Personnel will be sent to property 501 for lab testing
+Personnel will be sent to traced property 366 for clinical observation and lab testing
+Personnel will be sent to property 366 for lab testing
+Personnel will be sent to traced property 66 for clinical observation and lab testing
+Personnel will be sent to property 66 for lab testing
+Personnel will be sent to traced property 1962 for clinical observation and lab testing
+Personnel will be sent to property 1962 for lab testing
+Personnel will be sent to traced property 1373 for clinical observation and lab testing
+Personnel will be sent to property 1373 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 611 for clinical observation and lab testing
+Personnel will be sent to property 611 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 1400 for clinical observation and lab testing
+Personnel will be sent to property 1400 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 426 for clinical observation and lab testing
+Personnel will be sent to property 426 for lab testing
+Personnel will be sent to traced property 376 for clinical observation and lab testing
+Personnel will be sent to property 376 for lab testing
+Personnel will be sent to traced property 1036 for clinical observation and lab testing
+Personnel will be sent to property 1036 for lab testing
+Personnel will be sent to traced property 1423 for clinical observation and lab testing
+Personnel will be sent to property 1423 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 1347 for clinical observation and lab testing
+Personnel will be sent to property 1347 for lab testing
+Personnel will be sent to traced property 1962 for clinical observation and lab testing
+Personnel will be sent to property 1962 for lab testing
+Personnel will be sent to traced property 1948 for clinical observation and lab testing
+Personnel will be sent to property 1948 for lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to property 1253 for lab testing
+Personnel will be sent to traced property 1755 for clinical observation and lab testing
+Personnel will be sent to property 1755 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 1281 for clinical observation and lab testing
+Personnel will be sent to property 1281 for lab testing
+Personnel will be sent to traced property 1768 for clinical observation and lab testing
+Personnel will be sent to property 1768 for lab testing
+Personnel will be sent to traced property 1882 for clinical observation and lab testing
+Personnel will be sent to property 1882 for lab testing
+Personnel will be sent to traced property 153 for clinical observation and lab testing
+Personnel will be sent to property 153 for lab testing
+Personnel will be sent to traced property 1399 for clinical observation and lab testing
+Personnel will be sent to property 1399 for lab testing
+Personnel will be sent to traced property 99 for clinical observation and lab testing
+Personnel will be sent to property 99 for lab testing
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+Personnel will be sent to property 1379 for lab testing
+Personnel will be sent to traced property 1983 for clinical observation and lab testing
+Personnel will be sent to property 1983 for lab testing
+Personnel will be sent to traced property 1643 for clinical observation and lab testing
+Personnel will be sent to property 1643 for lab testing
+Personnel will be sent to traced property 655 for clinical observation and lab testing
+Personnel will be sent to property 655 for lab testing
+Personnel will be sent to traced property 6 for clinical observation and lab testing
+Personnel will be sent to property 6 for lab testing
+Personnel will be sent to traced property 1253 for clinical observation and lab testing
+Personnel will be sent to property 1253 for lab testing
+DAY 04/12/2024 - IP 7 (ID 6), 89.9 ha cattle property at location (x,y)=(148.53, -31.54), Bardens Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been depopulated.
+A total of 546 animal(s) have been culled.
+Personnel will be sent to traced property 1277 for clinical observation and lab testing
+Personnel will be sent to property 1277 for lab testing
+Personnel will be sent to traced property 1589 for clinical observation and lab testing
+Personnel will be sent to property 1589 for lab testing
+Personnel will be sent to traced property 1580 for clinical observation and lab testing
+Personnel will be sent to property 1580 for lab testing
+Personnel will be sent to traced property 480 for clinical observation and lab testing
+Personnel will be sent to property 480 for lab testing
+Personnel will be sent to traced property 1627 for clinical observation and lab testing
+Personnel will be sent to property 1627 for lab testing
+Personnel will be sent to traced property 1734 for clinical observation and lab testing
+Personnel will be sent to property 1734 for lab testing
+Personnel will be sent to traced property 1489 for clinical observation and lab testing
+Personnel will be sent to property 1489 for lab testing
+Personnel will be sent to traced property 979 for clinical observation and lab testing
+Personnel will be sent to property 979 for lab testing
+Personnel will be sent to traced property 1373 for clinical observation and lab testing
+Personnel will be sent to property 1373 for lab testing
+DAY 04/12/2024 - IP 8 (ID 1253), 179.4 ha cattle property at location (x,y)=(148.06, -31.92), Gin Gin, Narromine Shire Council, New South Wales, 2823, Australia, has been depopulated.
+A total of 450 animal(s) have been culled.
+DAY 04/12/2024 - IP 9 (ID 1635), 82.8 ha cattle property at location (x,y)=(147.54, -31.56), Eenaweena Woolshed, 4148, Eenaweena, Warren Shire Council, New South Wales, 2824, Australia, has been depopulated.
+A total of 470 animal(s) have been culled.
+DAY 04/12/2024 - IP 10 (ID 1373), 180.0 ha cattle property at location (x,y)=(147.8, -32.0), Gordons Lane, Trangie, Narromine Shire Council, New South Wales, 2823, Australia, has been depopulated.
+A total of 102 animal(s) have been culled.
+Personnel will be sent to traced property 1768 for clinical observation and lab testing
+Personnel will be sent to property 1768 for lab testing
+DAY 04/12/2024 - IP 11 (ID 1735), 85.6 ha cattle property at location (x,y)=(148.18, -31.58), Pigeonbah, Warren Shire Council, New South Wales, 2824, Australia, has been depopulated.
+A total of 36 animal(s) have been culled.
+Personnel will be sent to traced property 1536 for clinical observation and lab testing
+Personnel will be sent to property 1536 for lab testing
+DAY 04/12/2024 - IP 12 (ID 1983), 265.8 ha cattle property at location (x,y)=(148.57, -31.6), Gilgandra, Gilgandra Shire Council, New South Wales, 2827, Australia, has been depopulated.
+A total of 74 animal(s) have been culled.
+Personnel will be sent to traced property 735 for clinical observation and lab testing
+Personnel will be sent to property 735 for lab testing
+Personnel will be sent to property 462 for lab testing
+Personnel will be sent to property 260 for lab testing
+Personnel will be sent to property 1268 for lab testing
+Personnel will be sent to property 1435 for lab testing
+Personnel will be sent to property 994 for lab testing
+Personnel will be sent to traced property 1536 for clinical observation and lab testing
+Personnel will be sent to property 1536 for lab testing
+Personnel will be sent to traced property 1050 for clinical observation and lab testing
+Personnel will be sent to property 1050 for lab testing
+Personnel will be sent to traced property 1442 for clinical observation and lab testing
+Personnel will be sent to property 1442 for lab testing
+Personnel will be sent to traced property 1768 for clinical observation and lab testing
+Personnel will be sent to property 1768 for lab testing
+Personnel will be sent to traced property 922 for clinical observation and lab testing
+Personnel will be sent to property 922 for lab testing
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+Personnel will be sent to property 1379 for lab testing
+Personnel will be sent to traced property 172 for clinical observation and lab testing
+Personnel will be sent to property 172 for lab testing
+Personnel will be sent to traced property 1332 for clinical observation and lab testing
+Personnel will be sent to property 1332 for lab testing
+Personnel will be sent to traced property 1662 for clinical observation and lab testing
+Personnel will be sent to property 1662 for lab testing
+Personnel will be sent to traced property 1662 for clinical observation and lab testing
+Personnel will be sent to property 1662 for lab testing
+DAY 05/12/2024 - IP 25 (ID 735), 143.8 ha cattle property at location (x,y)=(147.59, -31.46), Mumblebone Plain, Warren Shire Council, New South Wales, 2824, Australia, has been found infected. A total of 32 animal(s) will be culled.
+Property 735 has been scheduled for culling
+DAY 05/12/2024 - IP 13 (ID 292), 290.2 ha cattle property at location (x,y)=(149.33, -30.87), Dipper Road, Baradine, Warrumbungle Shire Council, New South Wales, Australia, has been depopulated.
+A total of 97 animal(s) have been culled.
+DAY 05/12/2024 - IP 14 (ID 1536), 177.7 ha cattle property at location (x,y)=(148.78, -31.84), Mudfords Road, Gilgandra Shire Council, New South Wales, Australia, has been depopulated.
+A total of 352 animal(s) have been culled.
+DAY 05/12/2024 - IP 15 (ID 41), 124.3 ha cattle property at location (x,y)=(147.58, -31.63), Gunningbar West, 1381, Eenaweena, Warren Shire Council, New South Wales, 2824, Australia, has been depopulated.
+A total of 37 animal(s) have been culled.
+DAY 05/12/2024 - IP 16 (ID 462), 827.5 ha cattle property at location (x,y)=(148.73, -31.58), Biddon, Gilgandra Shire Council, New South Wales, 2827, Australia, has been depopulated.
+A total of 130 animal(s) have been culled.
+Personnel will be sent to traced property 1213 for clinical observation and lab testing
+Personnel will be sent to property 1213 for lab testing
+Personnel will be sent to traced property 1768 for clinical observation and lab testing
+Personnel will be sent to property 1768 for lab testing
+DAY 05/12/2024 - IP 17 (ID 425), 168.1 ha cattle property at location (x,y)=(148.71, -31.48), Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been depopulated.
+A total of 333 animal(s) have been culled.
+DAY 05/12/2024 - IP 18 (ID 260), 95.6 ha cattle property at location (x,y)=(148.09, -32.19), Narromine, Narromine Shire Council, New South Wales, 2821, Australia, has been depopulated.
+A total of 29 animal(s) have been culled.
+Personnel will be sent to traced property 988 for clinical observation and lab testing
+Personnel will be sent to property 988 for lab testing
+Personnel will be sent to traced property 1287 for clinical observation and lab testing
+Personnel will be sent to property 1287 for lab testing
+DAY 05/12/2024 - IP 19 (ID 643), 460.8 ha cattle property at location (x,y)=(149.14, -31.3), Coonabarabran, Warrumbungle Shire Council, New South Wales, 2357, Australia, has been depopulated.
+A total of 133 animal(s) have been culled.
+DAY 05/12/2024 - IP 20 (ID 1435), 388.8 ha cattle property at location (x,y)=(148.58, -31.46), Nalders Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been depopulated.
+A total of 80 animal(s) have been culled.
+Personnel will be sent to traced property 88 for clinical observation and lab testing
+Personnel will be sent to property 88 for lab testing
+DAY 05/12/2024 - IP 21 (ID 217), 386.5 ha cattle property at location (x,y)=(148.75, -31.29), Tonderburine, Gilgandra Shire Council, New South Wales, 2817, Australia, has been depopulated.
+A total of 89 animal(s) have been culled.
+Personnel will be sent to traced property 1050 for clinical observation and lab testing
+Personnel will be sent to property 1050 for lab testing
+DAY 05/12/2024 - IP 22 (ID 504), 66.8 ha cattle property at location (x,y)=(148.21, -31.64), Collie, Warren Shire Council, New South Wales, 2827, Australia, has been depopulated.
+A total of 20 animal(s) have been culled.
+Personnel will be sent to traced property 1442 for clinical observation and lab testing
+Personnel will be sent to property 1442 for lab testing
+Personnel will be sent to traced property 1768 for clinical observation and lab testing
+Personnel will be sent to property 1768 for lab testing
+DAY 05/12/2024 - IP 23 (ID 994), 152.2 ha cattle property at location (x,y)=(149.06, -31.04), Pig Road, Bugaldie, Baradine, Warrumbungle Shire Council, New South Wales, 2396, Australia, has been depopulated.
+A total of 32 animal(s) have been culled.
+Personnel will be sent to traced property 922 for clinical observation and lab testing
+Personnel will be sent to property 922 for lab testing
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+Personnel will be sent to property 1379 for lab testing
+DAY 05/12/2024 - IP 24 (ID 948), 245.5 ha cattle property at location (x,y)=(148.94, -30.62), Gwabegar, Narrabri Shire Council, New South Wales, 2356, Australia, has been depopulated.
+A total of 87 animal(s) have been culled.
+Personnel will be sent to traced property 172 for clinical observation and lab testing
+Personnel will be sent to property 172 for lab testing
+Personnel will be sent to traced property 1332 for clinical observation and lab testing
+Personnel will be sent to property 1332 for lab testing
+Personnel will be sent to traced property 1662 for clinical observation and lab testing
+Personnel will be sent to property 1662 for lab testing
+Personnel will be sent to traced property 1662 for clinical observation and lab testing
+Personnel will be sent to property 1662 for lab testing
+Personnel will be sent to property 1423 for lab testing
+Personnel will be sent to property 99 for lab testing
+Personnel will be sent to property 1379 for lab testing
+Personnel will be sent to property 735 for lab testing
+DAY 05/12/2024 - Property ID 1248 (farm), 568.1 ha cattle property at location (x,y)=(148.47, -31.47), Armatree, Gilgandra Shire Council, New South Wales, 2828, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Personnel will be sent to property 1248 for lab testing
+DAY 05/12/2024 - Property ID 1268 (farm), 279.0 ha cattle property at location (x,y)=(148.52, -31.52), Bardens Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Personnel will be sent to property 1268 for lab testing
+DAY 06/12/2024 - IP 26 (ID 99), 76.4 ha cattle property at location (x,y)=(148.01, -32.02), Trangie, Narromine Shire Council, New South Wales, 2823, Australia, has been found infected. A total of 43 animal(s) will be culled.
+Property 99 has been scheduled for culling
+DAY 06/12/2024 - IP 27 (ID 1379), 64.7 ha cattle property at location (x,y)=(148.24, -31.58), Collie, Warren Shire Council, New South Wales, 2827, Australia, has been found infected. A total of 287 animal(s) will be culled.
+Property 1379 has been scheduled for culling
+DAY 06/12/2024 - IP 28 (ID 655), 58.7 ha cattle property at location (x,y)=(148.15, -32.02), Trangie, Narromine Shire Council, New South Wales, 2823, Australia, has been found infected. A total of 30 animal(s) will be culled.
+Property 655 has been scheduled for culling
+DAY 06/12/2024 - IP 29 (ID 172), 420.7 ha cattle property at location (x,y)=(148.64, -31.3), Seven Mile Road, Gulargambone, Gilgandra Shire Council, New South Wales, Australia, has been found infected. A total of 77 animal(s) will be culled.
+Property 172 has been scheduled for culling
+DAY 06/12/2024 - IP 25 (ID 735), 143.8 ha cattle property at location (x,y)=(147.59, -31.46), Mumblebone Plain, Warren Shire Council, New South Wales, 2824, Australia, has been depopulated.
+A total of 32 animal(s) have been culled.
+Personnel will be sent to property 1379 for lab testing
+Personnel will be sent to property 172 for lab testing
+DAY 06/12/2024 - IP 30 (ID 1268), 279.0 ha cattle property at location (x,y)=(148.52, -31.52), Bardens Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been found infected. A total of 58 animal(s) will be culled.
+Property 1268 has been scheduled for culling
+DAY 06/12/2024 - Property ID 485 (farm), 92.4 ha cattle property at location (x,y)=(148.91, -31.84), Mendooran, Warrumbungle Shire Council, New South Wales, 2842, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Personnel will be sent to property 485 for lab testing
+DAY 06/12/2024 - Property ID 1268 (farm), 279.0 ha cattle property at location (x,y)=(148.52, -31.52), Bardens Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Personnel will be sent to property 1268 for lab testing
+DAY 06/12/2024 - Property ID 1570 (farm), 251.3 ha cattle property at location (x,y)=(148.61, -31.47), Nalders Access Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Personnel will be sent to property 1570 for lab testing
+Personnel will be sent to traced property 1379 for clinical observation and lab testing
+Personnel will be sent to property 1379 for lab testing
+Personnel will be sent to traced property 99 for clinical observation and lab testing
+Personnel will be sent to property 99 for lab testing
+Personnel will be sent to traced property 1007 for clinical observation and lab testing
+Personnel will be sent to property 1007 for lab testing
+DAY 07/12/2024 - IP 31 (ID 88), 362.9 ha cattle property at location (x,y)=(148.46, -31.56), Malabar, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been found infected. A total of 68 animal(s) will be culled.
+Property 88 has been scheduled for culling
+DAY 07/12/2024 - IP 26 (ID 99), 76.4 ha cattle property at location (x,y)=(148.01, -32.02), Trangie, Narromine Shire Council, New South Wales, 2823, Australia, has been depopulated.
+A total of 43 animal(s) have been culled.
+DAY 07/12/2024 - IP 27 (ID 1379), 64.7 ha cattle property at location (x,y)=(148.24, -31.58), Collie, Warren Shire Council, New South Wales, 2827, Australia, has been depopulated.
+A total of 287 animal(s) have been culled.
+DAY 07/12/2024 - IP 28 (ID 655), 58.7 ha cattle property at location (x,y)=(148.15, -32.02), Trangie, Narromine Shire Council, New South Wales, 2823, Australia, has been depopulated.
+A total of 30 animal(s) have been culled.
+DAY 07/12/2024 - IP 29 (ID 172), 420.7 ha cattle property at location (x,y)=(148.64, -31.3), Seven Mile Road, Gulargambone, Gilgandra Shire Council, New South Wales, Australia, has been depopulated.
+A total of 77 animal(s) have been culled.
+Personnel will be sent to traced property 1662 for clinical observation and lab testing
+Personnel will be sent to property 1662 for lab testing
+Personnel will be sent to traced property 1587 for clinical observation and lab testing
+Personnel will be sent to property 1587 for lab testing
+DAY 07/12/2024 - IP 30 (ID 1268), 279.0 ha cattle property at location (x,y)=(148.52, -31.52), Bardens Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been depopulated.
+A total of 58 animal(s) have been culled.
+DAY 07/12/2024 - IP 32 (ID 485), 92.4 ha cattle property at location (x,y)=(148.91, -31.84), Mendooran, Warrumbungle Shire Council, New South Wales, 2842, Australia, has been found infected. A total of 34 animal(s) will be culled.
+Property 485 has been scheduled for culling
+DAY 07/12/2024 - IP 33 (ID 1570), 251.3 ha cattle property at location (x,y)=(148.61, -31.47), Nalders Access Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been found infected. A total of 44 animal(s) will be culled.
+Property 1570 has been scheduled for culling
+DAY 07/12/2024 - Property ID 628 (farm), 546.6 ha cattle property at location (x,y)=(147.64, -31.5), Mumblebone Plain, Warren Shire Council, New South Wales, 2824, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Personnel will be sent to property 628 for lab testing
+DAY 08/12/2024 - IP 31 (ID 88), 362.9 ha cattle property at location (x,y)=(148.46, -31.56), Malabar, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been depopulated.
+A total of 68 animal(s) have been culled.
+DAY 08/12/2024 - IP 32 (ID 485), 92.4 ha cattle property at location (x,y)=(148.91, -31.84), Mendooran, Warrumbungle Shire Council, New South Wales, 2842, Australia, has been depopulated.
+A total of 34 animal(s) have been culled.
+DAY 08/12/2024 - IP 33 (ID 1570), 251.3 ha cattle property at location (x,y)=(148.61, -31.47), Nalders Access Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been depopulated.
+A total of 44 animal(s) have been culled.
+Personnel will be sent to traced property 1007 for clinical observation and lab testing
+Personnel will be sent to property 1007 for lab testing
+DAY 08/12/2024 - IP 34 (ID 628), 546.6 ha cattle property at location (x,y)=(147.64, -31.5), Mumblebone Plain, Warren Shire Council, New South Wales, 2824, Australia, has been found infected. A total of 90 animal(s) will be culled.
+Property 628 has been scheduled for culling
+DAY 09/12/2024 - IP 34 (ID 628), 546.6 ha cattle property at location (x,y)=(147.64, -31.5), Mumblebone Plain, Warren Shire Council, New South Wales, 2824, Australia, has been depopulated.
+A total of 90 animal(s) have been culled.
+DAY 09/12/2024 - Property ID 78 (farm), 354.8 ha cattle property at location (x,y)=(148.43, -31.51), Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Personnel will be sent to property 78 for lab testing
+DAY 09/12/2024 - Property ID 246 (farm), 315.5 ha cattle property at location (x,y)=(148.07, -32.02), Trangie, Narromine Shire Council, New South Wales, 2823, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Personnel will be sent to property 246 for lab testing
+DAY 09/12/2024 - Property ID 1248 (farm), 568.1 ha cattle property at location (x,y)=(148.47, -31.47), Armatree, Gilgandra Shire Council, New South Wales, 2828, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Personnel will be sent to property 1248 for lab testing
+DAY 10/12/2024 - IP 35 (ID 78), 354.8 ha cattle property at location (x,y)=(148.43, -31.51), Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been found infected. A total of 57 animal(s) will be culled.
+Property 78 has been scheduled for culling
+DAY 10/12/2024 - IP 36 (ID 1248), 568.1 ha cattle property at location (x,y)=(148.47, -31.47), Armatree, Gilgandra Shire Council, New South Wales, 2828, Australia, has been found infected. A total of 141 animal(s) will be culled.
+Property 1248 has been scheduled for culling
+DAY 10/12/2024 - Property ID 78 (farm), 354.8 ha cattle property at location (x,y)=(148.43, -31.51), Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Personnel will be sent to property 78 for lab testing
+DAY 10/12/2024 - Property ID 392 (farm), 587.3 ha cattle property at location (x,y)=(147.4, -31.59), Nyngan, Bogan Shire Council, New South Wales, 2825, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Personnel will be sent to property 392 for lab testing
+DAY 10/12/2024 - Property ID 1248 (farm), 568.1 ha cattle property at location (x,y)=(148.47, -31.47), Armatree, Gilgandra Shire Council, New South Wales, 2828, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Personnel will be sent to property 1248 for lab testing
+Personnel will be sent to traced property 691 for clinical observation and lab testing
+Personnel will be sent to property 691 for lab testing
+DAY 11/12/2024 - IP 35 (ID 78), 354.8 ha cattle property at location (x,y)=(148.43, -31.51), Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been depopulated.
+A total of 57 animal(s) have been culled.
+DAY 11/12/2024 - IP 36 (ID 1248), 568.1 ha cattle property at location (x,y)=(148.47, -31.47), Armatree, Gilgandra Shire Council, New South Wales, 2828, Australia, has been depopulated.
+A total of 141 animal(s) have been culled.
+DAY 11/12/2024 - IP 37 (ID 392), 587.3 ha cattle property at location (x,y)=(147.4, -31.59), Nyngan, Bogan Shire Council, New South Wales, 2825, Australia, has been found infected. A total of 81 animal(s) will be culled.
+Property 392 has been scheduled for culling
+DAY 11/12/2024 - Property ID 246 (farm), 315.5 ha cattle property at location (x,y)=(148.07, -32.02), Trangie, Narromine Shire Council, New South Wales, 2823, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Personnel will be sent to property 246 for lab testing
+DAY 11/12/2024 - Property ID 757 (farm), 156.4 ha cattle property at location (x,y)=(148.48, -31.53), Beveridges Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Personnel will be sent to property 757 for lab testing
+DAY 12/12/2024 - IP 37 (ID 392), 587.3 ha cattle property at location (x,y)=(147.4, -31.59), Nyngan, Bogan Shire Council, New South Wales, 2825, Australia, has been depopulated.
+A total of 81 animal(s) have been culled.
+Personnel will be sent to traced property 691 for clinical observation and lab testing
+Personnel will be sent to property 691 for lab testing
+DAY 12/12/2024 - IP 38 (ID 246), 315.5 ha cattle property at location (x,y)=(148.07, -32.02), Trangie, Narromine Shire Council, New South Wales, 2823, Australia, has been found infected. A total of 47 animal(s) will be culled.
+Property 246 has been scheduled for culling
+DAY 13/12/2024 - IP 38 (ID 246), 315.5 ha cattle property at location (x,y)=(148.07, -32.02), Trangie, Narromine Shire Council, New South Wales, 2823, Australia, has been depopulated.
+A total of 47 animal(s) have been culled.
+DAY 13/12/2024 - Property ID 330 (farm), 254.5 ha cattle property at location (x,y)=(148.67, -31.39), Gulargambone, Coonamble Shire Council, New South Wales, 2828, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Personnel will be sent to property 330 for lab testing
+DAY 13/12/2024 - Property ID 757 (farm), 156.4 ha cattle property at location (x,y)=(148.48, -31.53), Beveridges Road, Curban, Gilgandra Shire Council, New South Wales, 2827, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Personnel will be sent to property 757 for lab testing
+Personnel will be sent to traced property 187 for clinical observation and lab testing
+Personnel will be sent to property 187 for lab testing
