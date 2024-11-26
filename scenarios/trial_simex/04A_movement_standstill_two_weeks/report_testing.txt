@@ -1,0 +1,770 @@
+DAY 30/11/2024 - lab test report for property index 803
+Property index 803 at location (x,y)=(148.11, -31.99) report POSITIVE result
+DAY 30/11/2024 - clinical observation report for property index 776
+Property index 776 at location (x,y)=(147.63, -31.92) report POSITIVE result
+DAY 30/11/2024 - clinical observation report for property index 429
+Property index 429 report negative result
+DAY 01/12/2024 - lab test report for property index 776
+Property index 776 at location (x,y)=(147.63, -31.92) report POSITIVE result
+DAY 01/12/2024 - lab test report for property index 429
+Property index 429 report negative result
+DAY 01/12/2024 - lab test report for property index 444
+Property index 444 at location (x,y)=(148.22, -31.62) report POSITIVE result
+DAY 01/12/2024 - clinical observation report for property index 1898
+Property index 1898 at location (x,y)=(148.54, -31.38) report POSITIVE result
+DAY 02/12/2024 - lab test report for property index 1898
+Property index 1898 at location (x,y)=(148.54, -31.38) report POSITIVE result
+DAY 02/12/2024 - clinical observation report for property index 776
+No testing: property index 776 (IP 2) has already been culled
+DAY 02/12/2024 - clinical observation report for property index 429
+Property index 429 report negative result
+DAY 02/12/2024 - clinical observation report for property index 637
+Property index 637 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1159
+Property index 1159 report negative result
+DAY 02/12/2024 - clinical observation report for property index 908
+Property index 908 report negative result
+DAY 02/12/2024 - clinical observation report for property index 872
+Property index 872 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1900
+Property index 1900 report negative result
+DAY 02/12/2024 - clinical observation report for property index 6
+Property index 6 at location (x,y)=(148.53, -31.54) report POSITIVE result
+DAY 02/12/2024 - clinical observation report for property index 167
+Property index 167 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1253
+Property index 1253 at location (x,y)=(148.06, -31.92) report POSITIVE result
+DAY 02/12/2024 - clinical observation report for property index 1635
+Property index 1635 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1213
+Property index 1213 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1379
+Property index 1379 at location (x,y)=(148.24, -31.58) report POSITIVE result
+DAY 02/12/2024 - clinical observation report for property index 1414
+Property index 1414 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1277
+Property index 1277 report negative result
+DAY 02/12/2024 - clinical observation report for property index 193
+Property index 193 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1758
+Property index 1758 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1617
+Property index 1617 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1373
+Property index 1373 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1735
+Property index 1735 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1768
+Property index 1768 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1752
+Property index 1752 report negative result
+DAY 02/12/2024 - clinical observation report for property index 370
+Property index 370 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1404
+Property index 1404 report negative result
+DAY 02/12/2024 - clinical observation report for property index 1983
+Property index 1983 at location (x,y)=(148.57, -31.6) report POSITIVE result
+DAY 02/12/2024 - clinical observation report for property index 1769
+Property index 1769 report negative result
+DAY 03/12/2024 - lab test report for property index 776
+No testing: property index 776 (IP 2) has already been culled
+DAY 03/12/2024 - lab test report for property index 429
+Property index 429 at location (x,y)=(148.55, -32.14) report POSITIVE result
+DAY 03/12/2024 - lab test report for property index 637
+Property index 637 report negative result
+DAY 03/12/2024 - lab test report for property index 1159
+Property index 1159 report negative result
+DAY 03/12/2024 - lab test report for property index 908
+Property index 908 at location (x,y)=(148.04, -32.1) report POSITIVE result
+DAY 03/12/2024 - lab test report for property index 872
+Property index 872 report negative result
+DAY 03/12/2024 - lab test report for property index 1900
+Property index 1900 report negative result
+DAY 03/12/2024 - lab test report for property index 6
+Property index 6 at location (x,y)=(148.53, -31.54) report POSITIVE result
+DAY 03/12/2024 - lab test report for property index 167
+Property index 167 report negative result
+DAY 03/12/2024 - lab test report for property index 1253
+Property index 1253 at location (x,y)=(148.06, -31.92) report POSITIVE result
+DAY 03/12/2024 - lab test report for property index 1635
+Property index 1635 at location (x,y)=(147.54, -31.56) report POSITIVE result
+DAY 03/12/2024 - lab test report for property index 1213
+Property index 1213 report negative result
+DAY 03/12/2024 - lab test report for property index 1379
+Property index 1379 report negative result
+DAY 03/12/2024 - lab test report for property index 1414
+Property index 1414 report negative result
+DAY 03/12/2024 - lab test report for property index 1277
+Property index 1277 report negative result
+DAY 03/12/2024 - lab test report for property index 193
+Property index 193 report negative result
+DAY 03/12/2024 - lab test report for property index 1758
+Property index 1758 report negative result
+DAY 03/12/2024 - lab test report for property index 1617
+Property index 1617 report negative result
+DAY 03/12/2024 - lab test report for property index 1373
+Property index 1373 at location (x,y)=(147.8, -32.0) report POSITIVE result
+DAY 03/12/2024 - lab test report for property index 1735
+Property index 1735 at location (x,y)=(148.18, -31.58) report POSITIVE result
+DAY 03/12/2024 - lab test report for property index 1768
+Property index 1768 report negative result
+DAY 03/12/2024 - lab test report for property index 1752
+Property index 1752 report negative result
+DAY 03/12/2024 - lab test report for property index 370
+Property index 370 report negative result
+DAY 03/12/2024 - lab test report for property index 1404
+Property index 1404 report negative result
+DAY 03/12/2024 - lab test report for property index 1983
+Property index 1983 at location (x,y)=(148.57, -31.6) report POSITIVE result
+DAY 03/12/2024 - lab test report for property index 1769
+Property index 1769 report negative result
+DAY 03/12/2024 - clinical observation report for property index 637
+Property index 637 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1159
+Property index 1159 report negative result
+DAY 03/12/2024 - clinical observation report for property index 908
+Property index 908 at location (x,y)=(148.04, -32.1) report POSITIVE result
+DAY 03/12/2024 - clinical observation report for property index 872
+Property index 872 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1900
+Property index 1900 report negative result
+DAY 03/12/2024 - clinical observation report for property index 6
+Property index 6 report negative result
+DAY 03/12/2024 - clinical observation report for property index 167
+Property index 167 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1253
+Property index 1253 at location (x,y)=(148.06, -31.92) report POSITIVE result
+DAY 03/12/2024 - clinical observation report for property index 1635
+Property index 1635 at location (x,y)=(147.54, -31.56) report POSITIVE result
+DAY 03/12/2024 - clinical observation report for property index 1213
+Property index 1213 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1379
+Property index 1379 at location (x,y)=(148.24, -31.58) report POSITIVE result
+DAY 03/12/2024 - clinical observation report for property index 1414
+Property index 1414 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1277
+Property index 1277 report negative result
+DAY 03/12/2024 - clinical observation report for property index 193
+Property index 193 report negative result
+DAY 03/12/2024 - clinical observation report for property index 429
+Property index 429 at location (x,y)=(148.55, -32.14) report POSITIVE result
+DAY 03/12/2024 - clinical observation report for property index 1758
+Property index 1758 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1617
+Property index 1617 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1373
+Property index 1373 at location (x,y)=(147.8, -32.0) report POSITIVE result
+DAY 03/12/2024 - clinical observation report for property index 1735
+Property index 1735 at location (x,y)=(148.18, -31.58) report POSITIVE result
+DAY 03/12/2024 - clinical observation report for property index 1768
+Property index 1768 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1752
+Property index 1752 report negative result
+DAY 03/12/2024 - clinical observation report for property index 370
+Property index 370 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1404
+Property index 1404 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1983
+Property index 1983 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1769
+Property index 1769 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1898
+No testing: property index 1898 (IP 4) has already been culled
+DAY 03/12/2024 - clinical observation report for property index 292
+Property index 292 report negative result
+DAY 03/12/2024 - clinical observation report for property index 303
+Property index 303 report negative result
+DAY 03/12/2024 - clinical observation report for property index 386
+Property index 386 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1358
+Property index 1358 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1447
+Property index 1447 report negative result
+DAY 03/12/2024 - clinical observation report for property index 982
+Property index 982 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1573
+Property index 1573 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1536
+Property index 1536 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1462
+Property index 1462 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1375
+Property index 1375 report negative result
+DAY 03/12/2024 - clinical observation report for property index 348
+Property index 348 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1487
+Property index 1487 report negative result
+DAY 03/12/2024 - clinical observation report for property index 41
+Property index 41 at location (x,y)=(147.58, -31.63) report POSITIVE result
+DAY 03/12/2024 - clinical observation report for property index 72
+Property index 72 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1763
+Property index 1763 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1732
+Property index 1732 report negative result
+DAY 03/12/2024 - clinical observation report for property index 587
+Property index 587 report negative result
+DAY 03/12/2024 - clinical observation report for property index 851
+Property index 851 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1067
+Property index 1067 report negative result
+DAY 03/12/2024 - clinical observation report for property index 462
+Property index 462 report negative result
+DAY 03/12/2024 - clinical observation report for property index 425
+Property index 425 at location (x,y)=(148.71, -31.48) report POSITIVE result
+DAY 03/12/2024 - clinical observation report for property index 1400
+Property index 1400 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1838
+Property index 1838 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1811
+Property index 1811 report negative result
+DAY 03/12/2024 - clinical observation report for property index 326
+Property index 326 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1653
+Property index 1653 report negative result
+DAY 03/12/2024 - clinical observation report for property index 66
+Property index 66 report negative result
+DAY 03/12/2024 - clinical observation report for property index 260
+Property index 260 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1115
+Property index 1115 report negative result
+DAY 03/12/2024 - clinical observation report for property index 868
+Property index 868 report negative result
+DAY 03/12/2024 - clinical observation report for property index 463
+Property index 463 report negative result
+DAY 03/12/2024 - clinical observation report for property index 611
+Property index 611 report negative result
+DAY 03/12/2024 - clinical observation report for property index 1268
+Property index 1268 report negative result
+DAY 03/12/2024 - clinical observation report for property index 485
+Property index 485 report negative result
+DAY 03/12/2024 - clinical observation report for property index 643
+Property index 643 at location (x,y)=(149.14, -31.3) report POSITIVE result
+DAY 03/12/2024 - clinical observation report for property index 1435
+Property index 1435 report negative result
+DAY 03/12/2024 - clinical observation report for property index 217
+Property index 217 at location (x,y)=(148.75, -31.29) report POSITIVE result
+DAY 03/12/2024 - clinical observation report for property index 1050
+Property index 1050 report negative result
+DAY 03/12/2024 - clinical observation report for property index 504
+Property index 504 at location (x,y)=(148.21, -31.64) report POSITIVE result
+DAY 03/12/2024 - clinical observation report for property index 994
+Property index 994 at location (x,y)=(149.06, -31.04) report POSITIVE result
+DAY 03/12/2024 - clinical observation report for property index 948
+Property index 948 at location (x,y)=(148.94, -30.62) report POSITIVE result
+DAY 04/12/2024 - lab test report for property index 1898
+No testing: property index 1898 (IP 4) has already been culled
+DAY 04/12/2024 - lab test report for property index 292
+Property index 292 at location (x,y)=(149.33, -30.87) report POSITIVE result
+DAY 04/12/2024 - lab test report for property index 303
+Property index 303 report negative result
+DAY 04/12/2024 - lab test report for property index 386
+Property index 386 report negative result
+DAY 04/12/2024 - lab test report for property index 1358
+Property index 1358 report negative result
+DAY 04/12/2024 - lab test report for property index 1447
+Property index 1447 report negative result
+DAY 04/12/2024 - lab test report for property index 982
+Property index 982 report negative result
+DAY 04/12/2024 - lab test report for property index 1573
+Property index 1573 report negative result
+DAY 04/12/2024 - lab test report for property index 1536
+Property index 1536 at location (x,y)=(148.78, -31.84) report POSITIVE result
+DAY 04/12/2024 - lab test report for property index 1462
+Property index 1462 report negative result
+DAY 04/12/2024 - lab test report for property index 1375
+Property index 1375 report negative result
+DAY 04/12/2024 - lab test report for property index 348
+Property index 348 report negative result
+DAY 04/12/2024 - lab test report for property index 1487
+Property index 1487 report negative result
+DAY 04/12/2024 - lab test report for property index 41
+Property index 41 at location (x,y)=(147.58, -31.63) report POSITIVE result
+DAY 04/12/2024 - lab test report for property index 72
+Property index 72 report negative result
+DAY 04/12/2024 - lab test report for property index 1763
+Property index 1763 report negative result
+DAY 04/12/2024 - lab test report for property index 1732
+Property index 1732 report negative result
+DAY 04/12/2024 - lab test report for property index 587
+Property index 587 report negative result
+DAY 04/12/2024 - lab test report for property index 851
+Property index 851 report negative result
+DAY 04/12/2024 - lab test report for property index 1067
+Property index 1067 report negative result
+DAY 04/12/2024 - lab test report for property index 462
+Property index 462 at location (x,y)=(148.73, -31.58) report POSITIVE result
+DAY 04/12/2024 - lab test report for property index 425
+Property index 425 at location (x,y)=(148.71, -31.48) report POSITIVE result
+DAY 04/12/2024 - lab test report for property index 1400
+Property index 1400 report negative result
+DAY 04/12/2024 - lab test report for property index 1838
+Property index 1838 report negative result
+DAY 04/12/2024 - lab test report for property index 1811
+Property index 1811 report negative result
+DAY 04/12/2024 - lab test report for property index 326
+Property index 326 report negative result
+DAY 04/12/2024 - lab test report for property index 1653
+Property index 1653 report negative result
+DAY 04/12/2024 - lab test report for property index 66
+Property index 66 report negative result
+DAY 04/12/2024 - lab test report for property index 260
+Property index 260 at location (x,y)=(148.09, -32.19) report POSITIVE result
+DAY 04/12/2024 - lab test report for property index 1115
+Property index 1115 report negative result
+DAY 04/12/2024 - lab test report for property index 868
+Property index 868 report negative result
+DAY 04/12/2024 - lab test report for property index 463
+Property index 463 report negative result
+DAY 04/12/2024 - lab test report for property index 611
+Property index 611 report negative result
+DAY 04/12/2024 - lab test report for property index 1268
+Property index 1268 report negative result
+DAY 04/12/2024 - lab test report for property index 485
+Property index 485 report negative result
+DAY 04/12/2024 - lab test report for property index 643
+Property index 643 at location (x,y)=(149.14, -31.3) report POSITIVE result
+DAY 04/12/2024 - lab test report for property index 1435
+Property index 1435 at location (x,y)=(148.58, -31.46) report POSITIVE result
+DAY 04/12/2024 - lab test report for property index 217
+Property index 217 at location (x,y)=(148.75, -31.29) report POSITIVE result
+DAY 04/12/2024 - lab test report for property index 1050
+Property index 1050 report negative result
+DAY 04/12/2024 - lab test report for property index 504
+Property index 504 at location (x,y)=(148.21, -31.64) report POSITIVE result
+DAY 04/12/2024 - lab test report for property index 994
+Property index 994 at location (x,y)=(149.06, -31.04) report POSITIVE result
+DAY 04/12/2024 - lab test report for property index 948
+Property index 948 at location (x,y)=(148.94, -30.62) report POSITIVE result
+DAY 04/12/2024 - clinical observation report for property index 1379
+Property index 1379 report negative result
+DAY 04/12/2024 - clinical observation report for property index 292
+Property index 292 report negative result
+DAY 04/12/2024 - clinical observation report for property index 303
+Property index 303 report negative result
+DAY 04/12/2024 - clinical observation report for property index 386
+Property index 386 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1635
+No testing: property index 1635 (IP 9) has already been culled
+DAY 04/12/2024 - clinical observation report for property index 1358
+Property index 1358 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1447
+Property index 1447 report negative result
+DAY 04/12/2024 - clinical observation report for property index 982
+Property index 982 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1573
+Property index 1573 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1536
+Property index 1536 report negative result
+DAY 04/12/2024 - clinical observation report for property index 908
+No testing: property index 908 (IP 6) has already been culled
+DAY 04/12/2024 - clinical observation report for property index 1462
+Property index 1462 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1375
+Property index 1375 report negative result
+DAY 04/12/2024 - clinical observation report for property index 348
+Property index 348 report negative result
+DAY 04/12/2024 - clinical observation report for property index 6
+No testing: property index 6 (IP 7) has already been culled
+DAY 04/12/2024 - clinical observation report for property index 1487
+Property index 1487 report negative result
+DAY 04/12/2024 - clinical observation report for property index 41
+Property index 41 report negative result
+DAY 04/12/2024 - clinical observation report for property index 72
+Property index 72 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1253
+No testing: property index 1253 (IP 8) has already been culled
+DAY 04/12/2024 - clinical observation report for property index 1763
+Property index 1763 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1732
+Property index 1732 report negative result
+DAY 04/12/2024 - clinical observation report for property index 587
+Property index 587 report negative result
+DAY 04/12/2024 - clinical observation report for property index 851
+Property index 851 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1067
+Property index 1067 report negative result
+DAY 04/12/2024 - clinical observation report for property index 462
+Property index 462 at location (x,y)=(148.73, -31.58) report POSITIVE result
+DAY 04/12/2024 - clinical observation report for property index 425
+Property index 425 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1400
+Property index 1400 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1838
+Property index 1838 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1811
+Property index 1811 report negative result
+DAY 04/12/2024 - clinical observation report for property index 326
+Property index 326 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1653
+Property index 1653 report negative result
+DAY 04/12/2024 - clinical observation report for property index 429
+No testing: property index 429 (IP 5) has already been culled
+DAY 04/12/2024 - clinical observation report for property index 66
+Property index 66 report negative result
+DAY 04/12/2024 - clinical observation report for property index 260
+Property index 260 at location (x,y)=(148.09, -32.19) report POSITIVE result
+DAY 04/12/2024 - clinical observation report for property index 1115
+Property index 1115 report negative result
+DAY 04/12/2024 - clinical observation report for property index 868
+Property index 868 report negative result
+DAY 04/12/2024 - clinical observation report for property index 463
+Property index 463 report negative result
+DAY 04/12/2024 - clinical observation report for property index 611
+Property index 611 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1268
+Property index 1268 at location (x,y)=(148.52, -31.52) report POSITIVE result
+DAY 04/12/2024 - clinical observation report for property index 485
+Property index 485 report negative result
+DAY 04/12/2024 - clinical observation report for property index 643
+Property index 643 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1435
+Property index 1435 at location (x,y)=(148.58, -31.46) report POSITIVE result
+DAY 04/12/2024 - clinical observation report for property index 217
+Property index 217 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1050
+Property index 1050 report negative result
+DAY 04/12/2024 - clinical observation report for property index 504
+Property index 504 report negative result
+DAY 04/12/2024 - clinical observation report for property index 994
+Property index 994 at location (x,y)=(149.06, -31.04) report POSITIVE result
+DAY 04/12/2024 - clinical observation report for property index 948
+Property index 948 report negative result
+DAY 04/12/2024 - lab test report for property index 908
+No testing: property index 908 (IP 6) has already been culled
+DAY 04/12/2024 - lab test report for property index 1253
+No testing: property index 1253 (IP 8) has already been culled
+DAY 04/12/2024 - lab test report for property index 1635
+No testing: property index 1635 (IP 9) has already been culled
+DAY 04/12/2024 - lab test report for property index 1379
+Property index 1379 report negative result
+DAY 04/12/2024 - lab test report for property index 429
+No testing: property index 429 (IP 5) has already been culled
+DAY 04/12/2024 - lab test report for property index 1373
+No testing: property index 1373 (IP 10) has already been culled
+DAY 04/12/2024 - lab test report for property index 1735
+No testing: property index 1735 (IP 11) has already been culled
+DAY 04/12/2024 - clinical observation report for property index 1277
+Property index 1277 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1589
+Property index 1589 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1580
+Property index 1580 report negative result
+DAY 04/12/2024 - clinical observation report for property index 480
+Property index 480 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1627
+Property index 1627 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1734
+Property index 1734 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1489
+Property index 1489 report negative result
+DAY 04/12/2024 - clinical observation report for property index 979
+Property index 979 report negative result
+DAY 04/12/2024 - clinical observation report for property index 1373
+No testing: property index 1373 (IP 10) has already been culled
+DAY 04/12/2024 - clinical observation report for property index 735
+Property index 735 report negative result
+DAY 05/12/2024 - lab test report for property index 6
+No testing: property index 6 (IP 7) has already been culled
+DAY 05/12/2024 - lab test report for property index 1277
+Property index 1277 report negative result
+DAY 05/12/2024 - lab test report for property index 1589
+Property index 1589 report negative result
+DAY 05/12/2024 - lab test report for property index 1580
+Property index 1580 report negative result
+DAY 05/12/2024 - lab test report for property index 480
+Property index 480 report negative result
+DAY 05/12/2024 - lab test report for property index 1627
+Property index 1627 report negative result
+DAY 05/12/2024 - lab test report for property index 1734
+Property index 1734 report negative result
+DAY 05/12/2024 - lab test report for property index 1489
+Property index 1489 report negative result
+DAY 05/12/2024 - lab test report for property index 979
+Property index 979 report negative result
+DAY 05/12/2024 - lab test report for property index 735
+Property index 735 at location (x,y)=(147.59, -31.46) report POSITIVE result
+DAY 05/12/2024 - clinical observation report for property index 6
+No testing: property index 6 (IP 7) has already been culled
+DAY 05/12/2024 - clinical observation report for property index 1752
+Property index 1752 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1267
+Property index 1267 report negative result
+DAY 05/12/2024 - clinical observation report for property index 884
+Property index 884 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1768
+Property index 1768 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1635
+No testing: property index 1635 (IP 9) has already been culled
+DAY 05/12/2024 - clinical observation report for property index 1732
+Property index 1732 report negative result
+DAY 05/12/2024 - clinical observation report for property index 493
+Property index 493 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1536
+No testing: property index 1536 (IP 14) has already been culled
+DAY 05/12/2024 - clinical observation report for property index 1524
+Property index 1524 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1437
+Property index 1437 report negative result
+DAY 05/12/2024 - clinical observation report for property index 501
+Property index 501 report negative result
+DAY 05/12/2024 - clinical observation report for property index 366
+Property index 366 report negative result
+DAY 05/12/2024 - clinical observation report for property index 66
+Property index 66 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1962
+Property index 1962 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1373
+No testing: property index 1373 (IP 10) has already been culled
+DAY 05/12/2024 - clinical observation report for property index 611
+Property index 611 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1400
+Property index 1400 report negative result
+DAY 05/12/2024 - clinical observation report for property index 426
+Property index 426 report negative result
+DAY 05/12/2024 - clinical observation report for property index 376
+Property index 376 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1036
+Property index 1036 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1423
+Property index 1423 at location (x,y)=(148.01, -32.13) report POSITIVE result
+DAY 05/12/2024 - clinical observation report for property index 1347
+Property index 1347 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1948
+Property index 1948 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1253
+No testing: property index 1253 (IP 8) has already been culled
+DAY 05/12/2024 - clinical observation report for property index 1755
+Property index 1755 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1281
+Property index 1281 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1882
+Property index 1882 report negative result
+DAY 05/12/2024 - clinical observation report for property index 153
+Property index 153 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1399
+Property index 1399 report negative result
+DAY 05/12/2024 - clinical observation report for property index 99
+Property index 99 at location (x,y)=(148.01, -32.02) report POSITIVE result
+DAY 05/12/2024 - clinical observation report for property index 1379
+Property index 1379 at location (x,y)=(148.24, -31.58) report POSITIVE result
+DAY 05/12/2024 - clinical observation report for property index 1983
+No testing: property index 1983 (IP 12) has already been culled
+DAY 05/12/2024 - clinical observation report for property index 1643
+Property index 1643 report negative result
+DAY 05/12/2024 - clinical observation report for property index 655
+Property index 655 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1277
+Property index 1277 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1589
+Property index 1589 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1580
+Property index 1580 report negative result
+DAY 05/12/2024 - clinical observation report for property index 480
+Property index 480 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1627
+Property index 1627 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1734
+Property index 1734 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1489
+Property index 1489 report negative result
+DAY 05/12/2024 - clinical observation report for property index 979
+Property index 979 report negative result
+DAY 05/12/2024 - clinical observation report for property index 735
+Property index 735 at location (x,y)=(147.59, -31.46) report POSITIVE result
+DAY 05/12/2024 - lab test report for property index 462
+No testing: property index 462 (IP 16) has already been culled
+DAY 05/12/2024 - lab test report for property index 260
+No testing: property index 260 (IP 18) has already been culled
+DAY 05/12/2024 - lab test report for property index 1268
+Property index 1268 report negative result
+DAY 05/12/2024 - lab test report for property index 1435
+No testing: property index 1435 (IP 20) has already been culled
+DAY 05/12/2024 - lab test report for property index 994
+No testing: property index 994 (IP 23) has already been culled
+DAY 05/12/2024 - clinical observation report for property index 1050
+Property index 1050 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1442
+Property index 1442 report negative result
+DAY 05/12/2024 - clinical observation report for property index 922
+Property index 922 report negative result
+DAY 05/12/2024 - clinical observation report for property index 172
+Property index 172 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1332
+Property index 1332 report negative result
+DAY 05/12/2024 - clinical observation report for property index 1662
+Property index 1662 report negative result
+DAY 06/12/2024 - lab test report for property index 1752
+Property index 1752 report negative result
+DAY 06/12/2024 - lab test report for property index 1267
+Property index 1267 report negative result
+DAY 06/12/2024 - lab test report for property index 884
+Property index 884 report negative result
+DAY 06/12/2024 - lab test report for property index 1768
+Property index 1768 report negative result
+DAY 06/12/2024 - lab test report for property index 1635
+No testing: property index 1635 (IP 9) has already been culled
+DAY 06/12/2024 - lab test report for property index 1732
+Property index 1732 report negative result
+DAY 06/12/2024 - lab test report for property index 493
+Property index 493 report negative result
+DAY 06/12/2024 - lab test report for property index 1536
+No testing: property index 1536 (IP 14) has already been culled
+DAY 06/12/2024 - lab test report for property index 1524
+Property index 1524 report negative result
+DAY 06/12/2024 - lab test report for property index 1437
+Property index 1437 report negative result
+DAY 06/12/2024 - lab test report for property index 501
+Property index 501 report negative result
+DAY 06/12/2024 - lab test report for property index 366
+Property index 366 report negative result
+DAY 06/12/2024 - lab test report for property index 66
+Property index 66 report negative result
+DAY 06/12/2024 - lab test report for property index 1962
+Property index 1962 report negative result
+DAY 06/12/2024 - lab test report for property index 1373
+No testing: property index 1373 (IP 10) has already been culled
+DAY 06/12/2024 - lab test report for property index 611
+Property index 611 report negative result
+DAY 06/12/2024 - lab test report for property index 1400
+Property index 1400 report negative result
+DAY 06/12/2024 - lab test report for property index 426
+Property index 426 report negative result
+DAY 06/12/2024 - lab test report for property index 376
+Property index 376 report negative result
+DAY 06/12/2024 - lab test report for property index 1036
+Property index 1036 report negative result
+DAY 06/12/2024 - lab test report for property index 1423
+Property index 1423 report negative result
+DAY 06/12/2024 - lab test report for property index 1347
+Property index 1347 report negative result
+DAY 06/12/2024 - lab test report for property index 1948
+Property index 1948 report negative result
+DAY 06/12/2024 - lab test report for property index 1253
+No testing: property index 1253 (IP 8) has already been culled
+DAY 06/12/2024 - lab test report for property index 1755
+Property index 1755 report negative result
+DAY 06/12/2024 - lab test report for property index 1281
+Property index 1281 report negative result
+DAY 06/12/2024 - lab test report for property index 1882
+Property index 1882 report negative result
+DAY 06/12/2024 - lab test report for property index 153
+Property index 153 report negative result
+DAY 06/12/2024 - lab test report for property index 1399
+Property index 1399 report negative result
+DAY 06/12/2024 - lab test report for property index 99
+Property index 99 at location (x,y)=(148.01, -32.02) report POSITIVE result
+DAY 06/12/2024 - lab test report for property index 1379
+Property index 1379 at location (x,y)=(148.24, -31.58) report POSITIVE result
+DAY 06/12/2024 - lab test report for property index 1983
+No testing: property index 1983 (IP 12) has already been culled
+DAY 06/12/2024 - lab test report for property index 1643
+Property index 1643 report negative result
+DAY 06/12/2024 - lab test report for property index 655
+Property index 655 at location (x,y)=(148.15, -32.02) report POSITIVE result
+DAY 06/12/2024 - lab test report for property index 1050
+Property index 1050 report negative result
+DAY 06/12/2024 - lab test report for property index 1442
+Property index 1442 report negative result
+DAY 06/12/2024 - lab test report for property index 922
+Property index 922 report negative result
+DAY 06/12/2024 - lab test report for property index 172
+Property index 172 at location (x,y)=(148.64, -31.3) report POSITIVE result
+DAY 06/12/2024 - lab test report for property index 1332
+Property index 1332 report negative result
+DAY 06/12/2024 - lab test report for property index 1662
+Property index 1662 report negative result
+DAY 06/12/2024 - clinical observation report for property index 1213
+Property index 1213 report negative result
+DAY 06/12/2024 - clinical observation report for property index 1768
+Property index 1768 report negative result
+DAY 06/12/2024 - clinical observation report for property index 988
+Property index 988 report negative result
+DAY 06/12/2024 - clinical observation report for property index 1287
+Property index 1287 report negative result
+DAY 06/12/2024 - clinical observation report for property index 88
+Property index 88 report negative result
+DAY 06/12/2024 - clinical observation report for property index 1050
+Property index 1050 report negative result
+DAY 06/12/2024 - clinical observation report for property index 1442
+Property index 1442 report negative result
+DAY 06/12/2024 - clinical observation report for property index 922
+Property index 922 report negative result
+DAY 06/12/2024 - clinical observation report for property index 1379
+Property index 1379 at location (x,y)=(148.24, -31.58) report POSITIVE result
+DAY 06/12/2024 - clinical observation report for property index 172
+Property index 172 at location (x,y)=(148.64, -31.3) report POSITIVE result
+DAY 06/12/2024 - clinical observation report for property index 1332
+Property index 1332 report negative result
+DAY 06/12/2024 - clinical observation report for property index 1662
+Property index 1662 report negative result
+DAY 06/12/2024 - lab test report for property index 735
+No testing: property index 735 (IP 25) has already been culled
+DAY 06/12/2024 - lab test report for property index 1248
+Property index 1248 report negative result
+DAY 06/12/2024 - lab test report for property index 1268
+Property index 1268 at location (x,y)=(148.52, -31.52) report POSITIVE result
+DAY 07/12/2024 - lab test report for property index 1213
+Property index 1213 report negative result
+DAY 07/12/2024 - lab test report for property index 988
+Property index 988 report negative result
+DAY 07/12/2024 - lab test report for property index 1287
+Property index 1287 report negative result
+DAY 07/12/2024 - lab test report for property index 88
+Property index 88 at location (x,y)=(148.46, -31.56) report POSITIVE result
+DAY 07/12/2024 - lab test report for property index 1379
+No testing: property index 1379 (IP 27) has already been culled
+DAY 07/12/2024 - lab test report for property index 172
+No testing: property index 172 (IP 29) has already been culled
+DAY 07/12/2024 - lab test report for property index 485
+Property index 485 at location (x,y)=(148.91, -31.84) report POSITIVE result
+DAY 07/12/2024 - lab test report for property index 1268
+No testing: property index 1268 (IP 30) has already been culled
+DAY 07/12/2024 - lab test report for property index 1570
+Property index 1570 at location (x,y)=(148.61, -31.47) report POSITIVE result
+DAY 07/12/2024 - clinical observation report for property index 1379
+No testing: property index 1379 (IP 27) has already been culled
+DAY 07/12/2024 - clinical observation report for property index 99
+No testing: property index 99 (IP 26) has already been culled
+DAY 07/12/2024 - clinical observation report for property index 1007
+Property index 1007 report negative result
+DAY 08/12/2024 - lab test report for property index 99
+No testing: property index 99 (IP 26) has already been culled
+DAY 08/12/2024 - lab test report for property index 1007
+Property index 1007 report negative result
+DAY 08/12/2024 - clinical observation report for property index 1662
+Property index 1662 report negative result
+DAY 08/12/2024 - clinical observation report for property index 1587
+Property index 1587 report negative result
+DAY 08/12/2024 - lab test report for property index 628
+Property index 628 at location (x,y)=(147.64, -31.5) report POSITIVE result
+DAY 09/12/2024 - lab test report for property index 1662
+Property index 1662 report negative result
+DAY 09/12/2024 - lab test report for property index 1587
+Property index 1587 report negative result
+DAY 09/12/2024 - clinical observation report for property index 1007
+Property index 1007 report negative result
+DAY 10/12/2024 - lab test report for property index 1007
+Property index 1007 report negative result
+DAY 10/12/2024 - lab test report for property index 78
+Property index 78 at location (x,y)=(148.43, -31.51) report POSITIVE result
+DAY 10/12/2024 - lab test report for property index 246
+Property index 246 report negative result
+DAY 10/12/2024 - lab test report for property index 1248
+Property index 1248 at location (x,y)=(148.47, -31.47) report POSITIVE result
+DAY 11/12/2024 - lab test report for property index 78
+No testing: property index 78 (IP 35) has already been culled
+DAY 11/12/2024 - lab test report for property index 392
+Property index 392 at location (x,y)=(147.4, -31.59) report POSITIVE result
+DAY 11/12/2024 - lab test report for property index 1248
+No testing: property index 1248 (IP 36) has already been culled
+DAY 11/12/2024 - clinical observation report for property index 691
+Property index 691 report negative result
+DAY 12/12/2024 - lab test report for property index 691
+Property index 691 report negative result
+DAY 12/12/2024 - lab test report for property index 246
+Property index 246 at location (x,y)=(148.07, -32.02) report POSITIVE result
+DAY 12/12/2024 - lab test report for property index 757
+Property index 757 report negative result
+DAY 13/12/2024 - clinical observation report for property index 691
+Property index 691 report negative result

@@ -1,0 +1,4 @@
+Property 803 has been scheduled for contact tracing
+DAY 29/11/2024 - contact tracing report compiled for movements from IP NA (ID 803)
+ - DAY 11/11/2024 - moved 2 animals from property ID 803 (farm) to property ID 776 (trader)
+ - DAY 21/11/2024 - moved 2 animals from property ID 803 (farm) to property ID 429 (feedlot)

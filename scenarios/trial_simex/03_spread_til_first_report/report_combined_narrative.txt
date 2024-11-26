@@ -1,0 +1,12 @@
+DAY 29/11/2024 - Property ID 803 (farm), 116.4 ha cattle property at location (x,y)=(148.11, -31.99), Gin Gin, Narromine Shire Council, New South Wales, 2823, Australia, has been reported possible infection.
+No movements are now allowed to or from this property.
+Property 803 has been scheduled for contact tracing
+Personnel will be sent to property 803 for lab testing
+DAY 29/11/2024 - contact tracing report compiled for movements from IP NA (ID 803)
+ - DAY 11/11/2024 - moved 2 animals from property ID 803 (farm) to property ID 776 (trader)
+ - DAY 21/11/2024 - moved 2 animals from property ID 803 (farm) to property ID 429 (feedlot)
+Personnel will be sent to traced property 776 for clinical observation and lab testing
+Personnel will be sent to traced property 429 for clinical observation and lab testing
+
+==============
+Total culled properties: 0; total vaccinated properties: 0; total culled animals: 0
