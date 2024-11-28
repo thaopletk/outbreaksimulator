@@ -429,6 +429,77 @@ def plot_map(
     return
 
 
+def plot_initial_report(
+    properties,
+    time,
+    xlims,
+    ylims,
+    folder_path,
+    contacts_for_plotting={},
+):
+    fig, ax = plt.subplots(1, 1, figsize=(20, 15))
+
+    # geometry_undergoing_testing = [] # this should include both the reported property and the two contacts
+    geometry_susceptible = []
+
+    reported_farm_point = None
+    geometry_contact_traced = []
+
+    for key, value in contacts_for_plotting.items():
+        premise = properties[key]
+        long, lat = premise.coordinates
+        curr_farm = Point(long, lat)
+        reported_farm_point = curr_farm
+        for contact_index in value:
+            contact = properties[contact_index]
+            long, lat = contact.coordinates
+            curr_farm = Point(long, lat)
+            geometry_contact_traced.append(curr_farm)
+
+    for premise in properties:
+        long, lat = premise.coordinates
+        curr_farm = Point(long, lat)
+        if curr_farm != reported_farm_point and curr_farm not in geometry_contact_traced:
+            geometry_susceptible.append(curr_farm)
+
+    for geometry, colour, marker, markerlabel, markersize in [
+        [geometry_susceptible, "#5284b3", "o", "susceptible", 30],
+        [geometry_contact_traced, "#ffa200", "o", "traced", 60],
+        [[reported_farm_point], "#ea4335", "o", "reported", 60],
+    ]:
+        geo_df = gpd.GeoDataFrame(geometry=geometry)
+        geo_df.crs = {"init": "epsg:4326"}
+        # plot the marker
+        ax = geo_df.plot(ax=ax, markersize=markersize, color=colour, marker=marker)  # , label=markerlabel) # no label
+
+    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
+
+    # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
+    points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
+    points = points.to_crs(32619)  # Projected WGS 84 - meters
+    distance_meters = points[0].distance(points[1])
+    ax.add_artist(
+        ScaleBar(
+            distance_meters,
+            box_alpha=0.1,
+            location="lower right",
+        )
+    )
+
+    ax.axis("off")
+
+    ax.set_xlim(xlims)
+    ax.set_ylim(ylims)
+
+    file_name = os.path.join(folder_path, f"plot_initial_report_{time}.png")
+
+    plt.savefig(file_name, bbox_inches="tight")
+
+    plt.close()
+
+    return
+
+
 def save_pickle(to_save, filename):
     with open(filename, "wb") as file:
         pickle.dump(to_save, file)
