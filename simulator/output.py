@@ -500,6 +500,85 @@ def plot_initial_report(
     return
 
 
+def plot_movement_standstill(
+    properties,
+    time,
+    xlims,
+    ylims,
+    folder_path,
+    contacts_for_plotting={},
+):
+    fig, ax = plt.subplots(1, 1, figsize=(20, 15))
+
+    geometry_confirmed_infected = []
+    geometry_culled = []
+    geometry_susceptible = []
+    geometry_undergoing_testing = []
+
+    for key, value in contacts_for_plotting.items():
+        premise = properties[key]
+        for contact_index in value:
+            contact = properties[contact_index]
+            plt.plot(
+                [premise.coordinates[0], contact.coordinates[0]],
+                [premise.coordinates[1], contact.coordinates[1]],
+                alpha=0.4,
+                color="black",
+            )
+
+    for premise in properties:
+        long, lat = premise.coordinates
+        curr_farm = Point(long, lat)
+
+        if premise.culled_status:
+            geometry_culled.append(curr_farm)
+        elif premise.reported_status == True:
+            geometry_confirmed_infected.append(curr_farm)
+        elif premise.undergoing_testing == True:
+            geometry_undergoing_testing.append(curr_farm)
+        else:
+            geometry_susceptible.append(curr_farm)
+
+    for geometry, colour, marker, markerlabel, markersize in [
+        [geometry_susceptible, "#5284b3", "o", "susceptible", 30],
+        [geometry_undergoing_testing, "#ffa200", "d", "testing", 120],
+        [geometry_confirmed_infected, "#ea4335", "X", "confirmed", 150],
+        [geometry_culled, "black", "X", "culled", 150],
+    ]:
+        geo_df = gpd.GeoDataFrame(geometry=geometry)
+        geo_df.crs = {"init": "epsg:4326"}
+        # plot the marker
+        ax = geo_df.plot(ax=ax, markersize=markersize, color=colour, marker=marker)  # , label=markerlabel) # no label
+
+    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
+
+    # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
+    points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
+    points = points.to_crs(32619)  # Projected WGS 84 - meters
+    distance_meters = points[0].distance(points[1])
+    ax.add_artist(
+        ScaleBar(
+            distance_meters,
+            box_alpha=0.1,
+            location="lower right",
+        )
+    )
+
+    ax.text(xlims[0] + 0.002, ylims[1] - 0.03, convert_time_to_date(time), size=18, color="black")
+    ax.axis("off")
+
+    ax.set_xlim(xlims)
+    ax.set_ylim(ylims)
+
+    file_name = os.path.join(folder_path, f"plot_standstill_{time}.png")
+
+    plt.savefig(file_name, bbox_inches="tight")
+
+    plt.close()
+
+    return
+
+
 def save_pickle(to_save, filename):
     with open(filename, "wb") as file:
         pickle.dump(to_save, file)
@@ -546,7 +625,7 @@ def make_video(folder_path="outputs", prefix="map", times=None, save_name_prefix
     clip = ImageSequenceClip(image_files, fps=fps)
     output_file = os.path.join(folder_path, save_name_prefix + prefix + "plot_video.mp4")
 
-    clip.write_videofile(output_file)
+    clip.write_videofile(output_file, codec="mpeg4")
 
     clip.write_gif(os.path.join(folder_path, save_name_prefix + prefix + "plot_video.gif"))
 

@@ -26,11 +26,45 @@ folder_path_radius_25km_C = os.path.join(folder_path_main, "04C_movement_radius_
 # after the first report:
 
 # read in plotting_data28.5 from folder 03_spread_til_first_report
-plotting_data_name = os.path.join(folder_path_first_report, "plotting_data28.5")
-with open(plotting_data_name, "rb") as file:
-    properties, time, xlims, ylims, controlzone, contacts_for_plotting = pickle.load(file)
+# plotting_data_name = os.path.join(folder_path_first_report, "plotting_data28.5")
+# with open(plotting_data_name, "rb") as file:
+#     properties, time, xlims, ylims, controlzone, contacts_for_plotting = pickle.load(file)
 
-xlims = [147, 149.3]
-ylims = [-33, -31]
+# xlims = [147, 149.3]
+# ylims = [-33, -31]
 
-output.plot_initial_report(properties, time, xlims, ylims, folder_path_first_report, contacts_for_plotting)
+# output.plot_initial_report(properties, time, xlims, ylims, folder_path_first_report, contacts_for_plotting)
+
+
+# next plot the movement standstill stuff
+
+# read in
+
+time_plot = 29
+time_list = []
+while time_plot < 43:
+    print(time_plot)
+    time_list.append(time_plot)
+    # plotting_data_name = os.path.join(folder_path_movement_standstill_A, f"plotting_data{time_plot}")
+    # with open(plotting_data_name, "rb") as file:
+    #     properties, time, xlims, ylims, controlzone, contacts_for_plotting = pickle.load(file)
+
+    # xlims = [146.5, 149.5]
+    # ylims = [-33, -30.4]
+
+    # output.plot_movement_standstill(properties,time,xlims,ylims,folder_path_movement_standstill_A,contacts_for_plotting)
+
+    print(time_plot + 0.5)
+    time_list.append(time_plot + 0.5)
+    # plotting_data_name = os.path.join(folder_path_movement_standstill_A, f"plotting_data{time_plot+0.5}")
+    # with open(plotting_data_name, "rb") as file:
+    #     properties, time, xlims, ylims, controlzone, contacts_for_plotting = pickle.load(file)
+
+    # xlims = [146.5, 149.5]
+    # ylims = [-33, -30.4]
+
+    # output.plot_movement_standstill(properties,time_plot+0.5,xlims,ylims,folder_path_movement_standstill_A,contacts_for_plotting)
+
+    time_plot += 1
+
+output.make_video(folder_path_movement_standstill_A, "plot_standstill_", time_list, "")
