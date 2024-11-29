@@ -37,6 +37,17 @@ folder_path_radius_25km_C = os.path.join(folder_path_main, "04C_movement_radius_
 # output.plot_initial_report(properties, time, xlims, ylims, folder_path_first_report, contacts_for_plotting)
 
 
+# read in plotting_data28.5 from folder 03_spread_til_first_report
+plotting_data_name = os.path.join(folder_path_radius_50km_B, "plotting_data28.5")
+with open(plotting_data_name, "rb") as file:
+    properties, time, xlims, ylims, controlzone, contacts_for_plotting = pickle.load(file)
+
+xlims = [147, 149.3]
+ylims = [-33, -31]
+
+output.plot_initial_report(properties, time, xlims, ylims, folder_path_radius_50km_B, contacts_for_plotting)
+
+
 # next plot the movement standstill stuff
 
 # read in
@@ -70,24 +81,36 @@ folder_path_radius_25km_C = os.path.join(folder_path_main, "04C_movement_radius_
 
 # output.make_video(folder_path_movement_standstill_A, "plot_standstill_", time_list, "")
 
+
 # plot number of notified properties over time
 
 # download the outbreak state
-properties_filename = os.path.join(folder_path_movement_standstill_A, "properties_04A_movement_standstill_two_weeks")
-with open(properties_filename, "rb") as file:
-    properties = pickle.load(file)
+# properties_filename = os.path.join(folder_path_movement_standstill_A, "properties_04A_movement_standstill_two_weeks")
+# with open(properties_filename, "rb") as file:
+#     properties = pickle.load(file)
 
-# get notification_date
+# # get notification_date
 
-dates_list = [convert_time_to_date(time) for time in range(28, 43)]
-daily_notifs = [0] * len(dates_list)
+# dates_list = [convert_time_to_date(time) for time in range(28, 43)]
+# daily_notifs = [0] * len(dates_list)
 
-for property_i in properties:
-    notif_date = property_i.notification_date
-    if notif_date != "NA":
-        index = dates_list.index(notif_date)
-        daily_notifs[index] += 1
+# for property_i in properties:
+#     notif_date = property_i.notification_date
+#     if notif_date != "NA":
+#         index = dates_list.index(notif_date)
+#         daily_notifs[index] += 1
 
-save_name = "movement_standstill_daily_notifications"
+# save_name = "movement_standstill_daily_notifications"
 
-output.plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path_movement_standstill_A, save_name)
+# output.plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path_movement_standstill_A, save_name)
+
+## plot the full outbreak window at end time point
+
+# plotting_data_name = os.path.join(folder_path_movement_standstill_A, "plotting_data42.5")
+# with open(plotting_data_name, "rb") as file:
+#     properties, time, xlims, ylims, controlzone, contacts_for_plotting = pickle.load(file)
+
+# # xlims = [144.5, 151.5]
+# # ylims = [-34.5, -28.5]
+
+# output.plot_movement_standstill(properties,time,xlims,ylims,folder_path_movement_standstill_A,contacts_for_plotting={},xylabels = True,save_suffix="_v2")

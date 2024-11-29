@@ -501,12 +501,7 @@ def plot_initial_report(
 
 
 def plot_movement_standstill(
-    properties,
-    time,
-    xlims,
-    ylims,
-    folder_path,
-    contacts_for_plotting={},
+    properties, time, xlims, ylims, folder_path, contacts_for_plotting={}, xylabels=False, save_suffix=""
 ):
     fig, ax = plt.subplots(1, 1, figsize=(20, 15))
 
@@ -565,12 +560,19 @@ def plot_movement_standstill(
     )
 
     ax.text(xlims[0] + 0.002, ylims[1] - 0.03, convert_time_to_date(time), size=18, color="black")
-    ax.axis("off")
+
+    if xylabels == False:
+        ax.axis("off")
+    else:
+        ax.set_ylabel("latitude", fontsize=16)
+        ax.set_xlabel("longitude", fontsize=16)
+        ax.tick_params(axis="x", labelsize=14)
+        ax.tick_params(axis="y", labelsize=14)
 
     ax.set_xlim(xlims)
     ax.set_ylim(ylims)
 
-    file_name = os.path.join(folder_path, f"plot_standstill_{time}.png")
+    file_name = os.path.join(folder_path, f"plot_standstill_{time}{save_suffix}.png")
 
     plt.savefig(file_name, bbox_inches="tight")
 
