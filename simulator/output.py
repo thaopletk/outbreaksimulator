@@ -464,8 +464,8 @@ def plot_initial_report(
 
     for geometry, colour, marker, markerlabel, markersize in [
         [geometry_susceptible, "#5284b3", "o", "susceptible", 30],
-        [geometry_contact_traced, "#ffa200", "o", "traced", 60],
-        [[reported_farm_point], "#ea4335", "o", "reported", 60],
+        [geometry_contact_traced, "#ffa200", "d", "traced", 60],
+        [[reported_farm_point], "#ffa200", "d", "reported", 60],
     ]:
         geo_df = gpd.GeoDataFrame(geometry=geometry)
         geo_df.crs = {"init": "epsg:4326"}
@@ -500,10 +500,50 @@ def plot_initial_report(
     return
 
 
-def plot_movement_standstill(
-    properties, time, xlims, ylims, folder_path, contacts_for_plotting={}, xylabels=False, save_suffix=""
+def plot_simex(
+    properties,
+    time,
+    xlims,
+    ylims,
+    folder_path,
+    contacts_for_plotting={},
+    xylabels=False,
+    save_suffix="",
+    controlzone=None,
+    plot_name="standstill",
 ):
     fig, ax = plt.subplots(1, 1, figsize=(20, 15))
+
+    colour_dictionary = {
+        "movement restrictions": "tomato",
+        "ring vaccination": "deepskyblue",
+        "ring culling": "black",
+        "ring testing": "green",
+    }
+
+    if controlzone != None and controlzone != {}:
+        for control_type, zone in controlzone.items():
+            if zone != None:
+                try:
+                    plot_polygon(
+                        ax,
+                        zone,
+                        facecolor=colour_dictionary[control_type],
+                        edgecolor=colour_dictionary[control_type],
+                        alpha=0.2,
+                        label=control_type,
+                    )
+
+                except:
+                    for subpoly in zone:
+                        plot_polygon(
+                            ax,
+                            subpoly,
+                            facecolor=colour_dictionary[control_type],
+                            edgecolor=colour_dictionary[control_type],
+                            alpha=0.2,
+                            label=control_type,
+                        )
 
     geometry_confirmed_infected = []
     geometry_culled = []
@@ -572,7 +612,7 @@ def plot_movement_standstill(
     ax.set_xlim(xlims)
     ax.set_ylim(ylims)
 
-    file_name = os.path.join(folder_path, f"plot_standstill_{time}{save_suffix}.png")
+    file_name = os.path.join(folder_path, f"plot_{plot_name}_{time}{save_suffix}.png")
 
     plt.savefig(file_name, bbox_inches="tight")
 
@@ -651,9 +691,24 @@ def make_video(folder_path="outputs", prefix="map", times=None, save_name_prefix
 
     fps = 1
     clip = ImageSequenceClip(image_files, fps=fps)
+
     output_file = os.path.join(folder_path, save_name_prefix + prefix + "plot_video.mp4")
 
-    clip.write_videofile(output_file, codec="mpeg4")
+    value = clip.size
+
+    if value[0] % 2 == 0:
+        new_height = value[0]  # even
+    else:
+        new_height = value[0] + 1  # odd
+
+    if value[1] % 2 == 0:
+        new_width = value[1]  # even
+    else:
+        new_width = value[1] + 1  # odd
+
+    clip_resized = clip.resize((new_height, new_width))
+
+    clip_resized.write_videofile(output_file, codec="mpeg4")
 
     clip.write_gif(os.path.join(folder_path, save_name_prefix + prefix + "plot_video.gif"))
 
