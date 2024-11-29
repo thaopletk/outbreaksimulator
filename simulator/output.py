@@ -579,6 +579,32 @@ def plot_movement_standstill(
     return
 
 
+def plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path, save_name):
+    fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+
+    x_points = list(range(len(dates_list)))
+
+    ax.plot(x_points, daily_notifs, marker="o", markersize=15)
+    # ax.set_xlabel('date', fontsize =14)
+    # ax.set_ylabel('cases',fontsize= 14)
+    ax.set_title("Daily confirmed cases", fontsize=16)
+    ax.grid()
+
+    # labels = [item.get_text() for item in ax.get_xticklabels()]
+    # labels = [dates_list[x] for x in labels]
+    ax.set_xticks(x_points[::2])
+    ax.set_xticklabels([x[:-5] for x in dates_list[::2]], fontsize=14)  # remove the "/2024"
+    ax.set_yticklabels(ax.get_yticklabels(), fontsize=14)
+
+    file_name = os.path.join(folder_path, f"{save_name}.png")
+
+    plt.savefig(file_name, bbox_inches="tight")
+
+    plt.close()
+
+    return
+
+
 def save_pickle(to_save, filename):
     with open(filename, "wb") as file:
         pickle.dump(to_save, file)
