@@ -190,7 +190,7 @@ folder_path_radius_25km_C = os.path.join(folder_path_main, "04C_movement_radius_
 
 # plot heaps of things now
 
-for timerange in [[43, 57], [57, 117]]:
+for timerange in [[57, 117]]:  # [43, 57],
     if timerange == [43, 57]:
         folder_path_list = [
             "04A-05AC_standstill_test30km",
@@ -219,6 +219,11 @@ for timerange in [[43, 57], [57, 117]]:
         ]
 
     for folder in folder_path_list:
+        if "vaccinate" in folder:
+            pass
+        else:
+            continue
+
         folder_path = os.path.join(folder_path_main, folder)
 
         time_plot = timerange[0]
@@ -275,33 +280,36 @@ for timerange in [[43, 57], [57, 117]]:
 
         output.make_video(folder_path, f"plot_{folder}_", time_list, "")
 
-        # plot number of notified properties over time
+        # # plot number of notified properties over time
 
-        # download the outbreak state
-        properties_filename = os.path.join(folder_path, "properties_" + folder)
-        with open(properties_filename, "rb") as file:
-            properties = pickle.load(file)
+        # # download the outbreak state
+        # properties_filename = os.path.join(folder_path, "properties_" + folder)
+        # with open(properties_filename, "rb") as file:
+        #     properties = pickle.load(file)
 
-        # get notification_date
+        # # get notification_date
 
-        dates_list = [convert_time_to_date(time) for time in range(28, timerange[1])]
-        daily_notifs = [0] * len(dates_list)
+        # dates_list = [convert_time_to_date(time) for time in range(28, timerange[1])]
+        # daily_notifs = [0] * len(dates_list)
 
-        for property_i in properties:
-            notif_date = property_i.notification_date
-            if notif_date != "NA":
-                index = dates_list.index(notif_date)
-                daily_notifs[index] += 1
+        # for property_i in properties:
+        #     notif_date = property_i.notification_date
+        #     if notif_date != "NA":
+        #         index = dates_list.index(notif_date)
+        #         daily_notifs[index] += 1
 
-        save_name = "daily_notifications"
+        # save_name = "daily_notifications"
 
-        output.plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path, save_name)
+        # output.plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path, save_name)
 
         # plot the full outbreak window at end time point
 
         plotting_data_name = os.path.join(folder_path, f"plotting_data{timerange[1]-1}.5")
         with open(plotting_data_name, "rb") as file:
             properties, time, xlims, ylims, controlzone, contacts_for_plotting = pickle.load(file)
+
+        if "standstill" in folder:
+            controlzone["movement restrictions"] = None
 
         # xlims = [144.5, 151.5]
         # ylims = [-34.5, -28.5]
@@ -311,12 +319,10 @@ for timerange in [[43, 57], [57, 117]]:
             time,
             xlims,
             ylims,
-            folder_path_radius_50km_B,
+            folder_path,
             contacts_for_plotting={},
             xylabels=True,
             save_suffix="_v2",
             controlzone=controlzone,
             plot_name="full_window",
         )
-
-    exit(1)
