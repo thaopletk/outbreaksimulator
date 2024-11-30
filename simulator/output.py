@@ -516,7 +516,7 @@ def plot_simex(
 
     colour_dictionary = {
         "movement restrictions": "tomato",
-        "ring vaccination": "deepskyblue",
+        "ring vaccination": "#7800ff",
         "ring culling": "black",
         "ring testing": "green",
     }
@@ -549,6 +549,7 @@ def plot_simex(
     geometry_culled = []
     geometry_susceptible = []
     geometry_undergoing_testing = []
+    geometry_vaccinated = []
 
     for key, value in contacts_for_plotting.items():
         premise = properties[key]
@@ -571,11 +572,14 @@ def plot_simex(
             geometry_confirmed_infected.append(curr_farm)
         elif premise.undergoing_testing == True:
             geometry_undergoing_testing.append(curr_farm)
+        elif premise.vaccination_status:
+            geometry_vaccinated.append(curr_farm)
         else:
             geometry_susceptible.append(curr_farm)
 
     for geometry, colour, marker, markerlabel, markersize in [
         [geometry_susceptible, "#5284b3", "o", "susceptible", 30],
+        [geometry_vaccinated, "#7852a4", "P", "vaccinated", 70],
         [geometry_undergoing_testing, "#ffa200", "d", "testing", 120],
         [geometry_confirmed_infected, "#ea4335", "X", "confirmed", 150],
         [geometry_culled, "black", "X", "culled", 150],
@@ -634,8 +638,16 @@ def plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path, sa
 
     # labels = [item.get_text() for item in ax.get_xticklabels()]
     # labels = [dates_list[x] for x in labels]
-    ax.set_xticks(x_points[::2])
-    ax.set_xticklabels([x[:-5] for x in dates_list[::2]], fontsize=14)  # remove the "/2024"
+
+    if len(daily_notifs) > 20:
+        day_spacing = 7
+        if len(daily_notifs) > 50:
+            day_spacing = 14
+    else:
+        day_spacing = 2
+
+    ax.set_xticks(x_points[::day_spacing])
+    ax.set_xticklabels([x[:-5] for x in dates_list[::day_spacing]], fontsize=14)  # remove the "/2024"
     ax.set_yticklabels(ax.get_yticklabels(), fontsize=14)
 
     file_name = os.path.join(folder_path, f"{save_name}.png")
