@@ -114,7 +114,7 @@ def trial_simex_property_setup(
         },
     },
 ):
-    """Properties set up for the December 2024 Trial Simulation Exercise"""
+    """Set up the map and initiate properties - for the December 2024 Trial Simulation Exercise"""
 
     # checks that the sum of n_property_types is equal to spatial_only_paramaters["n"]
     property_specific_sum = sum([value for key, value in properties_specific_parameters["n_property_types"].items()])
@@ -258,7 +258,7 @@ def trial_simex_property_setup(
     return property_setup_info
 
 
-# TODO this could be moved into the spatial_setup file...
+# NOTE this could be moved into the spatial_setup file...
 def property_setup(
     folder_path,
     n=10,
@@ -278,8 +278,8 @@ def property_setup(
         "saleyard": 1,
         "trader": 1,
         "feedlot": 7,
-        "abbattoir": 0,
-        "farm": 0.3,
+        "abbattoir": 10000,
+        "farm": 5,
     },
     movement_probability={
         "saleyard": 1,
@@ -294,13 +294,6 @@ def property_setup(
         "feedlot": 0.1,
         "abbattoir": 0,
         "farm": 0.2,
-    },
-    extra_capacity_multiplier={
-        "saleyard": 3,
-        "trader": 3,
-        "feedlot": 3,
-        "abbattoir": 2,
-        "farm": 1,
     },
     allowed_movement={
         "saleyard": ["saleyard", "trader", "feedlot", "abbattoir", "farm"],
@@ -337,8 +330,6 @@ def property_setup(
         The probability of movement on a given day
     movement_prop_animals : dictionary
         number of animals that might be moved
-    extra_capacity_multiplier : dictionary
-        extra capacity beyond the average_animals_per_ha
     allowed_movement : dictionary
         the property types that the key-property can move animals to
     max_daily_movements : dictionary
@@ -394,7 +385,6 @@ def property_setup(
                 property_type=property_type,
                 movement_probability=movement_probability[property_type],
                 movement_prop_animals=movement_prop_animals[property_type],
-                extra_capacity_multiplier=extra_capacity_multiplier[property_type],
                 allowed_movement=allowed_movement[property_type],
                 max_daily_movements=max_daily_movements[property_type],
             )
@@ -435,6 +425,11 @@ def seed_infection_at_property_type(
     unique_output="",
     latent_period=7,
 ):
+    """Seeds an infection at a particular type of property (e.g., farm, stud farm, feedlot).
+
+    The code tries to find a location in the middle third of the map (so that spread can be limited within the map).
+
+    """
     seed_property = 0  # default
     seed_animal = 0  # default
 
@@ -513,6 +508,8 @@ def seed_infection(xrange, yrange, properties, time=0):
 
 
 def initialise_infection_vaccination(properties, n, xrange, yrange, init_vax_probability, time=0):
+    """Randomly seeds an infection in the map, and also implements any initial vaccination (though, initial vaccination is not relevant for Lumpy Skin Disease in Australia)"""
+
     # seed infection (in the center third)
     properties, seed_property = seed_infection(xrange, yrange, properties)
 
@@ -540,6 +537,8 @@ def plot_current_state(
     infectionpoly=False,
     contacts_for_plotting={},
 ):
+    """Plots the map for the "apparent" state (known be decision-makers) and the true underlying state (includes undetected infected properties)"""
+
     output.plot_map(
         properties,
         time,
@@ -565,6 +564,8 @@ def plot_current_state(
 
 
 def save_movement_record(folder_path, movement_records):
+    """Saves records of animal movements as a csv."""
+
     header = [
         "time",
         "moving from index",
@@ -594,6 +595,7 @@ def save_reports(
     testing_reports,
     movement_records,
 ):
+    """Saves the text reports of management action and outcomes"""
     total_culled = 0
     total_vaccinated = 0
     for premise in properties:
