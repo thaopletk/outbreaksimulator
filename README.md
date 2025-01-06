@@ -22,6 +22,8 @@ Infectious animal disease outbreak simulator for [Enhancing Models for Rapid Dec
 4. Management stage: including default management (contract tracing local movement restrictions, clinical examination, lab testing and culling) and additional management options (large-scale movement restrictions, testing, vaccination, ring culling, and their combinations)
 5. Final outputs (total number of cases etc.)
 
+The main file that produced the outputs for the December 2024 Trial simulation exercise (v0.2) is [**maincontrol_trial.py**](scenarios/maincontrol_trial.py).
+
 ![Diagram of the steps of the outbreak simulator: initiate map, seed infection, run time forward until first report, default management (contract tracing local movement restrictions, clinical examination, lab testing and culling) and additional management options (large-scale movement restrictions, testing, vaccination, ring culling, and their combinations), and final outputs (total number of cases etc.) ](images/outbreaksimulator_workflow.png)
 
 <!--# Planned outbreak simulator
