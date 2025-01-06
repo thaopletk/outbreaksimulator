@@ -1,6 +1,6 @@
 """ Main control
 
-Aim: for this script to control and run different elements and steps needed for the trial simulation exercise.
+This script controls and run different elements and steps needed for the trial simulation exercise (5/12/2024).
 
 
 """
@@ -13,7 +13,6 @@ import pickle
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import simulator.simulator as simulator
 
-# import simulator.management as management
 import simulator.disease_simulation as disease_simulation
 
 # folder names
@@ -27,11 +26,8 @@ folder_path_radius_25km_C = os.path.join(folder_path_main, "04C_movement_radius_
 
 
 # step 1: make folder for everything
-# Not in output folder, so that it'll be synced...
-
 if not os.path.exists(folder_path_main):
     os.makedirs(folder_path_main)
-
 
 # step 2: initiate the full proper map, including with different property types
 # parameters
@@ -182,10 +178,9 @@ else:
         diseaseoutbreak = pickle.load(file)
 
 
-# Step 5: continue running the simulation until the first report; start the default processes (contact tracing, assume that clinical confirmation is immediate, lab testing in process); the day will probably end with minimal movement restrictions for the infected property and the contact traced properties.
+# Step 5: continue running the simulation until the first report; start the default processes (contact tracing, assume that clinical confirmation is immediate, lab testing in process). Management jobs are stored in a job manager object. The day will probably end with minimal movement restrictions for the infected property and the contact traced properties.
 # These properties should shown on a map
-# Then stop the simulation, and allow for some options for the next day of simulation
-# Options: complete movement standstill, and certain radii around the infected property
+# Then stop the simulation, and allow for some options for the next day of simulation (complete movement standstill, and certain radii around the infected property)
 
 if not os.path.exists(folder_path_first_report):
     os.makedirs(folder_path_first_report)
@@ -219,10 +214,6 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
 
 # Step 6. Give management options: complete standstill, or standstill of certain radius. Run for TWO WEEKS,
 days_to_run_for = 14
-
-# you should be able to have multiple management happening at the same time
-# it could be a list of dictionaries; the dictionary should have a management_type, and for different management types, there might be different sub parameters; for ring management, obviously there should be a ring radius, and something to flag whether or not it should be convex management
-# could you have different management priorities? I don't know.
 
 # 6A: If a complete standstill, then:
 
@@ -306,7 +297,7 @@ if not os.path.exists(radius_50km_B_properties_filename) or not os.path.exists(r
         pickle.dump(diseaseoutbreak, file)
 
 
-# NOT DOING THIS - too many options
+# NOT DOING THIS - too many options (but could have done this)
 # # 6C: movement radius of 25km
 # if not os.path.exists(folder_path_radius_25km_C):
 #     os.makedirs(folder_path_radius_25km_C)
@@ -344,6 +335,7 @@ if not os.path.exists(radius_50km_B_properties_filename) or not os.path.exists(r
 #         pickle.dump(diseaseoutbreak, file)
 
 
+# function to make it easier to run specific "branches" of the simulator "history"
 def run_specific_branch(
     local_properties_filename,
     local_diseaseoutbreak_filename,
@@ -383,7 +375,9 @@ def run_specific_branch(
             pickle.dump(diseaseoutbreak, file)
 
 
-# Step 7: now there are options regarding ring culling, OR ring testing (at fixed radius, maybe 25km, no ring surveillance, too many options...). There should also be options regarding the changing (or not) of movement restriction radius. Run for TWO WEEKS,
+# Step 7: The options now are movement standstill with ring testing or movement restriction with ring testing.
+# While there are more options, they've been commented out so that the branching is reasonable.
+# Run for TWO WEEKS,
 days_to_run_for = 14
 previous_outbreak_step_filenames = [
     [movement_standstill_A_properties_filename, movement_standstill_A_diseaseoutbreak_filename, "04A"],
@@ -393,9 +387,7 @@ previous_outbreak_step_filenames = [
 
 outbreak_step_7_filenames = []
 
-# TODO is to see if many of these can be run in parallel
-# (if it was the cluster, then you would submit multiple jobs ah)
-
+# NOTE this could be parallellised, or run as multiple jobs on the cluster.
 for properties_filename, diseaseoutbreak_filename, identifier in previous_outbreak_step_filenames:
     long_name = ""
     short_code = identifier
@@ -415,7 +407,7 @@ for properties_filename, diseaseoutbreak_filename, identifier in previous_outbre
         else:
             raise ValueError("Ring management option not identified")
 
-        # should also include the option of NOT doing anything more
+        # could include the option of NOT doing anything more in a future version
         for ring_management_option, management_identifier in [
             # ["", "_only"], # taking this out too, to say that "outbreak is intensifying, need more management--i.e., ring testing in addition to contact tracing"
             # ["ring culling", "_cull25km"], # NOTE ring cullinng is not considered; reason: "no social license / too much protesting"
@@ -456,7 +448,7 @@ for properties_filename, diseaseoutbreak_filename, identifier in previous_outbre
             )
 
 # Step 8: give options regarding movement radius, ring culling, ring testing, and ring *vaccination* run until the invasion dies out (hopefully)
-# days_to_run_for = 28
+# the simulation will end after this step (for manageable-output reasons)
 days_to_run_for = 60
 
 
@@ -480,7 +472,7 @@ for properties_filename, diseaseoutbreak_filename, identifier in outbreak_step_7
             management_parameters = [{"type": "movement_restriction", "radius_km": 25, "convex": False}]
             short_code_1 += "-06C"
 
-        # should also include the option of NOT doing anything more
+        # could also include the option of NOT doing anything more
         for ring_management_option, management_identifier in [
             # ["", "_only"],
             # ["ring culling", "cull25km"],
@@ -522,6 +514,3 @@ for properties_filename, diseaseoutbreak_filename, identifier in outbreak_step_7
                 management_parameters,
                 days_to_run_for,
             )
-
-
-exit(1)
