@@ -15,7 +15,14 @@ Infectious animal disease outbreak simulator for [Enhancing Models for Rapid Dec
 
 # Outbreak simulator workflow (v0.2)
 
-[Diagram of the steps of the outbreak simulator: initiate map, seed infection, run time forward until first report, default management (contract tracing local movement restrictions, clinical examination, lab testing and culling) and additional management options (large-scale movement restrictions, testing, vaccination, ring culling, and their combinations), and final outputs (total number of cases etc.) ](images/outbreaksimulator_workflow.png)
+**The main steps**:
+1. Initiate map
+2. Seed infection
+3. Undetected spread: Run time forward until first report
+4. Management stage: including default management (contract tracing local movement restrictions, clinical examination, lab testing and culling) and additional management options (large-scale movement restrictions, testing, vaccination, ring culling, and their combinations)
+5. Final outputs (total number of cases etc.)
+
+![Diagram of the steps of the outbreak simulator: initiate map, seed infection, run time forward until first report, default management (contract tracing local movement restrictions, clinical examination, lab testing and culling) and additional management options (large-scale movement restrictions, testing, vaccination, ring culling, and their combinations), and final outputs (total number of cases etc.) ](images/outbreaksimulator_workflow.png)
 
 <!--# Planned outbreak simulator
 
