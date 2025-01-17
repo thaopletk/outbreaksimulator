@@ -20,6 +20,8 @@ import contextily as ctx
 import pickle
 from moviepy.editor import ImageSequenceClip
 from simulator.premises import convert_time_to_date
+import pointpats
+from scipy.stats import gaussian_kde
 
 
 def plot_polygon(ax, poly, **kwargs):
@@ -427,6 +429,76 @@ def plot_map(
     plt.close()
 
     return
+
+
+def plot_animal_density(
+    properties,
+    xlims,
+    ylims,
+    folder_path,
+):
+    """Aim: to plot a map of animal density across space"""
+
+    fig, ax = plt.subplots(1, 1, figsize=(20, 15))
+
+    x = []
+    y = []
+
+    for index, premise in enumerate(properties):
+        property_polygon = premise.polygon
+        num_animals = len(premise.animals)
+        # Generates random points inside polygon
+        animal_points = pointpats.random.poisson(property_polygon, size=num_animals)
+        # what format is this in? an array of points?
+        x.extend(animal_points[:, 0])
+        y.extend(animal_points[:, 1])
+
+    # https://python-graph-gallery.com/85-density-plot-with-matplotlib/
+    nbins = 300
+
+    k = gaussian_kde([x, y])
+    xi, yi = np.mgrid[min(x) : max(x) : nbins * 1j, min(y) : max(y) : nbins * 1j]
+    zi = k(np.vstack([xi.flatten(), yi.flatten()])).reshape(xi.shape)
+
+    pcm = ax.pcolormesh(xi, yi, zi, alpha=0.5, cmap="YlOrRd")
+
+    fig.colorbar(pcm, ax=ax)
+
+    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
+
+    # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
+    points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
+    points = points.to_crs(32619)  # Projected WGS 84 - meters
+    distance_meters = points[0].distance(points[1])
+    ax.add_artist(
+        ScaleBar(
+            distance_meters,
+            box_alpha=0.1,
+            location="lower right",
+        )
+    )
+
+    ax.set_title("Animal density map", fontsize=18)
+
+    ax.set_ylabel("latitude", fontsize=16)
+    ax.set_xlabel("longitude", fontsize=16)
+
+    ax.set_xlim(xlims)
+    ax.set_ylim(ylims)
+
+    # ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
+    #       fancybox=True, shadow=True, ncol=5,fontsize=18)
+
+    ax.tick_params(axis="x", labelsize=14)
+    ax.tick_params(axis="y", labelsize=14)
+
+    file_name = "animal_density.png"
+
+    file_name = os.path.join(folder_path, file_name)
+
+    plt.savefig(file_name, bbox_inches="tight")
+
+    plt.close()
 
 
 def plot_initial_report(

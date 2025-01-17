@@ -10,6 +10,7 @@
 
 import numpy as np
 import math
+import os
 import matplotlib.pyplot as plt
 import simulator.random_rectangles as random_rectangles
 import pyproj
@@ -19,6 +20,8 @@ import pyproj
 from functools import partial
 from shapely.ops import transform
 from simulator.spatial_functions import *
+
+# from osgeo import gdal,ogr
 
 
 def assign_coordinates(n, xrange=[150.2503, 151.39695], yrange=[-32.61181, -31.60829]):
@@ -73,9 +76,7 @@ def assign_neighbours(property_coordinates, n, r):
 
             if p1 != p2:
                 # dist = np.linalg.norm(np.array(property_coordinates[p1]) - np.array(property_coordinates[p2]))
-                dist = quick_distance_haversine(
-                    property_coordinates[p1], property_coordinates[p2]
-                )  # distance in km
+                dist = quick_distance_haversine(property_coordinates[p1], property_coordinates[p2])  # distance in km
 
                 if dist <= r:
                     # close enough => neighbours
@@ -99,13 +100,9 @@ def plot_coordinates(property_coordinates, neighbour_pairs):
     # nodes
     for i in range(len(property_coordinates)):
         if i == 3:
-            plt.scatter(
-                property_coordinates[i, 0], property_coordinates[i, 1], color="red"
-            )
+            plt.scatter(property_coordinates[i, 0], property_coordinates[i, 1], color="red")
         else:
-            plt.scatter(
-                property_coordinates[i, 0], property_coordinates[i, 1], color="purple"
-            )
+            plt.scatter(property_coordinates[i, 0], property_coordinates[i, 1], color="purple")
 
     # edges
     for node_coordinates in neighbour_pairs:
@@ -168,40 +165,68 @@ def assign_property_locations(
     area_in_hectares = calculate_area(bounding_polygon)
 
     num_recs_to_generate = int(np.ceil(area_in_hectares / average_property_ha))
-    num_rectangles = n
+    num_rectangles = num_recs_to_generate  # n  # keeping all generated rectangles for now
 
     #  x1, y1, x2, y2
     region = random_rectangles.Rect(xrange[0], yrange[0], xrange[1], yrange[1])
-    random_recs = random_rectangles.return_random_rectangles(
-        num_rectangles, num_recs_to_generate, region
+    random_recs = random_rectangles.return_random_rectangles(num_rectangles, num_recs_to_generate, region)
+    # the resultant rectangles could become properties
+
+    # TODO : more complicated: using landuse codes
+    # gdal.UseExceptions()
+    # landuse = gdal.Open(os.path.join(os.path.dirname(__file__),'..', 'data','clum_50m_2023_v2','clum_50m_2023_v2.tif'))
+
+    # Read in Australia shapefile
+    Australia_gdf = gpd.read_file(
+        os.path.join(os.path.dirname(__file__), "..", "data", "AUS_2021_AUST_SHP_GDA2020", "AUS_2021_AUST_GDA2020.shp")
     )
-    # the resultant rectangles are the properties
+    print(Australia_gdf)
+
+    Australia_only = Australia_gdf.loc[Australia_gdf["AUS_NAME21"] == "Australia", :]
+
+    # Australia_gdf['geometry'] - multipolygon
+
+    Australiashape = Australia_only["geometry"][0]
+    # print(Australiashape)
 
     property_coordinates = np.zeros((n, 2))
     property_polygons = []
     property_areas = []
 
+    i_random_recs = -1
     for i in range(n):
-        rectangle = random_recs[i]
-        # make polygons
-        property_polygon = {
-            "type": "Polygon",
-            "coordinates": [
-                [
-                    [rectangle.min.x, rectangle.min.y],
-                    [rectangle.max.x, rectangle.min.y],
-                    [rectangle.max.x, rectangle.max.y],
-                    [rectangle.min.x, rectangle.max.y],
-                    [rectangle.min.x, rectangle.min.y],
-                ]
-            ],
-        }
+        insideAustralia = False
+
+        while not insideAustralia:
+            i_random_recs += 1
+            if i_random_recs >= len(random_recs):
+                raise Exception("Not enough generated rectangles within Australia!")
+            rectangle = random_recs[i_random_recs]
+            # make polygons
+            property_polygon = {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [rectangle.min.x, rectangle.min.y],
+                        [rectangle.max.x, rectangle.min.y],
+                        [rectangle.max.x, rectangle.max.y],
+                        [rectangle.min.x, rectangle.max.y],
+                        [rectangle.min.x, rectangle.min.y],
+                    ]
+                ],
+            }
+            Polygon_obj = convert_dict_poly_to_Polygon(property_polygon)  # Shapely Polygon object
+
+            # check if the polygon is inside Australia or not
+            if Australiashape.contains(Polygon_obj):
+                insideAustralia = True
+            else:
+                pass
+                # print("not inside Australia...")
 
         property_areas.append(calculate_area(property_polygon))
 
-        property_polygons.append(
-            convert_dict_poly_to_Polygon(property_polygon)
-        )  # Shapely Polygon object needed for the rest of the code
+        property_polygons.append(Polygon_obj)
 
         property_coordinates[i, 0] = (rectangle.min.x + rectangle.max.x) / 2
         property_coordinates[i, 1] = (rectangle.min.y + rectangle.max.y) / 2
@@ -290,18 +315,14 @@ def assign_neighbours_with_land(property_coordinates, property_polygons, n, r):
     return adjacency_matrix, neighbour_pairs, neighbourhoods, property_polygons_puffed
 
 
-def generate_properties(
-    n, r, xrange=[150.2503, 151.39695], yrange=[-32.61181, -31.60829]
-):
+def generate_properties(n, r, xrange=[150.2503, 151.39695], yrange=[-32.61181, -31.60829]):
     """Generates point-properties, without land"""
 
     # randomly place properties within a rectangle (bounded by xrange, yrange)
     property_coordinates = assign_coordinates(n, xrange, yrange)
 
     # find neighbours given neighbourhood radius
-    adjacency_matrix, neighbour_pairs, neighbourhoods = assign_neighbours(
-        property_coordinates, n, r
-    )
+    adjacency_matrix, neighbour_pairs, neighbourhoods = assign_neighbours(property_coordinates, n, r)
 
     # plot_coordinates(property_coordinates, neighbour_pairs)
 
@@ -359,8 +380,8 @@ def generate_properties_with_land(
 
     # find wind-neighbours given wind-neighbourhood radius
 
-    adjacency_matrix, neighbour_pairs, neighbourhoods, property_polygons_puffed = (
-        assign_neighbours_with_land(property_coordinates, property_polygons, n, wind_r)
+    adjacency_matrix, neighbour_pairs, neighbourhoods, property_polygons_puffed = assign_neighbours_with_land(
+        property_coordinates, property_polygons, n, wind_r
     )
 
     # possible extension is to return in a dictionary, to improve flexibility of output

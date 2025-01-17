@@ -107,7 +107,9 @@ def animal_movement(
     controlzone,
     max_movement_distance=500,
 ):
-    """Conduct animal movements between properties that are allowed to move
+    """Conduct animal movements between properties that are allowed to move.
+
+    This version assumes that all properties are the same type (without distinction between movement patterns)
 
     Parameters
     ----------
