@@ -1,0 +1,8 @@
+Catchment scale land use data - "Catchment Scale Land Use of Australia v2"
+https://www.agriculture.gov.au/abares/aclump/land-use/catchment-scale-land-use-and-commodities-update-2023#downloads
+direct download link: https://www.agriculture.gov.au/sites/default/files/documents/clum_50m_2023_v2.zip
+
+
+Australia shape file 
+https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs-edition-3/jul2021-jun2026/access-and-downloads/digital-boundary-files 
+"Australia - 2021 - Shapefile" - https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs-edition-3/jul2021-jun2026/access-and-downloads/digital-boundary-files/AUS_2021_AUST_SHP_GDA94.zip

@@ -20,8 +20,8 @@ import pyproj
 from functools import partial
 from shapely.ops import transform
 from simulator.spatial_functions import *
-
-# from osgeo import gdal,ogr
+import rasterio as rio
+from pyproj import Proj, itransform
 
 
 def assign_coordinates(n, xrange=[150.2503, 151.39695], yrange=[-32.61181, -31.60829]):
@@ -172,20 +172,13 @@ def assign_property_locations(
     random_recs = random_rectangles.return_random_rectangles(num_rectangles, num_recs_to_generate, region)
     # the resultant rectangles could become properties
 
-    # TODO : more complicated: using landuse codes
-    # gdal.UseExceptions()
-    # landuse = gdal.Open(os.path.join(os.path.dirname(__file__),'..', 'data','clum_50m_2023_v2','clum_50m_2023_v2.tif'))
-
     # Read in Australia shapefile
     Australia_gdf = gpd.read_file(
         os.path.join(os.path.dirname(__file__), "..", "data", "AUS_2021_AUST_SHP_GDA2020", "AUS_2021_AUST_GDA2020.shp")
     )
     print(Australia_gdf)
-
     Australia_only = Australia_gdf.loc[Australia_gdf["AUS_NAME21"] == "Australia", :]
-
     # Australia_gdf['geometry'] - multipolygon
-
     Australiashape = Australia_only["geometry"][0]
     # print(Australiashape)
 
@@ -193,43 +186,137 @@ def assign_property_locations(
     property_polygons = []
     property_areas = []
 
-    i_random_recs = -1
-    for i in range(n):
-        insideAustralia = False
+    # With more complicated checking for landuse codes
+    landuse_geotiff = os.path.join(os.path.dirname(__file__), "..", "data", "clum_50m_2023_v2", "clum_50m_2023_v2.tif")
+    with rio.Env():
+        with rio.open(landuse_geotiff) as geotiff_src:
+            # print(geotiff_src.bounds)
 
-        while not insideAustralia:
-            i_random_recs += 1
-            if i_random_recs >= len(random_recs):
-                raise Exception("Not enough generated rectangles within Australia!")
-            rectangle = random_recs[i_random_recs]
-            # make polygons
-            property_polygon = {
-                "type": "Polygon",
-                "coordinates": [
-                    [
-                        [rectangle.min.x, rectangle.min.y],
-                        [rectangle.max.x, rectangle.min.y],
-                        [rectangle.max.x, rectangle.max.y],
-                        [rectangle.min.x, rectangle.max.y],
-                        [rectangle.min.x, rectangle.min.y],
-                    ]
-                ],
-            }
-            Polygon_obj = convert_dict_poly_to_Polygon(property_polygon)  # Shapely Polygon object
+            # x = (geotiff_src.bounds.left + geotiff_src.bounds.right) / 2.0
+            # y = (geotiff_src.bounds.bottom + geotiff_src.bounds.top) / 2.0
 
-            # check if the polygon is inside Australia or not
-            if Australiashape.contains(Polygon_obj):
-                insideAustralia = True
-            else:
-                pass
-                # print("not inside Australia...")
+            # for val in geotiff_src.sample([(x, y)]):
+            #     print(val)
 
-        property_areas.append(calculate_area(property_polygon))
+            meta = geotiff_src.meta
+            print(meta)
+            i_random_recs = -1
+            for i in range(n):
+                insideAustralia = False
+                while not insideAustralia:
+                    i_random_recs += 1
+                    if i_random_recs >= len(random_recs):
+                        raise Exception("Not enough generated rectangles within Australia!")
+                    rectangle = random_recs[i_random_recs]
+                    # make polygons
+                    property_polygon = {
+                        "type": "Polygon",
+                        "coordinates": [
+                            [
+                                [rectangle.min.x, rectangle.min.y],
+                                [rectangle.max.x, rectangle.min.y],
+                                [rectangle.max.x, rectangle.max.y],
+                                [rectangle.min.x, rectangle.max.y],
+                                [rectangle.min.x, rectangle.min.y],
+                            ]
+                        ],
+                    }
+                    Polygon_obj = convert_dict_poly_to_Polygon(property_polygon)  # Shapely Polygon object
 
-        property_polygons.append(Polygon_obj)
+                    # check if the polygon is inside Australia or not
+                    if Australiashape.contains(Polygon_obj):
+                        # now also check if the landuse type is okay or not, by checking if the center point land use is okay
+                        acceptable_land_use_codes = [
+                            210,
+                            320,
+                            3221,
+                            322,
+                            323,
+                            324,
+                            325,
+                            330,
+                            360,
+                            361,
+                            362,
+                            363,
+                            264,
+                            420,
+                            421,
+                            422,
+                            423,
+                            424,
+                            430,
+                            461,
+                            462,
+                            463,
+                            464,
+                            520,
+                            521,
+                            522,
+                            523,
+                            524,
+                            526,
+                            527,
+                            528,
+                            535,
+                            540,
+                            542,
+                            545,
+                        ]  # ALUM codes
 
-        property_coordinates[i, 0] = (rectangle.min.x + rectangle.max.x) / 2
-        property_coordinates[i, 1] = (rectangle.min.y + rectangle.max.y) / 2
+                        # acceptable_land_use_RBG = [[255,255,229], # grazing native vegetation
+                        #                            [255, 211, 127], # grazing modified pastures
+                        #                            [255, 255, 0], #dryland cropping
+                        #                            [255, 170, 0], #Irrigated pastures
+                        #                             [201,184,84], # irrigated cropping
+                        #                             [255,201,190], # intensive horticulture and animal production
+                        #                             [178,178, 178], #rural residental and farm infrastructure
+                        #                            ]
+
+                        # center point
+                        x_coord = (rectangle.min.x + rectangle.max.x) / 2
+                        y_coord = (rectangle.min.y + rectangle.max.y) / 2
+
+                        # print(f"x,y coords are {x}, {y}")
+
+                        # for val in  geotiff_src.sample([(x_coord,y_coord)]):
+                        #     print(f"val with untransformed coords is {val}")
+
+                        p1 = Proj("epsg:4326", preserve_units=False)
+                        p2 = Proj("epsg:3577", preserve_units=False)
+                        for pt in itransform(p1, p2, [(x_coord, y_coord)], always_xy=True):
+                            # print(f"transformed x,y coords (pt) are {pt}")
+                            x_coord, y_coord = pt
+                        # transformer = pyproj.Transformer.from_crs("epsg:4326", "epsg:3577", )
+                        # new_point = transformer.transform()
+                        # # Use the transform in the metadata and your coordinates
+                        # rowcol = rio.transform.rowcol(meta['transform'], xs=x_coord, ys=y_coord)
+                        # print(f"rowcol is {rowcol}")
+                        # w = geotiff_src.read(1, window=rio.windows.Window(rowcol[0], rowcol[1], 1, 1))
+                        # print(f"w - rio read is {w}")
+
+                        for val in geotiff_src.sample([(x_coord, y_coord)]):
+                            if len(val) > 1:
+                                print(f"something off with expected val {val}")
+                            sub_val = val[0]  # there should only be one val
+                            # print(f"val with transformed coords is {val}")
+                            if sub_val in acceptable_land_use_codes:
+                                # all good
+                                insideAustralia = True
+                                print(f"Land use good! {sub_val}")
+                            elif insideAustralia == False:
+                                print(f"landuse not okay? {sub_val}")
+
+                    else:
+                        pass
+                        # print("not inside Australia...")
+
+                property_areas.append(calculate_area(property_polygon))
+
+                property_polygons.append(Polygon_obj)
+
+                property_coordinates[i, 0] = (rectangle.min.x + rectangle.max.x) / 2
+                property_coordinates[i, 1] = (rectangle.min.y + rectangle.max.y) / 2
 
     return property_coordinates, property_polygons, property_areas
 

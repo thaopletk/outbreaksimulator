@@ -21,12 +21,12 @@ def geodesic_point_buffer(lat, lon, km):
 
     """
 
-    proj_wgs84 = pyproj.Proj(init="epsg:4326")
+    proj_wgs84 = pyproj.Proj(
+        init="epsg:4326"
+    )  # in fact, I could change to the Australian projection Albers? which might have better quality?
 
     aeqd_proj = "+proj=aeqd +lat_0={lat} +lon_0={lon} +x_0=0 +y_0=0"
-    project = partial(
-        pyproj.transform, pyproj.Proj(aeqd_proj.format(lat=lat, lon=lon)), proj_wgs84
-    )
+    project = partial(pyproj.transform, pyproj.Proj(aeqd_proj.format(lat=lat, lon=lon)), proj_wgs84)
     buf = Point(0, 0).buffer(km * 1000)  # distance in metres
     return transform(project, buf).exterior.coords[:]
 
@@ -64,10 +64,7 @@ def quick_distance_haversine(coords1, coords2):
     # haversine formula
     dlon = lon2 - lon1
     dlat = lat2 - lat1
-    a = (
-        math.sin(dlat / 2) ** 2
-        + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
-    )
+    a = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
     c = 2 * math.asin(math.sqrt(a))
     # Radius of earth in kilometers is 6371
     km = 6371 * c
@@ -102,9 +99,7 @@ def calculate_area(polygon):
             "coordinates": [polygon.exterior.coords[:]],
         }
 
-    poly_area = area(
-        polygon
-    )  # it's not exact-exact but should be good enough, value in square metres
+    poly_area = area(polygon)  # it's not exact-exact but should be good enough, value in square metres
 
     area_in_hectares = sq_to_ha * poly_area
 
