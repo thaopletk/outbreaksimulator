@@ -14,10 +14,10 @@ import simulator.output as output
 
 
 xrange = [130, 155]
-yrange = [-39, -24]
+yrange = [-39, -20]
 
 set_up_params = {
-    "n": 40,  # total number of properties to include
+    "n": 200,  # total number of properties to include
     "r": 25,  # note that this should be in KILOMETERS, the maximum wind dispersal distance
     "xrange": xrange,
     "yrange": yrange,

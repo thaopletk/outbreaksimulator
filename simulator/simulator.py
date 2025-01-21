@@ -174,14 +174,18 @@ def trial_simex_property_setup(
     available_i_s = list(range(0, len(property_coordinates)))
     available_i_s.remove(stud_farm_i)
     random.shuffle(available_i_s)
+    central_stud_farm_flag = False
     for property_type, n_to_generate in properties_specific_parameters["n_property_types"].items():
-        if property_type == "stud farm":
-            if n_to_generate != 1:
-                raise ValueError("Code assumes that there will only be one stud farm")
+        # if property_type == "stud farm":
+        #     if n_to_generate != 1:
+        #         raise ValueError("Code assumes that there will only be one stud farm") # allowing multiple stud farms now
 
         for j in range(n_to_generate):
-            if property_type == "stud farm":
+            if (
+                property_type == "stud farm" and central_stud_farm_flag == False
+            ):  # ensures that there is a central stud farm, while allowing for other stud farm locations
                 new_p_i = stud_farm_i
+                central_stud_farm_flag = True
             else:
                 new_p_i = available_i_s.pop()
 
@@ -221,6 +225,12 @@ def trial_simex_property_setup(
 
     # construct their movement information
     for i, property_i in enumerate(properties):
+        if property_i.type == "saleyard":
+            # allowing for much longer range movement from saleyards to other places (but not vice-versa)
+            max_allowable_movement = 5 * properties_specific_parameters["max_movement_km"]
+        else:
+            max_allowable_movement = properties_specific_parameters["max_movement_km"]
+
         property_i_neighbours = {}
         for allowed_type in property_i.allowed_movement.keys():
             property_i_neighbours[allowed_type] = []
@@ -234,7 +244,7 @@ def trial_simex_property_setup(
                         property_i.coordinates,
                         property_j.coordinates,
                     )
-                    < properties_specific_parameters["max_movement_km"]
+                    < max_allowable_movement
                 ):
                     property_i_neighbours[property_j.type].append(j)
 

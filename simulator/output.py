@@ -107,7 +107,7 @@ def plot_property_coordinates(
 
 def plot_map_land(property_polygons, property_polygons_puffed, xlims, ylims, folder_path):
     """Plot property boundaries"""
-    fig, ax = plt.subplots(1, 1, figsize=(20, 15))  # ,figsize=(10,12)
+    fig, ax = plt.subplots(1, 1, figsize=(20, 20))  # ,figsize=(10,12)
 
     for poly in property_polygons_puffed:
         plot_polygon(ax, poly, facecolor="tomato", edgecolor="maroon", alpha=0.01)
@@ -162,6 +162,7 @@ def plot_map(
     controlzone=None,
     infectionpoly=False,
     contacts_for_plotting={},
+    show_movement_neighbours=False,
 ):
     """Plot map during an outbreak
 
@@ -243,6 +244,33 @@ def plot_map(
         network_label_switch = False
 
         infected_coords = []
+
+        if show_movement_neighbours:
+            for index, property_i in enumerate(properties):
+                propertyx, propertyy = property_i.coordinates
+
+                # plot neighbours using edges
+                for neighbour_property_type in property_i.movement_neighbours:
+                    for j in property_i.movement_neighbours[neighbour_property_type]:
+                        neighbour = properties[j]
+                        neighbourx, neighboury = neighbour.coordinates
+                        # plots the lines between locations
+                        if network_label_switch == False:
+                            plt.plot(
+                                [propertyx, neighbourx],
+                                [propertyy, neighboury],
+                                alpha=0.01,
+                                color="black",
+                                label="network",
+                            )
+                            network_label_switch = True  # to make sure that the labelling only occurs once
+                        else:
+                            plt.plot(
+                                [propertyx, neighbourx],
+                                [propertyy, neighboury],
+                                alpha=0.01,
+                                color="black",
+                            )
 
         # for index, premise in enumerate(properties):
         #     long, lat = premise.coordinates

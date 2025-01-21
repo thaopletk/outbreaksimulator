@@ -229,39 +229,39 @@ def assign_property_locations(
                         acceptable_land_use_codes = [
                             210,
                             320,
-                            3221,
+                            321,
                             322,
                             323,
                             324,
                             325,
-                            330,
-                            360,
-                            361,
-                            362,
-                            363,
-                            264,
+                            # 330, # cropping
+                            # 360, # land in transition
+                            # 361,
+                            # 362,
+                            # 363,
+                            # 364,
                             420,
                             421,
                             422,
                             423,
                             424,
-                            430,
-                            461,
-                            462,
-                            463,
-                            464,
-                            520,
-                            521,
-                            522,
-                            523,
-                            524,
-                            526,
-                            527,
-                            528,
-                            535,
-                            540,
-                            542,
-                            545,
+                            # 430, # irigated cropping
+                            # 461, # irrigated land in transition
+                            # 462,
+                            # 463,
+                            # 464,
+                            # 520, # intensive animal production
+                            521,  # dairy sheds and yards
+                            522,  # feedlots
+                            # 523, # poultry farms
+                            # 524, # piggeries
+                            # 526, # horse studs
+                            527,  # sale yards/ stockyards
+                            # 528, # aboanded intensive animal production
+                            535,  # abbattoirs
+                            # 540, # residential and farm infrastructure
+                            # 542, # rural residential with agriclture
+                            # 545, # farm buildings/ infrastructure
                         ]  # ALUM codes
 
                         # acceptable_land_use_RBG = [[255,255,229], # grazing native vegetation
@@ -277,23 +277,11 @@ def assign_property_locations(
                         x_coord = (rectangle.min.x + rectangle.max.x) / 2
                         y_coord = (rectangle.min.y + rectangle.max.y) / 2
 
-                        # print(f"x,y coords are {x}, {y}")
-
-                        # for val in  geotiff_src.sample([(x_coord,y_coord)]):
-                        #     print(f"val with untransformed coords is {val}")
-
                         p1 = Proj("epsg:4326", preserve_units=False)
                         p2 = Proj("epsg:3577", preserve_units=False)
                         for pt in itransform(p1, p2, [(x_coord, y_coord)], always_xy=True):
                             # print(f"transformed x,y coords (pt) are {pt}")
                             x_coord, y_coord = pt
-                        # transformer = pyproj.Transformer.from_crs("epsg:4326", "epsg:3577", )
-                        # new_point = transformer.transform()
-                        # # Use the transform in the metadata and your coordinates
-                        # rowcol = rio.transform.rowcol(meta['transform'], xs=x_coord, ys=y_coord)
-                        # print(f"rowcol is {rowcol}")
-                        # w = geotiff_src.read(1, window=rio.windows.Window(rowcol[0], rowcol[1], 1, 1))
-                        # print(f"w - rio read is {w}")
 
                         for val in geotiff_src.sample([(x_coord, y_coord)]):
                             if len(val) > 1:
