@@ -40,7 +40,7 @@ with open(os.path.join(folder_path_main, "scenario_parameters.json"), "r") as fi
 
 properties_filename = os.path.join(folder_path_main, "properties_init")
 if not os.path.exists(properties_filename):
-    property_setup_info = simulator.trial_simex_property_setup(
+    property_setup_info = simulator.property_setup_v03(
         folder_path_main, spatial_only_parameters, properties_specific_parameters
     )
 
@@ -91,6 +91,12 @@ output.plot_map(
 # extra plotting: plot the animal density
 output.plot_animal_density(properties, xlims, ylims, folder_path=folder_path_main)
 
+# TODO: the initial seeding should occur either near a major port or in northern Queensland, or near ports, as this seems to be what people expect
+# to do this, to get northern queensland, I would need some longitude/latitude bounded
+# to get something near major cities, I should get their lat/long positions, (either hard code or download something from ABS), and allow spread to a wind-radius around those cities.
+# the list of properties in these sensitive locations can be compiled
+# and a random property is chosen to be the first
+# doing this means I don't need the "stud farm" as the first
 
 # step 3: force initial seeding of a property in/near the center (call it a "stud farm") and save
 time = 0
