@@ -408,7 +408,7 @@ def plot_map(
         geo_df = gpd.GeoDataFrame(geometry=geometry)
         geo_df.crs = {"init": "epsg:4326"}
         # plot the marker
-        ax = geo_df.plot(ax=ax, markersize=markersize, color=colour, marker=marker, label=markerlabel)
+        ax = geo_df.plot(ax=ax, markersize=markersize, color=colour, marker=marker, label=markerlabel, aspect=1)
 
     ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
 

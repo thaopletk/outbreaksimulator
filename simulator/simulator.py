@@ -678,6 +678,60 @@ def property_setup(
     return property_setup_info
 
 
+def seed_infection_within_bound(
+    xrange_bounds,
+    yrange_bounds,
+    properties,
+    time=0,
+    xlims=[],
+    ylims=[],
+    folder_path="",
+    unique_output="",
+    latent_period=7,
+):
+    """Seeds an infection at a property within the bounds specified"""
+    seed_property = 0  # default
+    seed_animal = 0  # default
+
+    viable_properties = []
+    for i, property in enumerate(properties):
+        coords = property.coordinates
+        if (
+            coords[0] <= xrange_bounds[1]
+            and coords[0] >= xrange_bounds[0]
+            and coords[1] <= yrange_bounds[1]
+            and coords[1] >= yrange_bounds[0]
+        ):
+            viable_properties.append(i)
+
+    # seed this property
+    # randomly pick a property to see:
+    seed_property = random.choice(viable_properties)
+
+    p = properties[seed_property]
+    # TODO technically, to encapsulate this better, there should a function that allows you to infect a specific animal(s), and that will then update infection_status, prop_infections, cumulative_infections, and exposure_date, and anything else that may need to be updated
+    p.infection_status = 1
+    p.exposure_date = premises.convert_time_to_date(time - latent_period)
+    p.animals[seed_animal].status = "infected"
+    p.prop_infectious = 1 / p.size
+    p.cumulative_infections = 1
+
+    plot_current_state(
+        properties,
+        time,
+        xlims,
+        ylims,
+        folder_path,
+        controlzone={},
+        infectionpoly=False,
+        contacts_for_plotting={},
+    )
+
+    save_current_state(properties, time, folder_path, unique_output)
+
+    return properties, seed_property
+
+
 def seed_infection_at_property_type(
     xrange,
     yrange,
