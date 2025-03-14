@@ -30,8 +30,8 @@ small_ver = "_small"
 # small_ver = "" # for running on the cluster
 
 with open(os.path.join(folder_path_main, f"spatial_only_parameters{small_ver}.json"), "r") as file:
-    spatial_only_parameters = json.load(file)
-with open(os.path.join(folder_path_main, f"properties_specific_parameters{small_ver}.json"), "r") as file:
+    spatial_only_parameters = json.load(file)  # has the total number of properties, hence the {small_ver}
+with open(os.path.join(folder_path_main, f"properties_specific_parameters.json"), "r") as file:
     properties_specific_parameters = json.load(file)
 with open(os.path.join(folder_path_main, "job_parameters.json"), "r") as file:
     job_parameters = json.load(file)

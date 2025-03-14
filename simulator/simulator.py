@@ -31,7 +31,6 @@ from shapely.ops import transform, unary_union
 from simulator.spatial_functions import quick_distance_haversine
 
 
-# TODO: also change the input format so that different property types are entered as a percentage rather than a hard-fixed number, and the code takes a minimum of 1 type of each property.
 def property_setup_v03(
     folder_path,
     spatial_only_paramaters={
@@ -44,13 +43,13 @@ def property_setup_v03(
     properties_specific_parameters={
         "average_animals_per_ha": 0.2,
         "max_movement_km": 500,
-        "n_property_types": {
-            "saleyard": 2,
-            "trader": 5,
-            "feedlot": 10,
-            "abbattoir": 10,
-            "stud farm": 1,
-            "farm": 1972,
+        "special_property_types_proportion": {
+            "saleyard": 0.001,
+            "trader": 0.0025,
+            "feedlot": 0.005,
+            "abbattoir": 0.005,
+            "stud farm": 0.001,
+            # "farm": None, Note: "farm" types will be calculated as the remainder
         },
         "movement_frequency": {
             "saleyard": 1,
@@ -119,6 +118,7 @@ def property_setup_v03(
 
     Differences from previous version (trial_simex_property_setup(...)):
         - No unique stud-farm allocation (i.e., not placing the stud farm first at a central location)
+        - changed the input format so that different property types are entered as a percentage rather than a hard-fixed number, and the code takes a minimum of 1 type of each property. (i.e., coming back to the older version property_setup(...) though with a slight modification of which proportions need to be included - farm type is now automatically calculated. )
 
 
     TODO: complete this description
@@ -144,13 +144,6 @@ def property_setup_v03(
         list of sizes/areas (in hectares) of the generated properties
 
     """
-
-    # checks that the sum of n_property_types is equal to spatial_only_paramaters["n"]
-    property_specific_sum = sum([value for key, value in properties_specific_parameters["n_property_types"].items()])
-    if spatial_only_paramaters["n"] != property_specific_sum:
-        raise ValueError(
-            "The total number of properties in spatial_only_parameters doesn't match the number in properties_specific_parameters"
-        )
 
     # 1. Spatial-only, property-type-agnostic setup
     (
@@ -179,12 +172,34 @@ def property_setup_v03(
 
     # 2. Property-specific initialisation
 
+    # calculate the number of properties for each type (and farms as the remainder)
+    num_properties_per_type = {}
+    # first, a check that the proportion is <=1:
+    if sum(list(properties_specific_parameters["special_property_types_proportion"].values())) <= 1:
+
+        running_sum = 0
+
+        for property_type, proportion in properties_specific_parameters["special_property_types_proportion"].items():
+            num_properties_per_type[property_type] = max(int(math.ceil(spatial_only_paramaters["n"] * proportion)), 1)
+            running_sum += num_properties_per_type[property_type]
+
+        if running_sum <= spatial_only_paramaters["n"]:
+            num_properties_per_type["farm"] = spatial_only_paramaters["n"] - running_sum
+        else:
+            raise ValueError(
+                "Total number of properties too is too high, and can't assign any farms. Recommend to lower proportions."
+            )
+
+    else:
+        raise ValueError("Proportion of different property types exceeds 1 (exceeds 100%)")
+
     # initialise properties
     properties = [None] * spatial_only_paramaters["n"]
 
     available_i_s = list(range(0, len(property_coordinates)))
     random.shuffle(available_i_s)
-    for property_type, n_to_generate in properties_specific_parameters["n_property_types"].items():
+
+    for property_type, n_to_generate in num_properties_per_type.items():
         # if property_type == "stud farm":
         #     if n_to_generate != 1:
         #         raise ValueError("Code assumes that there will only be one stud farm") # allowing multiple stud farms now
