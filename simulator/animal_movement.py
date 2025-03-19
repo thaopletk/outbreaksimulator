@@ -10,9 +10,45 @@ from simulator.premises import convert_time_to_date
 from simulator.spatial_functions import quick_distance_haversine
 from iteround import saferound
 import warnings
+import os
+import csv
 
 
-def trialsimex_animal_movement(properties, day, controlzone):
+movement_record_header = [
+    "day",
+    "date" "from",
+    "to",
+    "animals",
+    "report",
+]
+
+
+def get(to_get, record):
+    """To obtain the records information
+
+    Done like this in case I want to modify the order and items in the movement record again
+    (there is probably a better way but...)
+
+    # TODO would actually be to convert it to a dataframe, and then can use masking
+    # TODO ! update def contact_tracing
+
+
+    """
+    if to_get == "day":
+        return record[0]
+    elif to_get == "date":
+        return record[1]
+    elif to_get == "from":
+        return record[2]
+    elif to_get == "to":
+        return record[3]
+    elif to_get == "animals":
+        return record[4]
+    elif to_get == "report":
+        return record[5]
+
+
+def animal_movement(properties, day, controlzone):
     """Conduct animal movements between properties that are allowed to move
 
     Parameters
@@ -28,7 +64,7 @@ def trialsimex_animal_movement(properties, day, controlzone):
 
     date = convert_time_to_date(day)
 
-    # rows of day, moving from property index, to property index, plus a narrative report (locations, number of animals moved)
+    # rows of day, converted date, moving from property index, to property index, number of animals moved, a narrative report (locations, number of animals moved),
     movement_record = []
 
     indices_that_can_move = []
@@ -83,10 +119,16 @@ def trialsimex_animal_movement(properties, day, controlzone):
 
                     row = [
                         day,
+                        f"{date}",
                         premise_index,
                         moving_to_premise_index,
+                        f"{number_animals}",
                         f"DAY {date} - moved {number_animals} animals from property ID {property_p.id} ({property_p.type}) to property ID {properties[moving_to_premise_index].id} ({properties[moving_to_premise_index].type})",
-                    ]  # TODO add more information in the narrative report or row as required
+                    ]
+                    if len(row) != len(movement_record_header):
+                        raise ValueError("The length of movement record is not the same as the movement header")
+                        # added in case I decide to change the information recorded again
+
                     movement_record.append(row)
 
                     # keeping track of moving the animals, the actual movement will occur at the end
@@ -101,134 +143,17 @@ def trialsimex_animal_movement(properties, day, controlzone):
     return movement_record
 
 
-def animal_movement(
-    properties,
-    day,
-    controlzone,
-    max_movement_distance=500,
-):
-    """Conduct animal movements between properties that are allowed to move.
+def save_movement_record(folder_path, movement_records):
+    """Saves records of animal movements as a csv."""
 
-    This version assumes that all properties are the same type (without distinction between movement patterns)
+    file = os.path.join(folder_path, f"movement_records.csv")
+    with open(file, "w", newline="") as f:
 
-    Parameters
-    ----------
-    properties : list
-        list of premises
-    day : int
-        current simulation day
-    controlzone : polygon
-        polygon that describes movement restrictions, if any
-    max_movement_distance : int, double
-        maximum distance that animals could be moved, in kilometers
-    """
-    added_animals = []
+        # create the csv writer
+        writer = csv.writer(f)
 
-    date = convert_time_to_date(day)
+        # write the header
+        writer.writerow(movement_record_header)
 
-    movement_record = (
-        []
-    )  # rows of day, moving from property index, to property index, plus a narrative report (locations, number of animals moved)
-    # required for: the narrative, but also if we want to implement certain things based on contact tracing
-
-    # the only properties that can move are those who are not culled and do not intersect with the control zone
-    # TODO : technically there probably shouldn't be movement if a property has been identified in contact tracing and is undergoing testing
-    indices_that_can_move = []
-    for premise_index in range(len(properties)):
-        if not properties[premise_index].culled_status:
-            if controlzone == None or not properties[premise_index].polygon.intersects(controlzone):
-                indices_that_can_move.append(premise_index)
-
-    # take animals out first, then add them to other properties later (so animals don't move twice in one day)
-    for premise_index in indices_that_can_move:
-
-        # if it's a movement day for this property
-        if not ((day - properties[premise_index].movement_start_day) % properties[premise_index].movement_frequency):
-
-            # if there is movement
-            prob_movement = np.random.rand()
-            if prob_movement < properties[premise_index].movement_probability:
-
-                # where can the animals moving to
-                moving_to_premise_indices = []
-                for i in indices_that_can_move:
-                    if i != premise_index:  # property hasn't been culled and isn't the moving from property
-                        # check if distance is less than max distance max_movement_distance
-                        # actually, this should be pre-calculated at the start, to reduce time later on... TODO
-                        if (
-                            quick_distance_haversine(
-                                properties[premise_index].coordinates,
-                                properties[i].coordinates,
-                            )
-                            < max_movement_distance
-                        ):
-                            # and also check if the property is the right type for moving to
-                            if properties[i].type in properties[premise_index].allowed_movement:
-
-                                moving_to_premise_indices.append(i)
-
-                # if there's somewhere to move the animals
-                if moving_to_premise_indices:
-
-                    # how many animals moving
-                    property_size = len(properties[premise_index].animals)
-                    number_animals = int(np.floor(properties[premise_index].movement_prop_animals * property_size))
-                    if property_size > 1 and number_animals == 0:
-                        number_animals = 1  # keeping at least one animal in each property
-
-                    if number_animals == 0:
-                        break  # no animals to move
-
-                    # how many different properties will the animals be moving to
-                    num_properties_to_move_to = (
-                        np.random.randint(1, properties[premise_index].max_daily_movements + 1)
-                        if properties[premise_index].max_daily_movements > 1
-                        else 1
-                    )
-
-                    if num_properties_to_move_to > number_animals:
-                        num_properties_to_move_to = number_animals
-
-                    num_animals_moved_to_each_property = saferound(
-                        [number_animals / num_properties_to_move_to] * num_properties_to_move_to,
-                        places=0,
-                    )
-                    num_animals_moved_to_each_property = [int(x) for x in num_animals_moved_to_each_property]
-
-                    # choose random premise to move to
-                    # for saleyards and traders, they should be able to have movement to MULTIPLE different properties in one day
-                    moving_to_premise_indices = np.random.choice(
-                        moving_to_premise_indices,
-                        size=num_properties_to_move_to,
-                        replace=False,
-                    )
-
-                    for moving_to_premise_index, number_animals in zip(
-                        moving_to_premise_indices, num_animals_moved_to_each_property
-                    ):
-
-                        row = [
-                            day,
-                            premise_index,
-                            moving_to_premise_index,
-                            f"DAY {date} - moved {number_animals} animals from property ID {properties[premise_index].id} ({properties[premise_index].type}) to property ID {properties[moving_to_premise_index].id} ({properties[moving_to_premise_index].type})",
-                        ]  # TODO add more information in the narrative report or row as required
-                        movement_record.append(row)
-
-                        # keeping track of moving the animals
-                        moving_animal_list = []
-                        for _ in range(int(number_animals)):
-                            moving_animal_index = np.random.randint(0, len(properties[premise_index].animals))
-                            moving_animal = properties[premise_index].animals.pop(moving_animal_index)
-
-                            moving_animal_list.append(moving_animal)
-
-                        added_animals.append([moving_animal_list, moving_to_premise_index])
-
-    # move animals to properties
-    if added_animals:  # as long as there are animals to move
-        for moving_list, moving_index in added_animals:
-            for moving_animal in moving_list:
-                properties[moving_index].animals.append(moving_animal)
-
-    return movement_record
+        for row in movement_records:
+            writer.writerow(row)

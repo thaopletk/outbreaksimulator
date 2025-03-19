@@ -235,7 +235,7 @@ class DiseaseSimulation:
             # movement of animals
             controlzone_movement_restrictions = None
 
-            movement_record = animal_movement.trialsimex_animal_movement(
+            movement_record = animal_movement.animal_movement(
                 properties, day=self.time, controlzone=controlzone_movement_restrictions
             )
             if movement_record != []:
@@ -277,7 +277,7 @@ class DiseaseSimulation:
             job_manager=self.job_manager,
         )
 
-        simulator.save_movement_record(self.folder_path, self.movement_records)
+        animal_movement.save_movement_record(self.folder_path, self.movement_records)
 
         return properties, self.movement_records, self.time
 
@@ -345,7 +345,7 @@ class DiseaseSimulation:
             controlzone_movement_restrictions = unary_union(self.job_manager.local_movement_restrictions)
             self.controlzone["movement restrictions"] = controlzone_movement_restrictions
 
-        movement_record = animal_movement.trialsimex_animal_movement(
+        movement_record = animal_movement.animal_movement(
             properties, day=self.time, controlzone=controlzone_movement_restrictions
         )
         if movement_record != []:
@@ -392,7 +392,7 @@ class DiseaseSimulation:
             job_manager=self.job_manager,
         )
 
-        simulator.save_movement_record(self.folder_path, self.movement_records)
+        animal_movement.save_movement_record(self.folder_path, self.movement_records)
 
         self.save_reports(properties)
 
@@ -439,7 +439,7 @@ class DiseaseSimulation:
                 controlzone_movement_restrictions = unary_union(self.job_manager.local_movement_restrictions)
                 self.controlzone["movement restrictions"] = controlzone_movement_restrictions
 
-            movement_record = animal_movement.trialsimex_animal_movement(
+            movement_record = animal_movement.animal_movement(
                 properties, day=self.time, controlzone=controlzone_movement_restrictions
             )
             if movement_record != []:
@@ -526,7 +526,7 @@ class DiseaseSimulation:
             job_manager=self.job_manager,
         )
 
-        simulator.save_movement_record(self.folder_path, self.movement_records)
+        animal_movement.save_movement_record(self.folder_path, self.movement_records)
 
         self.save_reports(properties)
 
@@ -740,7 +740,7 @@ class DiseaseSimulation:
             self.controlzone["movement restrictions"] = controlzone_movement_restrictions
 
             if not movement_standstill:
-                movement_record = animal_movement.trialsimex_animal_movement(
+                movement_record = animal_movement.animal_movement(
                     properties, day=self.time, controlzone=controlzone_movement_restrictions
                 )
                 if movement_record != []:
@@ -864,7 +864,7 @@ class DiseaseSimulation:
             job_manager=self.job_manager,
         )
 
-        simulator.save_movement_record(self.folder_path, self.movement_records)
+        animal_movement.save_movement_record(self.folder_path, self.movement_records)
 
         self.save_reports(properties)
 

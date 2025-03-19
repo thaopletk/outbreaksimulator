@@ -127,7 +127,7 @@ def contact_tracing(properties, property_index, movement_records, time):
 
     """
 
-    contact_tracing_report = f"DAY {convert_time_to_date(time)} - contact tracing report compiled for movements from IP {properties[property_index].ip} (ID {properties[property_index].id})\n"
+    contact_tracing_report = f"DAY {convert_time_to_date(time)} - contact tracing report compiled for movements to/from IP {properties[property_index].ip} (ID {properties[property_index].id})\n"
     traced_property_indices = []
 
     properties_found = False
@@ -138,15 +138,16 @@ def contact_tracing(properties, property_index, movement_records, time):
 
             # go through the movement records, and look for animal movements off the property
             for record in movement_records:
-                if record[1] == property_index:
-                    properties_found = True
-                    traced_property_indices.append(record[2])
-                    contact_tracing_report = contact_tracing_report + " - " + record[3] + "\n"
-                # this is now also including animal movements onto the property
-                if record[2] == property_index:
-                    properties_found = True
-                    traced_property_indices.append(record[1])
-                    contact_tracing_report = contact_tracing_report + " - " + record[3] + "\n"
+                if record[0] >= time - 14:
+                    if record[2] == property_index:
+                        properties_found = True
+                        traced_property_indices.append(record[3])
+                        contact_tracing_report = contact_tracing_report + " - " + record[5] + "\n"
+                    # this is now also including animal movements onto the property
+                    if record[3] == property_index:
+                        properties_found = True
+                        traced_property_indices.append(record[2])
+                        contact_tracing_report = contact_tracing_report + " - " + record[5] + "\n"
     if not properties_found:
         contact_tracing_report += " - no movements found\n"
 
