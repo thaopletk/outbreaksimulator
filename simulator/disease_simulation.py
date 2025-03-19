@@ -158,6 +158,32 @@ class DiseaseSimulation:
         with open(os.path.join(self.folder_path, "report_combined_narrative.txt"), "w") as file:
             file.write(to_save_narrative)
 
+    def run_property_selfreporting(self, properties, i):
+        property_i = properties[i]
+        report = property_i.report_suspicion(self.time)
+        self.other_reports += report
+        self.combined_narrative += report
+
+        # enact local movement restrictions around this property, just in case
+        self.job_manager.local_movement_restrictions.append(property_i.polygon)
+        report = "No movements are now allowed to or from this property.\n"
+        self.other_reports += report
+        self.combined_narrative += report
+
+        # schedule contact tracing
+        s_report = self.job_manager.schedule_contract_tracing(i, self.time)
+        self.contact_tracing_reports += s_report
+        self.combined_narrative += s_report
+
+        # schedule lab testing
+        report = self.job_manager.schedule_lab_testing_after_observation(i, self.time)
+        self.other_reports += report  #  TODO should this actually go in testing reports?
+        self.combined_narrative += report
+
+        property_i.undergoing_testing = True
+
+        return 0
+
     def simulate_property_reporting(self, properties):
         """Simulates property reporting, outside of the job management system"""
         # Though possible TODO is to actually move this into the job management system (i.e., trigger the "clinical observation positive" knock-on events)
@@ -171,27 +197,7 @@ class DiseaseSimulation:
                 # essentially the same as a positive clinical observation
                 did_any_properties_report = True
 
-                report = property_i.report_suspicion(self.time)
-                self.other_reports += report
-                self.combined_narrative += report
-
-                # enact local movement restrictions around this property, just in case
-                self.job_manager.local_movement_restrictions.append(property_i.polygon)
-                report = "No movements are now allowed to or from this property.\n"
-                self.other_reports += report
-                self.combined_narrative += report
-
-                # schedule contact tracing
-                s_report = self.job_manager.schedule_contract_tracing(i, self.time)
-                self.contact_tracing_reports += s_report
-                self.combined_narrative += s_report
-
-                # schedule lab testing
-                report = self.job_manager.schedule_lab_testing_after_observation(i, self.time)
-                self.other_reports += report  #  TODO should this actually go in testing reports?
-                self.combined_narrative += report
-
-                property_i.undergoing_testing = True
+                self.run_property_selfreporting(properties, i)
 
         # TODO: should update the JobManager so that I don't have to do this
         for job in self.job_manager.new_jobs:
@@ -200,6 +206,7 @@ class DiseaseSimulation:
 
         return did_any_properties_report
 
+    # TODO: technically, it may be possible to just run a different simulate_outbreak_spread function, but just set the probability of reporting to zero, or to modularise things further (the code parts that are repeated across different functions)
     def simulate_outbreak_spread_only(self, properties, time=None, stop_time=7):
         """Run simulated outbreak, for undetected spread between (self.time (or time parameter if not NA)+1) and (stop_time) [inclusive], with no management"""
 
@@ -273,6 +280,123 @@ class DiseaseSimulation:
         simulator.save_movement_record(self.folder_path, self.movement_records)
 
         return properties, self.movement_records, self.time
+
+    def simulate_outbreak_detection(self, properties, reportingregion_x, reportingregion_y, time=None):
+        if time != None:
+            self.time = time
+
+        if self.folder_path == "":
+            raise Warning("Default folder path hasn't changed - recommend that set_plotting_parameters() be run first")
+
+        # new day, allow disease spread
+        FOI = list(np.zeros(len(properties)))
+        self.time += 1
+        # calculate FOI for each property
+        for i, property_i in enumerate(properties):
+            if not property_i.culled_status:
+                FOI[i] = SEIR.calculate_force_of_infection(
+                    properties, i, self.vax_modifier, self.r_wind, self.beta_wind, self.beta_animal
+                )
+
+        # run infection model for each property
+        for i, property_i in enumerate(properties):
+            property_i.infection_model(
+                self.latent_period, self.infectious_period, self.preclinical_period, FOI[i], self.time
+            )
+
+        # find properties with infected (clinical infected) animals within reportingregion_x, reportingregion_y
+        list_of_potential_reporting_properties = []
+        for i, property_i in enumerate(properties):
+            if property_i.clinical_date != "NA":
+                x, y = property_i.coordinates
+                if (
+                    x >= reportingregion_x[0]
+                    and x <= reportingregion_x[1]
+                    and y >= reportingregion_y[0]
+                    and y <= reportingregion_y[1]
+                ):
+                    list_of_potential_reporting_properties.append(i)
+
+        if len(list_of_potential_reporting_properties) == 0:
+            raise RuntimeError("No clinically infected properties found within the wanted reporting region")
+
+        # randomly select one to be the first to report
+        first_report_i = random.choice(list_of_potential_reporting_properties)
+
+        # run some basic reporting functionality
+        #
+        property_i = properties[first_report_i]
+        report = property_i.report_suspicion(self.time)
+        self.other_reports += report
+        self.combined_narrative += report
+
+        property_i.undergoing_testing = True
+
+        # enact local movement restrictions around this property, just in case
+        self.job_manager.local_movement_restrictions.append(property_i.polygon)
+        report = "No movements are now allowed to or from this property.\n"
+        self.other_reports += report
+        self.combined_narrative += report
+
+        # movement of animals
+        # there may be movement restrictions if a property has reported, so this needs to be checked
+        controlzone_movement_restrictions = None
+        if self.job_manager.local_movement_restrictions != []:
+            controlzone_movement_restrictions = unary_union(self.job_manager.local_movement_restrictions)
+            self.controlzone["movement restrictions"] = controlzone_movement_restrictions
+
+        movement_record = animal_movement.trialsimex_animal_movement(
+            properties, day=self.time, controlzone=controlzone_movement_restrictions
+        )
+        if movement_record != []:
+            self.movement_records.extend(movement_record)
+
+        # update counts
+        for i, property_i in enumerate(properties):
+            property_i.update_counts()
+
+        self.other_reports += "EMAI lab sends back a positive\n"
+        self.combined_narrative += "EMAI lab sends back a positive\n"
+
+        # contact tracing scheduled...
+        # schedule contact tracing
+        s_report = self.job_manager.schedule_contract_tracing(first_report_i, self.time)
+        self.contact_tracing_reports += s_report
+        self.combined_narrative += s_report
+
+        if self.plotting:
+            simulator.plot_current_state(
+                properties,
+                self.time,
+                self.xlims,
+                self.ylims,
+                self.folder_path,
+                self.controlzone,
+                infectionpoly=False,
+                contacts_for_plotting=self.contacts_for_plotting,
+            )
+            # should also save things for plotting: i.e., everything that I had used to actually plot
+            with open(os.path.join(self.folder_path, "plotting_data" + str(self.time)), "wb") as file:
+                pickle.dump(
+                    [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
+                    file,
+                )
+
+        simulator.save_outbreak_state(
+            properties,
+            self.time,
+            self.folder_path,
+            self.unique_output,
+            total_culled_animals=self.total_culled_animals,
+            movement_records=self.movement_records,
+            job_manager=self.job_manager,
+        )
+
+        simulator.save_movement_record(self.folder_path, self.movement_records)
+
+        self.save_reports(properties)
+
+        return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
 
     def simulate_outbreak_til_first_report(self, properties, time=None):
         """Run simulated outbreak, for spread starting from self.time+1 til the first report (end of the first day), with localised actions but no ring management"""

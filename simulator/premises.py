@@ -341,7 +341,7 @@ class Premises(Property):
         if self.prop_clinical > 0 and self.clinical_date == "NA":
             self.clinical_date = convert_time_to_date(
                 time
-            )  # might need to change this, but for now, it should be the earliest date with clinical symptoms
+            )  # might need to change this, but for now, it should be the earliest date with clinical symptoms # TODO : however, what does this mean if infected animals were all moved off the property?
 
     def return_output_row(self):
         """Returns a row with information for outputing (required downstream for forecasting)

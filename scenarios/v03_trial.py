@@ -88,9 +88,10 @@ if not os.path.exists(os.path.join(folder_path_main, "map_underlying0.png")):
         show_movement_neighbours=True,
     )
 
-# plot the animal density
-if not os.path.exists(os.path.join(folder_path_main, "animal_density.png")):
-    output.plot_animal_density(properties, xlims, ylims, folder_path=folder_path_main)
+# plottinng animal density seems to take a lot of time, should make it better /faster TODO
+# # plot the animal density
+# if not os.path.exists(os.path.join(folder_path_main, "animal_density.png")):
+#     output.plot_animal_density(properties, xlims, ylims, folder_path=folder_path_main)
 
 
 # step 3:  initial seeding of a property
@@ -130,3 +131,105 @@ if not os.path.exists(properties_seeded_filename):
 else:
     with open(properties_seeded_filename, "rb") as file:
         properties = pickle.load(file)
+
+# step 4:  simulate undetected spread ~ 28 days)
+unique_output = "02_undetected_spread"
+folder_path_undetected_spread = os.path.join(folder_path_main, unique_output)
+
+if not os.path.exists(folder_path_undetected_spread):
+    os.makedirs(folder_path_undetected_spread)
+
+stop_time = 90  # 28
+
+undetected_spread_properties_filename = os.path.join(folder_path_undetected_spread, "properties_" + unique_output)
+undetected_spread_diseaseoutbreak_filename = os.path.join(
+    folder_path_undetected_spread, "outbreakobject_" + unique_output
+)
+if not os.path.exists(undetected_spread_properties_filename) or not os.path.exists(
+    undetected_spread_diseaseoutbreak_filename
+):
+
+    # initiate various things that start from empty:
+    movement_records = []
+    diseaseoutbreak = disease_simulation.DiseaseSimulation(
+        time=time,
+        movement_records=movement_records,
+        disease_parameters=disease_parameters,
+        spatial_only_parameters=spatial_only_parameters,
+        job_parameters=job_parameters,
+        scenario_parameters=scenario_parameters,
+    )
+
+    diseaseoutbreak.set_plotting_parameters(
+        xlims=xlims,
+        ylims=ylims,
+        plotting=True,
+        folder_path=folder_path_undetected_spread,
+        unique_output=unique_output,
+    )
+
+    properties, movement_records, time = diseaseoutbreak.simulate_outbreak_spread_only(
+        properties=properties, time=time, stop_time=stop_time
+    )
+
+    # and then resave the end state
+    with open(undetected_spread_properties_filename, "wb") as file:
+        pickle.dump(properties, file)
+
+    # and save the diseaseoutbreak object
+    with open(undetected_spread_diseaseoutbreak_filename, "wb") as file:
+        pickle.dump(diseaseoutbreak, file)
+
+else:
+
+    with open(undetected_spread_properties_filename, "rb") as file:
+        properties = pickle.load(file)
+    with open(undetected_spread_diseaseoutbreak_filename, "rb") as file:
+        diseaseoutbreak = pickle.load(file)
+
+
+# Step 5: trigger the first report in northern NSW and initial actions
+# the early time processes
+# start the default processes (contact tracing, assume that clinical confirmation is immediate, lab testing in process). Management jobs are stored in a job manager object. The day will probably end with minimal movement restrictions for the infected property and the contact traced properties.
+# These properties should shown on a map
+unique_output = "03_outbreak_detection"
+folder_path_first_report = os.path.join(folder_path_main, unique_output)
+
+if not os.path.exists(folder_path_first_report):
+    os.makedirs(folder_path_first_report)
+
+spread_properties_filename = os.path.join(folder_path_first_report, "properties_" + unique_output)
+spread_diseaseoutbreak_filename = os.path.join(folder_path_first_report, "outbreakobject_" + unique_output)
+
+if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
+    # adjust the plotting parameters for this new scenario
+    diseaseoutbreak.set_plotting_parameters(
+        xlims=xlims,
+        ylims=ylims,
+        plotting=True,
+        folder_path=folder_path_first_report,
+        unique_output=unique_output,
+    )
+
+    # TODO:  write this function
+    # NOTE: currently it's more like....the first day of reporting (not even the day of confirmation yet)
+    reportingregion_x = [140, 155]
+    reportingregion_y = [-31, -29]
+
+    properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_outbreak_detection(
+        properties, reportingregion_x, reportingregion_y
+    )
+
+    # and then resave the end state
+    with open(spread_properties_filename, "wb") as file:
+        pickle.dump(properties, file)
+
+    # and save the diseaseoutbreak object
+    with open(spread_diseaseoutbreak_filename, "wb") as file:
+        pickle.dump(diseaseoutbreak, file)
+
+
+# Step 6:
+
+
+# step 7

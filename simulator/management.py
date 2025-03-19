@@ -142,6 +142,11 @@ def contact_tracing(properties, property_index, movement_records, time):
                     properties_found = True
                     traced_property_indices.append(record[2])
                     contact_tracing_report = contact_tracing_report + " - " + record[3] + "\n"
+                # this is now also including animal movements onto the property
+                if record[2] == property_index:
+                    properties_found = True
+                    traced_property_indices.append(record[1])
+                    contact_tracing_report = contact_tracing_report + " - " + record[3] + "\n"
     if not properties_found:
         contact_tracing_report += " - no movements found\n"
 
