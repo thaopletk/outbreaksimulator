@@ -223,7 +223,9 @@ class Premises(Property):
         return False
 
     def report_suspicion(self, time):
-        report = f"DAY {convert_time_to_date(time)} - Property ID {self.id} ({self.type}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been reported possible infection.\n"
+        # report = f"DAY {convert_time_to_date(time)} - Property ID {self.id} ({self.type}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been reported possible infection.\n"
+
+        report = f"Property ID {self.id} ({self.type}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been reported possible infection."
 
         return report
 

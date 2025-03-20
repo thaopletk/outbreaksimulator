@@ -882,28 +882,6 @@ def plot_current_state(
     )
 
 
-def save_movement_record(folder_path, movement_records):
-    """Saves records of animal movements as a csv."""
-
-    header = [
-        "time",
-        "moving from index",
-        "moving to index",
-        "report",
-    ]
-    file = os.path.join(folder_path, f"movement_records.csv")
-    with open(file, "w", newline="") as f:
-
-        # create the csv writer
-        writer = csv.writer(f)
-
-        # write the header
-        writer.writerow(header)
-
-        for row in movement_records:
-            writer.writerow(row)
-
-
 def save_reports(
     properties,
     folder_path,
@@ -945,7 +923,7 @@ def save_reports(
         file.write(to_save_narrative)
 
     # write movement records
-    save_movement_record(folder_path, movement_records)
+    animal_movement.save_movement_record(folder_path, movement_records)
 
 
 def save_current_state(properties, time, folder_path, unique_output):

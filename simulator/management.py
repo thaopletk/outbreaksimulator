@@ -134,7 +134,7 @@ def contact_tracing(properties, property_index, movement_records, time):
 
     if len(movement_records) != 0:
         # check the length of movement records (a minimum requirement)
-        if len(movement_records[0]) == 4:
+        if len(movement_records[0]) == 6:
 
             # go through the movement records, and look for animal movements off the property
             for record in movement_records:

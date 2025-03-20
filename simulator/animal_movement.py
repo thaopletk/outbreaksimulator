@@ -16,7 +16,8 @@ import csv
 
 movement_record_header = [
     "day",
-    "date" "from",
+    "date",
+    "from",
     "to",
     "animals",
     "report",

@@ -14,6 +14,7 @@
 import sys
 import os
 import random
+import pandas as pd
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import numpy as np
@@ -95,10 +96,7 @@ class DiseaseSimulation:
 
         self.vax_modifier = 0  # TODO - can set up a function to input in vaccination-relevant parameters
 
-        self.combined_narrative = ""
-        self.contact_tracing_reports = ""
-        self.testing_reports = ""
-        self.other_reports = ""
+        self.combined_narrative = []  # ["day","date","type","report"]
 
         # default set for plotting limits
         # limits for the figures
@@ -137,26 +135,18 @@ class DiseaseSimulation:
             if property.vaccination_status:
                 total_vaccinated += 1
 
-        to_save_narrative = (
-            self.combined_narrative
-            + f"\n==============\nTotal culled properties: {total_culled}; total vaccinated properties: {total_vaccinated}; total culled animals: {self.total_culled_animals}"
+        to_save_narrative = [x[:] for x in self.combined_narrative]
+        to_save_narrative.append(
+            [
+                self.time,
+                premises.convert_time_to_date(self.time),
+                "summary",
+                f"Total culled properties: {total_culled}; total vaccinated properties: {total_vaccinated}; total culled animals: {self.total_culled_animals}",
+            ]
         )
+        narrative_df = pd.DataFrame(to_save_narrative, columns=["day", "date", "type", "report"])
 
-        # output "reports" report
-        with open(os.path.join(self.folder_path, "report.txt"), "w") as file:
-            file.write(self.other_reports)
-
-        # output contact tracing reports
-        with open(os.path.join(self.folder_path, "report_contact_tracing.txt"), "w") as file:
-            file.write(self.contact_tracing_reports)
-
-        # output testing reports
-        with open(os.path.join(self.folder_path, "report_testing.txt"), "w") as file:
-            file.write(self.testing_reports)
-
-        # output the inter-twined narrative (of known occurences)
-        with open(os.path.join(self.folder_path, "report_combined_narrative.txt"), "w") as file:
-            file.write(to_save_narrative)
+        narrative_df.to_csv(os.path.join(self.folder_path, "combinated_narrative.csv"), index=False)
 
     def run_property_selfreporting(self, properties, i):
         property_i = properties[i]
@@ -206,6 +196,23 @@ class DiseaseSimulation:
 
         return did_any_properties_report
 
+    def calculate_FOI_for_each_property(self, properties):
+        FOI = list(np.zeros(len(properties)))
+        for i, property_i in enumerate(properties):
+            if not property_i.culled_status:
+                FOI[i] = SEIR.calculate_force_of_infection(
+                    properties, i, self.vax_modifier, self.r_wind, self.beta_wind, self.beta_animal
+                )
+        return FOI
+
+    def run_infection_model_for_each_property(self, properties, FOI):
+        # run infection model for each property
+        for i, property_i in enumerate(properties):
+            property_i.infection_model(
+                self.latent_period, self.infectious_period, self.preclinical_period, FOI[i], self.time
+            )
+        return properties
+
     # TODO: technically, it may be possible to just run a different simulate_outbreak_spread function, but just set the probability of reporting to zero, or to modularise things further (the code parts that are repeated across different functions)
     def simulate_outbreak_spread_only(self, properties, time=None, stop_time=7):
         """Run simulated outbreak, for undetected spread between (self.time (or time parameter if not NA)+1) and (stop_time) [inclusive], with no management"""
@@ -216,21 +223,13 @@ class DiseaseSimulation:
         if self.folder_path == "":
             raise Warning("Default folder path hasn't changed - recommend that set_plotting_parameters() be run first")
 
-        FOI = list(np.zeros(len(properties)))
         while self.time < stop_time:
             self.time += 1
             # calculate FOI for each property
-            for i, property_i in enumerate(properties):
-                if not property_i.culled_status:
-                    FOI[i] = SEIR.calculate_force_of_infection(
-                        properties, i, self.vax_modifier, self.r_wind, self.beta_wind, self.beta_animal
-                    )
+            FOI = self.calculate_FOI_for_each_property(properties)
 
             # run infection model for each property
-            for i, property_i in enumerate(properties):
-                property_i.infection_model(
-                    self.latent_period, self.infectious_period, self.preclinical_period, FOI[i], self.time
-                )
+            properties = self.run_infection_model_for_each_property(properties, FOI)
 
             # movement of animals
             controlzone_movement_restrictions = None
@@ -246,7 +245,7 @@ class DiseaseSimulation:
                 premise.update_counts()
 
             if self.plotting:
-                simulator.plot_current_state(
+                simulator.plot_current_state(  # TODO - simulator is a weird place to put plotting, probably...
                     properties,
                     self.time,
                     self.xlims,
@@ -281,29 +280,7 @@ class DiseaseSimulation:
 
         return properties, self.movement_records, self.time
 
-    def simulate_outbreak_detection(self, properties, reportingregion_x, reportingregion_y, time=None):
-        if time != None:
-            self.time = time
-
-        if self.folder_path == "":
-            raise Warning("Default folder path hasn't changed - recommend that set_plotting_parameters() be run first")
-
-        # new day, allow disease spread
-        FOI = list(np.zeros(len(properties)))
-        self.time += 1
-        # calculate FOI for each property
-        for i, property_i in enumerate(properties):
-            if not property_i.culled_status:
-                FOI[i] = SEIR.calculate_force_of_infection(
-                    properties, i, self.vax_modifier, self.r_wind, self.beta_wind, self.beta_animal
-                )
-
-        # run infection model for each property
-        for i, property_i in enumerate(properties):
-            property_i.infection_model(
-                self.latent_period, self.infectious_period, self.preclinical_period, FOI[i], self.time
-            )
-
+    def select_first_reported_property(self, properties, reportingregion_x, reportingregion_y):
         # find properties with infected (clinical infected) animals within reportingregion_x, reportingregion_y
         list_of_potential_reporting_properties = []
         for i, property_i in enumerate(properties):
@@ -323,27 +300,51 @@ class DiseaseSimulation:
         # randomly select one to be the first to report
         first_report_i = random.choice(list_of_potential_reporting_properties)
 
-        # run some basic reporting functionality
-        #
-        property_i = properties[first_report_i]
-        report = property_i.report_suspicion(self.time)
-        self.other_reports += report
-        self.combined_narrative += report
+        return first_report_i
 
-        property_i.undergoing_testing = True
+    def simulate_first_day(self, properties, reportingregion_x, reportingregion_y):
+        # new day, allow disease spread
 
-        # enact local movement restrictions around this property, just in case
-        self.job_manager.local_movement_restrictions.append(property_i.polygon)
-        report = "No movements are now allowed to or from this property.\n"
-        self.other_reports += report
-        self.combined_narrative += report
+        self.time += 1
+        converted_date = premises.convert_time_to_date(self.time)
 
-        # movement of animals
-        # there may be movement restrictions if a property has reported, so this needs to be checked
-        controlzone_movement_restrictions = None
-        if self.job_manager.local_movement_restrictions != []:
-            controlzone_movement_restrictions = unary_union(self.job_manager.local_movement_restrictions)
-            self.controlzone["movement restrictions"] = controlzone_movement_restrictions
+        FOI = self.calculate_FOI_for_each_property(properties)
+
+        properties = self.run_infection_model_for_each_property(properties, FOI)
+
+        # forcing a property to report
+        first_report_i = self.select_first_reported_property(properties, reportingregion_x, reportingregion_y)
+        reported_property = properties[first_report_i]
+        report = reported_property.report_suspicion(self.time)
+
+        self.combined_narrative.append([self.time, converted_date, "report", report])
+
+        # movement restrictions on reported property
+        self.combined_narrative.append(
+            [
+                self.time,
+                converted_date,
+                "control",
+                f"No movements are allowed to or from property {reported_property.id} ({reported_property.type})",
+            ]
+        )
+        self.job_manager.local_movement_restrictions.append(reported_property.polygon)
+
+        # record EMAI lab result (end of day, technically)
+        self.combined_narrative.append(
+            [
+                self.time,
+                converted_date,
+                "test",
+                f"EMAI lab has confirmed a positive LSD result for property {reported_property.id} ({reported_property.type})",
+            ]
+        )
+
+        # general movements of animals
+        controlzone_movement_restrictions = unary_union(
+            self.job_manager.local_movement_restrictions
+        )  # because it is definite not none []
+        self.controlzone["movement restrictions"] = controlzone_movement_restrictions
 
         movement_record = animal_movement.animal_movement(
             properties, day=self.time, controlzone=controlzone_movement_restrictions
@@ -355,14 +356,15 @@ class DiseaseSimulation:
         for i, property_i in enumerate(properties):
             property_i.update_counts()
 
-        self.other_reports += "EMAI lab sends back a positive\n"
-        self.combined_narrative += "EMAI lab sends back a positive\n"
+        # Contact tracing, movement restrictions on dangerous properties, clinical checkup arranged for the next day
+        # this could just be a list of the dangerous properties
+        contact_tracing_report, traced_property_indices = management.contact_tracing(
+            properties, reported_property, self.movement_records, self.time
+        )
+        self.combined_narrative.append([self.time, converted_date, "tracing", contact_tracing_report])
+        self.contacts_for_plotting[first_report_i] = traced_property_indices
 
-        # contact tracing scheduled...
-        # schedule contact tracing
-        s_report = self.job_manager.schedule_contract_tracing(first_report_i, self.time)
-        self.contact_tracing_reports += s_report
-        self.combined_narrative += s_report
+        # Then close off this day
 
         if self.plotting:
             simulator.plot_current_state(
@@ -382,21 +384,28 @@ class DiseaseSimulation:
                     file,
                 )
 
-        simulator.save_outbreak_state(
-            properties,
-            self.time,
-            self.folder_path,
-            self.unique_output,
-            total_culled_animals=self.total_culled_animals,
-            movement_records=self.movement_records,
-            job_manager=self.job_manager,
-        )
+        return properties, traced_property_indices
 
-        animal_movement.save_movement_record(self.folder_path, self.movement_records)
+    def simulate_second_day(self, properties, traced_property_indices):
 
-        self.save_reports(properties)
+        self.time += 1
+        converted_date = premises.convert_time_to_date(self.time)
 
-        return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
+        for job in self.job_manager.new_jobs:
+            self.job_manager.add_job_to_queue(job)
+        self.job_manager.new_jobs = []
+        pass
+
+    def simulate_first_two_days(self, properties, reportingregion_x, reportingregion_y, time=None):
+        if time != None:
+            self.time = time
+
+        if self.folder_path == "":
+            raise Warning("Default folder path hasn't changed - recommend that set_plotting_parameters() be run first")
+
+        properties, traced_property_indices = self.simulate_first_day(properties, reportingregion_x, reportingregion_y)
+
+        self.simulate_second_day(properties, traced_property_indices)
 
     def simulate_outbreak_til_first_report(self, properties, time=None):
         """Run simulated outbreak, for spread starting from self.time+1 til the first report (end of the first day), with localised actions but no ring management"""
