@@ -29,31 +29,6 @@ def create_movement_records_df():
     return pd.DataFrame(columns=movement_record_header)
 
 
-def get(to_get, record):
-    """To obtain the records information
-
-    Done like this in case I want to modify the order and items in the movement record again
-    (there is probably a better way but...)
-
-    # TODO would actually be to convert it to a dataframe, and then can use masking
-    # TODO ! update def contact_tracing
-
-
-    """
-    if to_get == "day":
-        return record[0]
-    elif to_get == "date":
-        return record[1]
-    elif to_get == "from":
-        return record[2]
-    elif to_get == "to":
-        return record[3]
-    elif to_get == "animals":
-        return record[4]
-    elif to_get == "report":
-        return record[5]
-
-
 def animal_movement(properties, day, controlzone):
     """Conduct animal movements between properties that are allowed to move
 
@@ -157,14 +132,3 @@ def save_movement_record(folder_path, movement_records):
     file = os.path.join(folder_path, f"movement_records.csv")
 
     movement_records.to_csv(file, index=False)
-
-    # with open(file, "w", newline="") as f:
-
-    #     # create the csv writer
-    #     writer = csv.writer(f)
-
-    #     # write the header
-    #     writer.writerow(movement_record_header)
-
-    #     for row in movement_records:
-    #         writer.writerow(row)
