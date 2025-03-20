@@ -18,9 +18,10 @@ import pandas as pd
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import numpy as np
-from shapely.geometry import Point
-import csv
-import math
+
+# from shapely.geometry import Point
+# import csv
+# import math
 import pickle
 import matplotlib.pyplot as plt
 import simulator.spatial_setup as spatial_setup
@@ -29,9 +30,11 @@ import simulator.premises as premises
 import simulator.SEIR as SEIR
 import simulator.output as output
 import simulator.animal_movement as animal_movement
-from iteround import saferound
+
+# from iteround import saferound
 from shapely.ops import transform, unary_union
-from simulator.spatial_functions import quick_distance_haversine
+
+# from simulator.spatial_functions import quick_distance_haversine
 import simulator.simulator as simulator
 
 
@@ -94,7 +97,7 @@ class DiseaseSimulation:
         self.clinical_reporting_threshold = scenario_parameters["clinical_reporting_threshold"]
         self.prob_report = scenario_parameters["prob_report"]
 
-        self.vax_modifier = 0  # TODO - can set up a function to input in vaccination-relevant parameters
+        self.vax_modifier = 0
 
         self.combined_narrative = []  # ["day","date","type","report"]
 
@@ -112,7 +115,7 @@ class DiseaseSimulation:
         self.folder_path = ""
         self.unique_output = ""
 
-        self.job_manager = management.JobManager(**job_parameters)
+        self.job_manager = management.JobManager(spatial_only_parameters["n"], **job_parameters)
         self.total_culled_animals = 0
         self.controlzone = {}  # empty control zone
         self.contacts_for_plotting = {}  # empty, as no contact tracing will occur here
@@ -124,6 +127,9 @@ class DiseaseSimulation:
         self.plotting = plotting
         self.folder_path = folder_path
         self.unique_output = unique_output
+
+    def set_vax_modifier(self, vax_modifier):
+        self.vax_modifier = vax_modifier
 
     def save_reports(self, properties):
         """Saves the text reports"""
@@ -148,29 +154,48 @@ class DiseaseSimulation:
 
         narrative_df.to_csv(os.path.join(self.folder_path, "combinated_narrative.csv"), index=False)
 
+    def make_report(self, reported_property, converted_date):
+        report = reported_property.report_suspicion(self.time)
+        self.combined_narrative.append([self.time, converted_date, "report", report])
+
+    def add_local_movement_restriction(self, reported_property, converted_date):
+        self.combined_narrative.append(
+            [
+                self.time,
+                converted_date,
+                "control",
+                f"No movements are allowed to or from property {reported_property.id} ({reported_property.type})",
+            ]
+        )
+        self.job_manager.local_movement_restrictions.append(reported_property.polygon)
+
+    def add_contact_tracing_job(self, property_index, converted_date):
+        s_report = self.job_manager.schedule_contract_tracing(property_index, self.time)
+        self.combined_narrative.append([self.time, converted_date, "tracing", s_report])
+
+    def add_lab_testing_after_observation_job(self, property_i, property_index, converted_date):
+        report, scheduled_successful = self.job_manager.schedule_lab_testing_after_observation(
+            property_index, self.time
+        )
+
+        self.combined_narrative.append([self.time, converted_date, "test", report])
+        if scheduled_successful:
+            property_i.undergoing_testing = True
+
     def run_property_selfreporting(self, properties, i):
+        converted_date = premises.convert_time_to_date(self.time)
+
         property_i = properties[i]
-        report = property_i.report_suspicion(self.time)
-        self.other_reports += report
-        self.combined_narrative += report
+        self.make_report(property_i, converted_date)
 
         # enact local movement restrictions around this property, just in case
-        self.job_manager.local_movement_restrictions.append(property_i.polygon)
-        report = "No movements are now allowed to or from this property.\n"
-        self.other_reports += report
-        self.combined_narrative += report
+        self.add_local_movement_restriction(property_i, converted_date)
 
         # schedule contact tracing
-        s_report = self.job_manager.schedule_contract_tracing(i, self.time)
-        self.contact_tracing_reports += s_report
-        self.combined_narrative += s_report
+        self.add_contact_tracing_job(i, converted_date)
 
         # schedule lab testing
-        report = self.job_manager.schedule_lab_testing_after_observation(i, self.time)
-        self.other_reports += report  #  TODO should this actually go in testing reports?
-        self.combined_narrative += report
-
-        property_i.undergoing_testing = True
+        self.add_lab_testing_after_observation_job(property_i, i, converted_date)
 
         return 0
 
@@ -314,20 +339,10 @@ class DiseaseSimulation:
         # forcing a property to report
         first_report_i = self.select_first_reported_property(properties, reportingregion_x, reportingregion_y)
         reported_property = properties[first_report_i]
-        report = reported_property.report_suspicion(self.time)
-
-        self.combined_narrative.append([self.time, converted_date, "report", report])
+        self.make_report(reported_property, converted_date)
 
         # movement restrictions on reported property
-        self.combined_narrative.append(
-            [
-                self.time,
-                converted_date,
-                "control",
-                f"No movements are allowed to or from property {reported_property.id} ({reported_property.type})",
-            ]
-        )
-        self.job_manager.local_movement_restrictions.append(reported_property.polygon)
+        self.add_local_movement_restriction(reported_property, converted_date)
 
         # record EMAI lab result (end of day, technically)
         self.combined_narrative.append(

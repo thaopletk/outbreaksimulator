@@ -214,9 +214,9 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
     reportingregion_x = [140, 155]
     reportingregion_y = [-31, -29]
 
-    properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_first_two_days(
-        properties, reportingregion_x, reportingregion_y
-    )
+    outputs = diseaseoutbreak.simulate_first_two_days(properties, reportingregion_x, reportingregion_y)
+
+    properties, movement_records, time, total_culled_animals, job_manager = outputs
 
     # and then resave the end state
     with open(spread_properties_filename, "wb") as file:

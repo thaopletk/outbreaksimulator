@@ -41,38 +41,7 @@ class jobtype(Enum):
     # RingManagement = 12
 
 
-# TODO: incomplete start to a class system for jobs
-# """
-#     Class for jobs - basic policy framework, which defines what kind of jobs come next after it
-# """
-# class JobPolicy:
-
-#     def __init__(self, job_type : jobtype, delay : float, yes_jobs = [], no_jobs = None):
-#         self.job_type = job_type
-#         self.delay = delay
-#         self.yes_jobs = yes_jobs
-#         self.no_jobs = no_jobs
-
-#     # def run_job(self,params):
-#     #     result = self.job_function(**params)
-#     #     if result == True:
-#     #         return self.yes_jobs
-#     #     else:
-#     #         return self.no_jobs
-
-
-# class Culling(JobPolicy):
-#     def __init__(self, delay):
-#         super().__init(self, jobtype.Culling, delay, None, None) # there are no follow-on jobs from culling
-
-#     def start_job(self, start_day : float, property_to_cull):
-#         super().start_job(start_day)
-#         report = ""
-#         anticipated_completion = start_day + self.delay
-#         return report, anticipated_completion
-
-#     def finish_job(self, day, property_to_cull):
-#         pass
+job_types = ["LabTesting", "ClinicalObservation", "Cull", "ContactTracing"]
 
 
 def define_control_zone_circles(coordinates, radius_km):
@@ -147,22 +116,6 @@ def contact_tracing(properties, property_index, movement_records, time):
         for movement_text in backward["report"].tolist():
             contact_tracing_report = contact_tracing_report + " - " + movement_text + "\n"
 
-    # if len(movement_records) != 0:
-    #     # check the length of movement records (a minimum requirement)
-    #     if len(movement_records[0]) == 6:
-
-    #         # go through the movement records, and look for animal movements off the property
-    #         for record in movement_records:
-    #             if record[0] >= time - 14:
-    #                 if record[2] == property_index:
-    #                     properties_found = True
-    #                     traced_property_indices.append(record[3])
-    #                     contact_tracing_report = contact_tracing_report + " - " + record[5] + "\n"
-    #                 # this is now also including animal movements onto the property
-    #                 if record[3] == property_index:
-    #                     properties_found = True
-    #                     traced_property_indices.append(record[2])
-    #                     contact_tracing_report = contact_tracing_report + " - " + record[5] + "\n"
     if not properties_found:
         contact_tracing_report += " - no movements found\n"
 
@@ -210,12 +163,13 @@ def testing(properties, property_indices, time, test_sensitivity):
 
 
 class JobManager:
-    jobs_queue = []
+    jobs_queue = {}  # [property_i][job_type][day]=status # TODO: need to refactor  the jobs queue
     new_jobs = []
     local_movement_restrictions = []
 
     def __init__(
         self,
+        n,
         lab_test_sensitivity,
         clinical_test_sensitivity,
         cull_delay=1,
@@ -229,6 +183,8 @@ class JobManager:
         self.contact_tracing_delay = contact_tracing_delay
         self.lab_test_delay = lab_test_delay
         self.clinical_delay = clinical_delay
+
+        self.jobs_queue = {i: {job_type: {} for job_type in job_types} for i in range(n)}
 
     def add_job_to_queue(self, job):
         exists = False
@@ -284,17 +240,32 @@ class JobManager:
 
         return report
 
+    def check_if_recent_job_already_exists(self, property_i, scheduled_day, job_type):
+        results_dict = self.jobs_queue[property_i][job_type]
+
+        for day in results_dict.keys():
+            if float(day) <= scheduled_day and float(day) >= scheduled_day - 14:
+                return True
+        return False
+
     def schedule_contract_tracing(self, property_i, time):
-        report = f"Property {property_i} has been scheduled for contact tracing\n"
+        scheduled_day = time + self.contact_tracing_delay
+        job_type = "ContactTracing"
 
-        new_job = {
-            "status": "in progress",
-            "day": time + self.contact_tracing_delay,
-            "type": jobtype.ContactTracing,
-            "property_i": property_i,
-        }
+        if self.check_if_recent_job_already_exists(property_i, scheduled_day, job_type) == True:
+            report = f"Property {property_i} has already been recently scheduled for contact tracing"
+        else:
+            self.jobs_queue[property_i][job_type][str(scheduled_day)] = "in progress"
+            report = f"Property {property_i} has been scheduled for contact tracing"
 
-        self.new_jobs.append(new_job)
+        # new_job = {
+        #     "status": "in progress",
+        #     "day": time + self.contact_tracing_delay,
+        #     "type": jobtype.ContactTracing,
+        #     "property_i": property_i,
+        # }
+
+        # self.new_jobs.append(new_job)
 
         return report
 
