@@ -132,22 +132,37 @@ def contact_tracing(properties, property_index, movement_records, time):
 
     properties_found = False
 
-    if len(movement_records) != 0:
-        # check the length of movement records (a minimum requirement)
-        if len(movement_records[0]) == 6:
+    timeframe = movement_records.loc[movement_records["day"] >= time - 14]
+    forward = timeframe.loc[timeframe["to"] == property_index]
+    if not forward.empty:
+        properties_found = True
+        traced_property_indices.extend(forward["from"].tolist())
+        for movement_text in forward["report"].tolist():
+            contact_tracing_report = contact_tracing_report + " - " + movement_text + "\n"
 
-            # go through the movement records, and look for animal movements off the property
-            for record in movement_records:
-                if record[0] >= time - 14:
-                    if record[2] == property_index:
-                        properties_found = True
-                        traced_property_indices.append(record[3])
-                        contact_tracing_report = contact_tracing_report + " - " + record[5] + "\n"
-                    # this is now also including animal movements onto the property
-                    if record[3] == property_index:
-                        properties_found = True
-                        traced_property_indices.append(record[2])
-                        contact_tracing_report = contact_tracing_report + " - " + record[5] + "\n"
+    backward = timeframe.loc[timeframe["from"] == property_index]
+    if not backward.empty:
+        properties_found = True
+        traced_property_indices.extend(backward["to"].tolist())
+        for movement_text in backward["report"].tolist():
+            contact_tracing_report = contact_tracing_report + " - " + movement_text + "\n"
+
+    # if len(movement_records) != 0:
+    #     # check the length of movement records (a minimum requirement)
+    #     if len(movement_records[0]) == 6:
+
+    #         # go through the movement records, and look for animal movements off the property
+    #         for record in movement_records:
+    #             if record[0] >= time - 14:
+    #                 if record[2] == property_index:
+    #                     properties_found = True
+    #                     traced_property_indices.append(record[3])
+    #                     contact_tracing_report = contact_tracing_report + " - " + record[5] + "\n"
+    #                 # this is now also including animal movements onto the property
+    #                 if record[3] == property_index:
+    #                     properties_found = True
+    #                     traced_property_indices.append(record[2])
+    #                     contact_tracing_report = contact_tracing_report + " - " + record[5] + "\n"
     if not properties_found:
         contact_tracing_report += " - no movements found\n"
 

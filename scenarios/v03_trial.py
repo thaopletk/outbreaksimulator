@@ -139,7 +139,7 @@ folder_path_undetected_spread = os.path.join(folder_path_main, unique_output)
 if not os.path.exists(folder_path_undetected_spread):
     os.makedirs(folder_path_undetected_spread)
 
-stop_time = 90  # 28
+stop_time = 65  # 28
 
 undetected_spread_properties_filename = os.path.join(folder_path_undetected_spread, "properties_" + unique_output)
 undetected_spread_diseaseoutbreak_filename = os.path.join(
@@ -150,10 +150,8 @@ if not os.path.exists(undetected_spread_properties_filename) or not os.path.exis
 ):
 
     # initiate various things that start from empty:
-    movement_records = []
     diseaseoutbreak = disease_simulation.DiseaseSimulation(
         time=time,
-        movement_records=movement_records,
         disease_parameters=disease_parameters,
         spatial_only_parameters=spatial_only_parameters,
         job_parameters=job_parameters,

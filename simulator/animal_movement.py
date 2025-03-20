@@ -12,6 +12,7 @@ from iteround import saferound
 import warnings
 import os
 import csv
+import pandas as pd
 
 
 movement_record_header = [
@@ -22,6 +23,10 @@ movement_record_header = [
     "animals",
     "report",
 ]
+
+
+def create_movement_records_df():
+    return pd.DataFrame(columns=movement_record_header)
 
 
 def get(to_get, record):
@@ -141,6 +146,8 @@ def animal_movement(properties, day, controlzone):
         for moving_animal_list, moving_index in added_animals:
             properties[moving_index].add_animals(moving_animal_list)
 
+    movement_record = pd.DataFrame(movement_record, columns=movement_record_header)
+
     return movement_record
 
 
@@ -148,13 +155,16 @@ def save_movement_record(folder_path, movement_records):
     """Saves records of animal movements as a csv."""
 
     file = os.path.join(folder_path, f"movement_records.csv")
-    with open(file, "w", newline="") as f:
 
-        # create the csv writer
-        writer = csv.writer(f)
+    movement_records.to_csv(file, index=False)
 
-        # write the header
-        writer.writerow(movement_record_header)
+    # with open(file, "w", newline="") as f:
 
-        for row in movement_records:
-            writer.writerow(row)
+    #     # create the csv writer
+    #     writer = csv.writer(f)
+
+    #     # write the header
+    #     writer.writerow(movement_record_header)
+
+    #     for row in movement_records:
+    #         writer.writerow(row)

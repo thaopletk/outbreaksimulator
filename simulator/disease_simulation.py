@@ -41,7 +41,7 @@ class DiseaseSimulation:
     def __init__(
         self,
         time=0,
-        movement_records=[],
+        movement_records=animal_movement.create_movement_records_df(),
         disease_parameters={
             "beta_wind": 0.05,
             "beta_animal": 0.9,
@@ -237,8 +237,7 @@ class DiseaseSimulation:
             movement_record = animal_movement.animal_movement(
                 properties, day=self.time, controlzone=controlzone_movement_restrictions
             )
-            if movement_record != []:
-                self.movement_records.extend(movement_record)
+            self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
 
             # update counts
             for i, premise in enumerate(properties):
@@ -349,8 +348,7 @@ class DiseaseSimulation:
         movement_record = animal_movement.animal_movement(
             properties, day=self.time, controlzone=controlzone_movement_restrictions
         )
-        if movement_record != []:
-            self.movement_records.extend(movement_record)
+        self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
 
         # update counts
         for i, property_i in enumerate(properties):
@@ -359,7 +357,7 @@ class DiseaseSimulation:
         # Contact tracing, movement restrictions on dangerous properties, clinical checkup arranged for the next day
         # this could just be a list of the dangerous properties
         contact_tracing_report, traced_property_indices = management.contact_tracing(
-            properties, reported_property, self.movement_records, self.time
+            properties, first_report_i, self.movement_records, self.time
         )
         self.combined_narrative.append([self.time, converted_date, "tracing", contact_tracing_report])
         self.contacts_for_plotting[first_report_i] = traced_property_indices
@@ -451,8 +449,7 @@ class DiseaseSimulation:
             movement_record = animal_movement.animal_movement(
                 properties, day=self.time, controlzone=controlzone_movement_restrictions
             )
-            if movement_record != []:
-                self.movement_records.extend(movement_record)
+            self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
 
             # update counts
             for i, property_i in enumerate(properties):
@@ -752,8 +749,7 @@ class DiseaseSimulation:
                 movement_record = animal_movement.animal_movement(
                     properties, day=self.time, controlzone=controlzone_movement_restrictions
                 )
-                if movement_record != []:
-                    self.movement_records.extend(movement_record)
+                self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
 
             # update counts
             for i, property_i in enumerate(properties):
