@@ -210,15 +210,26 @@ def plot_map(
                     )
 
                 except:
-                    for subpoly in zone:
-                        plot_polygon(
-                            ax,
-                            subpoly,
-                            facecolor=colour_dictionary[control_type],
-                            edgecolor="maroon",
-                            alpha=0.2,
-                            label=control_type,
-                        )
+                    try:
+                        for subpoly in zone:
+                            plot_polygon(
+                                ax,
+                                subpoly,
+                                facecolor=colour_dictionary[control_type],
+                                edgecolor="maroon",
+                                alpha=0.2,
+                                label=control_type,
+                            )
+                    except:
+                        for subpoly in zone.geoms:
+                            plot_polygon(
+                                ax,
+                                subpoly,
+                                facecolor=colour_dictionary[control_type],
+                                edgecolor="maroon",
+                                alpha=0.2,
+                                label=control_type,
+                            )
 
     geometry_infected = []
     geometry_confirmed_infected = []

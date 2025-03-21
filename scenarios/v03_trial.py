@@ -14,6 +14,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import simulator.simulator as simulator
 import simulator.output as output
 import simulator.disease_simulation as disease_simulation
+import simulator.management as management
 
 
 folder_path_main = os.path.join(os.path.dirname(__file__), "outputs", "v03_trial")
@@ -209,8 +210,9 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
         unique_output=unique_output,
     )
 
-    # TODO:  write this function
-    # NOTE: currently it's more like....the first day of reporting (not even the day of confirmation yet)
+    # TODO - actually remove this once I re-run everything from the top
+    diseaseoutbreak.job_manager = management.JobManager(spatial_only_parameters["n"], **job_parameters)
+
     reportingregion_x = [140, 155]
     reportingregion_y = [-31, -29]
 
@@ -228,6 +230,8 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
 
 
 # Step 6:
+
+# TODO add in national standstill (to do in next phase of simulation)
 
 
 # step 7

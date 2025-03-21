@@ -19,6 +19,9 @@ import numpy as np
 from simulator.spatial_functions import *
 from enum import Enum
 import warnings
+from simulator.premises import convert_time_to_date as convert_time_to_date
+import os
+import pandas as pd
 
 
 # discrete job type list syntax
@@ -126,20 +129,22 @@ def test_property(properties, property_index, time, test_sensitivity, test_type=
     positive = False
     premise = properties[property_index]
 
-    testing_report = f"DAY {convert_time_to_date(time)} - {test_type} report for property index {property_index}\n"
+    testing_report = f"DAY {convert_time_to_date(time)} - {test_type} report for property index {property_index}: "
 
     if premise.culled_status:
-        testing_report += f"No testing: property index {property_index} (IP {premise.ip}) has already been culled\n"
+        testing_report += f"No testing: property index {property_index} (IP {premise.ip}) has already been culled"
     elif premise.infection_status:
         prob_successful = np.random.rand()
         if prob_successful < test_sensitivity:
             x, y = premise.coordinates
-            testing_report += f"Property index {property_index} at location (x,y)=({round(x,2)}, {round(y,2)}) report POSITIVE result\n"
+            testing_report += (
+                f"Property index {property_index} at location (x,y)=({round(x,2)}, {round(y,2)}) report POSITIVE result"
+            )
             positive = True
         else:
-            testing_report += f"Property index {property_index} report negative result\n"
+            testing_report += f"Property index {property_index} report negative result"
     else:
-        testing_report += f"Property index {property_index} report negative result\n"
+        testing_report += f"Property index {property_index} report negative result"
     return testing_report, positive
 
 
@@ -186,23 +191,21 @@ class JobManager:
 
         self.jobs_queue = {i: {job_type: {} for job_type in job_types} for i in range(n)}
 
-    def add_job_to_queue(self, job):
-        exists = False
-        # TODO could probably add in checks around whether this premise still exists and still needs to have this job completed or not
-        for j in self.jobs_queue:
-            if j["status"] == "in progress" and j["type"] == job["type"] and j["property_i"] == job["property_i"]:
-                if j["day"] > job["day"]:
-                    self.jobs_queue.remove(j)
-                    self.jobs_queue.append(job)
-                    return 0
-                else:
-                    exists = True
-                    break
+    def save_jobs_queue(self, folder_path):
 
-        if not exists:
-            self.jobs_queue.append(job)
+        header = ["day_scheduled", "date_scheduled", "property", "job_type", "status"]
+        jobs = []
+        for property_index in self.jobs_queue.keys():
+            for job_type in self.jobs_queue[property_index].keys():
+                for day, status in self.jobs_queue[property_index][job_type].items():
+                    jobs.append([day, convert_time_to_date(day), property_index, job_type, status])
+        # order by the date
+        jobs.sort(key=lambda x: x[0])
+        # convert to dataframe
+        # save the dataframe
+        jobs_df = pd.DataFrame(jobs, columns=header)
 
-        return 0
+        jobs_df.to_csv(os.path.join(self.folder_path, "jobs_queue.csv"), index=False)
 
     def conduct_labtesting(self, properties, job, time):
         testing_report, positive = test_property(
@@ -226,20 +229,6 @@ class JobManager:
         job["status"] = "complete"  # mark job as complete, slated for removal from the job queue
         return testing_report, positive
 
-    def decision_to_cull(self, property_i, time):
-        report = f"Property {property_i} has been scheduled for culling\n"
-
-        # add culling job to the jobs_queue, as it has a delay
-        new_job = {
-            "status": "in progress",
-            "day": time + self.cull_delay,
-            "type": jobtype.Cull,
-            "property_i": property_i,
-        }
-        self.new_jobs.append(new_job)
-
-        return report
-
     def check_if_recent_job_already_exists(self, property_i, scheduled_day, job_type):
         results_dict = self.jobs_queue[property_i][job_type]
 
@@ -247,6 +236,20 @@ class JobManager:
             if float(day) <= scheduled_day and float(day) >= scheduled_day - 14:
                 return True
         return False
+
+    def decision_to_cull(self, property_i, time):
+        # TODO - there should be some check that the property hasn't been culled yet...
+        # well, the other jobs should also have that check
+        scheduled_day = time + self.cull_delay
+        job_type = "Cull"
+
+        if self.check_if_recent_job_already_exists(property_i, scheduled_day, job_type) == True:
+            report = f"Property {property_i} has already been recently scheduled for depopulation"
+        else:
+            self.jobs_queue[property_i][job_type][str(scheduled_day)] = "in progress"
+            report = f"Property {property_i} has been scheduled for depopulation"
+
+        return report
 
     def schedule_contract_tracing(self, property_i, time):
         scheduled_day = time + self.contact_tracing_delay
@@ -257,15 +260,6 @@ class JobManager:
         else:
             self.jobs_queue[property_i][job_type][str(scheduled_day)] = "in progress"
             report = f"Property {property_i} has been scheduled for contact tracing"
-
-        # new_job = {
-        #     "status": "in progress",
-        #     "day": time + self.contact_tracing_delay,
-        #     "type": jobtype.ContactTracing,
-        #     "property_i": property_i,
-        # }
-
-        # self.new_jobs.append(new_job)
 
         return report
 
@@ -282,17 +276,27 @@ class JobManager:
         return mini_report
 
     def schedule_lab_testing_after_observation(self, property_i, time):
-        # reduced delay
-        new_job = {
-            "status": "in progress",
-            "day": time + self.lab_test_delay - 0.5,
-            "type": jobtype.LabTesting,
-            "property_i": property_i,
-        }
-        self.new_jobs.append(new_job)
+        scheduled_day = time + self.lab_test_delay - 0.5
+        job_type = "LabTesting"
+        scheduled_successful = False
+        if self.check_if_recent_job_already_exists(property_i, scheduled_day, job_type) == True:
+            report = f"Property {property_i} has already been recently scheduled for lab testing"
+        else:
+            self.jobs_queue[property_i][job_type][str(scheduled_day)] = "in progress"
+            report = f"Property {property_i} has been scheduled for lab testing"
+            scheduled_successful = True
 
-        mini_report = f"Personnel will be sent to property {property_i} for lab testing\n"
-        return mini_report
+        # # reduced delay
+        # new_job = {
+        #     "status": "in progress",
+        #     "day": time + self.lab_test_delay - 0.5,
+        #     "type": jobtype.LabTesting,
+        #     "property_i": property_i,
+        # }
+        # self.new_jobs.append(new_job)
+        # mini_report = f"Personnel will be sent to property {property_i} for lab testing\n"
+
+        return report, scheduled_successful
 
     def schedule_clinical_observation(self, property_i, time):
         new_job = {

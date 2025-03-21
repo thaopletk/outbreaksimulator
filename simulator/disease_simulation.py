@@ -214,11 +214,6 @@ class DiseaseSimulation:
 
                 self.run_property_selfreporting(properties, i)
 
-        # TODO: should update the JobManager so that I don't have to do this
-        for job in self.job_manager.new_jobs:
-            self.job_manager.add_job_to_queue(job)
-        self.job_manager.new_jobs = []
-
         return did_any_properties_report
 
     def calculate_FOI_for_each_property(self, properties):
@@ -353,6 +348,8 @@ class DiseaseSimulation:
                 f"EMAI lab has confirmed a positive LSD result for property {reported_property.id} ({reported_property.type})",
             ]
         )
+        # add this as a job to the job queue for completeness
+        self.job_manager.jobs_queue[reported_property.id]["LabTesting"] = {str(self.time): "complete"}
 
         # general movements of animals
         controlzone_movement_restrictions = unary_union(
@@ -375,7 +372,11 @@ class DiseaseSimulation:
             properties, first_report_i, self.movement_records, self.time
         )
         self.combined_narrative.append([self.time, converted_date, "tracing", contact_tracing_report])
+        # add this as a job to the job queue for completeness
+        self.job_manager.jobs_queue[reported_property.id]["ContactTracing"][str(self.time)] = "complete"
         self.contacts_for_plotting[first_report_i] = traced_property_indices
+        for t_i in traced_property_indices:
+            self.add_local_movement_restriction(properties[t_i], converted_date)
 
         # Then close off this day
 
@@ -397,17 +398,96 @@ class DiseaseSimulation:
                     file,
                 )
 
-        return properties, traced_property_indices
+        return (
+            properties,
+            first_report_i,
+            traced_property_indices,
+        )
 
-    def simulate_second_day(self, properties, traced_property_indices):
+    def simulate_second_day(self, properties, first_report_i, traced_property_indices):
+        reported_property = properties[first_report_i]
 
         self.time += 1
         converted_date = premises.convert_time_to_date(self.time)
 
-        for job in self.job_manager.new_jobs:
-            self.job_manager.add_job_to_queue(job)
-        self.job_manager.new_jobs = []
-        pass
+        FOI = self.calculate_FOI_for_each_property(properties)
+
+        properties = self.run_infection_model_for_each_property(properties, FOI)
+
+        # general movements of animals
+        controlzone_movement_restrictions = unary_union(
+            self.job_manager.local_movement_restrictions
+        )  # because it is definite not none [] ; and currently there are only local movement restrictions
+        self.controlzone["movement restrictions"] = controlzone_movement_restrictions
+
+        movement_record = animal_movement.animal_movement(
+            properties, day=self.time, controlzone=controlzone_movement_restrictions
+        )
+        self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
+
+        # update counts
+        for i, premise in enumerate(properties):
+            premise.update_counts()
+
+        # clinical check up results for traced properties
+        for i in traced_property_indices:
+            testing_report, positive = management.test_property(
+                properties,
+                i,
+                self.time,
+                self.job_manager.clinical_test_sensitivity,
+                test_type="clinical observation",
+            )
+
+            self.combined_narrative.append([self.time, converted_date, "test", testing_report])
+            # add this as a job to the job queue for completeness
+            self.job_manager.jobs_queue[i]["ClinicalObservation"][str(self.time)] = "complete"
+
+        # ACDP lab confirmation
+
+        self.combined_narrative.append(
+            [
+                self.time,
+                converted_date,
+                "test",
+                f"ACDP lab has confirmed a POSITIVE LSD result for property {reported_property.id} ({reported_property.type})",
+            ]
+        )
+        self.job_manager.jobs_queue[reported_property.id]["LabTesting"][str(self.time)] = "complete"
+
+        # schedule culling of property
+        report = self.job_manager.decision_to_cull(reported_property.id, self.time)
+        self.combined_narrative.append([self.time, converted_date, "cull", report])
+
+        # schedule ACDP lab testing for traced properties
+        # & schedule contact tracing for traced properties regardless of clinical observation
+        for property_index in traced_property_indices:
+            property_i = properties[property_index]
+            self.add_lab_testing_after_observation_job(property_i, property_index, converted_date)
+            self.add_contact_tracing_job(property_index, converted_date)
+        # TODO : differentiate between ACDP and EMAI? or just ignore their differences later on, e.g. increase capacity for testing, equivalently meaning that EMAI and other labs have "come online"
+
+        # plotting
+
+        if self.plotting:
+            simulator.plot_current_state(
+                properties,
+                self.time,
+                self.xlims,
+                self.ylims,
+                self.folder_path,
+                self.controlzone,
+                infectionpoly=False,
+                contacts_for_plotting=self.contacts_for_plotting,
+            )
+            # should also save things for plotting: i.e., everything that I had used to actually plot
+            with open(os.path.join(self.folder_path, "plotting_data" + str(self.time)), "wb") as file:
+                pickle.dump(
+                    [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
+                    file,
+                )
+
+        return properties
 
     def simulate_first_two_days(self, properties, reportingregion_x, reportingregion_y, time=None):
         if time != None:
@@ -416,9 +496,29 @@ class DiseaseSimulation:
         if self.folder_path == "":
             raise Warning("Default folder path hasn't changed - recommend that set_plotting_parameters() be run first")
 
-        properties, traced_property_indices = self.simulate_first_day(properties, reportingregion_x, reportingregion_y)
+        properties, first_report_i, traced_property_indices = self.simulate_first_day(
+            properties, reportingregion_x, reportingregion_y
+        )
 
-        self.simulate_second_day(properties, traced_property_indices)
+        properties = self.simulate_second_day(properties, first_report_i, traced_property_indices)
+
+        simulator.save_outbreak_state(
+            properties,
+            self.time,
+            self.folder_path,
+            self.unique_output,
+            total_culled_animals=self.total_culled_animals,
+            movement_records=self.movement_records,
+            job_manager=self.job_manager,
+        )
+
+        animal_movement.save_movement_record(self.folder_path, self.movement_records)
+
+        self.save_reports(properties)
+
+        # TODO: save the job manager queue as well (as a csv)
+
+        return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
 
     def simulate_outbreak_til_first_report(self, properties, time=None):
         """Run simulated outbreak, for spread starting from self.time+1 til the first report (end of the first day), with localised actions but no ring management"""
@@ -569,11 +669,7 @@ class DiseaseSimulation:
         while self.time < stop_time and not nothing_left_to_do:
             self.time += 1
             # calculate FOI for each property
-            for i, property_i in enumerate(properties):
-                if not property_i.culled_status:
-                    FOI[i] = SEIR.calculate_force_of_infection(
-                        properties, i, self.vax_modifier, self.r_wind, self.beta_wind, self.beta_animal
-                    )
+            FOI = self.calculate_FOI_for_each_property(properties)
 
             # go through jobs in the queue
             (
