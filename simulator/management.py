@@ -193,19 +193,19 @@ class JobManager:
 
     def save_jobs_queue(self, folder_path):
 
-        header = ["day_scheduled", "date_scheduled", "property", "job_type", "status"]
+        header = ["day_scheduled", "date_scheduled", "property", "job_type", "status", "completion_date"]
         jobs = []
         for property_index in self.jobs_queue.keys():
             for job_type in self.jobs_queue[property_index].keys():
                 for day, status in self.jobs_queue[property_index][job_type].items():
-                    jobs.append([day, convert_time_to_date(day), property_index, job_type, status])
+                    jobs.append([day, convert_time_to_date(float(day)), property_index, job_type, status[0], status[1]])
         # order by the date
         jobs.sort(key=lambda x: x[0])
         # convert to dataframe
         # save the dataframe
         jobs_df = pd.DataFrame(jobs, columns=header)
 
-        jobs_df.to_csv(os.path.join(self.folder_path, "jobs_queue.csv"), index=False)
+        jobs_df.to_csv(os.path.join(folder_path, "jobs_queue.csv"), index=False)
 
     def conduct_labtesting(self, properties, job, time):
         testing_report, positive = test_property(
@@ -215,6 +215,7 @@ class JobManager:
             self.lab_test_sensitivity,
             test_type="lab test",
         )
+        # TODO rather than changing job status to complete, put in the day of completion?
         job["status"] = "complete"  # mark job as complete, slated for removal from the job queue
         return testing_report, positive
 
@@ -246,7 +247,7 @@ class JobManager:
         if self.check_if_recent_job_already_exists(property_i, scheduled_day, job_type) == True:
             report = f"Property {property_i} has already been recently scheduled for depopulation"
         else:
-            self.jobs_queue[property_i][job_type][str(scheduled_day)] = "in progress"
+            self.jobs_queue[property_i][job_type][str(scheduled_day)] = ["in progress", "NA"]
             report = f"Property {property_i} has been scheduled for depopulation"
 
         return report
@@ -258,22 +259,24 @@ class JobManager:
         if self.check_if_recent_job_already_exists(property_i, scheduled_day, job_type) == True:
             report = f"Property {property_i} has already been recently scheduled for contact tracing"
         else:
-            self.jobs_queue[property_i][job_type][str(scheduled_day)] = "in progress"
+            self.jobs_queue[property_i][job_type][str(scheduled_day)] = ["in progress", "NA"]
             report = f"Property {property_i} has been scheduled for contact tracing"
 
         return report
 
     def schedule_lab_testing(self, property_i, time):
-        new_job = {
-            "status": "in progress",
-            "day": time + self.lab_test_delay,
-            "type": jobtype.LabTesting,
-            "property_i": property_i,
-        }
-        self.new_jobs.append(new_job)
+        scheduled_day = time + self.lab_test_delay
+        job_type = "LabTesting"
 
-        mini_report = f"Personnel will be sent to property {property_i} for lab testing\n"
-        return mini_report
+        scheduled_successful = False
+        if self.check_if_recent_job_already_exists(property_i, scheduled_day, job_type) == True:
+            report = f"Property {property_i} has already been recently scheduled for lab testing"
+        else:
+            self.jobs_queue[property_i][job_type][str(scheduled_day)] = ["in progress", "NA"]
+            report = f"Property {property_i} has been scheduled for lab testing"
+            scheduled_successful = True
+
+        return report, scheduled_successful
 
     def schedule_lab_testing_after_observation(self, property_i, time):
         scheduled_day = time + self.lab_test_delay - 0.5
@@ -282,19 +285,9 @@ class JobManager:
         if self.check_if_recent_job_already_exists(property_i, scheduled_day, job_type) == True:
             report = f"Property {property_i} has already been recently scheduled for lab testing"
         else:
-            self.jobs_queue[property_i][job_type][str(scheduled_day)] = "in progress"
+            self.jobs_queue[property_i][job_type][str(scheduled_day)] = ["in progress", "NA"]
             report = f"Property {property_i} has been scheduled for lab testing"
             scheduled_successful = True
-
-        # # reduced delay
-        # new_job = {
-        #     "status": "in progress",
-        #     "day": time + self.lab_test_delay - 0.5,
-        #     "type": jobtype.LabTesting,
-        #     "property_i": property_i,
-        # }
-        # self.new_jobs.append(new_job)
-        # mini_report = f"Personnel will be sent to property {property_i} for lab testing\n"
 
         return report, scheduled_successful
 

@@ -132,7 +132,7 @@ class DiseaseSimulation:
         self.vax_modifier = vax_modifier
 
     def save_reports(self, properties):
-        """Saves the text reports"""
+        """Saves the text report (narrative) which includes all the actions and reports"""
         total_culled = 0
         total_vaccinated = 0
         for property in properties:
@@ -155,10 +155,12 @@ class DiseaseSimulation:
         narrative_df.to_csv(os.path.join(self.folder_path, "combinated_narrative.csv"), index=False)
 
     def make_report(self, reported_property, converted_date):
+        """Saves text in the combined narrative that a property reported"""
         report = reported_property.report_suspicion(self.time)
         self.combined_narrative.append([self.time, converted_date, "report", report])
 
     def add_local_movement_restriction(self, reported_property, converted_date):
+        """Adds the property area to movement restrictions (no movements to or from this property) and saves text in the combined narrative that this occurred"""
         self.combined_narrative.append(
             [
                 self.time,
@@ -170,10 +172,12 @@ class DiseaseSimulation:
         self.job_manager.local_movement_restrictions.append(reported_property.polygon)
 
     def add_contact_tracing_job(self, property_index, converted_date):
+        """Adds (schedules) a contact tracing job to the job_manager, and adds text to the combined narrative that this occurred"""
         s_report = self.job_manager.schedule_contract_tracing(property_index, self.time)
         self.combined_narrative.append([self.time, converted_date, "tracing", s_report])
 
     def add_lab_testing_after_observation_job(self, property_i, property_index, converted_date):
+        """Schedules lab testing (with reduced testing delay), and adds this note into the combined narrative"""
         report, scheduled_successful = self.job_manager.schedule_lab_testing_after_observation(
             property_index, self.time
         )
@@ -349,7 +353,7 @@ class DiseaseSimulation:
             ]
         )
         # add this as a job to the job queue for completeness
-        self.job_manager.jobs_queue[reported_property.id]["LabTesting"] = {str(self.time): "complete"}
+        self.job_manager.jobs_queue[reported_property.id]["LabTesting"][str(self.time)] = ["complete", converted_date]
 
         # general movements of animals
         controlzone_movement_restrictions = unary_union(
@@ -373,7 +377,10 @@ class DiseaseSimulation:
         )
         self.combined_narrative.append([self.time, converted_date, "tracing", contact_tracing_report])
         # add this as a job to the job queue for completeness
-        self.job_manager.jobs_queue[reported_property.id]["ContactTracing"][str(self.time)] = "complete"
+        self.job_manager.jobs_queue[reported_property.id]["ContactTracing"][str(self.time)] = [
+            "complete",
+            converted_date,
+        ]
         self.contacts_for_plotting[first_report_i] = traced_property_indices
         for t_i in traced_property_indices:
             self.add_local_movement_restriction(properties[t_i], converted_date)
@@ -441,7 +448,7 @@ class DiseaseSimulation:
 
             self.combined_narrative.append([self.time, converted_date, "test", testing_report])
             # add this as a job to the job queue for completeness
-            self.job_manager.jobs_queue[i]["ClinicalObservation"][str(self.time)] = "complete"
+            self.job_manager.jobs_queue[i]["ClinicalObservation"][str(self.time)] = ["complete", converted_date]
 
         # ACDP lab confirmation
 
@@ -453,7 +460,7 @@ class DiseaseSimulation:
                 f"ACDP lab has confirmed a POSITIVE LSD result for property {reported_property.id} ({reported_property.type})",
             ]
         )
-        self.job_manager.jobs_queue[reported_property.id]["LabTesting"][str(self.time)] = "complete"
+        self.job_manager.jobs_queue[reported_property.id]["LabTesting"][str(self.time)] = ["complete", converted_date]
 
         # schedule culling of property
         report = self.job_manager.decision_to_cull(reported_property.id, self.time)
@@ -513,10 +520,8 @@ class DiseaseSimulation:
         )
 
         animal_movement.save_movement_record(self.folder_path, self.movement_records)
-
         self.save_reports(properties)
-
-        # TODO: save the job manager queue as well (as a csv)
+        self.job_manager.save_jobs_queue(self.folder_path)
 
         return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
 
