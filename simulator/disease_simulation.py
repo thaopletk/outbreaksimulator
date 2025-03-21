@@ -6,7 +6,6 @@
     * init
     * set_plotting_parameters
     * simulator function of choice... making sure to reset set_plotting_parameters for different parts
-        * simulate_outbreak_til_first_report
         * simulate_outbreak_management
 
 """
@@ -205,7 +204,6 @@ class DiseaseSimulation:
 
     def simulate_property_reporting(self, properties):
         """Simulates property reporting, outside of the job management system"""
-        # Though possible TODO is to actually move this into the job management system (i.e., trigger the "clinical observation positive" knock-on events)
 
         did_any_properties_report = False
 
@@ -221,6 +219,7 @@ class DiseaseSimulation:
         return did_any_properties_report
 
     def calculate_FOI_for_each_property(self, properties):
+        """Calculates the force of infection for each property, to be run at the start of each day (before movement occurs)"""
         FOI = list(np.zeros(len(properties)))
         for i, property_i in enumerate(properties):
             if not property_i.culled_status:
@@ -230,7 +229,7 @@ class DiseaseSimulation:
         return FOI
 
     def run_infection_model_for_each_property(self, properties, FOI):
-        # run infection model for each property
+        """Runs the infection model for each property, i.e., advances infection stages and checks if properties become infected or not"""
         for i, property_i in enumerate(properties):
             property_i.infection_model(
                 self.latent_period, self.infectious_period, self.preclinical_period, FOI[i], self.time
@@ -263,7 +262,7 @@ class DiseaseSimulation:
             )
             self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
 
-            # update counts
+            # update counts of infected/clinical/etc animals on each farm
             for i, premise in enumerate(properties):
                 premise.update_counts()
 
@@ -304,6 +303,8 @@ class DiseaseSimulation:
         return properties, self.movement_records, self.time
 
     def select_first_reported_property(self, properties, reportingregion_x, reportingregion_y):
+        """Forces the first report of an infected property in the area that we want"""
+
         # find properties with infected (clinical infected) animals within reportingregion_x, reportingregion_y
         list_of_potential_reporting_properties = []
         for i, property_i in enumerate(properties):
@@ -326,6 +327,8 @@ class DiseaseSimulation:
         return first_report_i
 
     def simulate_first_day(self, properties, reportingregion_x, reportingregion_y):
+        """Simulates the first day of reporting and subsequent actions on that first day"""
+
         # new day, allow disease spread
 
         self.time += 1
@@ -358,8 +361,10 @@ class DiseaseSimulation:
         # general movements of animals
         controlzone_movement_restrictions = unary_union(
             self.job_manager.local_movement_restrictions
-        )  # because it is definite not none []
-        self.controlzone["movement restrictions"] = controlzone_movement_restrictions
+        )  # because it is definite not empty []
+        self.controlzone["movement restrictions"] = (
+            controlzone_movement_restrictions  # this is for plotting purposes later
+        )
 
         movement_record = animal_movement.animal_movement(
             properties, day=self.time, controlzone=controlzone_movement_restrictions
@@ -370,7 +375,7 @@ class DiseaseSimulation:
         for i, property_i in enumerate(properties):
             property_i.update_counts()
 
-        # Contact tracing, movement restrictions on dangerous properties, clinical checkup arranged for the next day
+        # Contact tracing, movement restrictions on dangerous properties, clinical checkup will be arranged for the next day
         # this could just be a list of the dangerous properties
         contact_tracing_report, traced_property_indices = management.contact_tracing(
             properties, first_report_i, self.movement_records, self.time
@@ -412,6 +417,7 @@ class DiseaseSimulation:
         )
 
     def simulate_second_day(self, properties, first_report_i, traced_property_indices):
+        """Simulates the second day of the outbreak, including ACDP lab confirmation of the first LSD report"""
         reported_property = properties[first_report_i]
 
         self.time += 1
@@ -451,7 +457,6 @@ class DiseaseSimulation:
             self.job_manager.jobs_queue[i]["ClinicalObservation"][str(self.time)] = ["complete", converted_date]
 
         # ACDP lab confirmation
-
         self.combined_narrative.append(
             [
                 self.time,
@@ -497,6 +502,7 @@ class DiseaseSimulation:
         return properties
 
     def simulate_first_two_days(self, properties, reportingregion_x, reportingregion_y, time=None):
+        """Simulates the first two days of the outbreak, in particular the first suspicious report and subsequent confirmation"""
         if time != None:
             self.time = time
 
@@ -526,7 +532,9 @@ class DiseaseSimulation:
         return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
 
     def simulate_outbreak_til_first_report(self, properties, time=None):
-        """Run simulated outbreak, for spread starting from self.time+1 til the first report (end of the first day), with localised actions but no ring management"""
+        """Run simulated outbreak, for spread starting from self.time+1 til the first natural report (end of the first day), with localised actions but no ring management. NOTE that this was used for the trial simulation in December 2024 and has not been maintained!
+        # TODO: delete this function after I delete maincontrol_trial.py
+        """
 
         if time != None:
             self.time = time
