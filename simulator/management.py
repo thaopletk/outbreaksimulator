@@ -23,46 +23,10 @@ from simulator.premises import convert_time_to_date as convert_time_to_date
 import os
 import pandas as pd
 
-
-# discrete job type list syntax
-class jobtype(Enum):
-    LabTesting = 1
-    ClinicalObservation = 2
-    Cull = 3
-    ContactTracing = 4
-    # SelfReport = 1
-    # LocalMovementRestriction = 2
-    # LargeMovementRestriction = 3
-    # LabTestingStart = 4
-    # LabTestingResults = 5
-    # ClinicalTestingStart = 6
-    # ClinicalTestingResults = 7
-    # ContactTracingStart = 8
-    # ContactTracingResults = 9
-    # DecisionToCull = 10
-    # Culling = 11
-    # RingManagement = 12
-
-
 job_types = ["LabTesting", "ClinicalObservation", "Cull", "ContactTracing"]
 
 
-def define_control_zone_circles(coordinates, radius_km):
-    """Creates control zones around coordinates and joins them together"""
-    list_of_polygons = []
-
-    for site in coordinates:
-        x = site[0]  # longitude
-        y = site[1]  # latitude
-        points_in_circle = geodesic_point_buffer(y, x, radius_km)
-        poly = Polygon(points_in_circle)
-        list_of_polygons.append(poly)
-
-    controlzone = unary_union(list_of_polygons)
-
-    return controlzone
-
-
+# TODO should this be moved into the job manager class or into spatial functions?
 def define_control_zone_polygons(properties, source_indices, radius_km, convex=False):
     """Creates control zones around properties"""
     list_of_polygons = []
@@ -84,7 +48,10 @@ def define_control_zone_polygons(properties, source_indices, radius_km, convex=F
     return controlzone
 
 
-# could probably run this recursively
+# TODO - there should be a more complex version where the zones actually follow LGA borders, i.e., expands out...
+
+
+# TODO should move this into the job manager, I guess?
 def contact_tracing(properties, property_index, movement_records, time):
     """Contact tracing
 
@@ -94,8 +61,8 @@ def contact_tracing(properties, property_index, movement_records, time):
         list of properties
     property_index : int
         property from which we are tracing
-    movement records : list of lists
-        assumes records in form [time (int), property index from (int), property index to (int), report  (string)] (TODO: should do a check)
+    movement records : dataframe
+        dataframe of historical movement records
 
     """
 
@@ -126,6 +93,9 @@ def contact_tracing(properties, property_index, movement_records, time):
 
 
 def test_property(properties, property_index, time, test_sensitivity, test_type="Lab test"):
+    """Conducts a test on a property (could be lab or clinical - the test_sensitivity and test_type can be changed as wished)"""
+    # TODO should move this into the job manager, I guess?
+
     positive = False
     premise = properties[property_index]
 
@@ -146,25 +116,6 @@ def test_property(properties, property_index, time, test_sensitivity, test_type=
     else:
         testing_report += f"Property index {property_index} report negative result"
     return testing_report, positive
-
-
-def testing(properties, property_indices, time, test_sensitivity):
-    """Testing
-
-    Conducts testing on the input property_indices
-
-    """
-    testing_report = ""  #  f"DAY {convert_time_to_date(time)} - testing report\n"
-    positive_indices = []
-
-    for index in property_indices:
-        small_testing_report, positive = test_property(properties, index, time, test_sensitivity)
-        testing_report += small_testing_report
-
-        if positive:
-            positive_indices.append(index)
-
-    return testing_report, positive_indices
 
 
 class JobManager:
@@ -207,27 +158,25 @@ class JobManager:
 
         jobs_df.to_csv(os.path.join(folder_path, "jobs_queue.csv"), index=False)
 
-    def conduct_labtesting(self, properties, job, time):
+    def conduct_labtesting(self, properties, property_index, time):
         testing_report, positive = test_property(
             properties,
-            job["property_i"],
+            property_index,
             time,
             self.lab_test_sensitivity,
             test_type="lab test",
         )
-        # TODO rather than changing job status to complete, put in the day of completion?
-        job["status"] = "complete"  # mark job as complete, slated for removal from the job queue
+
         return testing_report, positive
 
-    def conduct_clinicalobservation(self, properties, job, time):
+    def conduct_clinicalobservation(self, properties, property_index, time):
         testing_report, positive = test_property(
             properties,
-            job["property_i"],
+            property_index,
             time,
             self.clinical_test_sensitivity,
             test_type="clinical observation",
         )
-        job["status"] = "complete"  # mark job as complete, slated for removal from the job queue
         return testing_report, positive
 
     def check_if_recent_job_already_exists(self, property_i, scheduled_day, job_type):
@@ -292,50 +241,176 @@ class JobManager:
         return report, scheduled_successful
 
     def schedule_clinical_observation(self, property_i, time):
-        new_job = {
-            "status": "in progress",
-            "day": time + self.clinical_delay,
-            "type": jobtype.ClinicalObservation,
-            "property_i": property_i,
-        }
-        self.new_jobs.append(new_job)
+        scheduled_day = time + self.clinical_delay
+        job_type = "ClinicalObservation"
+        scheduled_successful = False
+        if self.check_if_recent_job_already_exists(property_i, scheduled_day, job_type) == True:
+            report = f"Property {property_i} has already been recently scheduled for clinical evaluation"
+        else:
+            self.jobs_queue[property_i][job_type][str(scheduled_day)] = ["in progress", "NA"]
+            report = f"Property {property_i} has been scheduled for clinical evaluation"
+            scheduled_successful = True
 
-    def run_lab_testing_now(self, properties, job, time):
-        new_report = ""
-        new_testing_reports = ""
-        new_combined_narrative = ""
+        return report, scheduled_successful
 
-        testing_report, positive = self.conduct_labtesting(properties, job, time)
+    def run_lab_testing_now(self, properties, property_index, time, converted_date):
+        new_combined_narrative = []
 
-        new_testing_reports += testing_report
-        new_combined_narrative += testing_report
+        testing_report, positive = self.conduct_labtesting(properties, property_index, time)
+
+        new_combined_narrative.append([time, converted_date, "test", testing_report])
+
         if positive:
-            premise = properties[job["property_i"]]
+            premise = properties[property_index]
 
             # report property
             premise_report = premise.report_only(time)
-            new_report += premise_report
-            new_combined_narrative += premise_report
+            new_combined_narrative.append([time, converted_date, "report", premise_report])
 
             # schedule culling
-            report = self.decision_to_cull(job["property_i"], time)
-            new_report += report
-            new_combined_narrative += report
+            report = self.decision_to_cull(property_index, time)
+            new_combined_narrative.append([time, converted_date, "cull", report])
 
             # enact local movement restrictions around this property, just in case
-            self.local_movement_restrictions.append(properties[job["property_i"]].polygon)
+            self.local_movement_restrictions.append(properties[property_index].polygon)
+            new_combined_narrative.append(
+                [
+                    time,
+                    converted_date,
+                    "control",
+                    f"No movements are allowed to or from property {property_index} ({properties[property_index].type})",
+                ]
+            )
 
-            report = self.schedule_contract_tracing(job["property_i"], time)
-            new_combined_narrative += report
+            report = self.schedule_contract_tracing(property_index, time)
+            new_combined_narrative.append([time, converted_date, "tracing", report])
         else:
             # remove any local movement restrictions
             try:
-                self.local_movement_restrictions.remove(properties[job["property_i"]].polygon)
+                self.local_movement_restrictions.remove(properties[property_index].polygon)
+                new_combined_narrative.append(
+                    [
+                        time,
+                        converted_date,
+                        "control",
+                        f"Local movement restrictions lifted for property {property_index} (other movement controls still in place)",
+                    ]
+                )
             except:
                 warnings.warn("Local polygon doesn't exist in the local movement restrictions for some reason...")
 
             # may have ongoing surveillance here in the future
-        return new_report, new_testing_reports, new_combined_narrative
+        return new_combined_narrative
+
+    def run_jobs(self, time, properties, movement_records, converted_date):
+        """Run jobs, without prioritisation and without consideration of personel requirements
+
+        THE VERSION WHERE REGARDLESS OF CLINICAL OBSERVATION, lab testing and contact tracing are done anyway
+
+        Parameters
+        ----------
+        time
+            current simulation day
+        properties
+            list of all the premises objects
+        management_parameters : list of dicts
+            dictionaries in list define the management type and associated parameters
+        movement_records :
+            dataframe with historical movements
+
+        Returns
+        -------
+
+
+        """
+
+        total_culled_animals = 0
+        contacts_for_plotting = {}  # from property, to properties
+        new_combined_narrative = []
+
+        # go through the jobs queue & look for "in progress" jobs
+        jobs_today = []
+        for property_index in self.jobs_queue.keys():
+            for job_type in self.jobs_queue[property_index].keys():
+                for day, status in self.jobs_queue[property_index][job_type].items():
+                    if status[0] == "in progress" and float(day) <= time:
+                        jobs_today.append([property_index, job_type, day, status])
+
+        # TODO run the jobs
+        for job in jobs_today:
+            property_index, job_type, day, status = job
+            if job_type == "LabTesting":
+                # run the lab test and subsequent actionns
+                temp_combined_narrative = self.run_lab_testing_now(properties, property_index, time, converted_date)
+
+                # save the report appropriately
+                new_combined_narrative.extend(temp_combined_narrative)
+
+                properties[property_index].undergoing_testing = False
+                properties[property_index].day_of_last_lab_test = time
+
+                # mark this job as done, and the date of completion, in the job_queue
+                self.jobs_queue[property_index][job_type][day] = ["complete", converted_date]
+
+            elif job_type == "ClinicalObservation":
+                # run the lab test and subsequent actionns
+                testing_report, positive = self.conduct_clinicalobservation(properties, property_index, time)
+                new_combined_narrative.append([time, converted_date, "test", testing_report])
+
+                self.jobs_queue[property_index][job_type][day] = ["complete", converted_date]
+
+                # regardless of whether positive:
+                # schedule contact tracing
+                report = self.schedule_contract_tracing(property_index, time)
+                new_combined_narrative.append([time, converted_date, "tracing", report])
+
+                # schedule lab testing (if not yet done)
+                report, scheduled_successful = self.schedule_lab_testing_after_observation(property_index, time)
+                new_combined_narrative.append([time, converted_date, "test", report])
+                if scheduled_successful:
+                    properties[property_index].undergoing_testing = True
+
+            elif job_type == "Cull":
+                premise = properties[property_index]
+                premise_report, culled_animals = premise.cull_only(time)
+                new_combined_narrative.append([time, converted_date, "cull", premise_report])
+                total_culled_animals += culled_animals
+
+                self.jobs_queue[property_index][job_type][day] = ["complete", converted_date]
+
+                # TODO - should also remove ANY OTHER JOBS related to this property
+
+            elif job_type == "ContactTracing":
+                contact_tracing_report, traced_property_indices = contact_tracing(
+                    properties, property_index, movement_records, time
+                )
+                self.jobs_queue[property_index][job_type][day] = ["complete", converted_date]
+
+                new_combined_narrative.append([time, converted_date, "tracing", contact_tracing_report])
+
+                contacts_for_plotting[property_index] = traced_property_indices
+
+                for t_i in traced_property_indices:
+                    # check if property is not yet culled
+                    if not properties[t_i].culled_status:
+
+                        # schedule movement restrictions right away
+                        self.local_movement_restrictions.append(properties[property_index].polygon)
+                        new_combined_narrative.append(
+                            [
+                                time,
+                                converted_date,
+                                "control",
+                                f"No movements are allowed to or from property {property_index} ({properties[property_index].type})",
+                            ]
+                        )
+
+                        report, scheduled_successful = self.schedule_clinical_observation(t_i, time)
+                        new_combined_narrative.append([time, converted_date, "test", report])
+                        if scheduled_successful:
+                            properties[t_i].undergoing_testing = True
+
+        return new_combined_narrative, self.local_movement_restrictions, total_culled_animals, contacts_for_plotting
 
     def job_manager(self, time, properties, movement_records):
         new_report = ""
@@ -345,10 +420,13 @@ class JobManager:
         total_culled_animals = 0
         contacts_for_plotting = {}  # from property, to properties
 
-        # add in new jobs; this checks for any repeat jobs and doesn't add repeat jobs
-        for job in self.new_jobs:
-            self.add_job_to_queue(job)
-        self.new_jobs = []
+        # TODO go through the jobs queue
+        # TODO look for "in progress" jobs
+        # TODO do some kind of prioritisation
+        # in terms of adding things to the combined narrative, then it might make more sense to run each job inside the disease simulation itself, rather than here
+        # so, this function could just return active jobs?
+        # TODO run the jobs
+        # and TODO schedule any new jobs as necessary
 
         for job in self.jobs_queue:
             if job["status"] == "in progress" and job["day"] <= time:
@@ -437,14 +515,6 @@ class JobManager:
                             properties[t_i].undergoing_testing = True
 
                     job["status"] = "complete"  # mark job as complete, slated for removal from the job queue
-
-        # clean up job queue
-        self.jobs_queue = [job for job in self.jobs_queue if job["status"] == "in progress"]
-
-        # add in new jobs; this checks for any repeat jobs and doesn't add repeat jobs
-        for job in self.new_jobs:
-            self.add_job_to_queue(job)
-        self.new_jobs = []
 
         return (
             new_report,

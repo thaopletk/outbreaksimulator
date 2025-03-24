@@ -113,6 +113,20 @@ def plot_coordinates(property_coordinates, neighbour_pairs):
     return
 
 
+def Australia_shape():
+    # Read in Australia shapefile
+    Australia_gdf = gpd.read_file(
+        os.path.join(os.path.dirname(__file__), "..", "data", "AUS_2021_AUST_SHP_GDA2020", "AUS_2021_AUST_GDA2020.shp")
+    )
+    print(Australia_gdf)
+    Australia_only = Australia_gdf.loc[Australia_gdf["AUS_NAME21"] == "Australia", :]
+    # Australia_gdf['geometry'] - multipolygon
+    Australiashape = Australia_only["geometry"][0]
+    # print(Australiashape)
+
+    return Australiashape
+
+
 # possible extensions: boundaries along roads, more jagged shapes, avoid areas like parks and nature reserves, add some level of clustering
 def assign_property_locations(
     n,
@@ -173,14 +187,7 @@ def assign_property_locations(
     # the resultant rectangles could become properties
 
     # Read in Australia shapefile
-    Australia_gdf = gpd.read_file(
-        os.path.join(os.path.dirname(__file__), "..", "data", "AUS_2021_AUST_SHP_GDA2020", "AUS_2021_AUST_GDA2020.shp")
-    )
-    print(Australia_gdf)
-    Australia_only = Australia_gdf.loc[Australia_gdf["AUS_NAME21"] == "Australia", :]
-    # Australia_gdf['geometry'] - multipolygon
-    Australiashape = Australia_only["geometry"][0]
-    # print(Australiashape)
+    Australiashape = Australia_shape()
 
     property_coordinates = np.zeros((n, 2))
     property_polygons = []

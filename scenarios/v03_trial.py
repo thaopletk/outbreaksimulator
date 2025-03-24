@@ -216,9 +216,9 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
     reportingregion_x = [140, 155]
     reportingregion_y = [-31, -29]
 
-    outputs = diseaseoutbreak.simulate_first_two_days(properties, reportingregion_x, reportingregion_y)
-
-    properties, movement_records, time, total_culled_animals, job_manager = outputs
+    properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_first_two_days(
+        properties, reportingregion_x, reportingregion_y
+    )
 
     # and then resave the end state
     with open(spread_properties_filename, "wb") as file:
@@ -227,11 +227,54 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
     # and save the diseaseoutbreak object
     with open(spread_diseaseoutbreak_filename, "wb") as file:
         pickle.dump(diseaseoutbreak, file)
+else:
+    with open(spread_properties_filename, "rb") as file:
+        properties = pickle.load(file)
+    with open(spread_diseaseoutbreak_filename, "rb") as file:
+        diseaseoutbreak = pickle.load(file)
 
+# Step 6: three days of a national standstill to conduct more contact tracing and testing and figure out the situation
+unique_output = "04_national_standstill"
+folder_path = os.path.join(folder_path_main, unique_output)
+days_to_run_for = 3
+management_parameters = [{"type": "national_standstill"}]
+# and during this time period, will  conduct clinical observations, and schedule testing regardless (DCPs basically)
 
-# Step 6:
+if not os.path.exists(folder_path):
+    os.makedirs(folder_path)
 
-# TODO add in national standstill (to do in next phase of simulation)
+spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
+spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
 
+if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
+    # adjust the plotting parameters for this new scenario
+    diseaseoutbreak.set_plotting_parameters(
+        xlims=xlims,
+        ylims=ylims,
+        plotting=True,
+        folder_path=folder_path,
+        unique_output=unique_output,
+    )
+
+    properties, movement_records, time, total_culled_animals, job_manager = (
+        diseaseoutbreak.simulate_national_standstill(properties, days_to_run_for)
+    )
+
+    # and then resave the end state
+    with open(spread_properties_filename, "wb") as file:
+        pickle.dump(properties, file)
+
+    # and save the diseaseoutbreak object
+    with open(spread_diseaseoutbreak_filename, "wb") as file:
+        pickle.dump(diseaseoutbreak, file)
+else:
+    with open(spread_properties_filename, "rb") as file:
+        properties = pickle.load(file)
+    with open(spread_diseaseoutbreak_filename, "rb") as file:
+        diseaseoutbreak = pickle.load(file)
 
 # step 7
+
+
+# TODO: surveillance should be added here too, though need to worry about how prioritisation will be done, e.g. before or after job scheduling (probably before job scheduling)
+# TODO but later, would only  schedule testing if clinical observation is true (to limit workload)

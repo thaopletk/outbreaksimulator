@@ -193,7 +193,7 @@ class Premises(Property):
 
         culled_animals = self.size
 
-        report = f"DAY {self.notification_date} - IP {self.ip} (ID {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been found infected. A total of {culled_animals} animal(s) will be culled.\n"
+        report = f"DAY {self.notification_date} - IP {self.ip} (ID {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been found infected. A total of {culled_animals} animal(s) will be culled."
 
         return report
 
@@ -208,7 +208,7 @@ class Premises(Property):
         report = ""
         culled_animals = self.size
 
-        report = f"DAY {convert_time_to_date(time)} - IP {self.ip} (ID {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been depopulated.\nA total of {culled_animals} animal(s) have been culled.\n"
+        report = f"DAY {convert_time_to_date(time)} - IP {self.ip} (ID {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been depopulated.\nA total of {culled_animals} animal(s) have been culled."
 
         return report, culled_animals
 

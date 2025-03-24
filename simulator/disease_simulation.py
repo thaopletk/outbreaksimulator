@@ -6,7 +6,6 @@
     * init
     * set_plotting_parameters
     * simulator function of choice... making sure to reset set_plotting_parameters for different parts
-        * simulate_outbreak_management
 
 """
 
@@ -238,7 +237,18 @@ class DiseaseSimulation:
 
     # TODO: technically, it may be possible to just run a different simulate_outbreak_spread function, but just set the probability of reporting to zero, or to modularise things further (the code parts that are repeated across different functions)
     def simulate_outbreak_spread_only(self, properties, time=None, stop_time=7):
-        """Run simulated outbreak, for undetected spread between (self.time (or time parameter if not NA)+1) and (stop_time) [inclusive], with no management"""
+        """Run simulated outbreak, for undetected spread between (self.time (or time parameter if not NA)+1) and (stop_time) [inclusive], with no management
+
+
+        Parameters
+        ----------
+        properties
+            list of all the premises objects
+
+        Returns
+        -------
+
+        """
 
         if time != None:
             self.time = time
@@ -303,7 +313,24 @@ class DiseaseSimulation:
         return properties, self.movement_records, self.time
 
     def select_first_reported_property(self, properties, reportingregion_x, reportingregion_y):
-        """Forces the first report of an infected property in the area that we want"""
+        """Forces the first report of an infected property in the area that we want
+
+        Parameters
+        ----------
+        properties
+            list of all the premises objects
+        reportingregion_x : list
+            contains [min_x, max_x], defining the reporting region boundaries
+        reportingregion_y : list
+            contains [min_y, max_y], defining the reporting region boundaries
+
+        Returns
+        -------
+        first_report_i : int
+            index of the property that was first reported
+
+
+        """
 
         # find properties with infected (clinical infected) animals within reportingregion_x, reportingregion_y
         list_of_potential_reporting_properties = []
@@ -327,7 +354,27 @@ class DiseaseSimulation:
         return first_report_i
 
     def simulate_first_day(self, properties, reportingregion_x, reportingregion_y):
-        """Simulates the first day of reporting and subsequent actions on that first day"""
+        """Simulates the first day of reporting and subsequent actions on that first day
+
+        Parameters
+        ----------
+        properties
+            list of all the premises objects
+        reportingregion_x : list
+            contains [min_x, max_x], defining the reporting region boundaries
+        reportingregion_y : list
+            contains [min_y, max_y], defining the reporting region boundaries
+
+        Returns
+        -------
+        properties
+            list of all the premises objects, may have changed
+        first_report_i : int
+            index of the property that was first reported
+        traced_property_indices : list
+            list of indices of the properties that had movements connected to the reported property
+
+        """
 
         # new day, allow disease spread
 
@@ -417,7 +464,22 @@ class DiseaseSimulation:
         )
 
     def simulate_second_day(self, properties, first_report_i, traced_property_indices):
-        """Simulates the second day of the outbreak, including ACDP lab confirmation of the first LSD report"""
+        """Simulates the second day of the outbreak, including ACDP lab confirmation of the first LSD report
+
+        Parameters
+        ----------
+        properties
+            list of all the premises objects
+        first_report_i : int
+            index of the property that was first reportedd
+        traced_property_indices : list
+            list of indices of the properties that had movements connected to the reported property
+
+        Returns
+        -------
+        properties
+            list of all the premises objects, may have changed
+        """
         reported_property = properties[first_report_i]
 
         self.time += 1
@@ -467,6 +529,9 @@ class DiseaseSimulation:
         )
         self.job_manager.jobs_queue[reported_property.id]["LabTesting"][str(self.time)] = ["complete", converted_date]
 
+        premise_report = reported_property.report_only(self.time)
+        self.combined_narrative.append([self.time, converted_date, "report", premise_report])
+
         # schedule culling of property
         report = self.job_manager.decision_to_cull(reported_property.id, self.time)
         self.combined_narrative.append([self.time, converted_date, "cull", report])
@@ -502,7 +567,31 @@ class DiseaseSimulation:
         return properties
 
     def simulate_first_two_days(self, properties, reportingregion_x, reportingregion_y, time=None):
-        """Simulates the first two days of the outbreak, in particular the first suspicious report and subsequent confirmation"""
+        """Simulates the first two days of the outbreak, in particular the first suspicious report and subsequent confirmation
+
+        Parameters
+        ----------
+        properties
+            list of all the premises objects
+        reportingregion_x : list
+            contains [min_x, max_x], defining the reporting region boundaries
+        reportingregion_y : list
+            contains [min_y, max_y], defining the reporting region boundaries
+
+        Returns
+        -------
+        properties
+            list of all the premises objects, may have changed
+        self.movement_records
+            all historical movement information
+        self.time
+            current day of the simulation
+        self.total_culled_animals : int
+            total culled animals (zero at this point)
+        self.job_manager : JobManager object
+            contains the current list of jobs and other functionality
+
+        """
         if time != None:
             self.time = time
 
@@ -666,8 +755,55 @@ class DiseaseSimulation:
 
         return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
 
-    def simulate_outbreak_management(self, properties, management_parameters, days_to_run_for, time=None):
-        """Run simulated outbreak with management, for spread starting from self.time+1 for days_to_run_for, with potential management"""
+    def check_if_national_standstill(self, management_parameters):
+        """Code to check if the management parameters involve a national standstill
+
+        To be used if the function simulate_national_standstill(...) is merged in with the main management simulation
+
+        Parameters
+        ----------
+        management_parameters : list of dicts
+            dictionaries in list define the management type and associated parameters
+
+        Returns
+        -------
+        bool
+            True if there is a National Standstill, False otherwise
+
+        """
+        for item in management_parameters:
+            if item["type"] == "national_standstill":
+                return True
+        return False
+
+    def simulate_national_standstill(self, properties, days_to_run_for, time=None):
+        """Run the national standstill proportion, assuming no movement, and only contact tracing
+
+        Assumes that lab testing will be done regardless of whether clinical observation is positive or not;
+        And also assumes no resourcing restrictions at this stage - only doing contact tracing
+
+        Parameters
+        ----------
+        properties
+            list of all the premises objects
+        management_parameters : list of dicts
+            dictionaries in list define the management type and associated parameters
+        days_to_run_for : int
+            number of days to run this particular set of management strategies
+
+        Returns
+        -------
+        properties
+            list of all the premises objects, may have changed
+        self.movement_records
+            all historical movement information
+        self.time
+            current day of the simulation
+        self.total_culled_animals : int
+            total culled animals
+        self.job_manager : JobManager object
+            contains the current list of jobs and other functionality
+        """
 
         if time != None:
             self.time = time
@@ -675,7 +811,216 @@ class DiseaseSimulation:
         if self.folder_path == "":
             raise Warning("Default folder path hasn't changed - recommend that set_plotting_parameters() be run first")
 
-        FOI = list(np.zeros(len(properties)))
+        # national standstill - control zone defined for plotting purposes
+        controlzone_large_movement_restrictions = spatial_setup.Australia_shape()
+        controlzone_movement_restrictions = controlzone_large_movement_restrictions
+
+        self.controlzone["movement restrictions"] = (
+            controlzone_movement_restrictions  # this is for plotting purposes later
+        )
+
+        time_list = []
+        stop_time = self.time + days_to_run_for
+        while self.time < stop_time:
+            self.time += 1
+            converted_date = premises.convert_time_to_date(self.time)
+            # calculate FOI for each property
+            FOI = self.calculate_FOI_for_each_property(properties)
+
+            # check if any property wants to report
+            self.simulate_property_reporting(properties)
+
+            # run infection model for each property
+            properties = self.run_infection_model_for_each_property(properties, FOI)
+
+            # go through job queue
+            new_combined_narrative, local_movement_restrictions, newly_culled_animals, contacts_for_plotting = (
+                self.job_manager.run_jobs(self.time, properties, self.movement_records, converted_date)
+            )
+
+            self.combined_narrative.extend(new_combined_narrative)
+            self.contacts_for_plotting = contacts_for_plotting
+            self.total_culled_animals += newly_culled_animals
+
+            # and then go through job queue again in 0.5 time,
+
+            new_combined_narrative, local_movement_restrictions, newly_culled_animals, contacts_for_plotting = (
+                self.job_manager.run_jobs(self.time + 0.5, properties, self.movement_records, converted_date)
+            )
+            self.combined_narrative.extend(new_combined_narrative)
+            self.contacts_for_plotting.update(contacts_for_plotting)
+            self.total_culled_animals += newly_culled_animals
+
+            # no movement of animals
+
+            # update counts of infected/clinical/etc animals on each farm (important too if any animals have moved locations)
+            for i, premise in enumerate(properties):
+                premise.update_counts()
+
+            # then close off this day
+            time_list.append(self.time)
+            if self.plotting:
+                simulator.plot_current_state(
+                    properties,
+                    self.time,
+                    self.xlims,
+                    self.ylims,
+                    self.folder_path,
+                    self.controlzone,
+                    infectionpoly=False,
+                    contacts_for_plotting=self.contacts_for_plotting,
+                )
+                # should also save things for plotting: i.e., everything that I had used to actually plot
+                with open(os.path.join(self.folder_path, "plotting_data" + str(self.time)), "wb") as file:
+                    pickle.dump(
+                        [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
+                        file,
+                    )
+
+        if self.plotting:
+            output.make_video(self.folder_path, "map_underlying", times=time_list)
+            output.make_video(self.folder_path, "map_apparent", times=time_list)
+
+        simulator.save_outbreak_state(
+            properties,
+            self.time,
+            self.folder_path,
+            self.unique_output,
+            total_culled_animals=self.total_culled_animals,
+            movement_records=self.movement_records,
+            job_manager=self.job_manager,
+        )
+
+        animal_movement.save_movement_record(self.folder_path, self.movement_records)
+        self.save_reports(properties)
+        self.job_manager.save_jobs_queue(self.folder_path)
+
+        return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
+
+    def simulate_outbreak_management(
+        self, properties, management_parameters, days_to_run_for, jobs_resourcing, time=None
+    ):
+        """Run simulated outbreak with management, for spread starting from self.time+1 for days_to_run_for, with management
+
+        Parameters
+        ----------
+        properties
+            list of all the premises objects
+        management_parameters : list of dicts
+            dictionaries in list define the management type and associated parameters
+        days_to_run_for : int
+            number of days to run this particular set of management strategies
+        jobs_resourcing
+            TODO somehow control / cap how many
+
+        Returns
+        -------
+        TODO
+        """
+
+        if time != None:
+            self.time = time
+
+        if self.folder_path == "":
+            raise Warning("Default folder path hasn't changed - recommend that set_plotting_parameters() be run first")
+
+        time_list = []
+        stop_time = self.time + days_to_run_for
+        nothing_left_to_do = False
+        while self.time < stop_time and not nothing_left_to_do:
+            self.time += 1
+            # calculate FOI for each property
+            FOI = self.calculate_FOI_for_each_property(properties)
+
+            # check if any property wants to report
+            self.simulate_property_reporting(properties)
+
+            # run infection model for each property
+            properties = self.run_infection_model_for_each_property(properties, FOI)
+
+            # TODO enact any management, before animal movements, so that we can calculate control zones I guess
+
+            for management_policy in management_parameters:
+                if management_policy["type"] == "national_standstill":
+                    controlzone_large_movement_restrictions = spatial_setup.Australia_shape()
+                else:
+                    raise ValueError(
+                        f"Management policy type {management_policy['type']} doesn't exist, or is not yet implemented"
+                    )
+
+            # TODO need to go through job queue
+
+            # define movement control zones, and conduct animal movement where possible
+            controlzone_movement_restrictions = controlzone_large_movement_restrictions
+            # movement of animals
+            if not self.check_if_national_standstill(management_parameters):
+                if self.job_manager.local_movement_restrictions != []:
+                    if controlzone_movement_restrictions == None:
+                        controlzone_movement_restrictions = unary_union(self.job_manager.local_movement_restrictions)
+                    else:
+                        controlzone_movement_restrictions = unary_union(
+                            [
+                                controlzone_movement_restrictions,
+                                unary_union(self.job_manager.local_movement_restrictions),
+                            ]
+                        )
+
+                movement_record = animal_movement.animal_movement(
+                    properties, day=self.time, controlzone=controlzone_movement_restrictions
+                )
+                self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
+
+            self.controlzone["movement restrictions"] = (
+                controlzone_movement_restrictions  # this is for plotting purposes later
+            )
+
+            # update counts of infected/clinical/etc animals on each farm (important too if any animals have moved locations)
+            for i, premise in enumerate(properties):
+                premise.update_counts()
+
+            # then close off this day
+            time_list.append(self.time)
+            if self.plotting:
+                simulator.plot_current_state(
+                    properties,
+                    self.time,
+                    self.xlims,
+                    self.ylims,
+                    self.folder_path,
+                    self.controlzone,
+                    infectionpoly=False,
+                    contacts_for_plotting=self.contacts_for_plotting,
+                )
+                # should also save things for plotting: i.e., everything that I had used to actually plot
+                with open(os.path.join(self.folder_path, "plotting_data" + str(self.time)), "wb") as file:
+                    pickle.dump(
+                        [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
+                        file,
+                    )
+
+        if self.plotting:
+            output.make_video(self.folder_path, "map_underlying", times=time_list)
+            output.make_video(self.folder_path, "map_apparent", times=time_list)
+
+        simulator.save_outbreak_state(
+            properties,
+            self.time,
+            self.folder_path,
+            self.unique_output,
+            total_culled_animals=self.total_culled_animals,
+            movement_records=self.movement_records,
+            job_manager=self.job_manager,
+        )
+
+        animal_movement.save_movement_record(self.folder_path, self.movement_records)
+        self.save_reports(properties)
+        self.job_manager.save_jobs_queue(self.folder_path)
+
+        return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
+
+    # TODO delete this once the above one is written
+    def old_simulate_outbreak_management(self, properties, management_parameters, days_to_run_for, time=None):
+
         time_list = []
         stop_time = self.time + days_to_run_for
         nothing_left_to_do = False
@@ -713,22 +1058,22 @@ class DiseaseSimulation:
             controlzone_large_movement_restrictions = None
             movement_standstill = False
             for management_policy in management_parameters:
-                if management_policy["type"] == "movement_standstill":
-                    movement_standstill = True
-                    map_polygon = {
-                        "type": "Polygon",
-                        "coordinates": [
-                            [
-                                [self.xlims[0], self.ylims[0]],
-                                [self.xlims[1], self.ylims[0]],
-                                [self.xlims[1], self.ylims[1]],
-                                [self.xlims[0], self.ylims[1]],
-                                [self.xlims[0], self.ylims[0]],
-                            ]
-                        ],
-                    }
-                    controlzone_large_movement_restrictions = spatial_setup.convert_dict_poly_to_Polygon(map_polygon)
-                elif management_policy["type"] == "movement_restriction":
+                # if management_policy["type"] == "movement_standstill":
+                #     movement_standstill = True
+                #     map_polygon = {
+                #         "type": "Polygon",
+                #         "coordinates": [
+                #             [
+                #                 [self.xlims[0], self.ylims[0]],
+                #                 [self.xlims[1], self.ylims[0]],
+                #                 [self.xlims[1], self.ylims[1]],
+                #                 [self.xlims[0], self.ylims[1]],
+                #                 [self.xlims[0], self.ylims[0]],
+                #             ]
+                #         ],
+                #     }
+                #     controlzone_large_movement_restrictions = spatial_setup.convert_dict_poly_to_Polygon(map_polygon)
+                if management_policy["type"] == "movement_restriction":
                     if source_indices != []:
                         controlzone_large_movement_restrictions = management.define_control_zone_polygons(
                             properties,
@@ -839,132 +1184,132 @@ class DiseaseSimulation:
                             premise.vaccinate(self.time)
 
                     self.controlzone["ring vaccination"] = controlzone_ring_vaccination
-                else:
-                    raise ValueError(
-                        f"Management policy type {management_policy['type']} doesn't exist, or is not yet implemented"
-                    )
+                # else:
+                #     raise ValueError(
+                #         f"Management policy type {management_policy['type']} doesn't exist, or is not yet implemented"
+                #     )
 
-            for job in self.job_manager.new_jobs:
-                self.job_manager.add_job_to_queue(job)
-            self.job_manager.new_jobs = []
+            # for job in self.job_manager.new_jobs:
+            #     self.job_manager.add_job_to_queue(job)
+            # self.job_manager.new_jobs = []
 
-            # check if any property wants to report
-            self.simulate_property_reporting(properties)
+            # # check if any property wants to report
+            # self.simulate_property_reporting(properties)
 
-            # run infection model for each property
-            for i, property_i in enumerate(properties):
-                property_i.infection_model(
-                    self.latent_period, self.infectious_period, self.preclinical_period, FOI[i], self.time
-                )
+            # # run infection model for each property
+            # for i, property_i in enumerate(properties):
+            #     property_i.infection_model(
+            #         self.latent_period, self.infectious_period, self.preclinical_period, FOI[i], self.time
+            #     )
 
             # movement of animals
             # there may be movement restrictions if a property has reported, so this needs to be checked
-            controlzone_movement_restrictions = controlzone_large_movement_restrictions  # this could just be None
-            if self.job_manager.local_movement_restrictions != []:
-                if controlzone_movement_restrictions == None:
-                    controlzone_movement_restrictions = unary_union(self.job_manager.local_movement_restrictions)
-                else:
-                    controlzone_movement_restrictions = unary_union(
-                        [controlzone_movement_restrictions, unary_union(self.job_manager.local_movement_restrictions)]
-                    )
-            self.controlzone["movement restrictions"] = controlzone_movement_restrictions
+            # controlzone_movement_restrictions = controlzone_large_movement_restrictions  # this could just be None
+            # if self.job_manager.local_movement_restrictions != []:
+            #     if controlzone_movement_restrictions == None:
+            #         controlzone_movement_restrictions = unary_union(self.job_manager.local_movement_restrictions)
+            #     else:
+            #         controlzone_movement_restrictions = unary_union(
+            #             [controlzone_movement_restrictions, unary_union(self.job_manager.local_movement_restrictions)]
+            #         )
+            # self.controlzone["movement restrictions"] = controlzone_movement_restrictions
 
-            if not movement_standstill:
-                movement_record = animal_movement.animal_movement(
-                    properties, day=self.time, controlzone=controlzone_movement_restrictions
-                )
-                self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
+            # if not movement_standstill:
+            #     movement_record = animal_movement.animal_movement(
+            #         properties, day=self.time, controlzone=controlzone_movement_restrictions
+            #     )
+            #     self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
 
-            # update counts
-            for i, property_i in enumerate(properties):
-                property_i.update_counts()
+            # # update counts
+            # for i, property_i in enumerate(properties):
+            #     property_i.update_counts()
 
-            time_list.append(self.time)
-            if self.plotting:
-                simulator.plot_current_state(
-                    properties,
-                    self.time,
-                    self.xlims,
-                    self.ylims,
-                    self.folder_path,
-                    self.controlzone,
-                    infectionpoly=False,
-                    contacts_for_plotting=self.contacts_for_plotting,
-                )
-                # should also save things for plotting: i.e., everything that I had used to actually plot
-                with open(os.path.join(self.folder_path, "plotting_data" + str(self.time)), "wb") as file:
-                    pickle.dump(
-                        [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
-                        file,
-                    )
+            # time_list.append(self.time)
+            # if self.plotting:
+            #     simulator.plot_current_state(
+            #         properties,
+            #         self.time,
+            #         self.xlims,
+            #         self.ylims,
+            #         self.folder_path,
+            #         self.controlzone,
+            #         infectionpoly=False,
+            #         contacts_for_plotting=self.contacts_for_plotting,
+            #     )
+            #     # should also save things for plotting: i.e., everything that I had used to actually plot
+            #     with open(os.path.join(self.folder_path, "plotting_data" + str(self.time)), "wb") as file:
+            #         pickle.dump(
+            #             [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
+            #             file,
+            #         )
 
-            # advance time by a half, to see if there are any jobs that should now be complete
-            # Go through jobs in the queue
-            (
-                new_report,
-                new_testing_reports,
-                new_combined_narrative,
-                new_contact_tracing_reports,
-                local_movement_restrictions,
-                newly_culled_animals,
-                contacts_for_plotting,
-            ) = self.job_manager.job_manager(self.time + 0.5, properties, self.movement_records)
+            # # advance time by a half, to see if there are any jobs that should now be complete
+            # # Go through jobs in the queue
+            # (
+            #     new_report,
+            #     new_testing_reports,
+            #     new_combined_narrative,
+            #     new_contact_tracing_reports,
+            #     local_movement_restrictions,
+            #     newly_culled_animals,
+            #     contacts_for_plotting,
+            # ) = self.job_manager.job_manager(self.time + 0.5, properties, self.movement_records)
 
-            self.contacts_for_plotting = contacts_for_plotting
-            self.combined_narrative += new_combined_narrative
-            self.contact_tracing_reports += new_contact_tracing_reports
-            self.testing_reports += new_testing_reports
-            self.other_reports += new_report
-            self.total_culled_animals += newly_culled_animals
+            # self.contacts_for_plotting = contacts_for_plotting
+            # self.combined_narrative += new_combined_narrative
+            # self.contact_tracing_reports += new_contact_tracing_reports
+            # self.testing_reports += new_testing_reports
+            # self.other_reports += new_report
+            # self.total_culled_animals += newly_culled_animals
 
-            # there may have been more confirmations, so control zones may have changed
-            # other "active" policies don't happen twice a day
-            for management_policy in management_parameters:
-                if management_policy["type"] == "movement_restrictions":
-                    # calculate the properties around which movement restrictions are enacted
-                    # TODO: need to think about whether there would be movement restrictions around suspect properties, or only around confirmed properties; currently, it should only be around confirmed properties (i.e., after lab testing)
-                    source_indices = []
-                    for i, premise in enumerate(properties):
-                        if premise.reported_status == True:
-                            source_indices.append(i)
+            # # there may have been more confirmations, so control zones may have changed
+            # # other "active" policies don't happen twice a day
+            # for management_policy in management_parameters:
+            #     if management_policy["type"] == "movement_restrictions":
+            #         # calculate the properties around which movement restrictions are enacted
+            #         # TODO: need to think about whether there would be movement restrictions around suspect properties, or only around confirmed properties; currently, it should only be around confirmed properties (i.e., after lab testing)
+            #         source_indices = []
+            #         for i, premise in enumerate(properties):
+            #             if premise.reported_status == True:
+            #                 source_indices.append(i)
 
-                    if source_indices != []:
-                        controlzone_large_movement_restrictions = management.define_control_zone_polygons(
-                            properties,
-                            source_indices,
-                            management_policy["radius_km"],
-                            convex=management_policy["convex"],
-                        )
+            #         if source_indices != []:
+            #             controlzone_large_movement_restrictions = management.define_control_zone_polygons(
+            #                 properties,
+            #                 source_indices,
+            #                 management_policy["radius_km"],
+            #                 convex=management_policy["convex"],
+            #             )
 
-            # the local_movement_restrictions might have changed, so re-calculate the control zone for movement
-            controlzone_movement_restrictions = controlzone_large_movement_restrictions  # this could just be None
-            if self.job_manager.local_movement_restrictions != []:
-                if controlzone_movement_restrictions == None:
-                    controlzone_movement_restrictions = unary_union(self.job_manager.local_movement_restrictions)
-                else:
-                    controlzone_movement_restrictions = unary_union(
-                        [controlzone_movement_restrictions, unary_union(self.job_manager.local_movement_restrictions)]
-                    )
-            self.controlzone["movement restrictions"] = controlzone_movement_restrictions
+            # # the local_movement_restrictions might have changed, so re-calculate the control zone for movement
+            # controlzone_movement_restrictions = controlzone_large_movement_restrictions  # this could just be None
+            # if self.job_manager.local_movement_restrictions != []:
+            #     if controlzone_movement_restrictions == None:
+            #         controlzone_movement_restrictions = unary_union(self.job_manager.local_movement_restrictions)
+            #     else:
+            #         controlzone_movement_restrictions = unary_union(
+            #             [controlzone_movement_restrictions, unary_union(self.job_manager.local_movement_restrictions)]
+            #         )
+            # self.controlzone["movement restrictions"] = controlzone_movement_restrictions
 
-            time_list.append(self.time + 0.5)
-            if self.plotting:
-                simulator.plot_current_state(
-                    properties,
-                    self.time + 0.5,
-                    self.xlims,
-                    self.ylims,
-                    self.folder_path,
-                    self.controlzone,
-                    infectionpoly=False,
-                    contacts_for_plotting=self.contacts_for_plotting,
-                )
-                # should also save things for plotting: i.e., everything that I had used to actually plot
-                with open(os.path.join(self.folder_path, "plotting_data" + str(self.time + 0.5)), "wb") as file:
-                    pickle.dump(
-                        [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
-                        file,
-                    )
+            # time_list.append(self.time + 0.5)
+            # if self.plotting:
+            #     simulator.plot_current_state(
+            #         properties,
+            #         self.time + 0.5,
+            #         self.xlims,
+            #         self.ylims,
+            #         self.folder_path,
+            #         self.controlzone,
+            #         infectionpoly=False,
+            #         contacts_for_plotting=self.contacts_for_plotting,
+            #     )
+            #     # should also save things for plotting: i.e., everything that I had used to actually plot
+            #     with open(os.path.join(self.folder_path, "plotting_data" + str(self.time + 0.5)), "wb") as file:
+            #         pickle.dump(
+            #             [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
+            #             file,
+            #         )
 
             # NOTE: taken the following code out, because even if there are no infected properties, there might still be vectors carrying disease
             # check if there are no more infected properties
@@ -979,22 +1324,22 @@ class DiseaseSimulation:
 
             #     print( f"Job manager queue with no more infection: {len(self.job_manager.jobs_queue)}" )
 
-        if self.plotting:
-            output.make_video(self.folder_path, "map_underlying", times=time_list)
-            output.make_video(self.folder_path, "map_apparent", times=time_list)
+        # if self.plotting:
+        #     output.make_video(self.folder_path, "map_underlying", times=time_list)
+        #     output.make_video(self.folder_path, "map_apparent", times=time_list)
 
-        simulator.save_outbreak_state(
-            properties,
-            self.time,
-            self.folder_path,
-            self.unique_output,
-            total_culled_animals=self.total_culled_animals,
-            movement_records=self.movement_records,
-            job_manager=self.job_manager,
-        )
+        # simulator.save_outbreak_state(
+        #     properties,
+        #     self.time,
+        #     self.folder_path,
+        #     self.unique_output,
+        #     total_culled_animals=self.total_culled_animals,
+        #     movement_records=self.movement_records,
+        #     job_manager=self.job_manager,
+        # )
 
-        animal_movement.save_movement_record(self.folder_path, self.movement_records)
+        # animal_movement.save_movement_record(self.folder_path, self.movement_records)
 
-        self.save_reports(properties)
+        # self.save_reports(properties)
 
-        return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
+        # return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager

@@ -31,12 +31,13 @@ def geodesic_point_buffer(lat, lon, km):
     return transform(project, buf).exterior.coords[:]
 
 
-# https://stackoverflow.com/questions/15736995/how-can-i-quickly-estimate-the-distance-between-two-latitude-longitude-points
 def quick_distance_haversine(coords1, coords2):
     """Get the distance between two points
 
     Calculates the great circle distance between two points
     on the earth (specified in decimal degrees) and converts it to kilometers
+
+    Source: https://stackoverflow.com/questions/15736995/how-can-i-quickly-estimate-the-distance-between-two-latitude-longitude-points
 
     Parameters
     ----------
@@ -136,3 +137,19 @@ def geodesic_polygon_buffer(lat, lon, poly_to_buff, km):
     )
     buf = poly_to_buff.buffer(km * 1000)  # distance in metres
     return Polygon(transform(project, buf).exterior.coords[:])
+
+
+def define_control_zone_circles(coordinates, radius_km):
+    """Creates control zones around coordinates and joins them together"""
+    list_of_polygons = []
+
+    for site in coordinates:
+        x = site[0]  # longitude
+        y = site[1]  # latitude
+        points_in_circle = geodesic_point_buffer(y, x, radius_km)
+        poly = Polygon(points_in_circle)
+        list_of_polygons.append(poly)
+
+    controlzone = unary_union(list_of_polygons)
+
+    return controlzone
