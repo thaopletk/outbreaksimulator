@@ -525,3 +525,31 @@ class JobManager:
             total_culled_animals,
             contacts_for_plotting,
         )
+
+    def calculate_resources_used(self, folder_path):
+        # there's probably a dataframes way to do this
+
+        header = ["completion_date", "LabTesting", "ClinicalObservation", "Cull", "ContactTracing"]
+        resources = {}
+        for property_index in self.jobs_queue.keys():
+            for job_type in self.jobs_queue[property_index].keys():
+                for day, status in self.jobs_queue[property_index][job_type].items():
+                    if status[0] == "complete":
+                        try:
+                            resources[status[1]][job_type] += 1
+                        except:
+                            resources[status[1]] = {j: 0 for j in job_types}
+                            resources[status[1]][job_type] += 1
+        jobs = []
+
+        for key, value in resources.items():
+            jobs.append(
+                [key, value["LabTesting"], value["ClinicalObservation"], value["Cull"], value["ContactTracing"]]
+            )
+        # order by the date
+        jobs.sort(key=lambda x: x[0])
+        # convert to dataframe
+        # save the dataframe
+        jobs_df = pd.DataFrame(jobs, columns=header)
+
+        jobs_df.to_csv(os.path.join(folder_path, "resources_used.csv"), index=False)

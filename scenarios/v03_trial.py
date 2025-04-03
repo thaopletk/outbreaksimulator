@@ -15,6 +15,7 @@ import simulator.simulator as simulator
 import simulator.output as output
 import simulator.disease_simulation as disease_simulation
 import simulator.management as management
+import simulator.premises as premises
 
 
 folder_path_main = os.path.join(os.path.dirname(__file__), "outputs", "v03_trial")
@@ -89,7 +90,7 @@ if not os.path.exists(os.path.join(folder_path_main, "map_underlying0.png")):
         show_movement_neighbours=True,
     )
 
-# plottinng animal density seems to take a lot of time, should make it better /faster TODO
+# plotting animal density seems to take a lot of time, should make it better /faster TODO
 # # plot the animal density
 # if not os.path.exists(os.path.join(folder_path_main, "animal_density.png")):
 #     output.plot_animal_density(properties, xlims, ylims, folder_path=folder_path_main)
@@ -141,6 +142,7 @@ if not os.path.exists(folder_path_undetected_spread):
     os.makedirs(folder_path_undetected_spread)
 
 stop_time = 65  # 28
+first_detection_day = stop_time + 1
 
 undetected_spread_properties_filename = os.path.join(folder_path_undetected_spread, "properties_" + unique_output)
 undetected_spread_diseaseoutbreak_filename = os.path.join(
@@ -267,6 +269,37 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
     # and save the diseaseoutbreak object
     with open(spread_diseaseoutbreak_filename, "wb") as file:
         pickle.dump(diseaseoutbreak, file)
+
+    job_manager.calculate_resources_used(folder_path)
+
+    # plot number of notified properties over time TODO
+    dates_list = [
+        premises.convert_time_to_date(time)
+        for time in range(first_detection_day, first_detection_day + days_to_run_for + 2)
+    ]
+    print(dates_list)
+    daily_notifs = [0] * len(dates_list)
+
+    for property_i in properties:
+        notif_date = property_i.notification_date
+        if notif_date != "NA":
+            index = dates_list.index(notif_date)
+            daily_notifs[index] += 1
+
+    save_name = "movement_standstill_daily_notifications"
+
+    output.plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path, save_name)
+
+    # plot the full outbreak window at end time point
+
+    # plotting_data_name = os.path.join(folder_path, f"plotting_data{time}")
+    # with open(plotting_data_name, "rb") as file:
+    #     properties, time, xlims, ylims, controlzone, contacts_for_plotting = pickle.load(file)
+
+    # TODO - this wasn't working
+    # output.plot_simex(properties,time,xlims,ylims,folder_path,contacts_for_plotting={},xylabels = True,save_suffix="_v2")
+
+
 else:
     with open(spread_properties_filename, "rb") as file:
         properties = pickle.load(file)
