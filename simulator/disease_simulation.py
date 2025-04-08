@@ -514,6 +514,11 @@ class DiseaseSimulation:
                 test_type="clinical observation",
             )
 
+            if positive:
+                properties[i].clinical_report_outcome = True
+            else:
+                properties[i].clinical_report_outcome = False
+
             self.combined_narrative.append([self.time, converted_date, "test", testing_report])
             # add this as a job to the job queue for completeness
             self.job_manager.jobs_queue[i]["ClinicalObservation"][str(self.time)] = ["complete", converted_date]
@@ -939,16 +944,46 @@ class DiseaseSimulation:
             properties = self.run_infection_model_for_each_property(properties, FOI)
 
             # TODO enact any management, before animal movements, so that we can calculate control zones I guess
+            # schedule all tasks, and then will prioritise later
+            # to prioritise, I will need to define the various control zones
+
+            source_indices = []
+            for i, premise in enumerate(properties):
+                # also need to add in DCPs. This could either be: (1) properties with positive clinical result (well, at least), or more broadly could be (2) any properties currently on the contact tracing list/undergoing testing
+                # to get the properties currently undergoing contact tracing or testing, I would need to go through the job queue, and find active jobs, and find the properties currently under active management
+                if premise.reported_status == True or premise.clinical_report_outcome == True:
+                    source_indices.append(i)
+
+            list_of_premises = self.job_manager.get_premises_under_active_jobs()
+            source_indices.extend(list_of_premises)
+            source_indices = list(set(source_indices))
+
+            # TODO: get current control/etc zones
+
+            # TODO: assign new jobs - i.e. surveillance based on the control zones
+
+            # TODO: prioritise jobs based on zoning
 
             for management_policy in management_parameters:
                 if management_policy["type"] == "national_standstill":
                     controlzone_large_movement_restrictions = spatial_setup.Australia_shape()
+                elif management_policy["type"] == "movement_restriction":
+                    controlzone_large_movement_restrictions = management.define_control_zone_polygons(
+                        properties,
+                        source_indices,
+                        management_policy["radius_km"],
+                        convex=management_policy["convex"],
+                    )
+                elif management_policy["type"] == "conditional_movement":
+                    pass  #    {"type": "conditional_movement", "radius_km": 80, "convex": False, "probability_reduction": 0.1},
+                elif management_policy["type"] == "ring_surveillance":
+                    pass  #  {"type": "ring_surveillance", "radius_km": 80, "convex": False},
                 else:
                     raise ValueError(
                         f"Management policy type {management_policy['type']} doesn't exist, or is not yet implemented"
                     )
 
-            # TODO need to go through job queue
+            # TODO need to go through job queue, and prioritise tasks
 
             # define movement control zones, and conduct animal movement where possible
             controlzone_movement_restrictions = controlzone_large_movement_restrictions

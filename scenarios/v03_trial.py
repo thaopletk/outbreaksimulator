@@ -307,7 +307,86 @@ else:
         diseaseoutbreak = pickle.load(file)
 
 # step 7
+# about two weeks of simulation
+unique_output = "05_two_weeks"
+folder_path = os.path.join(folder_path_main, unique_output)
+days_to_run_for = 14 - 3
+management_parameters = [
+    {"type": "movement_restriction", "radius_km": 5, "convex": False},
+    {"type": "conditional_movement", "radius_km": 80, "convex": False, "probability_reduction": 0.1},
+    {"type": "ring_surveillance", "radius_km": 80, "convex": False},
+]
+jobs_resourcing = {
+    "LabTesting": [10, 15, 20],
+    "ClinicalObservation": [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130],
+    "Cull": [10],
+    "ContactTracing": [100],
+}
+
+if not os.path.exists(folder_path):
+    os.makedirs(folder_path)
+
+spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
+spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
+
+if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
+    # adjust the plotting parameters for this new scenario
+    diseaseoutbreak.set_plotting_parameters(
+        xlims=xlims,
+        ylims=ylims,
+        plotting=True,
+        folder_path=folder_path,
+        unique_output=unique_output,
+    )
+
+    # TODO
+    properties, movement_records, time, total_culled_animals, job_manager = (
+        diseaseoutbreak.simulate_outbreak_management(
+            properties, management_parameters, days_to_run_for, jobs_resourcing
+        )
+    )
+
+    # and then resave the end state
+    with open(spread_properties_filename, "wb") as file:
+        pickle.dump(properties, file)
+
+    # and save the diseaseoutbreak object
+    with open(spread_diseaseoutbreak_filename, "wb") as file:
+        pickle.dump(diseaseoutbreak, file)
+
+    job_manager.calculate_resources_used(folder_path)
+
+    # plot number of notified properties over time TODO
+    dates_list = [
+        premises.convert_time_to_date(time)
+        for time in range(first_detection_day, first_detection_day + days_to_run_for + 2)
+    ]
+    print(dates_list)
+    daily_notifs = [0] * len(dates_list)
+
+    for property_i in properties:
+        notif_date = property_i.notification_date
+        if notif_date != "NA":
+            index = dates_list.index(notif_date)
+            daily_notifs[index] += 1
+
+    save_name = "movement_standstill_daily_notifications"
+
+    output.plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path, save_name)
+
+    # plot the full outbreak window at end time point
+
+    plotting_data_name = os.path.join(folder_path, f"plotting_data{time}")
+    with open(plotting_data_name, "rb") as file:
+        properties, time, xlims, ylims, controlzone, contacts_for_plotting = pickle.load(file)
+
+    output.plot_simex(
+        properties, time, xlims, ylims, folder_path, contacts_for_plotting={}, xylabels=True, save_suffix="_v2"
+    )
 
 
-# TODO: surveillance should be added here too, though need to worry about how prioritisation will be done, e.g. before or after job scheduling (probably before job scheduling)
-# TODO but later, would only  schedule testing if clinical observation is true (to limit workload)
+else:
+    with open(spread_properties_filename, "rb") as file:
+        properties = pickle.load(file)
+    with open(spread_diseaseoutbreak_filename, "rb") as file:
+        diseaseoutbreak = pickle.load(file)

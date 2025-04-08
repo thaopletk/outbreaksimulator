@@ -177,6 +177,11 @@ class JobManager:
             self.clinical_test_sensitivity,
             test_type="clinical observation",
         )
+        if positive:
+            properties[property_index].clinical_report_outcome = True
+        else:
+            properties[property_index].clinical_report_outcome = False
+
         return testing_report, positive
 
     def check_if_recent_job_already_exists(self, property_i, scheduled_day, job_type):
@@ -553,3 +558,12 @@ class JobManager:
         jobs_df = pd.DataFrame(jobs, columns=header)
 
         jobs_df.to_csv(os.path.join(folder_path, "resources_used.csv"), index=False)
+
+    def get_premises_under_active_jobs(self):
+        list_of_premises = []
+        for property_index in self.jobs_queue.keys():
+            for job_type in self.jobs_queue[property_index].keys():
+                for day, status in self.jobs_queue[property_index][job_type].items():
+                    if status[0] == "in progress":
+                        list_of_premises.append(property_index)
+        return list_of_premises

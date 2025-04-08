@@ -132,6 +132,7 @@ class Premises(Property):
 
         self.undergoing_testing = False
         self.day_of_last_lab_test = None
+        self.clinical_report_outcome = None  # otherwise, true or false
 
     #
     def vaccinate(self, time):
