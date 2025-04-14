@@ -22,6 +22,7 @@ import warnings
 from simulator.premises import convert_time_to_date as convert_time_to_date
 import os
 import pandas as pd
+import random
 
 job_types = ["LabTesting", "ClinicalObservation", "Cull", "ContactTracing"]
 
@@ -66,7 +67,7 @@ def contact_tracing(properties, property_index, movement_records, time):
 
     """
 
-    contact_tracing_report = f"DAY {convert_time_to_date(time)} - contact tracing report compiled for movements to/from IP {properties[property_index].ip} (ID {properties[property_index].id})\n"
+    contact_tracing_report = f"DAY {convert_time_to_date(time)} - contact tracing report compiled for movements to/from IP {properties[property_index].ip} (ID {properties[property_index].id}) in {properties[property_index].state}\n"
     traced_property_indices = []
 
     properties_found = False
@@ -263,18 +264,18 @@ class JobManager:
 
         testing_report, positive = self.conduct_labtesting(properties, property_index, time)
 
-        new_combined_narrative.append([time, converted_date, "test", testing_report])
+        new_combined_narrative.append([time, converted_date, "test", property_index, testing_report])
 
         if positive:
             premise = properties[property_index]
 
             # report property
             premise_report = premise.report_only(time)
-            new_combined_narrative.append([time, converted_date, "report", premise_report])
+            new_combined_narrative.append([time, converted_date, "report", property_index, premise_report])
 
             # schedule culling
             report = self.decision_to_cull(property_index, time)
-            new_combined_narrative.append([time, converted_date, "cull", report])
+            new_combined_narrative.append([time, converted_date, "cull", property_index, report])
 
             # enact local movement restrictions around this property, just in case
             self.local_movement_restrictions.append(properties[property_index].polygon)
@@ -283,6 +284,7 @@ class JobManager:
                     time,
                     converted_date,
                     "control",
+                    property_index,
                     f"No movements are allowed to or from property {property_index} ({properties[property_index].type})",
                 ]
             )
@@ -298,6 +300,7 @@ class JobManager:
                         time,
                         converted_date,
                         "control",
+                        property_index,
                         f"Local movement restrictions lifted for property {property_index} (other movement controls still in place)",
                     ]
                 )
@@ -305,7 +308,7 @@ class JobManager:
                 warnings.warn("Local polygon doesn't exist in the local movement restrictions for some reason...")
 
             # may have ongoing surveillance here in the future
-        return new_combined_narrative
+        return new_combined_narrative, positive
 
     def run_jobs(self, time, properties, movement_records, converted_date):
         """Run jobs, without prioritisation and without consideration of personel requirements
@@ -332,6 +335,10 @@ class JobManager:
         total_culled_animals = 0
         contacts_for_plotting = {}  # from property, to properties
         new_combined_narrative = []
+        num_positive_clinical = 0
+        num_lab_tested = 0
+        num_confirmed_infected = 0
+        num_tested_negative = 0
 
         # go through the jobs queue & look for "in progress" jobs
         jobs_today = []
@@ -341,12 +348,24 @@ class JobManager:
                     if status[0] == "in progress" and float(day) <= time:
                         jobs_today.append([property_index, job_type, day, status])
 
+        # TODO : put in some proper prioritisation
+        # for now, just randomly halve / get a max of say 100 jobs a day / need to be scaled by the number of properties
+        max_jobs_today = min(int(len(jobs_today) / 2), int(len(properties) / 10))
+        jobs_today = random.sample(jobs_today, max_jobs_today)
+
         # TODO run the jobs
         for job in jobs_today:
             property_index, job_type, day, status = job
             if job_type == "LabTesting":
                 # run the lab test and subsequent actionns
-                temp_combined_narrative = self.run_lab_testing_now(properties, property_index, time, converted_date)
+                temp_combined_narrative, labresult = self.run_lab_testing_now(
+                    properties, property_index, time, converted_date
+                )
+                num_lab_tested += 1
+                if labresult:  # is positive
+                    num_confirmed_infected += 1
+                else:
+                    num_tested_negative += 1
 
                 # save the report appropriately
                 new_combined_narrative.extend(temp_combined_narrative)
@@ -360,25 +379,28 @@ class JobManager:
             elif job_type == "ClinicalObservation":
                 # run the lab test and subsequent actionns
                 testing_report, positive = self.conduct_clinicalobservation(properties, property_index, time)
-                new_combined_narrative.append([time, converted_date, "test", testing_report])
+                new_combined_narrative.append([time, converted_date, "test", property_index, testing_report])
+
+                if positive:
+                    num_positive_clinical += 1
 
                 self.jobs_queue[property_index][job_type][day] = ["complete", converted_date]
 
                 # regardless of whether positive:
                 # schedule contact tracing
                 report = self.schedule_contract_tracing(property_index, time)
-                new_combined_narrative.append([time, converted_date, "tracing", report])
+                new_combined_narrative.append([time, converted_date, "tracing", property_index, report])
 
                 # schedule lab testing (if not yet done)
                 report, scheduled_successful = self.schedule_lab_testing_after_observation(property_index, time)
-                new_combined_narrative.append([time, converted_date, "test", report])
+                new_combined_narrative.append([time, converted_date, "test", property_index, report])
                 if scheduled_successful:
                     properties[property_index].undergoing_testing = True
 
             elif job_type == "Cull":
                 premise = properties[property_index]
                 premise_report, culled_animals = premise.cull_only(time)
-                new_combined_narrative.append([time, converted_date, "cull", premise_report])
+                new_combined_narrative.append([time, converted_date, "cull", property_index, premise_report])
                 total_culled_animals += culled_animals
 
                 self.jobs_queue[property_index][job_type][day] = ["complete", converted_date]
@@ -391,31 +413,49 @@ class JobManager:
                 )
                 self.jobs_queue[property_index][job_type][day] = ["complete", converted_date]
 
-                new_combined_narrative.append([time, converted_date, "tracing", contact_tracing_report])
+                new_combined_narrative.append([time, converted_date, "tracing", property_index, contact_tracing_report])
 
                 contacts_for_plotting[property_index] = traced_property_indices
 
                 for t_i in traced_property_indices:
                     # check if property is not yet culled
                     if not properties[t_i].culled_status:
+                        new_combined_narrative.append(
+                            [
+                                time,
+                                converted_date,
+                                "tracing",
+                                t_i,
+                                "This property has been identified as a DCP",
+                            ]
+                        )
 
                         # schedule movement restrictions right away
-                        self.local_movement_restrictions.append(properties[property_index].polygon)
+                        self.local_movement_restrictions.append(properties[t_i].polygon)
                         new_combined_narrative.append(
                             [
                                 time,
                                 converted_date,
                                 "control",
-                                f"No movements are allowed to or from property {property_index} ({properties[property_index].type})",
+                                t_i,
+                                f"No movements are allowed to or from property {t_i} ({properties[t_i].type})",
                             ]
                         )
 
                         report, scheduled_successful = self.schedule_clinical_observation(t_i, time)
-                        new_combined_narrative.append([time, converted_date, "test", report])
+                        new_combined_narrative.append([time, converted_date, "test", t_i, report])
                         if scheduled_successful:
                             properties[t_i].undergoing_testing = True
 
-        return new_combined_narrative, self.local_movement_restrictions, total_culled_animals, contacts_for_plotting
+        stats = [num_positive_clinical, num_lab_tested, num_confirmed_infected, num_tested_negative]
+
+        return (
+            new_combined_narrative,
+            self.local_movement_restrictions,
+            total_culled_animals,
+            contacts_for_plotting,
+            stats,
+        )
 
     def job_manager(self, time, properties, movement_records):
         new_report = ""

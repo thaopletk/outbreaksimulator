@@ -90,10 +90,14 @@ if not os.path.exists(os.path.join(folder_path_main, "map_underlying0.png")):
         show_movement_neighbours=True,
     )
 
-# plotting animal density seems to take a lot of time, should make it better /faster TODO
-# # plot the animal density
-# if not os.path.exists(os.path.join(folder_path_main, "animal_density.png")):
-#     output.plot_animal_density(properties, xlims, ylims, folder_path=folder_path_main)
+# TODO plotting animal density seems to take a lot of time, should make it better /faster
+# or could just run it on the cluster anyway? and fix things via photoshop
+# plot the animal density
+if not os.path.exists(os.path.join(folder_path_main, "animal_density.png")):
+    output.plot_animal_density(properties, xlims, ylims, folder_path=folder_path_main)
+
+if not os.path.exists(os.path.join(folder_path_main, "animals.png")):
+    output.plot_animals(properties, xlims, ylims, folder_path=folder_path_main)
 
 
 # step 3:  initial seeding of a property
@@ -141,6 +145,7 @@ folder_path_undetected_spread = os.path.join(folder_path_main, unique_output)
 if not os.path.exists(folder_path_undetected_spread):
     os.makedirs(folder_path_undetected_spread)
 
+# TODO could change this so that it runs until there are X number of infected properties in each of the main states or territories
 stop_time = 65  # 28
 first_detection_day = stop_time + 1
 
@@ -212,9 +217,6 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
         unique_output=unique_output,
     )
 
-    # TODO - actually remove this once I re-run everything from the top
-    diseaseoutbreak.job_manager = management.JobManager(spatial_only_parameters["n"], **job_parameters)
-
     reportingregion_x = [140, 155]
     reportingregion_y = [-31, -29]
 
@@ -273,6 +275,7 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
     job_manager.calculate_resources_used(folder_path)
 
     # plot number of notified properties over time TODO
+    # TODO: save it as a csv as well
     dates_list = [
         premises.convert_time_to_date(time)
         for time in range(first_detection_day, first_detection_day + days_to_run_for + 2)
@@ -296,7 +299,7 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
     # with open(plotting_data_name, "rb") as file:
     #     properties, time, xlims, ylims, controlzone, contacts_for_plotting = pickle.load(file)
 
-    # TODO - this wasn't working
+    # TODO - this wasn't working - fix it
     # output.plot_simex(properties,time,xlims,ylims,folder_path,contacts_for_plotting={},xylabels = True,save_suffix="_v2")
 
 
@@ -339,7 +342,7 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
         unique_output=unique_output,
     )
 
-    # TODO
+    # TODO not complete
     properties, movement_records, time, total_culled_animals, job_manager = (
         diseaseoutbreak.simulate_outbreak_management(
             properties, management_parameters, days_to_run_for, jobs_resourcing
@@ -354,6 +357,7 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
     with open(spread_diseaseoutbreak_filename, "wb") as file:
         pickle.dump(diseaseoutbreak, file)
 
+    # TODO: add in a "total" column? or add in relative costs/estimated costs and a total estimated cost...
     job_manager.calculate_resources_used(folder_path)
 
     # plot number of notified properties over time TODO
@@ -376,14 +380,13 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
 
     # plot the full outbreak window at end time point
 
-    plotting_data_name = os.path.join(folder_path, f"plotting_data{time}")
-    with open(plotting_data_name, "rb") as file:
-        properties, time, xlims, ylims, controlzone, contacts_for_plotting = pickle.load(file)
+    # plotting_data_name = os.path.join(folder_path, f"plotting_data{time}")
+    # with open(plotting_data_name, "rb") as file:
+    #     properties, time, xlims, ylims, controlzone, contacts_for_plotting = pickle.load(file)
 
-    output.plot_simex(
-        properties, time, xlims, ylims, folder_path, contacts_for_plotting={}, xylabels=True, save_suffix="_v2"
-    )
-
+    # output.plot_simex(
+    #     properties, time, xlims, ylims, folder_path, contacts_for_plotting={}, xylabels=True, save_suffix="_v2"
+    # )
 
 else:
     with open(spread_properties_filename, "rb") as file:

@@ -97,7 +97,7 @@ class DiseaseSimulation:
 
         self.vax_modifier = 0
 
-        self.combined_narrative = []  # ["day","date","type","report"]
+        self.combined_narrative = []  # ["day","date","type","property","report"]
 
         # default set for plotting limits
         # limits for the figures
@@ -117,6 +117,8 @@ class DiseaseSimulation:
         self.total_culled_animals = 0
         self.controlzone = {}  # empty control zone
         self.contacts_for_plotting = {}  # empty, as no contact tracing will occur here
+
+        self.daily_statistics = {}  # converted_date, stat types
 
     def set_plotting_parameters(self, xlims, ylims, plotting=True, folder_path="", unique_output=""):
         """Sets the plotting parameters, especially important to update regularly if you want things to output to a different folder"""
@@ -145,6 +147,7 @@ class DiseaseSimulation:
                 self.time,
                 premises.convert_time_to_date(self.time),
                 "summary",
+                "",
                 f"Total culled properties: {total_culled}; total vaccinated properties: {total_vaccinated}; total culled animals: {self.total_culled_animals}",
             ]
         )
@@ -152,10 +155,32 @@ class DiseaseSimulation:
 
         narrative_df.to_csv(os.path.join(self.folder_path, "combinated_narrative.csv"), index=False)
 
-    def make_report(self, reported_property, converted_date):
+    def save_daily_statistics(self):
+        header = ["date", "num positive clinical", "num lab tested", "num confirmed infected", "num tested negative"]
+        data = []
+
+        for key, value in self.daily_statistics.items():
+            data.append(
+                [
+                    key,
+                    value["num positive clinical"],
+                    value["num lab tested"],
+                    value["num confirmed infected"],
+                    value["num tested negative"],
+                ]
+            )
+        # order by the date
+        data.sort(key=lambda x: x[0])
+        # convert to dataframe
+        # save the dataframe
+        data_df = pd.DataFrame(data, columns=header)
+
+        data_df.to_csv(os.path.join(self.folder_path, "daily_statistics.csv"), index=False)
+
+    def make_report(self, reported_property, converted_date, property_index):
         """Saves text in the combined narrative that a property reported"""
         report = reported_property.report_suspicion(self.time)
-        self.combined_narrative.append([self.time, converted_date, "report", report])
+        self.combined_narrative.append([self.time, converted_date, "report", property_index, report])
 
     def add_local_movement_restriction(self, reported_property, converted_date):
         """Adds the property area to movement restrictions (no movements to or from this property) and saves text in the combined narrative that this occurred"""
@@ -164,6 +189,7 @@ class DiseaseSimulation:
                 self.time,
                 converted_date,
                 "control",
+                reported_property.id,
                 f"No movements are allowed to or from property {reported_property.id} ({reported_property.type})",
             ]
         )
@@ -172,7 +198,7 @@ class DiseaseSimulation:
     def add_contact_tracing_job(self, property_index, converted_date):
         """Adds (schedules) a contact tracing job to the job_manager, and adds text to the combined narrative that this occurred"""
         s_report = self.job_manager.schedule_contract_tracing(property_index, self.time)
-        self.combined_narrative.append([self.time, converted_date, "tracing", s_report])
+        self.combined_narrative.append([self.time, converted_date, "tracing", property_index, s_report])
 
     def add_lab_testing_after_observation_job(self, property_i, property_index, converted_date):
         """Schedules lab testing (with reduced testing delay), and adds this note into the combined narrative"""
@@ -180,15 +206,16 @@ class DiseaseSimulation:
             property_index, self.time
         )
 
-        self.combined_narrative.append([self.time, converted_date, "test", report])
+        self.combined_narrative.append([self.time, converted_date, "test", property_index, report])
         if scheduled_successful:
             property_i.undergoing_testing = True
 
     def run_property_selfreporting(self, properties, i):
         converted_date = premises.convert_time_to_date(self.time)
+        self.daily_statistics[converted_date]["num positive clinical"] += 1
 
         property_i = properties[i]
-        self.make_report(property_i, converted_date)
+        self.make_report(property_i, converted_date, i)
 
         # enact local movement restrictions around this property, just in case
         self.add_local_movement_restriction(property_i, converted_date)
@@ -211,6 +238,7 @@ class DiseaseSimulation:
                 self.clinical_reporting_threshold, self.prob_report
             ):
                 # essentially the same as a positive clinical observation
+
                 did_any_properties_report = True
 
                 self.run_property_selfreporting(properties, i)
@@ -271,6 +299,10 @@ class DiseaseSimulation:
                 properties, day=self.time, controlzone=controlzone_movement_restrictions
             )
             self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
+
+            if self.time % 2 == 0:
+                movement_record = animal_movement.extra_southward_movement(properties, day=self.time)
+                self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
 
             # update counts of infected/clinical/etc animals on each farm
             for i, premise in enumerate(properties):
@@ -380,6 +412,12 @@ class DiseaseSimulation:
 
         self.time += 1
         converted_date = premises.convert_time_to_date(self.time)
+        self.daily_statistics[converted_date] = {
+            "num positive clinical": 0,
+            "num lab tested": 0,
+            "num confirmed infected": 0,
+            "num tested negative": 0,
+        }
 
         FOI = self.calculate_FOI_for_each_property(properties)
 
@@ -388,7 +426,8 @@ class DiseaseSimulation:
         # forcing a property to report
         first_report_i = self.select_first_reported_property(properties, reportingregion_x, reportingregion_y)
         reported_property = properties[first_report_i]
-        self.make_report(reported_property, converted_date)
+        self.make_report(reported_property, converted_date, first_report_i)
+        self.daily_statistics[converted_date]["num positive clinical"] += 1
 
         # movement restrictions on reported property
         self.add_local_movement_restriction(reported_property, converted_date)
@@ -399,6 +438,7 @@ class DiseaseSimulation:
                 self.time,
                 converted_date,
                 "test",
+                first_report_i,
                 f"EMAI lab has confirmed a positive LSD result for property {reported_property.id} ({reported_property.type})",
             ]
         )
@@ -427,7 +467,7 @@ class DiseaseSimulation:
         contact_tracing_report, traced_property_indices = management.contact_tracing(
             properties, first_report_i, self.movement_records, self.time
         )
-        self.combined_narrative.append([self.time, converted_date, "tracing", contact_tracing_report])
+        self.combined_narrative.append([self.time, converted_date, "tracing", first_report_i, contact_tracing_report])
         # add this as a job to the job queue for completeness
         self.job_manager.jobs_queue[reported_property.id]["ContactTracing"][str(self.time)] = [
             "complete",
@@ -435,6 +475,9 @@ class DiseaseSimulation:
         ]
         self.contacts_for_plotting[first_report_i] = traced_property_indices
         for t_i in traced_property_indices:
+            self.combined_narrative.append(
+                [self.time, converted_date, "tracing", t_i, "This property has been identified as a DCP"]
+            )
             self.add_local_movement_restriction(properties[t_i], converted_date)
 
         # Then close off this day
@@ -484,6 +527,12 @@ class DiseaseSimulation:
 
         self.time += 1
         converted_date = premises.convert_time_to_date(self.time)
+        self.daily_statistics[converted_date] = {
+            "num positive clinical": 0,
+            "num lab tested": 0,
+            "num confirmed infected": 0,
+            "num tested negative": 0,
+        }
 
         FOI = self.calculate_FOI_for_each_property(properties)
 
@@ -516,10 +565,11 @@ class DiseaseSimulation:
 
             if positive:
                 properties[i].clinical_report_outcome = True
+                self.daily_statistics[converted_date]["num positive clinical"] += 1
             else:
                 properties[i].clinical_report_outcome = False
 
-            self.combined_narrative.append([self.time, converted_date, "test", testing_report])
+            self.combined_narrative.append([self.time, converted_date, "test", i, testing_report])
             # add this as a job to the job queue for completeness
             self.job_manager.jobs_queue[i]["ClinicalObservation"][str(self.time)] = ["complete", converted_date]
 
@@ -529,17 +579,20 @@ class DiseaseSimulation:
                 self.time,
                 converted_date,
                 "test",
+                reported_property.id,
                 f"ACDP lab has confirmed a POSITIVE LSD result for property {reported_property.id} ({reported_property.type})",
             ]
         )
         self.job_manager.jobs_queue[reported_property.id]["LabTesting"][str(self.time)] = ["complete", converted_date]
+        self.daily_statistics[converted_date]["num lab tested"] += 1
+        self.daily_statistics[converted_date]["num confirmed infected"] += 1
 
         premise_report = reported_property.report_only(self.time)
-        self.combined_narrative.append([self.time, converted_date, "report", premise_report])
+        self.combined_narrative.append([self.time, converted_date, "report", reported_property.id, premise_report])
 
         # schedule culling of property
         report = self.job_manager.decision_to_cull(reported_property.id, self.time)
-        self.combined_narrative.append([self.time, converted_date, "cull", report])
+        self.combined_narrative.append([self.time, converted_date, "cull", reported_property.id, report])
 
         # schedule ACDP lab testing for traced properties
         # & schedule contact tracing for traced properties regardless of clinical observation
@@ -829,6 +882,12 @@ class DiseaseSimulation:
         while self.time < stop_time:
             self.time += 1
             converted_date = premises.convert_time_to_date(self.time)
+            self.daily_statistics[converted_date] = {
+                "num positive clinical": 0,
+                "num lab tested": 0,
+                "num confirmed infected": 0,
+                "num tested negative": 0,
+            }
             # calculate FOI for each property
             FOI = self.calculate_FOI_for_each_property(properties)
 
@@ -839,22 +898,32 @@ class DiseaseSimulation:
             properties = self.run_infection_model_for_each_property(properties, FOI)
 
             # go through job queue
-            new_combined_narrative, local_movement_restrictions, newly_culled_animals, contacts_for_plotting = (
+            new_combined_narrative, local_movement_restrictions, newly_culled_animals, contacts_for_plotting, stats = (
                 self.job_manager.run_jobs(self.time, properties, self.movement_records, converted_date)
             )
 
             self.combined_narrative.extend(new_combined_narrative)
             self.contacts_for_plotting = contacts_for_plotting
             self.total_culled_animals += newly_culled_animals
+            num_positive_clinical, num_lab_tested, num_confirmed_infected, num_tested_negative = stats
+            self.daily_statistics[converted_date]["num positive clinical"] += num_positive_clinical
+            self.daily_statistics[converted_date]["num lab tested"] += num_lab_tested
+            self.daily_statistics[converted_date]["num confirmed infected"] += num_confirmed_infected
+            self.daily_statistics[converted_date]["num tested negative"] += num_tested_negative
 
             # and then go through job queue again in 0.5 time,
 
-            new_combined_narrative, local_movement_restrictions, newly_culled_animals, contacts_for_plotting = (
+            new_combined_narrative, local_movement_restrictions, newly_culled_animals, contacts_for_plotting, stats = (
                 self.job_manager.run_jobs(self.time + 0.5, properties, self.movement_records, converted_date)
             )
             self.combined_narrative.extend(new_combined_narrative)
             self.contacts_for_plotting.update(contacts_for_plotting)
             self.total_culled_animals += newly_culled_animals
+            num_positive_clinical, num_lab_tested, num_confirmed_infected, num_tested_negative = stats
+            self.daily_statistics[converted_date]["num positive clinical"] += num_positive_clinical
+            self.daily_statistics[converted_date]["num lab tested"] += num_lab_tested
+            self.daily_statistics[converted_date]["num confirmed infected"] += num_confirmed_infected
+            self.daily_statistics[converted_date]["num tested negative"] += num_tested_negative
 
             # no movement of animals
 
@@ -899,6 +968,7 @@ class DiseaseSimulation:
         animal_movement.save_movement_record(self.folder_path, self.movement_records)
         self.save_reports(properties)
         self.job_manager.save_jobs_queue(self.folder_path)
+        self.save_daily_statistics()
 
         return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
 
@@ -934,6 +1004,14 @@ class DiseaseSimulation:
         nothing_left_to_do = False
         while self.time < stop_time and not nothing_left_to_do:
             self.time += 1
+            converted_date = premises.convert_time_to_date(self.time)
+            self.daily_statistics[converted_date] = {
+                "num positive clinical": 0,
+                "num lab tested": 0,
+                "num confirmed infected": 0,
+                "num tested negative": 0,
+            }
+
             # calculate FOI for each property
             FOI = self.calculate_FOI_for_each_property(properties)
 
@@ -975,8 +1053,10 @@ class DiseaseSimulation:
                         convex=management_policy["convex"],
                     )
                 elif management_policy["type"] == "conditional_movement":
+                    # TODO
                     pass  #    {"type": "conditional_movement", "radius_km": 80, "convex": False, "probability_reduction": 0.1},
                 elif management_policy["type"] == "ring_surveillance":
+                    # TODO
                     pass  #  {"type": "ring_surveillance", "radius_km": 80, "convex": False},
                 else:
                     raise ValueError(
@@ -984,6 +1064,19 @@ class DiseaseSimulation:
                     )
 
             # TODO need to go through job queue, and prioritise tasks
+
+            # go through job queue
+            new_combined_narrative, local_movement_restrictions, newly_culled_animals, contacts_for_plotting, stats = (
+                self.job_manager.run_jobs(self.time, properties, self.movement_records, converted_date)
+            )
+            self.combined_narrative.extend(new_combined_narrative)
+            self.contacts_for_plotting = contacts_for_plotting
+            self.total_culled_animals += newly_culled_animals
+            num_positive_clinical, num_lab_tested, num_confirmed_infected, num_tested_negative = stats
+            self.daily_statistics[converted_date]["num positive clinical"] += num_positive_clinical
+            self.daily_statistics[converted_date]["num lab tested"] += num_lab_tested
+            self.daily_statistics[converted_date]["num confirmed infected"] += num_confirmed_infected
+            self.daily_statistics[converted_date]["num tested negative"] += num_tested_negative
 
             # define movement control zones, and conduct animal movement where possible
             controlzone_movement_restrictions = controlzone_large_movement_restrictions
@@ -1000,6 +1093,10 @@ class DiseaseSimulation:
                             ]
                         )
 
+                # run animal movements
+                # TODO: add in reduced movements in certain areas
+                # TODO: add in illegal movement
+                # TODO: add in a low probability of unreported movement (i.e., movement that can't be traced)
                 movement_record = animal_movement.animal_movement(
                     properties, day=self.time, controlzone=controlzone_movement_restrictions
                 )
@@ -1008,6 +1105,22 @@ class DiseaseSimulation:
             self.controlzone["movement restrictions"] = (
                 controlzone_movement_restrictions  # this is for plotting purposes later
             )
+            # update counts of infected/clinical/etc animals on each farm (important too if any animals have moved locations)
+            for i, premise in enumerate(properties):
+                premise.update_counts()
+
+            # and then go through job queue again in 0.5 time,
+            new_combined_narrative, local_movement_restrictions, newly_culled_animals, contacts_for_plotting, stats = (
+                self.job_manager.run_jobs(self.time + 0.5, properties, self.movement_records, converted_date)
+            )
+            self.combined_narrative.extend(new_combined_narrative)
+            self.contacts_for_plotting.update(contacts_for_plotting)
+            self.total_culled_animals += newly_culled_animals
+            num_positive_clinical, num_lab_tested, num_confirmed_infected, num_tested_negative = stats
+            self.daily_statistics[converted_date]["num positive clinical"] += num_positive_clinical
+            self.daily_statistics[converted_date]["num lab tested"] += num_lab_tested
+            self.daily_statistics[converted_date]["num confirmed infected"] += num_confirmed_infected
+            self.daily_statistics[converted_date]["num tested negative"] += num_tested_negative
 
             # update counts of infected/clinical/etc animals on each farm (important too if any animals have moved locations)
             for i, premise in enumerate(properties):
@@ -1050,6 +1163,7 @@ class DiseaseSimulation:
         animal_movement.save_movement_record(self.folder_path, self.movement_records)
         self.save_reports(properties)
         self.job_manager.save_jobs_queue(self.folder_path)
+        self.save_daily_statistics()
 
         return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
 

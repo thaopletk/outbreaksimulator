@@ -691,7 +691,6 @@ def seed_infection_within_bound(
 ):
     """Seeds an infection at a property within the bounds specified"""
     seed_property = 0  # default
-    seed_animal = 0  # default
 
     viable_properties = []
     for i, property in enumerate(properties):
@@ -712,9 +711,12 @@ def seed_infection_within_bound(
     # TODO technically, to encapsulate this better, there should a function that allows you to infect a specific animal(s), and that will then update infection_status, prop_infections, cumulative_infections, and exposure_date, and anything else that may need to be updated
     p.infection_status = 1
     p.exposure_date = premises.convert_time_to_date(time - latent_period)
-    p.animals[seed_animal].status = "infected"
-    p.prop_infectious = 1 / p.size
-    p.cumulative_infections = 1
+    num_infected = 10
+    for seed_animal in range(num_infected):
+        p.animals[seed_animal].status = "infected"
+
+    p.prop_infectious = num_infected / p.size
+    p.cumulative_infections = num_infected
 
     plot_current_state(
         properties,

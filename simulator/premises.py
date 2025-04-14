@@ -129,6 +129,8 @@ class Premises(Property):
         self.x, self.y = self.coordinates
 
         self.location = self.geolocator.reverse(f"{self.y},{self.x}")
+        self.address = self.location.raw["address"]
+        self.state = self.address.get("state", "")
 
         self.undergoing_testing = False
         self.day_of_last_lab_test = None
@@ -320,6 +322,15 @@ class Premises(Property):
         self.size = len(self.animals)  # updating this
 
         return moving_animal_list
+
+    def move_out_an_infectious_animal(self):
+        for animal_index in range(len(self.animals)):
+            if self.animals[animal_index].infection_status in ["exposed", "infectious"]:
+                moving_animal = self.animals.pop(animal_index)
+                self.size = len(self.animals)  # updating this
+                return moving_animal
+
+        return False
 
     def add_animals(self, moving_animal_list):
         for moving_animal in moving_animal_list:
