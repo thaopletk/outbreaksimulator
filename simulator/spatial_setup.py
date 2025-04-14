@@ -22,6 +22,7 @@ from shapely.ops import transform
 from simulator.spatial_functions import *
 import rasterio as rio
 from pyproj import Proj, itransform
+import functools
 
 
 def assign_coordinates(n, xrange=[150.2503, 151.39695], yrange=[-32.61181, -31.60829]):
@@ -113,6 +114,7 @@ def plot_coordinates(property_coordinates, neighbour_pairs):
     return
 
 
+@functools.lru_cache(maxsize=None)
 def Australia_shape():
     # Read in Australia shapefile
     Australia_gdf = gpd.read_file(

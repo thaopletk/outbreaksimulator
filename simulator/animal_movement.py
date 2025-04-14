@@ -171,7 +171,7 @@ def extra_southward_movement(properties, day):
                 allowed_southern_neighbours[allowed_type] = []
                 for index_j in allowed_movement_neighbours[allowed_type]:
                     property_j = properties[index_j]
-                    if property_j.y < property_p.y and property_j.x > 140:
+                    if property_j.y < property_p.y and property_j.x > 141:
                         allowed_southern_neighbours[allowed_type].append(index_j)
                         actual_total_num_allowed += 1
 

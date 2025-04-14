@@ -1042,9 +1042,13 @@ class DiseaseSimulation:
 
             # TODO: prioritise jobs based on zoning
 
+            # TODO : to make a report when a property has been identified for surveillance (as opposed to being a DCP)
+
             for management_policy in management_parameters:
                 if management_policy["type"] == "national_standstill":
-                    controlzone_large_movement_restrictions = spatial_setup.Australia_shape()
+                    controlzone_large_movement_restrictions = (
+                        spatial_setup.Australia_shape()
+                    )  # TODO...should just read this once rather than multiple times?
                 elif management_policy["type"] == "movement_restriction":
                     controlzone_large_movement_restrictions = management.define_control_zone_polygons(
                         properties,

@@ -90,6 +90,10 @@ if not os.path.exists(os.path.join(folder_path_main, "map_underlying0.png")):
         show_movement_neighbours=True,
     )
 
+
+if not os.path.exists(os.path.join(folder_path_main, "animal_density_hist2D.png")):
+    output.plot_animal_density_hist2d(properties, xlims, ylims, folder_path=folder_path_main)
+
 # TODO plotting animal density seems to take a lot of time, should make it better /faster
 # or could just run it on the cluster anyway? and fix things via photoshop
 # plot the animal density

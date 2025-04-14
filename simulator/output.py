@@ -15,6 +15,7 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 from shapely.geometry import Polygon, Point, LineString, MultiPolygon, MultiPoint
+import shapely.plotting
 import geopandas as gpd
 import contextily as ctx
 import pickle
@@ -25,6 +26,7 @@ from scipy.stats import gaussian_kde
 
 from simulator.premises import convert_time_to_date
 from simulator.spatial_functions import *
+import simulator.spatial_setup as spatial_setup
 
 
 def plot_polygon(ax, poly, **kwargs):
@@ -496,17 +498,31 @@ def plot_animal_density(
         y.extend(animal_points[:, 1])
 
     # https://python-graph-gallery.com/85-density-plot-with-matplotlib/
-    nbins = 300
+    nbins = 50
 
     k = gaussian_kde([x, y])
-    xi, yi = np.mgrid[min(x) : max(x) : nbins * 1j, min(y) : max(y) : nbins * 1j]
+    xi, yi = np.mgrid[min(xlims) : max(xlims) : nbins * 1j, min(ylims) : max(ylims) : nbins * 1j]
     zi = k(np.vstack([xi.flatten(), yi.flatten()])).reshape(xi.shape)
 
-    pcm = ax.pcolormesh(xi, yi, zi, alpha=0.5, cmap="YlOrRd")
+    Australiashape = spatial_setup.Australia_shape()
+    Australiashape = shapely.plotting.patch_from_polygon(Australiashape, facecolor="white")
+    ax.add_patch(Australiashape)
+
+    pcm = ax.pcolormesh(xi, yi, zi, alpha=1, cmap="YlOrRd", clip_path=(Australiashape))
+    # pcm.set_clip_path(Australiashape)
+
+    # ax.add_patch(Australiashape)
+
+    # for subpoly in Australiashape.geoms:
+    #     path = Path.make_compound_path(
+    #         Path(np.asarray(subpoly.exterior.coords)[:, :2]),
+    #         *[Path(np.asarray(ring.coords)[:, :2]) for ring in subpoly.interiors],
+    #     )
+    #     pcm = ax.pcolormesh(xi, yi, zi, alpha=0.5, cmap="YlOrRd",clip_path=(path, ax.transAxes))
 
     fig.colorbar(pcm, ax=ax)
 
-    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
+    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
     points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
@@ -609,6 +625,74 @@ def plot_animals(
     ax.tick_params(axis="y", labelsize=14)
 
     file_name = "animals.png"
+
+    file_name = os.path.join(folder_path, file_name)
+
+    plt.savefig(file_name, bbox_inches="tight")
+
+    plt.close()
+
+
+def plot_animal_density_hist2d(
+    properties,
+    xlims,
+    ylims,
+    folder_path,
+):
+    """Aim: to plot a map of animal density across space"""
+
+    fig, ax = plt.subplots(1, 1, figsize=(20, 15))
+
+    x = []
+    y = []
+
+    for index, premise in enumerate(properties):
+        property_polygon = premise.polygon
+        num_animals = len(premise.animals)
+        # Generates random points inside polygon
+        animal_points = pointpats.random.poisson(property_polygon, size=num_animals)
+        # what format is this in? an array of points?
+        x.extend(animal_points[:, 0])
+        y.extend(animal_points[:, 1])
+
+    pcm = ax.hist2d(x, y, bins=(50, 50), cmap="YlOrRd")
+    Australiashape = spatial_setup.Australia_shape()
+
+    Australiashape = shapely.plotting.patch_from_polygon(Australiashape)
+    ax.add_patch(Australiashape)
+
+    pcm[3].set_clip_path(Australiashape)
+    fig.colorbar(pcm[3], ax=ax)
+
+    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)
+
+    # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
+    points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
+    points = points.to_crs(32619)  # Projected WGS 84 - meters
+    distance_meters = points[0].distance(points[1])
+    ax.add_artist(
+        ScaleBar(
+            distance_meters,
+            box_alpha=0.1,
+            location="lower right",
+        )
+    )
+
+    ax.set_title("Animal density map", fontsize=18)
+
+    ax.set_ylabel("latitude", fontsize=16)
+    ax.set_xlabel("longitude", fontsize=16)
+
+    ax.set_xlim(xlims)
+    ax.set_ylim(ylims)
+
+    # ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
+    #       fancybox=True, shadow=True, ncol=5,fontsize=18)
+
+    ax.tick_params(axis="x", labelsize=14)
+    ax.tick_params(axis="y", labelsize=14)
+
+    file_name = "animal_density_hist2D.png"
 
     file_name = os.path.join(folder_path, file_name)
 
