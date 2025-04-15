@@ -17,7 +17,6 @@ import simulator.disease_simulation as disease_simulation
 import simulator.management as management
 import simulator.premises as premises
 
-
 folder_path_main = os.path.join(os.path.dirname(__file__), "outputs", "v03_trial")
 folder_path_seed = os.path.join(folder_path_main, "01_seed")
 
@@ -91,17 +90,14 @@ if not os.path.exists(os.path.join(folder_path_main, "map_underlying0.png")):
     )
 
 
-if not os.path.exists(os.path.join(folder_path_main, "animal_density_hist2D.png")):
-    output.plot_animal_density_hist2d(properties, xlims, ylims, folder_path=folder_path_main)
-
-# TODO plotting animal density seems to take a lot of time, should make it better /faster
-# or could just run it on the cluster anyway? and fix things via photoshop
 # plot the animal density
 if not os.path.exists(os.path.join(folder_path_main, "animal_density.png")):
     output.plot_animal_density(properties, xlims, ylims, folder_path=folder_path_main)
 
-if not os.path.exists(os.path.join(folder_path_main, "animals.png")):
-    output.plot_animals(properties, xlims, ylims, folder_path=folder_path_main)
+# if not os.path.exists(os.path.join(folder_path_main, "animals.png")):
+#     output.plot_animals(properties, xlims, ylims, folder_path=folder_path_main)
+# if not os.path.exists(os.path.join(folder_path_main, "animal_density_hist2D.png")):
+#     output.plot_animal_density_hist2d(properties, xlims, ylims, folder_path=folder_path_main)
 
 
 # step 3:  initial seeding of a property
@@ -222,7 +218,7 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
     )
 
     reportingregion_x = [140, 155]
-    reportingregion_y = [-31, -29]
+    reportingregion_y = [-32, -29]
 
     properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_first_two_days(
         properties, reportingregion_x, reportingregion_y
@@ -367,7 +363,7 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
     # plot number of notified properties over time TODO
     dates_list = [
         premises.convert_time_to_date(time)
-        for time in range(first_detection_day, first_detection_day + days_to_run_for + 2)
+        for time in range(first_detection_day, first_detection_day + days_to_run_for + 5)
     ]
     print(dates_list)
     daily_notifs = [0] * len(dates_list)

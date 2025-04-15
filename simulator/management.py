@@ -89,6 +89,10 @@ def contact_tracing(properties, property_index, movement_records, time):
 
     if not properties_found:
         contact_tracing_report += " - no movements found\n"
+    else:
+        for t_i in traced_property_indices:
+            if properties[t_i].status == "NA":
+                properties[t_i].status = "TP"
 
     return contact_tracing_report, traced_property_indices
 
@@ -292,6 +296,10 @@ class JobManager:
             report = self.schedule_contract_tracing(property_index, time)
             new_combined_narrative.append([time, converted_date, "tracing", report])
         else:
+            # remove TP status...convert to NA status again for now
+            # otherwise, I could shift it to "SP" status if we want to keep track for some reason
+            properties[property_index].status = "NA"
+
             # remove any local movement restrictions
             try:
                 self.local_movement_restrictions.remove(properties[property_index].polygon)
@@ -383,6 +391,10 @@ class JobManager:
 
                 if positive:
                     num_positive_clinical += 1
+                    properties[property_index].status = "DCP"
+                else:
+                    # TODO: could make it DCP even if negative observation, if it's close to another infected property OR if the property is truly infected
+                    pass
 
                 self.jobs_queue[property_index][job_type][day] = ["complete", converted_date]
 
@@ -426,7 +438,7 @@ class JobManager:
                                 converted_date,
                                 "tracing",
                                 t_i,
-                                "This property has been identified as a DCP",
+                                "This property has been identified as a TP",
                             ]
                         )
 

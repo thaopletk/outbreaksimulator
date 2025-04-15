@@ -199,6 +199,9 @@ def plot_map(
         "ring vaccination": "deepskyblue",
         "ring culling": "black",
         "ring testing": "green",
+        "restricted area": "red",
+        "control area": "yellow",
+        "surveillance area": "lime",
     }
 
     if controlzone != None and controlzone != {}:

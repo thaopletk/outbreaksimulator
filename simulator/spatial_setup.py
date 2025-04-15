@@ -129,6 +129,19 @@ def Australia_shape():
     return Australiashape
 
 
+@functools.lru_cache(maxsize=None)
+def get_Queensland_shape():
+    Australia_gdf = gpd.read_file(
+        os.path.join(os.path.dirname(__file__), "..", "data", "STE_2021_AUST_SHP_GDA2020", "STE_2021_AUST_GDA2020.shp")
+    )
+
+    print(Australia_gdf)
+    Queensland_only = Australia_gdf.loc[Australia_gdf["STE_NAME21"] == "Queensland", :]
+    Queenslandshape = list(Queensland_only["geometry"])[0]
+
+    return Queenslandshape
+
+
 # possible extensions: boundaries along roads, more jagged shapes, avoid areas like parks and nature reserves, add some level of clustering
 def assign_property_locations(
     n,

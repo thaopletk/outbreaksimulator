@@ -131,15 +131,25 @@ class DiseaseSimulation:
     def set_vax_modifier(self, vax_modifier):
         self.vax_modifier = vax_modifier
 
-    def save_reports(self, properties):
+    def save_reports(self, properties, restricted_area=None, control_area=None):
         """Saves the text report (narrative) which includes all the actions and reports"""
         total_culled = 0
         total_vaccinated = 0
+
+        total_properties_in_restricted_area = 0
+        total_properties_in_control_area = 0
         for property in properties:
             if property.culled_status:
                 total_culled += 1
             if property.vaccination_status:
                 total_vaccinated += 1
+
+            if restricted_area != None:
+                if property.polygon.intersects(restricted_area):
+                    total_properties_in_restricted_area += 1
+            if control_area != None:
+                if property.polygon.intersects(control_area):
+                    total_properties_in_control_area += 1
 
         to_save_narrative = [x[:] for x in self.combined_narrative]
         to_save_narrative.append(
@@ -148,10 +158,10 @@ class DiseaseSimulation:
                 premises.convert_time_to_date(self.time),
                 "summary",
                 "",
-                f"Total culled properties: {total_culled}; total vaccinated properties: {total_vaccinated}; total culled animals: {self.total_culled_animals}",
+                f"Total culled properties: {total_culled}; total vaccinated properties: {total_vaccinated}; total culled animals: {self.total_culled_animals}; total properties in restricted area: {total_properties_in_restricted_area}; total properties in control area: {total_properties_in_control_area}",
             ]
         )
-        narrative_df = pd.DataFrame(to_save_narrative, columns=["day", "date", "type", "report"])
+        narrative_df = pd.DataFrame(to_save_narrative, columns=["day", "date", "type", "property", "report"])
 
         narrative_df.to_csv(os.path.join(self.folder_path, "combinated_narrative.csv"), index=False)
 
@@ -476,7 +486,7 @@ class DiseaseSimulation:
         self.contacts_for_plotting[first_report_i] = traced_property_indices
         for t_i in traced_property_indices:
             self.combined_narrative.append(
-                [self.time, converted_date, "tracing", t_i, "This property has been identified as a DCP"]
+                [self.time, converted_date, "tracing", t_i, "This property has been identified as a TP"]
             )
             self.add_local_movement_restriction(properties[t_i], converted_date)
 
@@ -566,6 +576,7 @@ class DiseaseSimulation:
             if positive:
                 properties[i].clinical_report_outcome = True
                 self.daily_statistics[converted_date]["num positive clinical"] += 1
+                properties[i].status = "DCP"
             else:
                 properties[i].clinical_report_outcome = False
 
@@ -1023,49 +1034,103 @@ class DiseaseSimulation:
 
             # TODO enact any management, before animal movements, so that we can calculate control zones I guess
             # schedule all tasks, and then will prioritise later
-            # to prioritise, I will need to define the various control zones
 
             source_indices = []
             for i, premise in enumerate(properties):
                 # also need to add in DCPs. This could either be: (1) properties with positive clinical result (well, at least), or more broadly could be (2) any properties currently on the contact tracing list/undergoing testing
                 # to get the properties currently undergoing contact tracing or testing, I would need to go through the job queue, and find active jobs, and find the properties currently under active management
-                if premise.reported_status == True or premise.clinical_report_outcome == True:
+                if (
+                    premise.reported_status == True
+                    or premise.clinical_report_outcome == True
+                    or premise.status == "DCP"
+                ):
                     source_indices.append(i)
 
-            list_of_premises = self.job_manager.get_premises_under_active_jobs()
-            source_indices.extend(list_of_premises)
-            source_indices = list(set(source_indices))
+            # list_of_premises = self.job_manager.get_premises_under_active_jobs()
+            # source_indices.extend(list_of_premises)
+            # source_indices = list(set(source_indices))
 
-            # TODO: get current control/etc zones
+            # Get current control/etc zones
+            # Restricted area: highly restricted
+            restricted_area = management.define_control_zone_polygons(
+                properties,
+                source_indices,
+                5,  # 5 km
+                convex=False,
+            )  # should be zero movement
 
-            # TODO: assign new jobs - i.e. surveillance based on the control zones
+            # define restricted zone for all of Queensland and add to large_movement_restrictions
+            Queenslandshape = spatial_setup.get_Queensland_shape()
+            restricted_area = unary_union([restricted_area, Queenslandshape])
+
+            self.controlzone["restricted area"] = restricted_area
+
+            controlzone_large_movement_restrictions = restricted_area
+
+            # Control area: less restricted
+            control_area = management.define_control_zone_polygons(
+                properties,
+                source_indices,
+                80,  # 5 km
+                convex=False,
+            )
+            self.controlzone["control area"] = control_area
+
+            # rough surveillance
+            low_priority_surveillance_zone = management.define_control_zone_polygons(
+                properties,
+                source_indices,
+                50,  # 5 km
+                convex=False,
+            )
+            high_priority_surveillance_zone = control_area.difference(low_priority_surveillance_zone)
+            self.controlzone["surveillance area"] = high_priority_surveillance_zone
+
+            # TODO expand zones to match LGA and other boundaries
+
+            # assign new jobs - i.e. surveillance based on the control zones
+            for i, premise in enumerate(properties):
+                if not (premise.reported_status or premise.culled_status) and premise.polygon.intersects(
+                    high_priority_surveillance_zone
+                ):
+                    self.combined_narrative.append(
+                        [
+                            self.time,
+                            converted_date,
+                            "surveillance",
+                            i,
+                            "This property has been identified for surveillance",
+                        ]
+                    )
+                    report, scheduled_successful = self.job_manager.schedule_clinical_observation(i, self.time)
+                    self.combined_narrative.append([time, converted_date, "test", i, report])
+                    if scheduled_successful:
+                        premise.undergoing_testing = True
 
             # TODO: prioritise jobs based on zoning
 
-            # TODO : to make a report when a property has been identified for surveillance (as opposed to being a DCP)
-
-            for management_policy in management_parameters:
-                if management_policy["type"] == "national_standstill":
-                    controlzone_large_movement_restrictions = (
-                        spatial_setup.Australia_shape()
-                    )  # TODO...should just read this once rather than multiple times?
-                elif management_policy["type"] == "movement_restriction":
-                    controlzone_large_movement_restrictions = management.define_control_zone_polygons(
-                        properties,
-                        source_indices,
-                        management_policy["radius_km"],
-                        convex=management_policy["convex"],
-                    )
-                elif management_policy["type"] == "conditional_movement":
-                    # TODO
-                    pass  #    {"type": "conditional_movement", "radius_km": 80, "convex": False, "probability_reduction": 0.1},
-                elif management_policy["type"] == "ring_surveillance":
-                    # TODO
-                    pass  #  {"type": "ring_surveillance", "radius_km": 80, "convex": False},
-                else:
-                    raise ValueError(
-                        f"Management policy type {management_policy['type']} doesn't exist, or is not yet implemented"
-                    )
+            # for management_policy in management_parameters:
+            #     if management_policy["type"] == "national_standstill":
+            #         controlzone_large_movement_restrictions = (
+            #             spatial_setup.Australia_shape()
+            #         )  # TODO...should just read this once rather than multiple times?
+            #     elif management_policy["type"] == "movement_restriction":
+            #         controlzone_large_movement_restrictions = management.define_control_zone_polygons(
+            #             properties,
+            #             source_indices,
+            #             management_policy["radius_km"],
+            #             convex=management_policy["convex"],
+            #         )
+            #     elif management_policy["type"] == "conditional_movement":
+            #         # TODO
+            #         pass  #    {"type": "conditional_movement", "radius_km": 80, "convex": False, "probability_reduction": 0.1},
+            #     elif management_policy["type"] == "ring_surveillance":
+            #         # TODO
+            #         pass  #  {"type": "ring_surveillance", "radius_km": 80, "convex": False},
+            #     else:
+            #         raise ValueError(
+            #             f"Management policy type {management_policy['type']} doesn't exist, or is not yet implemented"
+            #         )
 
             # TODO need to go through job queue, and prioritise tasks
 
@@ -1098,11 +1163,14 @@ class DiseaseSimulation:
                         )
 
                 # run animal movements
-                # TODO: add in reduced movements in certain areas
+                # includes reduced movements in certain areas
                 # TODO: add in illegal movement
                 # TODO: add in a low probability of unreported movement (i.e., movement that can't be traced)
                 movement_record = animal_movement.animal_movement(
-                    properties, day=self.time, controlzone=controlzone_movement_restrictions
+                    properties,
+                    day=self.time,
+                    controlzone=controlzone_movement_restrictions,
+                    reduced_movement_zone=control_area,
                 )
                 self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
 
@@ -1153,6 +1221,7 @@ class DiseaseSimulation:
         if self.plotting:
             output.make_video(self.folder_path, "map_underlying", times=time_list)
             output.make_video(self.folder_path, "map_apparent", times=time_list)
+        #  TODO plot more zoomed up versions...
 
         simulator.save_outbreak_state(
             properties,
@@ -1165,7 +1234,7 @@ class DiseaseSimulation:
         )
 
         animal_movement.save_movement_record(self.folder_path, self.movement_records)
-        self.save_reports(properties)
+        self.save_reports(properties, restricted_area, control_area)
         self.job_manager.save_jobs_queue(self.folder_path)
         self.save_daily_statistics()
 
