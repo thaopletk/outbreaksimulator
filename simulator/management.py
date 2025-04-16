@@ -194,7 +194,7 @@ class JobManager:
         results_dict = self.jobs_queue[property_i][job_type]
 
         for day in results_dict.keys():
-            if float(day) <= scheduled_day and float(day) >= scheduled_day - 14:
+            if float(day) <= scheduled_day and float(day) >= scheduled_day - 7:
                 return True
         return False
 
@@ -271,6 +271,10 @@ class JobManager:
 
         new_combined_narrative.append([time, converted_date, "test", property_index, testing_report])
 
+        DCP_status = False
+        if properties[property_index].status == "DCP":
+            DCP_status = True
+
         if positive:
             premise = properties[property_index]
 
@@ -317,7 +321,7 @@ class JobManager:
                 warnings.warn("Local polygon doesn't exist in the local movement restrictions for some reason...")
 
             # may have ongoing surveillance here in the future
-        return new_combined_narrative, positive
+        return new_combined_narrative, positive, DCP_status
 
     def run_jobs(self, time, properties, movement_records, converted_date, control_area=None):
         """Run jobs, without prioritisation and without consideration of personel requirements
@@ -348,8 +352,11 @@ class JobManager:
         num_lab_tested = 0
         num_confirmed_infected = 0
         num_tested_negative = 0
+        DCP_tested_negative = 0
+        surveillance_tested_negative = 0
 
         # go through the jobs queue & look for "in progress" jobs
+        # TODO this probably affects the lab testing of newly DCPs hmm, though maybe that's also fine for now / fix later
         other_jobs_today = []
         culling_jobs_today = []
         jobs_outside_control_area = []  # which will be the first basic prioritisation
@@ -367,9 +374,11 @@ class JobManager:
                             else:
                                 other_jobs_today.append([property_index, job_type, day, status])
 
+        total_jobs = len(other_jobs_today) + len(culling_jobs_today) + len(jobs_outside_control_area)
+
         # TODO : put in some proper prioritisation based on zoning
         # for now, just randomly halve / get a max of say 100 jobs a day / need to be scaled by the number of properties
-        max_jobs_today = min(int(len(jobs_today) * 0.7), int(len(properties) / 10)) + np.random.randint(
+        max_jobs_today = min(int(total_jobs * 0.7), int(len(properties) / 10)) + np.random.randint(
             int(len(properties) / 50)
         )
 
@@ -384,7 +393,10 @@ class JobManager:
         culling_jobs_today = random.sample(culling_jobs_today, extra_culling_jobs)
 
         extra_other_jobs = int(0.2 * max_jobs_today) + (max_jobs_today - len(jobs_today))
-        extra_other_jobs_today = random.sample(other_jobs_today, extra_other_jobs)
+        if extra_other_jobs >= len(other_jobs_today):
+            extra_other_jobs_today = other_jobs_today
+        else:
+            extra_other_jobs_today = random.sample(other_jobs_today, extra_other_jobs)
 
         jobs_today.extend(culling_jobs_today)
         jobs_today.extend(extra_other_jobs_today)
@@ -394,7 +406,7 @@ class JobManager:
             property_index, job_type, day, status = job
             if job_type == "LabTesting":
                 # run the lab test and subsequent actionns
-                temp_combined_narrative, labresult = self.run_lab_testing_now(
+                temp_combined_narrative, labresult, DCP_status = self.run_lab_testing_now(
                     properties, property_index, time, converted_date
                 )
                 num_lab_tested += 1
@@ -402,6 +414,10 @@ class JobManager:
                     num_confirmed_infected += 1
                 else:
                     num_tested_negative += 1
+                    if DCP_status:
+                        DCP_tested_negative += 1
+                    else:
+                        surveillance_tested_negative += 1
 
                 # save the report appropriately
                 new_combined_narrative.extend(temp_combined_narrative)
@@ -459,7 +475,7 @@ class JobManager:
 
                 for t_i in traced_property_indices:
                     # check if property is not yet culled
-                    if not properties[t_i].culled_status:
+                    if not properties[t_i].culled_status and not properties[t_i].reported_status:
                         new_combined_narrative.append(
                             [
                                 time,
@@ -487,7 +503,14 @@ class JobManager:
                         if scheduled_successful:
                             properties[t_i].undergoing_testing = True
 
-        stats = [num_positive_clinical, num_lab_tested, num_confirmed_infected, num_tested_negative]
+        stats = [
+            num_positive_clinical,
+            num_lab_tested,
+            num_confirmed_infected,
+            num_tested_negative,
+            DCP_tested_negative,
+            surveillance_tested_negative,
+        ]
 
         return (
             new_combined_narrative,

@@ -16,10 +16,10 @@ import simulator.output as output
 import simulator.disease_simulation as disease_simulation
 import simulator.management as management
 import simulator.premises as premises
+import simulator.spatial_functions as spatial_functions
 
 folder_path_main = os.path.join(os.path.dirname(__file__), "outputs", "v03_trial")
 folder_path_seed = os.path.join(folder_path_main, "01_seed")
-
 
 # step 1: make main folder if it doesn't exist
 if not os.path.exists(folder_path_main):
@@ -393,6 +393,15 @@ else:
         properties = pickle.load(file)
     with open(spread_diseaseoutbreak_filename, "rb") as file:
         diseaseoutbreak = pickle.load(file)
+
+
+if not os.path.exists(os.path.join(folder_path_main, "map_infection_pressure.png")):
+    output.plot_infection_pressure(
+        time,
+        xlims,
+        ylims,
+        folder_path_main,
+    )
 
 
 # function to make it easier to run specific "branches" of the simulator "history"

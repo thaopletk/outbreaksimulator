@@ -10,6 +10,7 @@ from matplotlib.path import Path
 from matplotlib.patches import PathPatch
 from matplotlib.collections import PatchCollection
 from matplotlib_scalebar.scalebar import ScaleBar
+import matplotlib.cm as cm
 from matplotlib import markers
 import numpy as np
 import os
@@ -27,6 +28,7 @@ from scipy.stats import gaussian_kde
 from simulator.premises import convert_time_to_date
 from simulator.spatial_functions import *
 import simulator.spatial_setup as spatial_setup
+import pandas as pd
 
 
 def plot_polygon(ax, poly, **kwargs):
@@ -206,6 +208,8 @@ def plot_map(
 
     if controlzone != None and controlzone != {}:
         for control_type, zone in controlzone.items():
+            if control_type == "surveillance area":
+                continue  # for now, not plotting this area
             if zone != None:
                 try:
                     plot_polygon(
@@ -998,5 +1002,72 @@ def make_video(folder_path="outputs", prefix="map", times=None, save_name_prefix
     clip_resized.write_videofile(output_file, codec="mpeg4")
 
     clip.write_gif(os.path.join(folder_path, save_name_prefix + prefix + "plot_video.gif"))
+
+    return
+
+
+def plot_infection_pressure(
+    time,
+    xlims,
+    ylims,
+    folder_path,
+):
+    fig, ax = plt.subplots(1, 1, figsize=(20, 15))  # ,figsize=(10,12)
+
+    df = pd.read_csv(os.path.join(folder_path, "infection_pressure_output.csv"))
+
+    markersize = 20
+    marker = "o"
+
+    cmap = cm.get_cmap("bwr")
+    median = np.median(df["infection_pressure"].to_list())
+
+    for index, row in df.iterrows():
+        long = row["lon"]
+        lat = row["lat"]
+        geometry = [Point(long, lat)]
+
+        geo_df = gpd.GeoDataFrame(geometry=geometry)
+        geo_df.crs = {"init": "epsg:4326"}
+        # TODO well if I want to do this, then this needs to be done properly
+        ax = geo_df.plot(
+            ax=ax,
+            markersize=markersize,
+            color=cmap((row["infection_pressure"] - median) * 3 + 0.5),
+            marker=marker,
+            aspect=1,
+        )
+
+    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
+
+    # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
+    points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
+    points = points.to_crs(32619)  # Projected WGS 84 - meters
+    distance_meters = points[0].distance(points[1])
+    ax.add_artist(
+        ScaleBar(
+            distance_meters,
+            box_alpha=0.1,
+            location="lower right",
+        )
+    )
+
+    # ax.set_title("Outbreak day " + str(time), fontsize=18)
+    ax.set_title(convert_time_to_date(time), fontsize=18)
+
+    ax.set_ylabel("latitude", fontsize=16)
+    ax.set_xlabel("longitude", fontsize=16)
+
+    ax.set_xlim(xlims)
+    ax.set_ylim(ylims)
+
+    ax.tick_params(axis="x", labelsize=14)
+    ax.tick_params(axis="y", labelsize=14)
+
+    file_name = os.path.join(folder_path, "map_infection_pressure.png")
+
+    plt.savefig(file_name, bbox_inches="tight")
+
+    plt.close()
 
     return

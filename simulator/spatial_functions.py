@@ -12,6 +12,8 @@ from shapely.ops import transform, unary_union
 import numpy as np
 import math
 from area import area
+import functools
+import os
 
 
 def geodesic_point_buffer(lat, lon, km):
@@ -153,3 +155,52 @@ def define_control_zone_circles(coordinates, radius_km):
     controlzone = unary_union(list_of_polygons)
 
     return controlzone
+
+
+# TODO: rather than using a cache like this (memoisation), I could just initiate it as an object/variable inside disease simulation and just grab it from there lol...
+@functools.lru_cache(maxsize=None)
+def get_LGAs():
+    """Local Government Areas"""
+    AustraliaLGAs_gdf = gpd.read_file(
+        os.path.join(os.path.dirname(__file__), "..", "data", "LGA_2024_AUST_GDA2020", "LGA_2024_AUST_GDA2020.shp")
+    )
+
+    print(AustraliaLGAs_gdf)
+    LGAs = AustraliaLGAs_gdf["geometry"].values.tolist()
+    # print(LGAs)
+
+    return LGAs
+
+
+@functools.lru_cache(maxsize=None)
+def get_SALs():
+    """Suburbs and localities"""
+    AustraliaSALs_gdf = gpd.read_file(
+        os.path.join(os.path.dirname(__file__), "..", "data", "SAL_2021_AUST_GDA2020_SHP", "SAL_2021_AUST_GDA2020.shp")
+    )
+
+    print(AustraliaSALs_gdf)
+    SALs = AustraliaSALs_gdf["geometry"].values.tolist()
+    # print(SALs)
+
+    return SALs
+
+
+def expand_polygon_to_LGAs(poly_to_expand):
+    LGAs = get_LGAs()
+    intersecting_LGAs = []
+    for LGA in LGAs:
+        if poly_to_expand.intersection(LGA):
+            intersecting_LGAs.append(LGA)
+
+    return unary_union(intersecting_LGAs)
+
+
+def expand_polygon_to_SALs(poly_to_expand):
+    SALs = get_SALs()
+    intersecting_SALs = []
+    for SAL in SALs:
+        if poly_to_expand.intersection(SAL):
+            intersecting_SALs.append(SAL)
+
+    return unary_union(intersecting_SALs)

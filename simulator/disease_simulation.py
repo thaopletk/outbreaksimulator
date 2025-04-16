@@ -28,6 +28,7 @@ import simulator.premises as premises
 import simulator.SEIR as SEIR
 import simulator.output as output
 import simulator.animal_movement as animal_movement
+import simulator.spatial_functions as spatial_functions
 
 # from iteround import saferound
 from shapely.ops import transform, unary_union
@@ -151,6 +152,17 @@ class DiseaseSimulation:
                 if property.polygon.intersects(control_area):
                     total_properties_in_control_area += 1
 
+        DCPs_positive_clinical_test_pending = 0
+        DCPs_negative_clinical_test_pending = 0
+        for property_index in self.job_manager.jobs_queue.keys():
+            if properties[property_index].status == "DCP":
+                for day, status in self.job_manager.jobs_queue[property_index]["LabTesting"].items():
+                    if status == "in progress":
+                        if properties[property_index].clinical_report_outcome:
+                            DCPs_positive_clinical_test_pending += 1
+                        else:
+                            DCPs_negative_clinical_test_pending += 1
+
         to_save_narrative = [x[:] for x in self.combined_narrative]
         to_save_narrative.append(
             [
@@ -158,7 +170,7 @@ class DiseaseSimulation:
                 premises.convert_time_to_date(self.time),
                 "summary",
                 "",
-                f"Total culled properties: {total_culled}; total vaccinated properties: {total_vaccinated}; total culled animals: {self.total_culled_animals}; total properties in restricted area: {total_properties_in_restricted_area}; total properties in control area: {total_properties_in_control_area}",
+                f"Total culled properties: {total_culled}; total vaccinated properties: {total_vaccinated}; total culled animals: {self.total_culled_animals}; total properties in restricted area: {total_properties_in_restricted_area}; total properties in control area: {total_properties_in_control_area}; DCPs_positive_clinical_test_pending: {DCPs_positive_clinical_test_pending}; DCPs_negative_clinical_test_pending: {DCPs_negative_clinical_test_pending}",
             ]
         )
         narrative_df = pd.DataFrame(to_save_narrative, columns=["day", "date", "type", "property", "report"])
@@ -166,7 +178,15 @@ class DiseaseSimulation:
         narrative_df.to_csv(os.path.join(self.folder_path, "combinated_narrative.csv"), index=False)
 
     def save_daily_statistics(self):
-        header = ["date", "num positive clinical", "num lab tested", "num confirmed infected", "num tested negative"]
+        header = [
+            "date",
+            "num positive clinical",
+            "num lab tested",
+            "num confirmed infected",
+            "num tested negative",
+            "DCP tested negative",
+            "surveillance tested negative",
+        ]
         data = []
 
         for key, value in self.daily_statistics.items():
@@ -177,6 +197,8 @@ class DiseaseSimulation:
                     value["num lab tested"],
                     value["num confirmed infected"],
                     value["num tested negative"],
+                    value["DCP tested negative"],
+                    value["surveillance tested negative"],
                 ]
             )
         # order by the date
@@ -244,8 +266,10 @@ class DiseaseSimulation:
         did_any_properties_report = False
 
         for i, property_i in enumerate(properties):
-            if not property_i.culled_status and property_i.prob_of_reporting_only(
-                self.clinical_reporting_threshold, self.prob_report
+            if (
+                not property_i.culled_status
+                and not property_i.reported_status
+                and property_i.prob_of_reporting_only(self.clinical_reporting_threshold, self.prob_report)
             ):
                 # essentially the same as a positive clinical observation
 
@@ -427,6 +451,8 @@ class DiseaseSimulation:
             "num lab tested": 0,
             "num confirmed infected": 0,
             "num tested negative": 0,
+            "DCP tested negative": 0,
+            "surveillance tested negative": 0,
         }
 
         FOI = self.calculate_FOI_for_each_property(properties)
@@ -542,6 +568,8 @@ class DiseaseSimulation:
             "num lab tested": 0,
             "num confirmed infected": 0,
             "num tested negative": 0,
+            "DCP tested negative": 0,
+            "surveillance tested negative": 0,
         }
 
         FOI = self.calculate_FOI_for_each_property(properties)
@@ -763,6 +791,8 @@ class DiseaseSimulation:
                 "num lab tested": 0,
                 "num confirmed infected": 0,
                 "num tested negative": 0,
+                "DCP tested negative": 0,
+                "surveillance tested negative": 0,
             }
             # calculate FOI for each property
             FOI = self.calculate_FOI_for_each_property(properties)
@@ -781,11 +811,20 @@ class DiseaseSimulation:
             self.combined_narrative.extend(new_combined_narrative)
             self.contacts_for_plotting = contacts_for_plotting
             self.total_culled_animals += newly_culled_animals
-            num_positive_clinical, num_lab_tested, num_confirmed_infected, num_tested_negative = stats
+            (
+                num_positive_clinical,
+                num_lab_tested,
+                num_confirmed_infected,
+                num_tested_negative,
+                DCP_tested_negative,
+                surveillance_tested_negative,
+            ) = stats
             self.daily_statistics[converted_date]["num positive clinical"] += num_positive_clinical
             self.daily_statistics[converted_date]["num lab tested"] += num_lab_tested
             self.daily_statistics[converted_date]["num confirmed infected"] += num_confirmed_infected
             self.daily_statistics[converted_date]["num tested negative"] += num_tested_negative
+            self.daily_statistics[converted_date]["DCP tested negative"] += DCP_tested_negative
+            self.daily_statistics[converted_date]["surveillance tested negative"] += surveillance_tested_negative
 
             # and then go through job queue again in 0.5 time,
 
@@ -795,11 +834,20 @@ class DiseaseSimulation:
             self.combined_narrative.extend(new_combined_narrative)
             self.contacts_for_plotting.update(contacts_for_plotting)
             self.total_culled_animals += newly_culled_animals
-            num_positive_clinical, num_lab_tested, num_confirmed_infected, num_tested_negative = stats
+            (
+                num_positive_clinical,
+                num_lab_tested,
+                num_confirmed_infected,
+                num_tested_negative,
+                DCP_tested_negative,
+                surveillance_tested_negative,
+            ) = stats
             self.daily_statistics[converted_date]["num positive clinical"] += num_positive_clinical
             self.daily_statistics[converted_date]["num lab tested"] += num_lab_tested
             self.daily_statistics[converted_date]["num confirmed infected"] += num_confirmed_infected
             self.daily_statistics[converted_date]["num tested negative"] += num_tested_negative
+            self.daily_statistics[converted_date]["DCP tested negative"] += DCP_tested_negative
+            self.daily_statistics[converted_date]["surveillance tested negative"] += surveillance_tested_negative
 
             # no movement of animals
 
@@ -886,6 +934,8 @@ class DiseaseSimulation:
                 "num lab tested": 0,
                 "num confirmed infected": 0,
                 "num tested negative": 0,
+                "DCP tested negative": 0,
+                "surveillance tested negative": 0,
             }
 
             # calculate FOI for each property
@@ -936,9 +986,16 @@ class DiseaseSimulation:
             control_area = management.define_control_zone_polygons(
                 properties,
                 source_indices,
-                80,  # 5 km
+                80,  # 80 km
                 convex=False,
             )
+            # TODO: idk if I should include Queensland into the controlzone too or not ah.
+
+            # I want to do this buffer but it keeps breaking my laptop
+            # control_area = spatial_functions.geodesic_polygon_buffer(properties[0].y, properties[0].x, restricted_area, 80)
+            # control_area = spatial_functions.expand_polygon_to_LGAs(control_area)
+            control_area = spatial_functions.expand_polygon_to_SALs(control_area)
+
             self.controlzone["control area"] = control_area
 
             # rough surveillance
@@ -951,7 +1008,7 @@ class DiseaseSimulation:
             high_priority_surveillance_zone = control_area.difference(low_priority_surveillance_zone)
             self.controlzone["surveillance area"] = high_priority_surveillance_zone
 
-            # TODO expand zones to match LGA and other boundaries
+            # TODO expand more zones to match LGA and other boundaries?
 
             # assign new jobs - i.e. surveillance based on the control zones
             for i, premise in enumerate(properties):
@@ -1006,11 +1063,20 @@ class DiseaseSimulation:
             self.combined_narrative.extend(new_combined_narrative)
             self.contacts_for_plotting = contacts_for_plotting
             self.total_culled_animals += newly_culled_animals
-            num_positive_clinical, num_lab_tested, num_confirmed_infected, num_tested_negative = stats
+            (
+                num_positive_clinical,
+                num_lab_tested,
+                num_confirmed_infected,
+                num_tested_negative,
+                DCP_tested_negative,
+                surveillance_tested_negative,
+            ) = stats
             self.daily_statistics[converted_date]["num positive clinical"] += num_positive_clinical
             self.daily_statistics[converted_date]["num lab tested"] += num_lab_tested
             self.daily_statistics[converted_date]["num confirmed infected"] += num_confirmed_infected
             self.daily_statistics[converted_date]["num tested negative"] += num_tested_negative
+            self.daily_statistics[converted_date]["DCP tested negative"] += DCP_tested_negative
+            self.daily_statistics[converted_date]["surveillance tested negative"] += surveillance_tested_negative
 
             # define movement control zones, and conduct animal movement where possible
             controlzone_movement_restrictions = controlzone_large_movement_restrictions
@@ -1053,11 +1119,20 @@ class DiseaseSimulation:
             self.combined_narrative.extend(new_combined_narrative)
             self.contacts_for_plotting.update(contacts_for_plotting)
             self.total_culled_animals += newly_culled_animals
-            num_positive_clinical, num_lab_tested, num_confirmed_infected, num_tested_negative = stats
+            (
+                num_positive_clinical,
+                num_lab_tested,
+                num_confirmed_infected,
+                num_tested_negative,
+                DCP_tested_negative,
+                surveillance_tested_negative,
+            ) = stats
             self.daily_statistics[converted_date]["num positive clinical"] += num_positive_clinical
             self.daily_statistics[converted_date]["num lab tested"] += num_lab_tested
             self.daily_statistics[converted_date]["num confirmed infected"] += num_confirmed_infected
             self.daily_statistics[converted_date]["num tested negative"] += num_tested_negative
+            self.daily_statistics[converted_date]["DCP tested negative"] += DCP_tested_negative
+            self.daily_statistics[converted_date]["surveillance tested negative"] += surveillance_tested_negative
 
             # update counts of infected/clinical/etc animals on each farm (important too if any animals have moved locations)
             for i, premise in enumerate(properties):
