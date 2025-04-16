@@ -260,6 +260,9 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
         unique_output=unique_output,
     )
 
+    # TODO   illegal movement - means that the standstill phase should still have movement! just say 0.1 times the original probabilities
+    # TODO at the same time, these movements may be not "trackable"; and in general, not all movements would be trackable, e.g. 1% of movements are missing for example
+
     properties, movement_records, time, total_culled_animals, job_manager = (
         diseaseoutbreak.simulate_national_standstill(properties, days_to_run_for)
     )
@@ -361,10 +364,7 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
     job_manager.calculate_resources_used(folder_path)
 
     # plot number of notified properties over time TODO
-    dates_list = [
-        premises.convert_time_to_date(time)
-        for time in range(first_detection_day, first_detection_day + days_to_run_for + 5)
-    ]
+    dates_list = [premises.convert_time_to_date(t) for t in range(first_detection_day, time + 2)]
     print(dates_list)
     daily_notifs = [0] * len(dates_list)
 
@@ -374,7 +374,7 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
             index = dates_list.index(notif_date)
             daily_notifs[index] += 1
 
-    save_name = "movement_standstill_daily_notifications"
+    save_name = "daily_notifications"
 
     output.plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path, save_name)
 
@@ -393,3 +393,142 @@ else:
         properties = pickle.load(file)
     with open(spread_diseaseoutbreak_filename, "rb") as file:
         diseaseoutbreak = pickle.load(file)
+
+
+# function to make it easier to run specific "branches" of the simulator "history"
+def run_specific_branch(
+    local_properties_filename,
+    local_diseaseoutbreak_filename,
+    properties_filename,
+    diseaseoutbreak_filename,
+    folder_path_local,
+    unique_output,
+    management_parameters,
+    days_to_run_for,
+):
+    if not os.path.exists(local_properties_filename) or not os.path.exists(local_diseaseoutbreak_filename):
+
+        with open(properties_filename, "rb") as file:
+            properties = pickle.load(file)
+        with open(diseaseoutbreak_filename, "rb") as file:
+            diseaseoutbreak = pickle.load(file)
+
+        # adjust the plotting parameters for this new scenario
+        diseaseoutbreak.set_plotting_parameters(
+            xlims=xlims,
+            ylims=ylims,
+            plotting=True,
+            folder_path=folder_path_local,
+            unique_output=unique_output,
+        )
+
+        properties, movement_records, time, total_culled_animals, job_manager = (
+            diseaseoutbreak.simulate_outbreak_management(
+                properties, management_parameters, days_to_run_for, jobs_resourcing
+            )
+        )
+
+        # and then resave the end state
+        with open(local_properties_filename, "wb") as file:
+            pickle.dump(properties, file)
+
+        # and save the diseaseoutbreak object
+        with open(local_diseaseoutbreak_filename, "wb") as file:
+            pickle.dump(diseaseoutbreak, file)
+
+        job_manager.calculate_resources_used(folder_path)
+
+        # plot number of notified properties over time TODO
+        dates_list = [premises.convert_time_to_date(t) for t in range(first_detection_day, time + 5)]
+        print(dates_list)
+        daily_notifs = [0] * len(dates_list)
+
+        for property_i in properties:
+            notif_date = property_i.notification_date
+            if notif_date != "NA":
+                index = dates_list.index(notif_date)
+                daily_notifs[index] += 1
+
+        save_name = "daily_notifications"
+
+        output.plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path, save_name)
+
+        # plot the full outbreak window at end time point
+
+        # plotting_data_name = os.path.join(folder_path, f"plotting_data{time}")
+        # with open(plotting_data_name, "rb") as file:
+        #     properties, time, xlims, ylims, controlzone, contacts_for_plotting = pickle.load(file)
+
+        # output.plot_simex(
+        #     properties, time, xlims, ylims, folder_path, contacts_for_plotting={}, xylabels=True, save_suffix="_v2"
+        # )
+
+
+# STEP 8: run some different options after decision-making
+days_to_run_for = 14
+
+# previous_outbreak_step_filenames = [
+#     [movement_standstill_A_properties_filename, movement_standstill_A_diseaseoutbreak_filename, "04A"],
+# ]
+
+# outbreak_step_7_filenames = []
+
+# # NOTE this could be parallellised, or run as multiple jobs on the cluster.
+# for properties_filename, diseaseoutbreak_filename, identifier in previous_outbreak_step_filenames:
+#     long_name = ""
+#     short_code = identifier
+#     # NOTE: taking out 25km, to limit options
+#     for new_movement_option in ["standstill", "restriction50km"]:  # , "restriction25km"]:
+#         short_code_1 = short_code
+#         long_name_1 = new_movement_option
+#         if new_movement_option == "standstill":
+#             management_parameters = [{"type": "movement_standstill"}]
+#             short_code_1 += "-05A"
+#         elif new_movement_option == "restriction50km":
+#             management_parameters = [{"type": "movement_restriction", "radius_km": 50, "convex": False}]
+#             short_code_1 += "-05B"
+#         elif new_movement_option == "restriction25km":
+#             management_parameters = [{"type": "movement_restriction", "radius_km": 25, "convex": False}]
+#             short_code_1 += "-05C"
+#         else:
+#             raise ValueError("Ring management option not identified")
+
+#         # could include the option of NOT doing anything more in a future version
+#         for ring_management_option, management_identifier in [
+#             # ["", "_only"], # taking this out too, to say that "outbreak is intensifying, need more management--i.e., ring testing in addition to contact tracing"
+#             # ["ring culling", "_cull25km"], # NOTE ring cullinng is not considered; reason: "no social license / too much protesting"
+#             ["ring testing", "_test30km"],
+#         ]:
+#             long_name_2 = long_name_1 + management_identifier
+#             short_code_2 = short_code_1
+#             if ring_management_option == "":
+#                 short_code_2 += "A"
+#             elif ring_management_option == "ring culling":
+#                 management_parameters.append({"type": "ring_culling", "radius_km": 25, "convex": False})
+#                 short_code_2 += "B"
+#             elif ring_management_option == "ring testing":
+#                 management_parameters.append({"type": "ring_testing", "radius_km": 30, "convex": False})
+#                 short_code_2 += "C"
+#             else:
+#                 raise ValueError("Ring management option not identified")
+#                 # ring testing is currently a combination of clinical observation and lab testing
+
+#             unique_output = short_code_2 + "_" + long_name_2
+#             folder_path_local = os.path.join(folder_path_main, unique_output)
+#             if not os.path.exists(folder_path_local):
+#                 os.makedirs(folder_path_local)
+#             local_properties_filename = os.path.join(folder_path_local, "properties_" + unique_output)
+#             local_diseaseoutbreak_filename = os.path.join(folder_path_local, "outbreakobject_" + unique_output)
+
+#             outbreak_step_7_filenames.append([local_properties_filename, local_diseaseoutbreak_filename, short_code_2])
+
+#             run_specific_branch(
+#                 local_properties_filename,
+#                 local_diseaseoutbreak_filename,
+#                 properties_filename,
+#                 diseaseoutbreak_filename,
+#                 folder_path_local,
+#                 unique_output,
+#                 management_parameters,
+#                 days_to_run_for,
+#             )

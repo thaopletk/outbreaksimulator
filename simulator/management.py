@@ -23,6 +23,7 @@ from simulator.premises import convert_time_to_date as convert_time_to_date
 import os
 import pandas as pd
 import random
+import shapely
 
 job_types = ["LabTesting", "ClinicalObservation", "Cull", "ContactTracing"]
 
@@ -318,7 +319,7 @@ class JobManager:
             # may have ongoing surveillance here in the future
         return new_combined_narrative, positive
 
-    def run_jobs(self, time, properties, movement_records, converted_date):
+    def run_jobs(self, time, properties, movement_records, converted_date, control_area=None):
         """Run jobs, without prioritisation and without consideration of personel requirements
 
         THE VERSION WHERE REGARDLESS OF CLINICAL OBSERVATION, lab testing and contact tracing are done anyway
@@ -349,17 +350,44 @@ class JobManager:
         num_tested_negative = 0
 
         # go through the jobs queue & look for "in progress" jobs
-        jobs_today = []
+        other_jobs_today = []
+        culling_jobs_today = []
+        jobs_outside_control_area = []  # which will be the first basic prioritisation
         for property_index in self.jobs_queue.keys():
             for job_type in self.jobs_queue[property_index].keys():
                 for day, status in self.jobs_queue[property_index][job_type].items():
                     if status[0] == "in progress" and float(day) <= time:
-                        jobs_today.append([property_index, job_type, day, status])
+                        if job_type == "Cull":
+                            culling_jobs_today.append([property_index, job_type, day, status])
+                        else:
+                            if control_area != None and not shapely.contains(
+                                control_area, Point(properties[property_index])
+                            ):
+                                jobs_outside_control_area.append([property_index, job_type, day, status])
+                            else:
+                                other_jobs_today.append([property_index, job_type, day, status])
 
-        # TODO : put in some proper prioritisation
+        # TODO : put in some proper prioritisation based on zoning
         # for now, just randomly halve / get a max of say 100 jobs a day / need to be scaled by the number of properties
-        max_jobs_today = min(int(len(jobs_today) / 2), int(len(properties) / 10))
-        jobs_today = random.sample(jobs_today, max_jobs_today)
+        max_jobs_today = min(int(len(jobs_today) * 0.7), int(len(properties) / 10)) + np.random.randint(
+            int(len(properties) / 50)
+        )
+
+        if len(jobs_outside_control_area) <= max_jobs_today:
+            jobs_today = jobs_outside_control_area
+        else:
+            jobs_today = random.sample(jobs_outside_control_area, max_jobs_today)
+
+        # should deprioritised culling, which means that the culling number should be kept down (e.g., as a fixed fraction for now)
+        # TODO - improve
+        extra_culling_jobs = int(0.2 * max_jobs_today)
+        culling_jobs_today = random.sample(culling_jobs_today, extra_culling_jobs)
+
+        extra_other_jobs = int(0.2 * max_jobs_today) + (max_jobs_today - len(jobs_today))
+        extra_other_jobs_today = random.sample(other_jobs_today, extra_other_jobs)
+
+        jobs_today.extend(culling_jobs_today)
+        jobs_today.extend(extra_other_jobs_today)
 
         # TODO run the jobs
         for job in jobs_today:
@@ -417,7 +445,7 @@ class JobManager:
 
                 self.jobs_queue[property_index][job_type][day] = ["complete", converted_date]
 
-                # TODO - should also remove ANY OTHER JOBS related to this property
+                # TODO - should also remove ANY OTHER JOBS related to this property (hm, except for maybe contact tracing?)
 
             elif job_type == "ContactTracing":
                 contact_tracing_report, traced_property_indices = contact_tracing(
@@ -467,120 +495,6 @@ class JobManager:
             total_culled_animals,
             contacts_for_plotting,
             stats,
-        )
-
-    def job_manager(self, time, properties, movement_records):
-        new_report = ""
-        new_testing_reports = ""
-        new_combined_narrative = ""
-        new_contact_tracing_reports = ""
-        total_culled_animals = 0
-        contacts_for_plotting = {}  # from property, to properties
-
-        # TODO go through the jobs queue
-        # TODO look for "in progress" jobs
-        # TODO do some kind of prioritisation
-        # in terms of adding things to the combined narrative, then it might make more sense to run each job inside the disease simulation itself, rather than here
-        # so, this function could just return active jobs?
-        # TODO run the jobs
-        # and TODO schedule any new jobs as necessary
-
-        for job in self.jobs_queue:
-            if job["status"] == "in progress" and job["day"] <= time:
-                # job should now be complete
-                if job["type"] == jobtype.LabTesting:
-                    temp_report, temp_testing_reports, temp_combined_narrative = self.run_lab_testing_now(
-                        properties, job, time
-                    )
-                    new_report += temp_report
-                    new_testing_reports += temp_testing_reports
-                    new_combined_narrative += temp_combined_narrative
-
-                    properties[job["property_i"]].undergoing_testing = False
-                    properties[job["property_i"]].day_of_last_lab_test = time
-
-                elif job["type"] == jobtype.ClinicalObservation:
-                    testing_report, positive = self.conduct_clinicalobservation(properties, job, time)
-                    new_testing_reports += testing_report
-                    new_combined_narrative += testing_report
-
-                    if positive:
-                        premise = properties[job["property_i"]]
-
-                        # enact local movement restrictions around this property, just in case
-                        self.local_movement_restrictions.append(properties[job["property_i"]].polygon)
-                        # TODO there should be a report here, like
-                        # report = "No movements are now allowed to or from this property.\n"
-                        # new_report += report
-                        # new_combined_narrative += report
-
-                        # schedule contact tracing
-                        report = self.schedule_contract_tracing(job["property_i"], time)
-                        new_combined_narrative += report
-
-                        # schedule lab testing (if not yet done)
-                        report = self.schedule_lab_testing_after_observation(job["property_i"], time)
-                        new_report += report
-                        new_combined_narrative += report
-
-                        properties[job["property_i"]].undergoing_testing = True
-
-                    else:
-                        # remove any local movement restrictions
-                        # technically, should check if it's still under lab testing, which means we might still want some movement restrictions lol...
-                        pass
-                        # self.local_movement_restrictions.remove(properties[job["property_i"]].polygon)
-
-                        # may have ongoing surveillance here in the future
-                elif job["type"] == jobtype.Cull:
-                    premise = properties[job["property_i"]]
-                    premise_report, culled_animals = premise.cull_only(time)
-                    total_culled_animals += culled_animals
-                    new_report += premise_report
-                    new_combined_narrative += premise_report
-
-                    job["status"] = "complete"  # mark job as complete, slated for removal from the job queue
-
-                    # TODO - should also remove ANY OTHER JOBS related to this property
-
-                elif job["type"] == jobtype.ContactTracing:
-                    contact_tracing_report, traced_property_indices = contact_tracing(
-                        properties, job["property_i"], movement_records, time
-                    )
-                    new_contact_tracing_reports += contact_tracing_report
-                    new_combined_narrative += contact_tracing_report
-
-                    contacts_for_plotting[job["property_i"]] = traced_property_indices
-
-                    for t_i in traced_property_indices:
-                        # check if property is not yet culled
-                        if not properties[t_i].culled_status:
-
-                            # to be honest, this kind of thing should only be notified after successful adding, not before TODO
-                            mini_report = f"Personnel will be sent to traced property {t_i} for clinical observation and lab testing\n"
-                            new_report += mini_report
-                            new_combined_narrative += mini_report
-
-                            self.schedule_clinical_observation(t_i, time)
-
-                            # schedule lab testing (if not yet done)
-                            # technically this might require a longer delay...
-
-                            report = self.schedule_lab_testing(t_i, time)
-                            new_report += report
-
-                            properties[t_i].undergoing_testing = True
-
-                    job["status"] = "complete"  # mark job as complete, slated for removal from the job queue
-
-        return (
-            new_report,
-            new_testing_reports,
-            new_combined_narrative,
-            new_contact_tracing_reports,
-            self.local_movement_restrictions,
-            total_culled_animals,
-            contacts_for_plotting,
         )
 
     def calculate_resources_used(self, folder_path):
