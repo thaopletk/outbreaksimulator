@@ -19,6 +19,9 @@ import itertools
 from simulator.spatial_functions import calculate_area
 
 
+geolocator = Nominatim(user_agent="http")
+
+
 def convert_time_to_date(time, start_date=datetime.datetime(year=2025, month=11, day=1)):
     """Converts outbreak days (0, 1, 2...) to fake dates, started at some specified date (day 0).
     Parameters
@@ -65,7 +68,7 @@ class Premises(Property):
 
     id_iter = itertools.count()
     notified_iter = itertools.count(start=1)  # IP (infected properties) should start from 1
-    geolocator = Nominatim(user_agent="http")
+    # geolocator = Nominatim(user_agent="http")
 
     # area in hectares
     def __init__(

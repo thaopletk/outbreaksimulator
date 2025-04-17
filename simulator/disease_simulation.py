@@ -29,6 +29,7 @@ import simulator.SEIR as SEIR
 import simulator.output as output
 import simulator.animal_movement as animal_movement
 import simulator.spatial_functions as spatial_functions
+import simulator.output as output
 
 # from iteround import saferound
 from shapely.ops import transform, unary_union
@@ -1161,7 +1162,21 @@ class DiseaseSimulation:
         if self.plotting:
             output.make_video(self.folder_path, "map_underlying", times=time_list)
             output.make_video(self.folder_path, "map_apparent", times=time_list)
-        #  TODO plot more zoomed up versions...
+
+        #  plot more zoomed up versions...
+        # NSW closeup
+        output.plot_map(
+            properties,
+            self.time,
+            xlims=[140, 154],
+            ylims=[-38, -28],
+            folder_path=self.folder_path,
+            real_situation=False,
+            controlzone=self.controlzone,
+            infectionpoly=False,
+            contacts_for_plotting=self.contacts_for_plotting,
+            save_suffix="_NSW",
+        )
 
         simulator.save_outbreak_state(
             properties,

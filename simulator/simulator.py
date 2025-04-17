@@ -145,30 +145,58 @@ def property_setup_v03(
 
     """
 
-    # 1. Spatial-only, property-type-agnostic setup
-    (
-        property_coordinates,
-        adjacency_matrix,
-        neighbour_pairs,
-        neighbourhoods,
-        property_polygons,
-        property_polygons_puffed,
-        property_areas,
-    ) = spatial_setup.generate_properties_with_land(
-        spatial_only_paramaters["n"],
-        spatial_only_paramaters["r_wind"],
-        spatial_only_paramaters["xrange"],
-        spatial_only_paramaters["yrange"],
-        spatial_only_paramaters["average_property_ha"],
-    )  # uses the spatial-setup specific generator, rather than the fmdmodelling property generator
+    spatial_only_filename = os.path.join(folder_path, "spatial_only_setup.pickle")
+    if not os.path.exists(spatial_only_filename):
 
-    output.plot_map_land(
-        property_polygons,
-        property_polygons_puffed,
-        spatial_only_paramaters["xrange"],
-        spatial_only_paramaters["yrange"],
-        folder_path,
-    )
+        # 1. Spatial-only, property-type-agnostic setup
+        (
+            property_coordinates,
+            adjacency_matrix,
+            neighbour_pairs,
+            neighbourhoods,
+            property_polygons,
+            property_polygons_puffed,
+            property_areas,
+        ) = spatial_setup.generate_properties_with_land(
+            spatial_only_paramaters["n"],
+            spatial_only_paramaters["r_wind"],
+            spatial_only_paramaters["xrange"],
+            spatial_only_paramaters["yrange"],
+            spatial_only_paramaters["average_property_ha"],
+        )  # uses the spatial-setup specific generator, rather than the fmdmodelling property generator
+
+        output.plot_map_land(
+            property_polygons,
+            property_polygons_puffed,
+            spatial_only_paramaters["xrange"],
+            spatial_only_paramaters["yrange"],
+            folder_path,
+        )
+
+        with open(spatial_only_filename, "wb") as file:
+            pickle.dump(
+                [
+                    property_coordinates,
+                    adjacency_matrix,
+                    neighbour_pairs,
+                    neighbourhoods,
+                    property_polygons,
+                    property_polygons_puffed,
+                    property_areas,
+                ],
+                file,
+            )
+    else:
+        with open(spatial_only_filename, "rb") as file:
+            (
+                property_coordinates,
+                adjacency_matrix,
+                neighbour_pairs,
+                neighbourhoods,
+                property_polygons,
+                property_polygons_puffed,
+                property_areas,
+            ) = pickle.load(file)
 
     # 2. Property-specific initialisation
 

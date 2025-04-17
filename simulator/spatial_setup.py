@@ -130,16 +130,53 @@ def Australia_shape():
 
 
 @functools.lru_cache(maxsize=None)
-def get_Queensland_shape():
+def get_Australia_shape():
     Australia_gdf = gpd.read_file(
         os.path.join(os.path.dirname(__file__), "..", "data", "STE_2021_AUST_SHP_GDA2020", "STE_2021_AUST_GDA2020.shp")
     )
 
     print(Australia_gdf)
+    return Australia_gdf
+
+
+@functools.lru_cache(maxsize=None)
+def get_Queensland_shape():
+    Australia_gdf = get_Australia_shape()
+
     Queensland_only = Australia_gdf.loc[Australia_gdf["STE_NAME21"] == "Queensland", :]
     Queenslandshape = list(Queensland_only["geometry"])[0]
 
     return Queenslandshape
+
+
+@functools.lru_cache(maxsize=None)
+def get_QLD_NSW_VIC_SA_shape():
+    Australia_gdf = get_Australia_shape()
+
+    NSW = Australia_gdf.loc[Australia_gdf["STE_NAME21"] == "New South Wales", :]
+    VIC = Australia_gdf.loc[Australia_gdf["STE_NAME21"] == "Victoria", :]
+    SA = Australia_gdf.loc[Australia_gdf["STE_NAME21"] == "South Australia", :]
+
+    NSW_shape = list(NSW["geometry"])[0]
+    VIC_shape = list(VIC["geometry"])[0]
+    SA_shape = list(SA["geometry"])[0]
+
+    Queenslandshape = get_Queensland_shape()
+
+    return unary_union([NSW_shape, VIC_shape, Queenslandshape, SA_shape])
+
+
+@functools.lru_cache(maxsize=None)
+def get_NT_and_WA_shape():
+    Australia_gdf = get_Australia_shape()
+
+    NT = Australia_gdf.loc[Australia_gdf["STE_NAME21"] == "Northern Territory", :]
+    WA = Australia_gdf.loc[Australia_gdf["STE_NAME21"] == "Western Australia", :]
+
+    NT_shape = list(NT["geometry"])[0]
+    WA_shape = list(WA["geometry"])[0]
+
+    return unary_union([NT_shape, WA_shape])
 
 
 # possible extensions: boundaries along roads, more jagged shapes, avoid areas like parks and nature reserves, add some level of clustering
@@ -202,7 +239,9 @@ def assign_property_locations(
     # the resultant rectangles could become properties
 
     # Read in Australia shapefile
-    Australiashape = Australia_shape()
+    # Australiashape = Australia_shape()
+    # NT_WA = get_NT_and_WA_shape()
+    QLD_NSW_VIC_SA_shape = get_QLD_NSW_VIC_SA_shape()
 
     property_coordinates = np.zeros((n, 2))
     property_polygons = []
@@ -224,6 +263,7 @@ def assign_property_locations(
             print(meta)
             i_random_recs = -1
             for i in range(n):
+                print(i)
                 insideAustralia = False
                 while not insideAustralia:
                     i_random_recs += 1
@@ -245,8 +285,8 @@ def assign_property_locations(
                     }
                     Polygon_obj = convert_dict_poly_to_Polygon(property_polygon)  # Shapely Polygon object
 
-                    # check if the polygon is inside Australia or not
-                    if Australiashape.contains(Polygon_obj):
+                    # check if the polygon is inside Australia (specifically inside QLD/NSW/VIC) or not
+                    if QLD_NSW_VIC_SA_shape.contains(Polygon_obj):
                         # now also check if the landuse type is okay or not, by checking if the center point land use is okay
                         acceptable_land_use_codes = [
                             210,

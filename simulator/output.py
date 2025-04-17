@@ -170,6 +170,8 @@ def plot_map(
     infectionpoly=False,
     contacts_for_plotting={},
     show_movement_neighbours=False,
+    xylabels=False,
+    save_suffix="",
 ):
     """Plot map during an outbreak
 
@@ -198,7 +200,7 @@ def plot_map(
 
     colour_dictionary = {
         "movement restrictions": "tomato",
-        "ring vaccination": "deepskyblue",
+        "ring vaccination": "#7800ff",
         "ring culling": "black",
         "ring testing": "green",
         "restricted area": "red",
@@ -206,17 +208,21 @@ def plot_map(
         "surveillance area": "lime",
     }
 
+    NT_WA = spatial_setup.get_NT_and_WA_shape()
+
     if controlzone != None and controlzone != {}:
         for control_type, zone in controlzone.items():
             if control_type == "surveillance area":
                 continue  # for now, not plotting this area
+            if control_type == "control area":
+                zone = zone.difference(NT_WA)
             if zone != None:
                 try:
                     plot_polygon(
                         ax,
                         zone,
                         facecolor=colour_dictionary[control_type],
-                        edgecolor="maroon",
+                        edgecolor=colour_dictionary[control_type],
                         alpha=0.2,
                         label=control_type,
                     )
@@ -228,7 +234,7 @@ def plot_map(
                                 ax,
                                 subpoly,
                                 facecolor=colour_dictionary[control_type],
-                                edgecolor="maroon",
+                                edgecolor=colour_dictionary[control_type],
                                 alpha=0.2,
                                 label=control_type,
                             )
@@ -238,7 +244,7 @@ def plot_map(
                                 ax,
                                 subpoly,
                                 facecolor=colour_dictionary[control_type],
-                                edgecolor="maroon",
+                                edgecolor=colour_dictionary[control_type],
                                 alpha=0.2,
                                 label=control_type,
                             )
@@ -248,8 +254,8 @@ def plot_map(
     geometry_culled = []
     geometry_vaccinated = []
     geometry_susceptible = []
-    geometry_culled_on_suspicion = []
-    geomtry_culled_on_suspicion_actually_infected = []
+    # geometry_culled_on_suspicion = [] # TODO/NOTE: currently removed because we don't expect ring culling to actually be implemented
+    # geomtry_culled_on_suspicion_actually_infected = []
     geometry_undergoing_testing = []
 
     for key, value in contacts_for_plotting.items():
@@ -259,7 +265,7 @@ def plot_map(
             plt.plot(
                 [premise.coordinates[0], contact.coordinates[0]],
                 [premise.coordinates[1], contact.coordinates[1]],
-                alpha=0.5,
+                alpha=0.4,
                 color="black",
             )
 
@@ -295,35 +301,6 @@ def plot_map(
                                 color="black",
                             )
 
-        # for index, premise in enumerate(properties):
-        #     long, lat = premise.coordinates
-        #     curr_farm = Point(long, lat)
-
-        #     # plot neighbours using edges
-        #     for farm in premise.neighbourhood:
-        #         # neigh = Point(property_coordinates[farm[0], 0],property_coordinates[farm[0], 1])
-        #         # network.append(LineString(curr_farm,neigh))
-
-        #         # plots the lines between locations
-        #         if network_label_switch == False:
-        #             plt.plot(
-        #                 [premise.coordinates[0], property_coordinates[farm[0], 0]],
-        #                 [premise.coordinates[1], property_coordinates[farm[0], 1]],
-        #                 alpha=0.01,
-        #                 color="black",
-        #                 label="network",
-        #             )
-        #             network_label_switch = (
-        #                 True  # to make sure that the labelling only occurs once
-        #             )
-        #         else:
-        #             plt.plot(
-        #                 [premise.coordinates[0], property_coordinates[farm[0], 0]],
-        #                 [premise.coordinates[1], property_coordinates[farm[0], 1]],
-        #                 alpha=0.01,
-        #                 color="black",
-        #             )
-
         for index, premise in enumerate(properties):
             long, lat = premise.coordinates
             curr_farm = Point(long, lat)
@@ -331,15 +308,14 @@ def plot_map(
                 if premise.reported_status:
                     geometry_culled.append(curr_farm)
                     infected_coords.append(premise.coordinates)
-                elif premise.culled_on_suspicion:
+                # elif premise.culled_on_suspicion:
 
-                    if premise.cumulative_infections > 0:
-                        geomtry_culled_on_suspicion_actually_infected.append(curr_farm)
-                    else:
-                        geometry_culled_on_suspicion.append(curr_farm)
-
+                #     if premise.cumulative_infections > 0:
+                #         geomtry_culled_on_suspicion_actually_infected.append(curr_farm)
+                #     else:
+                #         geometry_culled_on_suspicion.append(curr_farm)
                 else:
-                    raise Exception("Culled yet neither reported nor culled on suspicion")
+                    raise Exception("Culled yet not reported")  # nor culled on suspicion")
             elif premise.reported_status == True:
                 geometry_confirmed_infected.append(curr_farm)
                 infected_coords.append(premise.coordinates)
@@ -376,10 +352,10 @@ def plot_map(
                     geometry_culled.append(curr_farm)
                     infected_coords.append(premise.coordinates)
 
-                elif premise.culled_on_suspicion:
-                    geometry_culled_on_suspicion.append(curr_farm)
+                # elif premise.culled_on_suspicion:
+                #     geometry_culled_on_suspicion.append(curr_farm)
                 else:
-                    raise Exception("Culled yet neither reported nor culled on suspicion")
+                    raise Exception("Culled yet not reported")  # nor culled on suspicion")
             elif premise.reported_status == True:
                 geometry_confirmed_infected.append(curr_farm)
                 infected_coords.append(premise.coordinates)
@@ -403,20 +379,20 @@ def plot_map(
                 )
 
     for geometry, colour, marker, markerlabel, markersize in [
+        [geometry_susceptible, "#5284b3", "o", "susceptible", 30],
+        [geometry_vaccinated, "#7852a4", "P", "vaccinated", 70],
+        [geometry_undergoing_testing, "#ffa200", "d", "testing", 120],
         [geometry_infected, "purple", "x", "infected", 30],
-        [geometry_confirmed_infected, "firebrick", markers.CARETDOWN, "confirmed infection", 150],
-        [geometry_culled, "firebrick", "X", "culled on confirmation", 150],
-        [geometry_culled_on_suspicion, "black", "X", "culled on suspicion", 150],
-        [
-            geomtry_culled_on_suspicion_actually_infected,
-            "purple",
-            "X",
-            "culled on suspicion, actually infected",
-            150,
-        ],
-        [geometry_undergoing_testing, "orange", r"$?$", "undergoing testing", 200],
-        [geometry_vaccinated, "deepskyblue", "s", "vaccinated", 100],
-        [geometry_susceptible, "orange", "o", "susceptible", 30],
+        [geometry_confirmed_infected, "#ea4335", "X", "confirmed", 150],
+        # [geometry_culled_on_suspicion, "black", "X", "culled on suspicion", 150],
+        # [
+        #     geomtry_culled_on_suspicion_actually_infected,
+        #     "purple",
+        #     "X",
+        #     "culled on suspicion, actually infected",
+        #     150,
+        # ],
+        [geometry_culled, "black", "X", "culled", 150],
     ]:
         if geometry == []:
             if (
@@ -448,27 +424,30 @@ def plot_map(
     )
 
     # ax.set_title("Outbreak day " + str(time), fontsize=18)
-    ax.set_title(convert_time_to_date(time), fontsize=18)
+    # ax.set_title(convert_time_to_date(time), fontsize=18)
+    ax.text(xlims[0] + 0.002, ylims[1] - 1.5, convert_time_to_date(time), size=18, color="black")
 
-    ax.set_ylabel("latitude", fontsize=16)
-    ax.set_xlabel("longitude", fontsize=16)
+    if xylabels == False:
+        ax.axis("off")
+    else:
+        ax.set_ylabel("latitude", fontsize=16)
+        ax.set_xlabel("longitude", fontsize=16)
+        ax.tick_params(axis="x", labelsize=14)
+        ax.tick_params(axis="y", labelsize=14)
 
     ax.set_xlim(xlims)
     ax.set_ylim(ylims)
 
     ax.legend(
         loc="upper center",
-        bbox_to_anchor=(0.5, -0.05),
+        bbox_to_anchor=(0.5, 0.0),
         fancybox=True,
         shadow=True,
-        ncol=5,
+        ncol=3,
         fontsize=18,
     )
 
-    ax.tick_params(axis="x", labelsize=14)
-    ax.tick_params(axis="y", labelsize=14)
-
-    file_name = str(time) + ".png"
+    file_name = str(time) + f"{save_suffix}.png"
 
     if real_situation:
         file_name = os.path.join(folder_path, "map_underlying" + file_name)

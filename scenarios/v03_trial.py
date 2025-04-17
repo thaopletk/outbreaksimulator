@@ -146,7 +146,7 @@ if not os.path.exists(folder_path_undetected_spread):
     os.makedirs(folder_path_undetected_spread)
 
 # TODO could change this so that it runs until there are X number of infected properties in each of the main states or territories
-stop_time = 65  # 28
+stop_time = 32  # 28
 first_detection_day = stop_time + 1
 
 undetected_spread_properties_filename = os.path.join(folder_path_undetected_spread, "properties_" + unique_output)
@@ -296,15 +296,6 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
 
     output.plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path, save_name)
 
-    # plot the full outbreak window at end time point
-
-    # plotting_data_name = os.path.join(folder_path, f"plotting_data{time}")
-    # with open(plotting_data_name, "rb") as file:
-    #     properties, time, xlims, ylims, controlzone, contacts_for_plotting = pickle.load(file)
-
-    # TODO - this wasn't working - fix it
-    # output.plot_simex(properties,time,xlims,ylims,folder_path,contacts_for_plotting={},xylabels = True,save_suffix="_v2")
-
 
 else:
     with open(spread_properties_filename, "rb") as file:
@@ -317,7 +308,7 @@ else:
 unique_output = "05_two_weeks"
 folder_path = os.path.join(folder_path_main, unique_output)
 days_to_run_for = 14 - 3
-management_parameters = [
+management_parameters = [  # TODO - currently not used...could actually implement it...
     {"type": "movement_restriction", "radius_km": 5, "convex": False},
     {"type": "conditional_movement", "radius_km": 80, "convex": False, "probability_reduction": 0.1},
     {"type": "ring_surveillance", "radius_km": 80, "convex": False},
@@ -327,7 +318,7 @@ jobs_resourcing = {
     "ClinicalObservation": [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130],
     "Cull": [10],
     "ContactTracing": [100],
-}
+}  # TODO - currently not used...could actually implement it...
 
 if not os.path.exists(folder_path):
     os.makedirs(folder_path)
@@ -363,7 +354,6 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
     # TODO: add in a "total" column? or add in relative costs/estimated costs and a total estimated cost...
     job_manager.calculate_resources_used(folder_path)
 
-    # plot number of notified properties over time TODO
     dates_list = [premises.convert_time_to_date(t) for t in range(first_detection_day, time + 2)]
     print(dates_list)
     daily_notifs = [0] * len(dates_list)
@@ -378,16 +368,6 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
 
     output.plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path, save_name)
 
-    # plot the full outbreak window at end time point
-
-    # plotting_data_name = os.path.join(folder_path, f"plotting_data{time}")
-    # with open(plotting_data_name, "rb") as file:
-    #     properties, time, xlims, ylims, controlzone, contacts_for_plotting = pickle.load(file)
-
-    # output.plot_simex(
-    #     properties, time, xlims, ylims, folder_path, contacts_for_plotting={}, xylabels=True, save_suffix="_v2"
-    # )
-
 else:
     with open(spread_properties_filename, "rb") as file:
         properties = pickle.load(file)
@@ -395,13 +375,13 @@ else:
         diseaseoutbreak = pickle.load(file)
 
 
-if not os.path.exists(os.path.join(folder_path_main, "map_infection_pressure.png")):
-    output.plot_infection_pressure(
-        time,
-        xlims,
-        ylims,
-        folder_path_main,
-    )
+# if not os.path.exists(os.path.join(folder_path_main, "map_infection_pressure.png")):
+#     output.plot_infection_pressure(
+#         time,
+#         xlims,
+#         ylims,
+#         folder_path_main,
+#     )
 
 
 # function to make it easier to run specific "branches" of the simulator "history"
@@ -447,7 +427,6 @@ def run_specific_branch(
 
         job_manager.calculate_resources_used(folder_path)
 
-        # plot number of notified properties over time TODO
         dates_list = [premises.convert_time_to_date(t) for t in range(first_detection_day, time + 5)]
         print(dates_list)
         daily_notifs = [0] * len(dates_list)
@@ -461,16 +440,6 @@ def run_specific_branch(
         save_name = "daily_notifications"
 
         output.plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path, save_name)
-
-        # plot the full outbreak window at end time point
-
-        # plotting_data_name = os.path.join(folder_path, f"plotting_data{time}")
-        # with open(plotting_data_name, "rb") as file:
-        #     properties, time, xlims, ylims, controlzone, contacts_for_plotting = pickle.load(file)
-
-        # output.plot_simex(
-        #     properties, time, xlims, ylims, folder_path, contacts_for_plotting={}, xylabels=True, save_suffix="_v2"
-        # )
 
 
 # STEP 8: run some different options after decision-making
