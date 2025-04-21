@@ -28,7 +28,7 @@ if not os.path.exists(folder_path_main):
 # step 2: initiate the full proper map, including with different property types
 # parameters
 small_ver = "_small"
-# small_ver = "" # for running on the cluster
+small_ver = ""  # for running on the cluster
 
 with open(os.path.join(folder_path_main, f"spatial_only_parameters{small_ver}.json"), "r") as file:
     spatial_only_parameters = json.load(file)  # has the total number of properties, hence the {small_ver}
@@ -146,7 +146,7 @@ if not os.path.exists(folder_path_undetected_spread):
     os.makedirs(folder_path_undetected_spread)
 
 # TODO could change this so that it runs until there are X number of infected properties in each of the main states or territories
-stop_time = 32  # 28
+stop_time = 25  # 28
 first_detection_day = stop_time + 1
 
 undetected_spread_properties_filename = os.path.join(folder_path_undetected_spread, "properties_" + unique_output)

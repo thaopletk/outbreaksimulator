@@ -29,6 +29,9 @@ from simulator.premises import convert_time_to_date
 from simulator.spatial_functions import *
 import simulator.spatial_setup as spatial_setup
 import pandas as pd
+import PIL
+
+PIL.Image.ANTIALIAS = PIL.Image.LANCZOS
 
 
 def plot_polygon(ax, poly, **kwargs):
@@ -976,7 +979,18 @@ def make_video(folder_path="outputs", prefix="map", times=None, save_name_prefix
     else:
         new_width = value[1] + 1  # odd
 
-    clip_resized = clip.resize((new_height, new_width))
+    if new_height == value[0] and new_width == value[1]:
+        clip_resized = clip
+    else:
+
+        try:
+            clip_resized = clip.resize((new_height, new_width))
+        except:
+            try:
+                clip_resized = clip.resize((new_height, new_width), PIL.Image.Resampling.LANCZOS)
+            except:
+                print("unable to resize and thus unable to make video")
+                return
 
     clip_resized.write_videofile(output_file, codec="mpeg4")
 

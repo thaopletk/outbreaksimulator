@@ -166,7 +166,7 @@ def extra_southward_movement(properties, day):
     # take animals out first, then add them to other properties later
     for premise_index in indices_that_can_move:
         property_p = properties[premise_index]
-        if bool(random.getrandbits(1)):
+        if random.uniform(0, 1) < 0.3:
             allowed_movement_neighbours, total_num_allowed = property_p.calculate_allowed_movement_neighbours(
                 indices_that_can_move
             )
