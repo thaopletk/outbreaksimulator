@@ -313,24 +313,29 @@ else:
 # about two weeks of simulation
 unique_output = "05_two_weeks"
 folder_path = os.path.join(folder_path_main, unique_output)
-days_to_run_for = 14 - 3
+days_to_run_for = 14 - 2
+
 management_parameters = [  # TODO - currently not used...could actually implement it...
     {"type": "movement_restriction", "radius_km": 5, "convex": False},
     {"type": "conditional_movement", "radius_km": 80, "convex": False, "probability_reduction": 0.1},
     {"type": "ring_surveillance", "radius_km": 80, "convex": False},
 ]
-jobs_resourcing = {
-    "LabTesting": [10, 15, 20],
-    "ClinicalObservation": [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130],
-    "Cull": [10],
-    "ContactTracing": [100],
-}  # TODO - currently not used...could actually implement it...
+# jobs_resourcing = {
+#     "LabTesting": [10, 15, 20],
+#     "ClinicalObservation": [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130],
+#     "Cull": [10],
+#     "ContactTracing": [100],
+# }  # TODO - currently not used...could actually implement it...
 
 if not os.path.exists(folder_path):
     os.makedirs(folder_path)
 
 spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
 spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
+
+outbreak_step_7_filenames = [
+    [spread_properties_filename, spread_diseaseoutbreak_filename, unique_output],
+]
 
 if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
     # adjust the plotting parameters for this new scenario
@@ -345,7 +350,7 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
     # TODO not complete
     properties, movement_records, time, total_culled_animals, job_manager = (
         diseaseoutbreak.simulate_outbreak_management(
-            properties, management_parameters, days_to_run_for, jobs_resourcing
+            properties, management_parameters, days_to_run_for, resource_setting="default"
         )
     )
 
@@ -400,6 +405,7 @@ def run_specific_branch(
     unique_output,
     management_parameters,
     days_to_run_for,
+    resource_setting,
 ):
     if not os.path.exists(local_properties_filename) or not os.path.exists(local_diseaseoutbreak_filename):
 
@@ -419,7 +425,7 @@ def run_specific_branch(
 
         properties, movement_records, time, total_culled_animals, job_manager = (
             diseaseoutbreak.simulate_outbreak_management(
-                properties, management_parameters, days_to_run_for, jobs_resourcing
+                properties, management_parameters, days_to_run_for, resource_setting
             )
         )
 
@@ -451,68 +457,36 @@ def run_specific_branch(
 # STEP 8: run some different options after decision-making
 days_to_run_for = 14
 
-# previous_outbreak_step_filenames = [
-#     [movement_standstill_A_properties_filename, movement_standstill_A_diseaseoutbreak_filename, "04A"],
-# ]
+outbreak_step_8_filenames = []
 
-# outbreak_step_7_filenames = []
+management_parameters = []  # dummy parameters because they're not actually used right now
 
-# # NOTE this could be parallellised, or run as multiple jobs on the cluster.
-# for properties_filename, diseaseoutbreak_filename, identifier in previous_outbreak_step_filenames:
-#     long_name = ""
-#     short_code = identifier
-#     # NOTE: taking out 25km, to limit options
-#     for new_movement_option in ["standstill", "restriction50km"]:  # , "restriction25km"]:
-#         short_code_1 = short_code
-#         long_name_1 = new_movement_option
-#         if new_movement_option == "standstill":
-#             management_parameters = [{"type": "movement_standstill"}]
-#             short_code_1 += "-05A"
-#         elif new_movement_option == "restriction50km":
-#             management_parameters = [{"type": "movement_restriction", "radius_km": 50, "convex": False}]
-#             short_code_1 += "-05B"
-#         elif new_movement_option == "restriction25km":
-#             management_parameters = [{"type": "movement_restriction", "radius_km": 25, "convex": False}]
-#             short_code_1 += "-05C"
-#         else:
-#             raise ValueError("Ring management option not identified")
+"05_two_weeks"
 
-#         # could include the option of NOT doing anything more in a future version
-#         for ring_management_option, management_identifier in [
-#             # ["", "_only"], # taking this out too, to say that "outbreak is intensifying, need more management--i.e., ring testing in addition to contact tracing"
-#             # ["ring culling", "_cull25km"], # NOTE ring cullinng is not considered; reason: "no social license / too much protesting"
-#             ["ring testing", "_test30km"],
-#         ]:
-#             long_name_2 = long_name_1 + management_identifier
-#             short_code_2 = short_code_1
-#             if ring_management_option == "":
-#                 short_code_2 += "A"
-#             elif ring_management_option == "ring culling":
-#                 management_parameters.append({"type": "ring_culling", "radius_km": 25, "convex": False})
-#                 short_code_2 += "B"
-#             elif ring_management_option == "ring testing":
-#                 management_parameters.append({"type": "ring_testing", "radius_km": 30, "convex": False})
-#                 short_code_2 += "C"
-#             else:
-#                 raise ValueError("Ring management option not identified")
-#                 # ring testing is currently a combination of clinical observation and lab testing
+# NOTE this could be parallellised, or run as multiple jobs on the cluster.
+for properties_filename, diseaseoutbreak_filename, identifier in outbreak_step_7_filenames:
+    long_name = ""
+    short_code = identifier  # not used here, since there is only one history in outbreak_step_7_filenames
+    for resource_setting in ["high", "low"]:
+        unique_output = "06_two_weeks_" + resource_setting
+        folder_path_local = os.path.join(folder_path_main, unique_output)
+        if not os.path.exists(folder_path_local):
+            os.makedirs(folder_path_local)
+        local_properties_filename = os.path.join(folder_path_local, "properties_" + unique_output)
+        local_diseaseoutbreak_filename = os.path.join(folder_path_local, "outbreakobject_" + unique_output)
 
-#             unique_output = short_code_2 + "_" + long_name_2
-#             folder_path_local = os.path.join(folder_path_main, unique_output)
-#             if not os.path.exists(folder_path_local):
-#                 os.makedirs(folder_path_local)
-#             local_properties_filename = os.path.join(folder_path_local, "properties_" + unique_output)
-#             local_diseaseoutbreak_filename = os.path.join(folder_path_local, "outbreakobject_" + unique_output)
+        outbreak_step_8_filenames.append(
+            [local_properties_filename, local_diseaseoutbreak_filename, resource_setting]
+        )  # note, have set identifier = resource_setting
 
-#             outbreak_step_7_filenames.append([local_properties_filename, local_diseaseoutbreak_filename, short_code_2])
-
-#             run_specific_branch(
-#                 local_properties_filename,
-#                 local_diseaseoutbreak_filename,
-#                 properties_filename,
-#                 diseaseoutbreak_filename,
-#                 folder_path_local,
-#                 unique_output,
-#                 management_parameters,
-#                 days_to_run_for,
-#             )
+        run_specific_branch(
+            local_properties_filename,
+            local_diseaseoutbreak_filename,
+            properties_filename,
+            diseaseoutbreak_filename,
+            folder_path_local,
+            unique_output,
+            management_parameters,
+            days_to_run_for,
+            resource_setting,
+        )

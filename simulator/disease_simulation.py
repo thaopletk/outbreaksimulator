@@ -898,7 +898,7 @@ class DiseaseSimulation:
         return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
 
     def simulate_outbreak_management(
-        self, properties, management_parameters, days_to_run_for, jobs_resourcing, time=None
+        self, properties, management_parameters, days_to_run_for, resource_setting="default", time=None
     ):
         """Run simulated outbreak with management, for spread starting from self.time+1 for days_to_run_for, with management
 
@@ -910,8 +910,10 @@ class DiseaseSimulation:
             dictionaries in list define the management type and associated parameters
         days_to_run_for : int
             number of days to run this particular set of management strategies
-        jobs_resourcing
-            TODO somehow control / cap how many
+        resource_setting : string
+            "default": the 'default', i.e., the first two weeks
+            "high": high management, more resources etc., i.e. second two weeks
+            "low": less management, radius, decreased resources etc, i.e. for second two weeks
 
         Returns
         -------
@@ -976,8 +978,9 @@ class DiseaseSimulation:
             )  # should be zero movement
 
             # define restricted zone for all of Queensland and add to large_movement_restrictions
-            Queenslandshape = spatial_setup.get_Queensland_shape()
-            restricted_area = unary_union([restricted_area, Queenslandshape])
+            if resource_setting in ["default", "high"]:
+                Queenslandshape = spatial_setup.get_Queensland_shape()
+                restricted_area = unary_union([restricted_area, Queenslandshape])
 
             self.controlzone["restricted area"] = restricted_area
 
@@ -992,21 +995,28 @@ class DiseaseSimulation:
             )
             # TODO: idk if I should include Queensland into the controlzone too or not ah.
 
-            # I want to do this buffer but it keeps breaking my laptop
-            # control_area = spatial_functions.geodesic_polygon_buffer(properties[0].y, properties[0].x, restricted_area, 80)
-            # control_area = spatial_functions.expand_polygon_to_LGAs(control_area)
-            control_area = spatial_functions.expand_polygon_to_SALs(control_area)
+            if resource_setting in ["default", "high"]:
+                # I want to do this buffer but it keeps breaking my laptop
+                # control_area = spatial_functions.geodesic_polygon_buffer(properties[0].y, properties[0].x, restricted_area, 80)
+                # control_area = spatial_functions.expand_polygon_to_LGAs(control_area)
+                control_area = spatial_functions.expand_polygon_to_SALs(control_area)
+            else:
+                pass  # the control area will just be a circle around properties
 
             self.controlzone["control area"] = control_area
 
             # rough surveillance
-            low_priority_surveillance_zone = management.define_control_zone_polygons(
-                properties,
-                source_indices,
-                50,  # 5 km
-                convex=False,
-            )
-            high_priority_surveillance_zone = control_area.difference(low_priority_surveillance_zone)
+            if resource_setting in ["default", "low"]:
+                low_priority_surveillance_zone = management.define_control_zone_polygons(
+                    properties,
+                    source_indices,
+                    50,  # 5 km
+                    convex=False,
+                )
+                high_priority_surveillance_zone = control_area.difference(low_priority_surveillance_zone)
+            else:  # resource_setting == "high"
+                high_priority_surveillance_zone = control_area
+
             self.controlzone["surveillance area"] = high_priority_surveillance_zone
 
             # TODO expand more zones to match LGA and other boundaries?
@@ -1059,7 +1069,9 @@ class DiseaseSimulation:
 
             # go through job queue
             new_combined_narrative, local_movement_restrictions, newly_culled_animals, contacts_for_plotting, stats = (
-                self.job_manager.run_jobs(self.time, properties, self.movement_records, converted_date)
+                self.job_manager.run_jobs(
+                    self.time, properties, self.movement_records, converted_date, resource_setting=resource_setting
+                )
             )
             self.combined_narrative.extend(new_combined_narrative)
             self.contacts_for_plotting = contacts_for_plotting
@@ -1098,11 +1110,17 @@ class DiseaseSimulation:
                 # includes reduced movements in certain areas
                 # TODO: add in illegal movement
                 # TODO: add in a low probability of unreported movement (i.e., movement that can't be traced)
+                if resource_setting == "default" or resource_setting == "low":
+                    movement_reduction_factor = 0.2  # 80% reduction / 20% chance of movement
+                elif resource_setting == "high":
+                    movement_reduction_factor = 0.05  # 95% reduction / 5% chance of movement
+
                 movement_record = animal_movement.animal_movement(
                     properties,
                     day=self.time,
                     controlzone=controlzone_movement_restrictions,
                     reduced_movement_zone=control_area,
+                    movement_reduction_factor=movement_reduction_factor,
                 )
                 self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
 
@@ -1115,7 +1133,13 @@ class DiseaseSimulation:
 
             # and then go through job queue again in 0.5 time,
             new_combined_narrative, local_movement_restrictions, newly_culled_animals, contacts_for_plotting, stats = (
-                self.job_manager.run_jobs(self.time + 0.5, properties, self.movement_records, converted_date)
+                self.job_manager.run_jobs(
+                    self.time + 0.5,
+                    properties,
+                    self.movement_records,
+                    converted_date,
+                    resource_setting=resource_setting,
+                )
             )
             self.combined_narrative.extend(new_combined_narrative)
             self.contacts_for_plotting.update(contacts_for_plotting)

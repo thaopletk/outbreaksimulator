@@ -323,7 +323,9 @@ class JobManager:
             # may have ongoing surveillance here in the future
         return new_combined_narrative, positive, DCP_status
 
-    def run_jobs(self, time, properties, movement_records, converted_date, control_area=None):
+    def run_jobs(
+        self, time, properties, movement_records, converted_date, control_area=None, resource_setting="default"
+    ):
         """Run jobs, without prioritisation and without consideration of personel requirements
 
         THE VERSION WHERE REGARDLESS OF CLINICAL OBSERVATION, lab testing and contact tracing are done anyway
@@ -377,32 +379,74 @@ class JobManager:
         total_jobs = len(other_jobs_today) + len(culling_jobs_today) + len(jobs_outside_control_area)
 
         # TODO : put in some proper prioritisation based on zoning
-        # for now, just randomly halve / get a max of say 100 jobs a day / need to be scaled by the number of properties
-        max_jobs_today = min(int(total_jobs * 0.7), int(len(properties) / 10), 500) + np.random.randint(
-            int(len(properties) / 70)
-        )
+        if resource_setting == "default":
+            # for now, just randomly halve / get a max of say 100 jobs a day / need to be scaled by the number of properties
+            max_jobs_today = min(int(total_jobs * 0.7), int(len(properties) / 10), 500) + np.random.randint(
+                int(len(properties) / 70)
+            )
 
-        if len(jobs_outside_control_area) <= max_jobs_today:
-            jobs_today = jobs_outside_control_area
-        else:
-            jobs_today = random.sample(jobs_outside_control_area, max_jobs_today)
+            if len(jobs_outside_control_area) <= max_jobs_today:
+                jobs_today = jobs_outside_control_area
+            else:
+                jobs_today = random.sample(jobs_outside_control_area, max_jobs_today)
 
-        # should deprioritised culling, which means that the culling number should be kept down (e.g., as a fixed fraction for now)
-        # TODO - improve
-        extra_culling_jobs = int(0.2 * max_jobs_today)
-        if len(culling_jobs_today) > extra_culling_jobs:
-            culling_jobs_today = random.sample(culling_jobs_today, extra_culling_jobs)
+            # should deprioritised culling, which means that the culling number should be kept down (e.g., as a fixed fraction for now)
+            # TODO - improve
+            extra_culling_jobs = int(0.2 * max_jobs_today)
+            if len(culling_jobs_today) > extra_culling_jobs:
+                culling_jobs_today = random.sample(culling_jobs_today, extra_culling_jobs)
 
-        extra_other_jobs = int(0.2 * max_jobs_today) + (max_jobs_today - len(jobs_today))
-        if extra_other_jobs >= len(other_jobs_today):
-            extra_other_jobs_today = other_jobs_today
-        else:
-            extra_other_jobs_today = random.sample(other_jobs_today, extra_other_jobs)
+            extra_other_jobs = int(0.2 * max_jobs_today) + (max_jobs_today - len(jobs_today))
+            if extra_other_jobs >= len(other_jobs_today):
+                extra_other_jobs_today = other_jobs_today
+            else:
+                extra_other_jobs_today = random.sample(other_jobs_today, extra_other_jobs)
+        elif resource_setting == "high":  # resource values increased randomly...
+            # for now, just randomly halve / get a max of say 100 jobs a day / need to be scaled by the number of properties
+            max_jobs_today = min(int(total_jobs * 0.8), int(len(properties) / 5), 1000) + np.random.randint(
+                int(len(properties) / 30)
+            )
+
+            if len(jobs_outside_control_area) <= max_jobs_today:
+                jobs_today = jobs_outside_control_area
+            else:
+                jobs_today = random.sample(jobs_outside_control_area, max_jobs_today)
+
+            # should deprioritised culling, which means that the culling number should be kept down (e.g., as a fixed fraction for now)
+            # TODO - improve
+            extra_culling_jobs = int(0.4 * max_jobs_today)
+            if len(culling_jobs_today) > extra_culling_jobs:
+                culling_jobs_today = random.sample(culling_jobs_today, extra_culling_jobs)
+
+            extra_other_jobs = int(0.4 * max_jobs_today) + (max_jobs_today - len(jobs_today))
+            if extra_other_jobs >= len(other_jobs_today):
+                extra_other_jobs_today = other_jobs_today
+            else:
+                extra_other_jobs_today = random.sample(other_jobs_today, extra_other_jobs)
+        elif resource_setting == "low":  # reducing culling resources
+
+            max_jobs_today = min(int(total_jobs * 0.7), int(len(properties) / 10), 500) + np.random.randint(
+                int(len(properties) / 70)
+            )
+
+            if len(jobs_outside_control_area) <= max_jobs_today:
+                jobs_today = jobs_outside_control_area
+            else:
+                jobs_today = random.sample(jobs_outside_control_area, max_jobs_today)
+
+            extra_culling_jobs = max(int(0.1 * max_jobs_today), 1)
+            if len(culling_jobs_today) > extra_culling_jobs:
+                culling_jobs_today = random.sample(culling_jobs_today, extra_culling_jobs)
+
+            extra_other_jobs = int(0.2 * max_jobs_today) + (max_jobs_today - len(jobs_today))
+            if extra_other_jobs >= len(other_jobs_today):
+                extra_other_jobs_today = other_jobs_today
+            else:
+                extra_other_jobs_today = random.sample(other_jobs_today, extra_other_jobs)
 
         jobs_today.extend(culling_jobs_today)
         jobs_today.extend(extra_other_jobs_today)
 
-        # TODO run the jobs
         for job in jobs_today:
             property_index, job_type, day, status = job
             if job_type == "LabTesting":
