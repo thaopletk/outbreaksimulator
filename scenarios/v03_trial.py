@@ -146,7 +146,7 @@ if not os.path.exists(folder_path_undetected_spread):
     os.makedirs(folder_path_undetected_spread)
 
 # TODO could change this so that it runs until there are X number of infected properties in each of the main states or territories
-stop_time = 25  # 28
+stop_time = 32  # 28
 first_detection_day = stop_time + 1
 
 undetected_spread_properties_filename = os.path.join(folder_path_undetected_spread, "properties_" + unique_output)
@@ -173,6 +173,10 @@ if not os.path.exists(undetected_spread_properties_filename) or not os.path.exis
         folder_path=folder_path_undetected_spread,
         unique_output=unique_output,
     )
+
+    print(diseaseoutbreak.job_manager.jobs_queue)
+
+    # TODO I could help "fix" (later) parts by continuing to simulate more outbreak spread if nothing has reached the area I want it reach
 
     properties, movement_records, time = diseaseoutbreak.simulate_outbreak_spread_only(
         properties=properties, time=time, stop_time=stop_time
@@ -219,6 +223,8 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
 
     reportingregion_x = [140, 155]
     reportingregion_y = [-32, -29]
+
+    print(diseaseoutbreak.job_manager.jobs_queue)
 
     properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_first_two_days(
         properties, reportingregion_x, reportingregion_y

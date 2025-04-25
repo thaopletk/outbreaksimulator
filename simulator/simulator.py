@@ -29,6 +29,7 @@ import simulator.animal_movement as animal_movement
 from iteround import saferound
 from shapely.ops import transform, unary_union
 from simulator.spatial_functions import quick_distance_haversine
+import time
 
 
 def property_setup_v03(
@@ -239,27 +240,30 @@ def property_setup_v03(
             if property_type in ["saleyard", "feedlot"]:
                 animal_multiplier = 2  # double the number of animals on that property
 
-            new_p = premises.Premises(
-                num_animals=max(
-                    int(
-                        animal_multiplier
-                        * property_areas[new_p_i]
-                        * properties_specific_parameters["average_animals_per_ha"]
-                    ),
-                    animal_multiplier * 5,
-                ),  # at least five animals per property
-                movement_freq=properties_specific_parameters["movement_frequency"][property_type],
-                coordinates=property_coordinates[new_p_i],
-                area_ha=property_areas[new_p_i],
-                neighbourhood=neighbourhoods[new_p_i],
-                property_polygon=property_polygons[new_p_i],
-                property_polygon_puffed=property_polygons_puffed[new_p_i],
-                property_type=property_type,
-                movement_probability=properties_specific_parameters["movement_probability"][property_type],
-                movement_prop_animals=properties_specific_parameters["movement_prop_animals"][property_type],
-                allowed_movement=properties_specific_parameters["allowed_movement"][property_type],
-                max_daily_movements=properties_specific_parameters["max_daily_movements"][property_type],
-            )
+            try:
+                new_p = premises.Premises(
+                    num_animals=max(
+                        int(
+                            animal_multiplier
+                            * property_areas[new_p_i]
+                            * properties_specific_parameters["average_animals_per_ha"]
+                        ),
+                        animal_multiplier * 5,
+                    ),  # at least five animals per property
+                    movement_freq=properties_specific_parameters["movement_frequency"][property_type],
+                    coordinates=property_coordinates[new_p_i],
+                    area_ha=property_areas[new_p_i],
+                    neighbourhood=neighbourhoods[new_p_i],
+                    property_polygon=property_polygons[new_p_i],
+                    property_polygon_puffed=property_polygons_puffed[new_p_i],
+                    property_type=property_type,
+                    movement_probability=properties_specific_parameters["movement_probability"][property_type],
+                    movement_prop_animals=properties_specific_parameters["movement_prop_animals"][property_type],
+                    allowed_movement=properties_specific_parameters["allowed_movement"][property_type],
+                    max_daily_movements=properties_specific_parameters["max_daily_movements"][property_type],
+                )
+            except:
+                time.sleep(1.0)  # pause for a second to try and avoid errors due to geocoder requests
 
             properties[new_p_i] = new_p
             properties[new_p_i].id = (
