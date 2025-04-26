@@ -299,7 +299,9 @@ class DiseaseSimulation:
         return properties
 
     # TODO: technically, it may be possible to just run a different simulate_outbreak_spread function, but just set the probability of reporting to zero, or to modularise things further (the code parts that are repeated across different functions)
-    def simulate_outbreak_spread_only(self, properties, time=None, stop_time=7):
+    def simulate_outbreak_spread_only(
+        self, properties, time=None, stop_time=7, reporting_region_check=[[140, 155], [-32, -29]]
+    ):
         """Run simulated outbreak, for undetected spread between (self.time (or time parameter if not NA)+1) and (stop_time) [inclusive], with no management
 
 
@@ -361,6 +363,14 @@ class DiseaseSimulation:
                         file,
                     )
 
+            if self.time == stop_time:
+                # check if we actually have a property available in the reporting region yet or not; if not, extend the stop  time
+                list_of_potential_reporting_properties = self.get_properties_in_reporting_region(
+                    properties, reporting_region_check[0], reporting_region_check[1]
+                )
+                if len(list_of_potential_reporting_properties) == 0:
+                    stop_time += 1
+
         if self.plotting:
             output.make_video(self.folder_path, "map_underlying")
             output.make_video(self.folder_path, "map_apparent")
@@ -378,6 +388,21 @@ class DiseaseSimulation:
         animal_movement.save_movement_record(self.folder_path, self.movement_records)
 
         return properties, self.movement_records, self.time
+
+    def get_properties_in_reporting_region(self, properties, reportingregion_x, reportingregion_y):
+        # find properties with infected (clinical infected) animals within reportingregion_x, reportingregion_y
+        list_of_potential_reporting_properties = []
+        for i, property_i in enumerate(properties):
+            if property_i.clinical_date != "NA":
+                x, y = property_i.coordinates
+                if (
+                    x >= reportingregion_x[0]
+                    and x <= reportingregion_x[1]
+                    and y >= reportingregion_y[0]
+                    and y <= reportingregion_y[1]
+                ):
+                    list_of_potential_reporting_properties.append(i)
+        return list_of_potential_reporting_properties
 
     def select_first_reported_property(self, properties, reportingregion_x, reportingregion_y):
         """Forces the first report of an infected property in the area that we want
@@ -399,18 +424,9 @@ class DiseaseSimulation:
 
         """
 
-        # find properties with infected (clinical infected) animals within reportingregion_x, reportingregion_y
-        list_of_potential_reporting_properties = []
-        for i, property_i in enumerate(properties):
-            if property_i.clinical_date != "NA":
-                x, y = property_i.coordinates
-                if (
-                    x >= reportingregion_x[0]
-                    and x <= reportingregion_x[1]
-                    and y >= reportingregion_y[0]
-                    and y <= reportingregion_y[1]
-                ):
-                    list_of_potential_reporting_properties.append(i)
+        list_of_potential_reporting_properties = self.get_properties_in_reporting_region(
+            properties, reportingregion_x, reportingregion_y
+        )
 
         if len(list_of_potential_reporting_properties) == 0:
             raise RuntimeError("No clinically infected properties found within the wanted reporting region")

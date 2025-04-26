@@ -50,6 +50,10 @@ ylims = [
     round(spatial_only_parameters["yrange"][1], 1) + 0.05,
 ]
 
+# area for first report
+reportingregion_x = [140, 155]
+reportingregion_y = [-32, -29]
+
 properties_filename = os.path.join(folder_path_main, "properties_init")
 if not os.path.exists(properties_filename):
     property_setup_info = simulator.property_setup_v03(
@@ -146,7 +150,7 @@ if not os.path.exists(folder_path_undetected_spread):
     os.makedirs(folder_path_undetected_spread)
 
 # TODO could change this so that it runs until there are X number of infected properties in each of the main states or territories
-stop_time = 32  # 28
+stop_time = 35  # 28
 first_detection_day = stop_time + 1
 
 undetected_spread_properties_filename = os.path.join(folder_path_undetected_spread, "properties_" + unique_output)
@@ -176,10 +180,11 @@ if not os.path.exists(undetected_spread_properties_filename) or not os.path.exis
 
     print(diseaseoutbreak.job_manager.jobs_queue)
 
-    # TODO I could help "fix" (later) parts by continuing to simulate more outbreak spread if nothing has reached the area I want it reach
-
     properties, movement_records, time = diseaseoutbreak.simulate_outbreak_spread_only(
-        properties=properties, time=time, stop_time=stop_time
+        properties=properties,
+        time=time,
+        stop_time=stop_time,
+        reporting_region_check=[reportingregion_x, reportingregion_y],
     )
 
     # and then resave the end state
@@ -220,9 +225,6 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
         folder_path=folder_path_first_report,
         unique_output=unique_output,
     )
-
-    reportingregion_x = [140, 155]
-    reportingregion_y = [-32, -29]
 
     print(diseaseoutbreak.job_manager.jobs_queue)
 
