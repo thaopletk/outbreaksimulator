@@ -181,9 +181,26 @@ def extra_southward_movement(properties, day):
                     if property_j.y < property_p.y and property_j.x > 141:
                         allowed_southern_neighbours[allowed_type].append(index_j)
                         actual_total_num_allowed += 1
-
             total_num_allowed = actual_total_num_allowed
             allowed_movement_neighbours = allowed_southern_neighbours
+
+            south_most_neighbours = {}
+            # version to select the MOST southern neighbours only
+            actual_total_num_allowed = 0
+            for allowed_type in allowed_movement_neighbours.keys():
+                y_list = []
+                south_most_neighbours[allowed_type] = []
+                for index_j in allowed_movement_neighbours[allowed_type]:
+                    property_j = properties[index_j]
+                    y_list.append((index_j, property_j.y))
+
+                if y_list != []:
+                    min_y_position_index = max(y_list, key=lambda i: i[1])[0]
+                    south_most_neighbours[allowed_type].append(min_y_position_index)
+                    actual_total_num_allowed += 1
+
+            total_num_allowed = actual_total_num_allowed
+            allowed_movement_neighbours = south_most_neighbours
 
             # if there's somewhere to move the animals
             if total_num_allowed > 0:

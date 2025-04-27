@@ -332,13 +332,18 @@ class DiseaseSimulation:
             # movement of animals
             controlzone_movement_restrictions = None
 
-            movement_record = animal_movement.animal_movement(
-                properties, day=self.time, controlzone=controlzone_movement_restrictions
-            )
-            self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
+            # movement_record = animal_movement.animal_movement(
+            #     properties, day=self.time, controlzone=controlzone_movement_restrictions
+            # )
+            # self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
 
             if self.time % 2 == 0:
                 movement_record = animal_movement.extra_southward_movement(properties, day=self.time)
+                self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
+            else:
+                movement_record = animal_movement.animal_movement(
+                    properties, day=self.time, controlzone=controlzone_movement_restrictions
+                )
                 self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
 
             # update counts of infected/clinical/etc animals on each farm

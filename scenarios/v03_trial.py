@@ -150,7 +150,7 @@ if not os.path.exists(folder_path_undetected_spread):
     os.makedirs(folder_path_undetected_spread)
 
 # TODO could change this so that it runs until there are X number of infected properties in each of the main states or territories
-stop_time = 35  # 28
+stop_time = 21  # 28
 first_detection_day = stop_time + 1
 
 undetected_spread_properties_filename = os.path.join(folder_path_undetected_spread, "properties_" + unique_output)
@@ -287,10 +287,7 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
 
     # plot number of notified properties over time TODO
     # TODO: save it as a csv as well
-    dates_list = [
-        premises.convert_time_to_date(time)
-        for time in range(first_detection_day, first_detection_day + days_to_run_for + 2)
-    ]
+    dates_list = [premises.convert_time_to_date(time) for time in range(first_detection_day, time + 2)]
     print(dates_list)
     daily_notifs = [0] * len(dates_list)
 
@@ -439,7 +436,7 @@ def run_specific_branch(
         with open(local_diseaseoutbreak_filename, "wb") as file:
             pickle.dump(diseaseoutbreak, file)
 
-        job_manager.calculate_resources_used(folder_path)
+        job_manager.calculate_resources_used(folder_path_local)
 
         dates_list = [premises.convert_time_to_date(t) for t in range(first_detection_day, time + 5)]
         print(dates_list)
@@ -453,7 +450,7 @@ def run_specific_branch(
 
         save_name = "daily_notifications"
 
-        output.plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path, save_name)
+        output.plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path_local, save_name)
 
 
 # STEP 8: run some different options after decision-making
