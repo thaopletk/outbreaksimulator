@@ -289,13 +289,12 @@ def property_setup_v03(
             if i == j:
                 continue
             if property_j.type in property_i_neighbours:
-                if (
-                    quick_distance_haversine(
-                        property_i.coordinates,
-                        property_j.coordinates,
-                    )
-                    < max_allowable_movement
-                ):
+                distance = quick_distance_haversine(
+                    property_i.coordinates,
+                    property_j.coordinates,
+                )
+
+                if distance < max_allowable_movement and distance > 100 and random.uniform(0, 1) < 0.2:
                     property_i_neighbours[property_j.type].append(j)
 
         property_i.movement_neighbours = property_i_neighbours

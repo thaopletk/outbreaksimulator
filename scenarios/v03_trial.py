@@ -187,6 +187,8 @@ if not os.path.exists(undetected_spread_properties_filename) or not os.path.exis
         reporting_region_check=[reportingregion_x, reportingregion_y],
     )
 
+    first_detection_day = time + 1
+
     # and then resave the end state
     with open(undetected_spread_properties_filename, "wb") as file:
         pickle.dump(properties, file)
@@ -226,6 +228,8 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
         unique_output=unique_output,
     )
 
+    first_detection_day = diseaseoutbreak.time + 1
+
     print(diseaseoutbreak.job_manager.jobs_queue)
 
     properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_first_two_days(
@@ -244,6 +248,9 @@ else:
         properties = pickle.load(file)
     with open(spread_diseaseoutbreak_filename, "rb") as file:
         diseaseoutbreak = pickle.load(file)
+
+# TODO - to actually get the first detection date, get the first/smaller number of file in the simulate-first-two-days folder...
+
 
 # Step 6: three days of a national standstill to conduct more contact tracing and testing and figure out the situation
 unique_output = "04_national_standstill"
