@@ -362,7 +362,7 @@ class Premises(Property):
                 time
             )  # might need to change this, but for now, it should be the earliest date with clinical symptoms # TODO : however, what does this mean if infected animals were all moved off the property?
 
-    def return_output_row(self):
+    def return_output_row(self, RTM=False):
         """Returns a row with information for outputing (required downstream for forecasting)
 
         Returns
@@ -372,6 +372,20 @@ class Premises(Property):
             id, status, ip, exposure_date, clinical_date, notification_date, removal_date, recovery_date, vacc_date, region, county, cluster, xcoord, ycoord, area, type, total
 
         """
+        if RTM:
+            return [
+                self.id,
+                self.status if self.status == "IP" else "NIL",
+                self.clinical_date,
+                self.notification_date,
+                self.recovery_date,
+                self.removal_date,
+                self.vacc_date,
+                self.coordinates[0],
+                self.coordinates[1],
+                self.area,
+                self.size,
+            ]
 
         return [
             self.id,
@@ -393,7 +407,7 @@ class Premises(Property):
             self.size,
         ]
 
-    def return_known_output_row(self):
+    def return_known_output_row(self, RTM=False):
         """Returns a row with *known* information for outputing (required downstream for forecasting)
 
         I.e., by "known", I mean that if an infected property hasn't notified yet, then there shouldn't be anything printed there regarding clinical dates
@@ -407,7 +421,7 @@ class Premises(Property):
         """
 
         if self.reported_status:  # if reported already, then all information can be provided
-            return self.return_output_row()
+            return self.return_output_row(RTM)
         if self.culled_on_suspicion:  # if culled on suspicion, then exposure, clinical, notification dates should be NA
             return [
                 self.id,
@@ -428,10 +442,25 @@ class Premises(Property):
                 self.type,
                 self.size,
             ]
+        elif RTM:
+            return [
+                self.id,
+                self.status if self.status == "IP" else "NIL",
+                "NA",  # self.clinical_date,
+                self.notification_date,  # this should already be "NA"
+                self.recovery_date,  # this should already be "NA"
+                self.removal_date,  # this should already be "NA"
+                self.vacc_date,
+                self.coordinates[0],
+                self.coordinates[1],
+                self.area,
+                self.size,
+            ]
+
         else:
             return [
                 self.id,
-                self.status,
+                self.status if self.status == "IP" else "NA",
                 self.ip,
                 "NA",  # self.exposure_date,
                 "NA",  # self.clinical_date,

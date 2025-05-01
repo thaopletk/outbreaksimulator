@@ -30,7 +30,14 @@ def create_movement_records_df():
     return pd.DataFrame(columns=movement_record_header)
 
 
-def animal_movement(properties, day, controlzone, reduced_movement_zone=None, movement_reduction_factor=0.2):
+def animal_movement(
+    properties,
+    day,
+    controlzone,
+    reduced_movement_zone=None,
+    movement_reduction_factor=0.2,
+    all_movement_reduction_factor=1.0,
+):
     """Conduct animal movements between properties that are allowed to move
 
     Parameters
@@ -54,13 +61,15 @@ def animal_movement(properties, day, controlzone, reduced_movement_zone=None, mo
         if not properties[premise_index].culled_status:
             if controlzone == None or not properties[premise_index].polygon.intersects(controlzone):
                 if reduced_movement_zone == None:
-                    indices_that_can_move.append(premise_index)
+                    if random.uniform(0, 1) < all_movement_reduction_factor:
+                        indices_that_can_move.append(premise_index)
                 else:
                     if properties[premise_index].polygon.intersects(reduced_movement_zone):
                         if random.uniform(0, 1) < movement_reduction_factor:
                             indices_that_can_move.append(premise_index)
                     else:
-                        indices_that_can_move.append(premise_index)
+                        if random.uniform(0, 1) < all_movement_reduction_factor:
+                            indices_that_can_move.append(premise_index)
 
     # take animals out first, then add them to other properties later (so animals don't move twice in one day)
     for premise_index in indices_that_can_move:

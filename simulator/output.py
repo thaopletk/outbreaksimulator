@@ -382,11 +382,11 @@ def plot_map(
                 )
 
     for geometry, colour, marker, markerlabel, markersize in [
-        [geometry_susceptible, "#5284b3", "o", "susceptible", 30],
+        [geometry_susceptible, "#5284b3", "o", "susceptible", 20],
         [geometry_vaccinated, "#7852a4", "P", "vaccinated", 70],
-        [geometry_undergoing_testing, "#ffa200", "d", "testing", 120],
+        [geometry_undergoing_testing, "#ffa200", "d", "TP/testing", 100],
         [geometry_infected, "purple", "x", "infected", 30],
-        [geometry_confirmed_infected, "#ea4335", "X", "confirmed", 150],
+        [geometry_confirmed_infected, "#ea4335", "X", "confirmed", 120],
         # [geometry_culled_on_suspicion, "black", "X", "culled on suspicion", 150],
         # [
         #     geomtry_culled_on_suspicion_actually_infected,
@@ -395,7 +395,7 @@ def plot_map(
         #     "culled on suspicion, actually infected",
         #     150,
         # ],
-        [geometry_culled, "black", "X", "culled", 150],
+        [geometry_culled, "black", "X", "culled", 120],
     ]:
         if geometry == []:
             if (

@@ -900,7 +900,7 @@ def plot_current_state(
         real_situation=True,
         controlzone=controlzone,
         infectionpoly=infectionpoly,
-        contacts_for_plotting=contacts_for_plotting,  # TODO in the real situation, these should be the actual movements, or something
+        contacts_for_plotting={},  # contacts_for_plotting,  # hiding the contacts for plotting, to make things look clearer,,,, TODO in the real situation, these should be the actual movements, or something
     )
     output.plot_map(
         properties,
@@ -1011,6 +1011,34 @@ def save_current_state(properties, time, folder_path, unique_output):
 
         for premise in properties:
             row = premise.return_known_output_row()
+            writer.writerow(row)
+
+    # print output: known for RTM
+    header = [
+        "id",
+        "status",
+        "ip",
+        "clinical_date",
+        "notification_date",
+        "recovery_date",
+        "removal_date",
+        "vacc_date",
+        "longitude",
+        "latitude",
+        "area_h",
+        "n_total",
+    ]
+    file = os.path.join(folder_path, f"fake_data_apparent_RTM_{unique_output}.csv")
+    with open(file, "w", newline="") as f:
+
+        # create the csv writer
+        writer = csv.writer(f)
+
+        # write the header
+        writer.writerow(header)
+
+        for premise in properties:
+            row = premise.return_known_output_row(RTM=True)
             writer.writerow(row)
 
 

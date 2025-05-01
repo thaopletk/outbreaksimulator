@@ -1142,6 +1142,7 @@ class DiseaseSimulation:
                     controlzone=controlzone_movement_restrictions,
                     reduced_movement_zone=control_area,
                     movement_reduction_factor=movement_reduction_factor,
+                    all_movement_reduction_factor=0.8,  # reducing probability of overall movement
                 )
                 self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
 
