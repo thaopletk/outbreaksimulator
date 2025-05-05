@@ -994,7 +994,7 @@ class DiseaseSimulation:
             restricted_area = management.define_control_zone_polygons(
                 properties,
                 source_indices,
-                5,  # 5 km
+                80,  # 5 km
                 convex=False,
             )  # should be zero movement
 
@@ -1011,7 +1011,7 @@ class DiseaseSimulation:
             control_area = management.define_control_zone_polygons(
                 properties,
                 source_indices,
-                80,  # 80 km
+                100,  # 100 km
                 convex=False,
             )
             # TODO: idk if I should include Queensland into the controlzone too or not ah.
