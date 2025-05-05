@@ -894,7 +894,42 @@ def plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path, sa
     ax.plot(x_points, daily_notifs, marker="o", markersize=15)
     # ax.set_xlabel('date', fontsize =14)
     # ax.set_ylabel('cases',fontsize= 14)
-    ax.set_title("Daily confirmed cases", fontsize=16)
+    ax.set_title("Daily confirmed infected premises", fontsize=16)
+    ax.grid()
+
+    # labels = [item.get_text() for item in ax.get_xticklabels()]
+    # labels = [dates_list[x] for x in labels]
+
+    if len(daily_notifs) > 20:
+        day_spacing = 7
+        if len(daily_notifs) > 50:
+            day_spacing = 14
+    else:
+        day_spacing = 2
+
+    ax.set_xticks(x_points[::day_spacing])
+    ax.set_xticklabels([x[:-5] for x in dates_list[::day_spacing]], fontsize=14)  # remove the "/2024"
+    ax.set_yticklabels(ax.get_yticklabels(), fontsize=14)
+
+    file_name = os.path.join(folder_path, f"{save_name}.png")
+
+    plt.savefig(file_name, bbox_inches="tight")
+
+    plt.close()
+
+    return
+
+
+def plot_total_notifs_over_time(dates_list, daily_notifs, folder_path, save_name):
+    fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+
+    x_points = list(range(len(dates_list)))
+    cumulative = np.cumsum(daily_notifs)
+
+    ax.plot(x_points, cumulative, marker="o", markersize=15)
+    # ax.set_xlabel('date', fontsize =14)
+    # ax.set_ylabel('cases',fontsize= 14)
+    ax.set_title("Total confirmed infected premises over time", fontsize=16)
     ax.grid()
 
     # labels = [item.get_text() for item in ax.get_xticklabels()]

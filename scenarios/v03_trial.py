@@ -322,6 +322,11 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
 
     output.plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path, save_name)
 
+    output.plot_total_notifs_over_time(dates_list, daily_notifs, folder_path, save_name="total_notifs")
+
+    # TODO - could add some plotting per state
+
+
 else:
     with open(spread_properties_filename, "rb") as file:
         properties = pickle.load(file)
@@ -395,6 +400,8 @@ def run_specific_branch(
         save_name = "daily_notifications"
 
         output.plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path_local, save_name)
+
+        output.plot_total_notifs_over_time(dates_list, daily_notifs, folder_path, save_name="total_notifs")
 
 
 # STEP 7: run some different options after decision-making
