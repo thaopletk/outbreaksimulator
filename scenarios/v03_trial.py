@@ -252,74 +252,11 @@ else:
 # TODO - to actually get the first detection date, get the first/smaller number of file in the simulate-first-two-days folder...
 
 
-# Step 6: three days of a national standstill to conduct more contact tracing and testing and figure out the situation
-unique_output = "04_national_standstill"
-folder_path = os.path.join(folder_path_main, unique_output)
-days_to_run_for = 3
-management_parameters = [{"type": "national_standstill"}]
-# and during this time period, will  conduct clinical observations, and schedule testing regardless (DCPs basically)
-
-if not os.path.exists(folder_path):
-    os.makedirs(folder_path)
-
-spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
-spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
-
-if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
-    # adjust the plotting parameters for this new scenario
-    diseaseoutbreak.set_plotting_parameters(
-        xlims=xlims,
-        ylims=ylims,
-        plotting=True,
-        folder_path=folder_path,
-        unique_output=unique_output,
-    )
-
-    # TODO   illegal movement - means that the standstill phase should still have movement! just say 0.1 times the original probabilities
-    # TODO at the same time, these movements may be not "trackable"; and in general, not all movements would be trackable, e.g. 1% of movements are missing for example
-
-    properties, movement_records, time, total_culled_animals, job_manager = (
-        diseaseoutbreak.simulate_national_standstill(properties, days_to_run_for)
-    )
-
-    # and then resave the end state
-    with open(spread_properties_filename, "wb") as file:
-        pickle.dump(properties, file)
-
-    # and save the diseaseoutbreak object
-    with open(spread_diseaseoutbreak_filename, "wb") as file:
-        pickle.dump(diseaseoutbreak, file)
-
-    job_manager.calculate_resources_used(folder_path)
-
-    # plot number of notified properties over time TODO
-    # TODO: save it as a csv as well
-    dates_list = [premises.convert_time_to_date(time) for time in range(first_detection_day, time + 2)]
-    print(dates_list)
-    daily_notifs = [0] * len(dates_list)
-
-    for property_i in properties:
-        notif_date = property_i.notification_date
-        if notif_date != "NA":
-            index = dates_list.index(notif_date)
-            daily_notifs[index] += 1
-
-    save_name = "movement_standstill_daily_notifications"
-
-    output.plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path, save_name)
-
-
-else:
-    with open(spread_properties_filename, "rb") as file:
-        properties = pickle.load(file)
-    with open(spread_diseaseoutbreak_filename, "rb") as file:
-        diseaseoutbreak = pickle.load(file)
-
-# step 7
+# step 6
 # about two weeks of simulation
-unique_output = "05_two_weeks"
+unique_output = "04_two_weeks"
 folder_path = os.path.join(folder_path_main, unique_output)
-days_to_run_for = 14 - 2
+days_to_run_for = 14
 
 management_parameters = [  # TODO - currently not used...could actually implement it...
     {"type": "movement_restriction", "radius_km": 5, "convex": False},
@@ -339,7 +276,7 @@ if not os.path.exists(folder_path):
 spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
 spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
 
-outbreak_step_7_filenames = [
+outbreak_step_6_filenames = [
     [spread_properties_filename, spread_diseaseoutbreak_filename, unique_output],
 ]
 
@@ -460,28 +397,26 @@ def run_specific_branch(
         output.plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path_local, save_name)
 
 
-# STEP 8: run some different options after decision-making
+# STEP 7: run some different options after decision-making
 days_to_run_for = 14
 
-outbreak_step_8_filenames = []
+outbreak_step_7_filenames = []
 
 management_parameters = []  # dummy parameters because they're not actually used right now
 
-"05_two_weeks"
-
 # NOTE this could be parallellised, or run as multiple jobs on the cluster.
-for properties_filename, diseaseoutbreak_filename, identifier in outbreak_step_7_filenames:
+for properties_filename, diseaseoutbreak_filename, identifier in outbreak_step_6_filenames:
     long_name = ""
-    short_code = identifier  # not used here, since there is only one history in outbreak_step_7_filenames
+    short_code = identifier  # not used here, since there is only one history in outbreak_step_6_filenames
     for resource_setting in ["high", "low"]:
-        unique_output = "06_two_weeks_" + resource_setting
+        unique_output = "05_two_weeks_" + resource_setting
         folder_path_local = os.path.join(folder_path_main, unique_output)
         if not os.path.exists(folder_path_local):
             os.makedirs(folder_path_local)
         local_properties_filename = os.path.join(folder_path_local, "properties_" + unique_output)
         local_diseaseoutbreak_filename = os.path.join(folder_path_local, "outbreakobject_" + unique_output)
 
-        outbreak_step_8_filenames.append(
+        outbreak_step_7_filenames.append(
             [local_properties_filename, local_diseaseoutbreak_filename, resource_setting]
         )  # note, have set identifier = resource_setting
 
