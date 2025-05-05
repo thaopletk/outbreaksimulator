@@ -392,7 +392,7 @@ class JobManager:
 
             # should deprioritised culling, which means that the culling number should be kept down (e.g., as a fixed fraction for now)
             # TODO - improve
-            extra_culling_jobs = int(0.2 * max_jobs_today)
+            extra_culling_jobs = int(0.3 * max_jobs_today)
             if len(culling_jobs_today) > extra_culling_jobs:
                 culling_jobs_today = random.sample(culling_jobs_today, extra_culling_jobs)
 
@@ -414,7 +414,7 @@ class JobManager:
 
             # should deprioritised culling, which means that the culling number should be kept down (e.g., as a fixed fraction for now)
             # TODO - improve
-            extra_culling_jobs = int(0.4 * max_jobs_today)
+            extra_culling_jobs = int(0.5 * max_jobs_today)
             if len(culling_jobs_today) > extra_culling_jobs:
                 culling_jobs_today = random.sample(culling_jobs_today, extra_culling_jobs)
 

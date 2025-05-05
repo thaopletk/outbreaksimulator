@@ -1031,7 +1031,7 @@ class DiseaseSimulation:
                 low_priority_surveillance_zone = management.define_control_zone_polygons(
                     properties,
                     source_indices,
-                    50,  # 5 km
+                    50,  # 50 km
                     convex=False,
                 )
                 high_priority_surveillance_zone = control_area.difference(low_priority_surveillance_zone)
