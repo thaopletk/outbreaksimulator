@@ -1017,7 +1017,6 @@ def save_current_state(properties, time, folder_path, unique_output):
     header = [
         "id",
         "status",
-        "ip",
         "clinical_date",
         "notification_date",
         "recovery_date",
