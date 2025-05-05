@@ -919,7 +919,13 @@ class DiseaseSimulation:
         return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
 
     def simulate_outbreak_management(
-        self, properties, management_parameters, days_to_run_for, resource_setting="default", time=None
+        self,
+        properties,
+        management_parameters,
+        days_to_run_for,
+        resource_setting="default",
+        vaccination=False,
+        time=None,
     ):
         """Run simulated outbreak with management, for spread starting from self.time+1 for days_to_run_for, with management
 
@@ -1044,8 +1050,10 @@ class DiseaseSimulation:
 
             # assign new jobs - i.e. surveillance based on the control zones
             for i, premise in enumerate(properties):
-                if not (premise.reported_status or premise.culled_status) and premise.polygon.intersects(
-                    high_priority_surveillance_zone
+                if (
+                    not (premise.reported_status or premise.culled_status)
+                    and premise.status != "DCP"
+                    and premise.polygon.intersects(high_priority_surveillance_zone)
                 ):
                     self.combined_narrative.append(
                         [
@@ -1060,6 +1068,28 @@ class DiseaseSimulation:
                     self.combined_narrative.append([time, converted_date, "test", i, report])
                     if scheduled_successful:
                         premise.undergoing_testing = True
+
+            vaccination_zone = None
+            if vaccination:
+                vaccination_zone = high_priority_surveillance_zone  # leaving it as this for now, for easiness
+                # assigning properties for vaccination
+                for i, premise in enumerate(properties):
+                    if (
+                        not (premise.reported_status or premise.culled_status)
+                        and premise.status != "DCP"
+                        and premise.polygon.intersects(vaccination_zone)
+                    ):
+                        self.combined_narrative.append(
+                            [
+                                self.time,
+                                converted_date,
+                                "vaccination",
+                                i,
+                                "This property has been shortlisted for vaccination",
+                            ]
+                        )
+                        report, scheduled_successful = self.job_manager.schedule_vaccination(i, self.time)
+                        self.combined_narrative.append([time, converted_date, "vaccination", i, report])
 
             # TODO: prioritise jobs based on zoning
 

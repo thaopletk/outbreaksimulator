@@ -25,7 +25,7 @@ import pandas as pd
 import random
 import shapely
 
-job_types = ["LabTesting", "ClinicalObservation", "Cull", "ContactTracing"]
+job_types = ["LabTesting", "ClinicalObservation", "Cull", "ContactTracing", "Vaccination"]
 
 
 # TODO should this be moved into the job manager class or into spatial functions?
@@ -138,6 +138,7 @@ class JobManager:
         contact_tracing_delay=0.5,
         lab_test_delay=1.5,
         clinical_delay=0.5,
+        vaccination_delay=2,
     ):
         self.lab_test_sensitivity = lab_test_sensitivity
         self.clinical_test_sensitivity = clinical_test_sensitivity
@@ -145,6 +146,7 @@ class JobManager:
         self.contact_tracing_delay = contact_tracing_delay
         self.lab_test_delay = lab_test_delay
         self.clinical_delay = clinical_delay
+        self.vaccination_delay = vaccination_delay
 
         self.jobs_queue = {i: {job_type: {} for job_type in job_types} for i in range(n)}
 
@@ -197,6 +199,13 @@ class JobManager:
             if float(day) <= scheduled_day and float(day) >= scheduled_day - 7:
                 return True
         return False
+
+    def check_if_job_already_exists(self, property_i, job_type):
+        results_dict = self.jobs_queue[property_i][job_type]
+        if not results_dict:
+            return False  # results_dict is empty, so the job doesn't exist yet
+        else:
+            return True
 
     def decision_to_cull(self, property_i, time):
         # TODO - there should be some check that the property hasn't been culled yet...
@@ -260,6 +269,19 @@ class JobManager:
         else:
             self.jobs_queue[property_i][job_type][str(scheduled_day)] = ["in progress", "NA"]
             report = f"Property {property_i} has been scheduled for clinical evaluation"
+            scheduled_successful = True
+
+        return report, scheduled_successful
+
+    def schedule_vaccination(self, property_i, time):
+        scheduled_day = time + self.vaccination_delay
+        job_type = "Vaccination"
+        scheduled_successful = False
+        if self.check_if_job_already_exists(property_i, job_type) == True:
+            report = f"Property {property_i} has already been scheduled for vaccination"
+        else:
+            self.jobs_queue[property_i][job_type][str(scheduled_day)] = ["in progress", "NA"]
+            report = f"Property {property_i} has been scheduled for vaccination"
             scheduled_successful = True
 
         return report, scheduled_successful
@@ -547,7 +569,25 @@ class JobManager:
                         new_combined_narrative.append([time, converted_date, "test", t_i, report])
                         if scheduled_successful:
                             properties[t_i].undergoing_testing = True
+            elif job_type == "Vaccination":
+                premise = properties[property_index]
+                if not (premise.reported_status or premise.culled_status) and premise.status != "DCP":
+                    premise.vaccinate(self.time)
+                    self.jobs_queue[property_index][job_type][day] = ["complete", converted_date]
+                    new_combined_narrative.append(
+                        [
+                            time,
+                            converted_date,
+                            "vaccination",
+                            property_index,
+                            "Animals on premises has been successfully vaccinated",
+                        ]
+                    )
+                else:
+                    self.jobs_queue[property_index][job_type][day][0] = "cancelled"
 
+            else:
+                raise ValueError(f"Job type {job_type} not managed by the job manager")
         stats = [
             num_positive_clinical,
             num_lab_tested,
@@ -568,7 +608,7 @@ class JobManager:
     def calculate_resources_used(self, folder_path):
         # there's probably a dataframes way to do this
 
-        header = ["completion_date", "LabTesting", "ClinicalObservation", "Cull", "ContactTracing"]
+        header = ["completion_date", "LabTesting", "ClinicalObservation", "Cull", "ContactTracing", "Vaccination"]
         resources = {}
         for property_index in self.jobs_queue.keys():
             for job_type in self.jobs_queue[property_index].keys():
@@ -583,7 +623,14 @@ class JobManager:
 
         for key, value in resources.items():
             jobs.append(
-                [key, value["LabTesting"], value["ClinicalObservation"], value["Cull"], value["ContactTracing"]]
+                [
+                    key,
+                    value["LabTesting"],
+                    value["ClinicalObservation"],
+                    value["Cull"],
+                    value["ContactTracing"],
+                    value["Vaccination"],
+                ]
             )
         # order by the date
         jobs.sort(key=lambda x: x[0])
