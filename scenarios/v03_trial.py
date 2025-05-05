@@ -354,6 +354,7 @@ def run_specific_branch(
     management_parameters,
     days_to_run_for,
     resource_setting,
+    vaccination=False,
 ):
     if not os.path.exists(local_properties_filename) or not os.path.exists(local_diseaseoutbreak_filename):
 
@@ -373,7 +374,7 @@ def run_specific_branch(
 
         properties, movement_records, time, total_culled_animals, job_manager = (
             diseaseoutbreak.simulate_outbreak_management(
-                properties, management_parameters, days_to_run_for, resource_setting
+                properties, management_parameters, days_to_run_for, resource_setting, vaccination
             )
         )
 
@@ -438,3 +439,39 @@ for properties_filename, diseaseoutbreak_filename, identifier in outbreak_step_6
             days_to_run_for,
             resource_setting,
         )
+
+
+# STEP 8: phase 3, high/low resource status with vaccination or no vaccination
+days_to_run_for = 28
+
+outbreak_step_8_filenames = []
+
+management_parameters = []  # dummy parameters because they're not actually used right now
+
+# NOTE this could be parallellised, or run as multiple jobs on the cluster.
+for properties_filename, diseaseoutbreak_filename, step7_resource_setting in outbreak_step_7_filenames:
+    for resource_setting in ["high", "low"]:
+        for vaccination in [True, False]:
+            unique_output = f"05_{step7_resource_setting}_06_{resource_setting}_{vaccination}"
+            folder_path_local = os.path.join(folder_path_main, unique_output)
+            if not os.path.exists(folder_path_local):
+                os.makedirs(folder_path_local)
+            local_properties_filename = os.path.join(folder_path_local, "properties_" + unique_output)
+            local_diseaseoutbreak_filename = os.path.join(folder_path_local, "outbreakobject_" + unique_output)
+
+            outbreak_step_8_filenames.append(
+                [local_properties_filename, local_diseaseoutbreak_filename, unique_output]
+            )  # note, have set identifier = unique_output
+
+            run_specific_branch(
+                local_properties_filename,
+                local_diseaseoutbreak_filename,
+                properties_filename,
+                diseaseoutbreak_filename,
+                folder_path_local,
+                unique_output,
+                management_parameters,
+                days_to_run_for,
+                resource_setting,
+                vaccination,
+            )
