@@ -406,7 +406,7 @@ class JobManager:
             max_jobs_today = (
                 min(int(total_jobs * 0.7), int(len(properties) / 50), 500)
                 + np.random.randint(int(len(properties) / 100))
-                + (time - 28) * 10
+                + int((time - 28) * 10)
             )  # last term to account for/ allow for increasing resourcing over time
 
             if len(jobs_outside_control_area) <= max_jobs_today:
@@ -430,7 +430,7 @@ class JobManager:
             max_jobs_today = (
                 min(int(total_jobs * 0.8), int(len(properties) / 5), 1000)
                 + np.random.randint(int(len(properties) / 30))
-                + (time - 28) * 10
+                + int((time - 28) * 10)
             )
 
             if len(jobs_outside_control_area) <= max_jobs_today:

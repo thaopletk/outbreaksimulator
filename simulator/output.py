@@ -268,7 +268,7 @@ def plot_map(
             plt.plot(
                 [premise.coordinates[0], contact.coordinates[0]],
                 [premise.coordinates[1], contact.coordinates[1]],
-                alpha=0.4,
+                alpha=0.2,
                 color="black",
             )
 

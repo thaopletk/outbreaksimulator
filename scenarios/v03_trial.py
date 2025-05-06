@@ -170,8 +170,8 @@ undetected_spread_diseaseoutbreak_filename = os.path.join(
 )
 
 
-random.seed(13)
-np.random.seed(14)
+random.seed(102)
+np.random.seed(124)
 
 if not os.path.exists(undetected_spread_properties_filename) or not os.path.exists(
     undetected_spread_diseaseoutbreak_filename
@@ -218,7 +218,7 @@ if not os.path.exists(undetected_spread_properties_filename) or not os.path.exis
         if property_i.exposure_date != "NA":
             total_infected += 1
 
-    if total_infected > 150:
+    if total_infected > 150 or total_infected < 50:
         raise ValueError("Total number of infected premises at time of detection is too high, run again!")
 
 

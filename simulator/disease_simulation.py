@@ -1343,10 +1343,10 @@ class DiseaseSimulation:
                 daily_notifs_by_state[property_i.state][index] += 1
         for state in daily_notifs_by_state.keys():
             output.plot_daily_notifications_over_time(
-                dates_list, daily_notifs, self.folder_path, "daily_notifs_" + state
+                dates_list, daily_notifs_by_state[state], self.folder_path, "daily_notifs_" + state
             )
             output.plot_total_notifs_over_time(
-                dates_list, daily_notifs, self.folder_path, save_name="total_notifs_" + state
+                dates_list, daily_notifs_by_state[state], self.folder_path, save_name="total_notifs_" + state
             )
 
         return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
