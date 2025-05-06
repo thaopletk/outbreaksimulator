@@ -9,6 +9,8 @@ import sys
 import os
 import json
 import pickle
+import random
+import numpy as np
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import simulator.simulator as simulator
@@ -55,6 +57,11 @@ reportingregion_x = [140, 155]
 reportingregion_y = [-32, -29]
 
 properties_filename = os.path.join(folder_path_main, "properties_init")
+
+random.seed(10)
+np.random.seed(11)
+
+
 if not os.path.exists(properties_filename):
     property_setup_info = simulator.property_setup_v03(
         folder_path_main, spatial_only_parameters, properties_specific_parameters
@@ -121,6 +128,10 @@ properties_seeded_filename = os.path.join(folder_path_seed, "properties_0")
 
 northQLDx = [141, 146]
 northQLDy = [-17, -10]
+
+
+random.seed(12)
+np.random.seed(13)
 if not os.path.exists(properties_seeded_filename):
     # seed property
     unique_output = "day0"
@@ -157,6 +168,11 @@ undetected_spread_properties_filename = os.path.join(folder_path_undetected_spre
 undetected_spread_diseaseoutbreak_filename = os.path.join(
     folder_path_undetected_spread, "outbreakobject_" + unique_output
 )
+
+
+random.seed(13)
+np.random.seed(14)
+
 if not os.path.exists(undetected_spread_properties_filename) or not os.path.exists(
     undetected_spread_diseaseoutbreak_filename
 ):
@@ -227,6 +243,8 @@ if not os.path.exists(folder_path_first_report):
 spread_properties_filename = os.path.join(folder_path_first_report, "properties_" + unique_output)
 spread_diseaseoutbreak_filename = os.path.join(folder_path_first_report, "outbreakobject_" + unique_output)
 
+random.seed(15)
+np.random.seed(16)
 if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
     # adjust the plotting parameters for this new scenario
     diseaseoutbreak.set_plotting_parameters(
@@ -289,6 +307,8 @@ outbreak_step_6_filenames = [
     [spread_properties_filename, spread_diseaseoutbreak_filename, unique_output],
 ]
 
+random.seed(17)
+np.random.seed(18)
 if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
     # adjust the plotting parameters for this new scenario
     diseaseoutbreak.set_plotting_parameters(
@@ -335,6 +355,7 @@ def run_specific_branch(
     resource_setting,
     vaccination=False,
 ):
+
     if not os.path.exists(local_properties_filename) or not os.path.exists(local_diseaseoutbreak_filename):
 
         with open(properties_filename, "rb") as file:
@@ -389,6 +410,8 @@ for properties_filename, diseaseoutbreak_filename, identifier in outbreak_step_6
             [local_properties_filename, local_diseaseoutbreak_filename, resource_setting]
         )  # note, have set identifier = resource_setting
 
+        random.seed(19)
+        np.random.seed(20)
         run_specific_branch(
             local_properties_filename,
             local_diseaseoutbreak_filename,
@@ -424,6 +447,8 @@ for properties_filename, diseaseoutbreak_filename, step7_resource_setting in out
                 [local_properties_filename, local_diseaseoutbreak_filename, unique_output]
             )  # note, have set identifier = unique_output
 
+            random.seed(21)
+            np.random.seed(22)
             run_specific_branch(
                 local_properties_filename,
                 local_diseaseoutbreak_filename,
