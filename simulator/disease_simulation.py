@@ -122,6 +122,8 @@ class DiseaseSimulation:
 
         self.daily_statistics = {}  # converted_date, stat types
 
+        self.first_detection_day = None
+
     def set_plotting_parameters(self, xlims, ylims, plotting=True, folder_path="", unique_output=""):
         """Sets the plotting parameters, especially important to update regularly if you want things to output to a different folder"""
         self.xlims = xlims
@@ -467,6 +469,7 @@ class DiseaseSimulation:
         # new day, allow disease spread
 
         self.time += 1
+        self.first_detection_day = self.time
         converted_date = premises.convert_time_to_date(self.time)
         self.daily_statistics[converted_date] = {
             "num positive clinical": 0,
@@ -1254,6 +1257,48 @@ class DiseaseSimulation:
             save_suffix="_NSW",
         )
 
+        # QLD closeup
+        output.plot_map(
+            properties,
+            self.time,
+            xlims=[137, 154],
+            ylims=[-29, -10],
+            folder_path=self.folder_path,
+            real_situation=False,
+            controlzone=self.controlzone,
+            infectionpoly=False,
+            contacts_for_plotting=self.contacts_for_plotting,
+            save_suffix="_QLD",
+        )
+
+        # VIC closeup
+        output.plot_map(
+            properties,
+            self.time,
+            xlims=[140, 152],
+            ylims=[-40, -33],
+            folder_path=self.folder_path,
+            real_situation=False,
+            controlzone=self.controlzone,
+            infectionpoly=False,
+            contacts_for_plotting=self.contacts_for_plotting,
+            save_suffix="_VIC",
+        )
+
+        # SA closeup
+        output.plot_map(
+            properties,
+            self.time,
+            xlims=[self.xlims[0], 142],
+            ylims=[-39, -25],
+            folder_path=self.folder_path,
+            real_situation=False,
+            controlzone=self.controlzone,
+            infectionpoly=False,
+            contacts_for_plotting=self.contacts_for_plotting,
+            save_suffix="_SA",
+        )
+
         simulator.save_outbreak_state(
             properties,
             self.time,
@@ -1268,6 +1313,41 @@ class DiseaseSimulation:
         self.save_reports(properties, restricted_area, control_area)
         self.job_manager.save_jobs_queue(self.folder_path)
         self.save_daily_statistics()
+
+        # TODO: add in a "total" column? or add in relative costs/estimated costs and a total estimated cost...
+        self.job_manager.calculate_resources_used(self.folder_path)
+
+        dates_list = [premises.convert_time_to_date(t) for t in range(self.first_detection_day, self.time + 1)]
+        # print(dates_list)
+        daily_notifs = [0] * len(dates_list)
+
+        for property_i in properties:
+            notif_date = property_i.notification_date
+            if notif_date != "NA":
+                index = dates_list.index(notif_date)
+                daily_notifs[index] += 1
+
+        save_name = "daily_notifications"
+
+        output.plot_daily_notifications_over_time(dates_list, daily_notifs, self.folder_path, save_name)
+
+        output.plot_total_notifs_over_time(dates_list, daily_notifs, self.folder_path, save_name="total_notifs")
+
+        daily_notifs_by_state = {}
+        for property_i in properties:
+            notif_date = property_i.notification_date
+            if notif_date != "NA":
+                if property_i.state not in daily_notifs_by_state:
+                    daily_notifs_by_state[property_i.state] = [0] * len(dates_list)
+                index = dates_list.index(notif_date)
+                daily_notifs_by_state[property_i.state][index] += 1
+        for state in daily_notifs_by_state.keys():
+            output.plot_daily_notifications_over_time(
+                dates_list, daily_notifs, self.folder_path, "daily_notifs_" + state
+            )
+            output.plot_total_notifs_over_time(
+                dates_list, daily_notifs, self.folder_path, save_name="total_notifs_" + state
+            )
 
         return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
 

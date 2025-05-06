@@ -911,7 +911,7 @@ def plot_current_state(
         real_situation=False,
         controlzone=controlzone,
         infectionpoly=infectionpoly,
-        contacts_for_plotting=contacts_for_plotting,
+        contacts_for_plotting={},  # contacts_for_plotting, # not plotting them to make it easier to see what's happening...
     )
 
 

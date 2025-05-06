@@ -197,6 +197,15 @@ if not os.path.exists(undetected_spread_properties_filename) or not os.path.exis
     with open(undetected_spread_diseaseoutbreak_filename, "wb") as file:
         pickle.dump(diseaseoutbreak, file)
 
+    total_infected = 0
+    for property_i in properties:
+        if property_i.exposure_date != "NA":
+            total_infected += 1
+
+    if total_infected > 150:
+        raise ValueError("Total number of infected premises at time of detection is too high, run again!")
+
+
 else:
 
     with open(undetected_spread_properties_filename, "rb") as file:
@@ -290,7 +299,7 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
         unique_output=unique_output,
     )
 
-    # TODO not complete
+    # TODO not 100% satisfactorily complete
     properties, movement_records, time, total_culled_animals, job_manager = (
         diseaseoutbreak.simulate_outbreak_management(
             properties, management_parameters, days_to_run_for, resource_setting="default"
@@ -305,42 +314,12 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
     with open(spread_diseaseoutbreak_filename, "wb") as file:
         pickle.dump(diseaseoutbreak, file)
 
-    # TODO: add in a "total" column? or add in relative costs/estimated costs and a total estimated cost...
-    job_manager.calculate_resources_used(folder_path)
-
-    dates_list = [premises.convert_time_to_date(t) for t in range(first_detection_day, time + 2)]
-    print(dates_list)
-    daily_notifs = [0] * len(dates_list)
-
-    for property_i in properties:
-        notif_date = property_i.notification_date
-        if notif_date != "NA":
-            index = dates_list.index(notif_date)
-            daily_notifs[index] += 1
-
-    save_name = "daily_notifications"
-
-    output.plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path, save_name)
-
-    output.plot_total_notifs_over_time(dates_list, daily_notifs, folder_path, save_name="total_notifs")
-
-    # TODO - could add some plotting per state
-
 
 else:
     with open(spread_properties_filename, "rb") as file:
         properties = pickle.load(file)
     with open(spread_diseaseoutbreak_filename, "rb") as file:
         diseaseoutbreak = pickle.load(file)
-
-
-# if not os.path.exists(os.path.join(folder_path_main, "map_infection_pressure.png")):
-#     output.plot_infection_pressure(
-#         time,
-#         xlims,
-#         ylims,
-#         folder_path_main,
-#     )
 
 
 # function to make it easier to run specific "branches" of the simulator "history"
@@ -385,24 +364,6 @@ def run_specific_branch(
         # and save the diseaseoutbreak object
         with open(local_diseaseoutbreak_filename, "wb") as file:
             pickle.dump(diseaseoutbreak, file)
-
-        job_manager.calculate_resources_used(folder_path_local)
-
-        dates_list = [premises.convert_time_to_date(t) for t in range(first_detection_day, time + 5)]
-        print(dates_list)
-        daily_notifs = [0] * len(dates_list)
-
-        for property_i in properties:
-            notif_date = property_i.notification_date
-            if notif_date != "NA":
-                index = dates_list.index(notif_date)
-                daily_notifs[index] += 1
-
-        save_name = "daily_notifications"
-
-        output.plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path_local, save_name)
-
-        output.plot_total_notifs_over_time(dates_list, daily_notifs, folder_path, save_name="total_notifs")
 
 
 # STEP 7: run some different options after decision-making

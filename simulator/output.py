@@ -382,7 +382,7 @@ def plot_map(
                 )
 
     for geometry, colour, marker, markerlabel, markersize in [
-        [geometry_susceptible, "#5284b3", "o", "susceptible", 20],
+        # [geometry_susceptible, "#5284b3", "o", "susceptible", 20], # taking out susceptible plotting to make it clearer to see what's happening
         [geometry_vaccinated, "#7852a4", "P", "vaccinated", 70],
         [geometry_undergoing_testing, "#ffa200", "d", "TP/testing", 100],
         [geometry_infected, "purple", "x", "infected", 30],
