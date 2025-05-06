@@ -403,9 +403,11 @@ class JobManager:
         # TODO : put in some proper prioritisation based on zoning
         if resource_setting == "default":
             # for now, just randomly halve / get a max of say 100 jobs a day / need to be scaled by the number of properties
-            max_jobs_today = min(int(total_jobs * 0.7), int(len(properties) / 50), 500) + np.random.randint(
-                int(len(properties) / 100)
-            )
+            max_jobs_today = (
+                min(int(total_jobs * 0.7), int(len(properties) / 50), 500)
+                + np.random.randint(int(len(properties) / 100))
+                + (time - 28) * 10
+            )  # last term to account for/ allow for increasing resourcing over time
 
             if len(jobs_outside_control_area) <= max_jobs_today:
                 jobs_today = jobs_outside_control_area
@@ -425,8 +427,10 @@ class JobManager:
                 extra_other_jobs_today = random.sample(other_jobs_today, extra_other_jobs)
         elif resource_setting == "high":  # resource values increased randomly...
             # for now, just randomly halve / get a max of say 100 jobs a day / need to be scaled by the number of properties
-            max_jobs_today = min(int(total_jobs * 0.8), int(len(properties) / 5), 1000) + np.random.randint(
-                int(len(properties) / 30)
+            max_jobs_today = (
+                min(int(total_jobs * 0.8), int(len(properties) / 5), 1000)
+                + np.random.randint(int(len(properties) / 30))
+                + (time - 28) * 10
             )
 
             if len(jobs_outside_control_area) <= max_jobs_today:
