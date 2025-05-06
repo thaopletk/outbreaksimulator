@@ -418,7 +418,7 @@ class JobManager:
             if len(culling_jobs_today) > extra_culling_jobs:
                 culling_jobs_today = random.sample(culling_jobs_today, extra_culling_jobs)
 
-            extra_other_jobs = int(0.2 * max_jobs_today) + (max_jobs_today - len(jobs_today))
+            extra_other_jobs = int(0.3 * max_jobs_today) + (max_jobs_today - len(jobs_today))
             if extra_other_jobs >= len(other_jobs_today):
                 extra_other_jobs_today = other_jobs_today
             else:
@@ -440,7 +440,7 @@ class JobManager:
             if len(culling_jobs_today) > extra_culling_jobs:
                 culling_jobs_today = random.sample(culling_jobs_today, extra_culling_jobs)
 
-            extra_other_jobs = int(0.4 * max_jobs_today) + (max_jobs_today - len(jobs_today))
+            extra_other_jobs = int(0.5 * max_jobs_today) + (max_jobs_today - len(jobs_today))
             if extra_other_jobs >= len(other_jobs_today):
                 extra_other_jobs_today = other_jobs_today
             else:
@@ -456,7 +456,7 @@ class JobManager:
             else:
                 jobs_today = random.sample(jobs_outside_control_area, max_jobs_today)
 
-            extra_culling_jobs = max(int(0.1 * max_jobs_today), 1)
+            extra_culling_jobs = max(int(0.2 * max_jobs_today), 1)
             if len(culling_jobs_today) > extra_culling_jobs:
                 culling_jobs_today = random.sample(culling_jobs_today, extra_culling_jobs)
 
