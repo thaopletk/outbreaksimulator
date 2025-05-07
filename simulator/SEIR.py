@@ -75,7 +75,7 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mort
         vector_mortality_adjustment = 1
         if properties[index].culled_status:
             days_since_culled = convert_date_to_time(properties[index].removal_date)
-            vector_mortality_adjustment = np.exp(-vector_mortality_rate * days_since_culled)
+            vector_mortality_adjustment = 0.5 * np.exp(-vector_mortality_rate * days_since_culled)
 
         # update FOI
         FOI += vector_mortality_adjustment * vector_val_neighbour * beta_wind * C_j * distance_modifier * A_ijs / A_js
