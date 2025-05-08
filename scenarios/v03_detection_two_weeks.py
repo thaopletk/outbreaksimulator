@@ -47,7 +47,7 @@ ylims = [
 reportingregion_x = [140, 155]
 reportingregion_y = [-32, -29]
 
-version = "7"
+version = sys.argv[1]  # "7"
 unique_output = f"02_undetected_spread_{version}"
 folder_path_undetected_spread = os.path.join(folder_path_main, unique_output)
 undetected_spread_properties_filename = os.path.join(folder_path_undetected_spread, "properties_" + unique_output)
@@ -67,10 +67,10 @@ with open(undetected_spread_diseaseoutbreak_filename, "rb") as file:
 # These properties should shown on a map
 
 
-random.seed(10 * int(sys.argv[1]))
-np.random.seed(10 * int(sys.argv[1]))
+random.seed(10 * int(sys.argv[2]))
+np.random.seed(10 * int(sys.argv[2]))
 
-unique_output = f"{version}_03_outbreak_detection_{sys.argv[1]}"
+unique_output = f"{version}_03_outbreak_detection_{sys.argv[2]}"
 folder_path_first_report = os.path.join(folder_path_main, unique_output)
 
 if not os.path.exists(folder_path_first_report):
@@ -79,8 +79,6 @@ if not os.path.exists(folder_path_first_report):
 spread_properties_filename = os.path.join(folder_path_first_report, "properties_" + unique_output)
 spread_diseaseoutbreak_filename = os.path.join(folder_path_first_report, "outbreakobject_" + unique_output)
 
-random.seed(15)
-np.random.seed(16)
 if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
     # adjust the plotting parameters for this new scenario
     diseaseoutbreak.set_plotting_parameters(
@@ -117,7 +115,7 @@ else:
 
 # step 6
 # about two weeks of simulation
-unique_output = f"{version}_04_two_weeks_{sys.argv[1]}"
+unique_output = f"{version}_04_two_weeks_{sys.argv[2]}"
 folder_path = os.path.join(folder_path_main, unique_output)
 days_to_run_for = 14
 

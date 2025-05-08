@@ -376,7 +376,12 @@ class DiseaseSimulation:
                 list_of_potential_reporting_properties = self.get_properties_in_reporting_region(
                     properties, reporting_region_check[0], reporting_region_check[1]
                 )
-                if len(list_of_potential_reporting_properties) == 0:
+
+                total_infected = 0
+                for property_i in properties:
+                    if property_i.exposure_date != "NA":
+                        total_infected += 1
+                if len(list_of_potential_reporting_properties) == 0 or total_infected < 70:
                     stop_time += 1
 
         # since we're not going to show the videos anyway, only saving plot data at the end to limit memory consumption
@@ -386,9 +391,9 @@ class DiseaseSimulation:
                 file,
             )
 
-        if self.plotting:
-            output.make_video(self.folder_path, "map_underlying")
-            output.make_video(self.folder_path, "map_apparent")
+        # if self.plotting:
+        #     output.make_video(self.folder_path, "map_underlying")
+        #     output.make_video(self.folder_path, "map_apparent")
 
         simulator.save_outbreak_state(
             properties,
@@ -1239,16 +1244,22 @@ class DiseaseSimulation:
                     infectionpoly=False,
                     contacts_for_plotting=self.contacts_for_plotting,
                 )
-                # should also save things for plotting: i.e., everything that I had used to actually plot
-                with open(os.path.join(self.folder_path, "plotting_data" + str(self.time)), "wb") as file:
-                    pickle.dump(
-                        [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
-                        file,
-                    )
+                # # should also save things for plotting: i.e., everything that I had used to actually plot
+                # with open(os.path.join(self.folder_path, "plotting_data" + str(self.time)), "wb") as file:
+                #     pickle.dump(
+                #         [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
+                #         file,
+                #     )
 
-        if self.plotting:
-            output.make_video(self.folder_path, "map_underlying", times=time_list)
-            output.make_video(self.folder_path, "map_apparent", times=time_list)
+        with open(os.path.join(self.folder_path, "plotting_data" + str(self.time)), "wb") as file:
+            pickle.dump(
+                [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
+                file,
+            )
+
+        # if self.plotting:
+        #     output.make_video(self.folder_path, "map_underlying", times=time_list)
+        #     output.make_video(self.folder_path, "map_apparent", times=time_list)
 
         #  plot more zoomed up versions...
         # NSW closeup

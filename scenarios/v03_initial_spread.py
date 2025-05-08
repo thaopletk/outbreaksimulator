@@ -11,6 +11,7 @@ import json
 import pickle
 import random
 import numpy as np
+import subprocess
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import simulator.simulator as simulator
@@ -218,3 +219,8 @@ if not os.path.exists(undetected_spread_properties_filename) or not os.path.exis
             total_infected += 1
 
     print(f"Total number of infected premises: {total_infected}")
+
+    if total_infected > 50 and total_infected < 110:
+        command = ["sbatch", "--parsable", f"--export=VER={sys.argv[1]}", "detection_two_weeks.sh"]
+        out = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        print(out)
