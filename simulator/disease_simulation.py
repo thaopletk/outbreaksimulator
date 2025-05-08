@@ -363,12 +363,13 @@ class DiseaseSimulation:
                     infectionpoly=False,
                     contacts_for_plotting=self.contacts_for_plotting,
                 )
-                # should also save things for plotting: i.e., everything that I had used to actually plot
-                with open(os.path.join(self.folder_path, "plotting_data" + str(self.time)), "wb") as file:
-                    pickle.dump(
-                        [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
-                        file,
-                    )
+
+                # # should also save things for plotting: i.e., everything that I had used to actually plot
+                # with open(os.path.join(self.folder_path, "plotting_data" + str(self.time)), "wb") as file:
+                #     pickle.dump(
+                #         [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
+                #         file,
+                #     )
 
             if self.time == stop_time:
                 # check if we actually have a property available in the reporting region yet or not; if not, extend the stop  time
@@ -377,6 +378,13 @@ class DiseaseSimulation:
                 )
                 if len(list_of_potential_reporting_properties) == 0:
                     stop_time += 1
+
+        # since we're not going to show the videos anyway, only saving plot data at the end to limit memory consumption
+        with open(os.path.join(self.folder_path, "plotting_data" + str(self.time)), "wb") as file:
+            pickle.dump(
+                [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
+                file,
+            )
 
         if self.plotting:
             output.make_video(self.folder_path, "map_underlying")

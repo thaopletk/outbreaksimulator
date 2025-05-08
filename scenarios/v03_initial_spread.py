@@ -217,5 +217,4 @@ if not os.path.exists(undetected_spread_properties_filename) or not os.path.exis
         if property_i.exposure_date != "NA":
             total_infected += 1
 
-    if total_infected > 110 or total_infected < 50:
-        raise ValueError("Total number of infected premises at time of detection is too high/low, run again!")
+    print(f"Total number of infected premises: {total_infected}")
