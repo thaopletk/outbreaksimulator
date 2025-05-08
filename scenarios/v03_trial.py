@@ -170,8 +170,8 @@ undetected_spread_diseaseoutbreak_filename = os.path.join(
 )
 
 
-random.seed(102)
-np.random.seed(124)
+random.seed(1234)  # past seeds: 14, 102
+np.random.seed(3562)  # past seeds: 15, 124
 
 if not os.path.exists(undetected_spread_properties_filename) or not os.path.exists(
     undetected_spread_diseaseoutbreak_filename
@@ -194,7 +194,7 @@ if not os.path.exists(undetected_spread_properties_filename) or not os.path.exis
         unique_output=unique_output,
     )
 
-    print(diseaseoutbreak.job_manager.jobs_queue)
+    # print(diseaseoutbreak.job_manager.jobs_queue)
 
     properties, movement_records, time = diseaseoutbreak.simulate_outbreak_spread_only(
         properties=properties,
@@ -218,8 +218,8 @@ if not os.path.exists(undetected_spread_properties_filename) or not os.path.exis
         if property_i.exposure_date != "NA":
             total_infected += 1
 
-    if total_infected > 150 or total_infected < 50:
-        raise ValueError("Total number of infected premises at time of detection is too high, run again!")
+    if total_infected > 110 or total_infected < 50:
+        raise ValueError("Total number of infected premises at time of detection is too high/low, run again!")
 
 
 else:
@@ -257,7 +257,7 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
 
     first_detection_day = diseaseoutbreak.time + 1
 
-    print(diseaseoutbreak.job_manager.jobs_queue)
+    # print(diseaseoutbreak.job_manager.jobs_queue)
 
     properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_first_two_days(
         properties, reportingregion_x, reportingregion_y
@@ -309,6 +309,8 @@ outbreak_step_6_filenames = [
 
 random.seed(17)
 np.random.seed(18)
+# random.seed(3532)
+# np.random.seed(124)
 if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
     # adjust the plotting parameters for this new scenario
     diseaseoutbreak.set_plotting_parameters(
