@@ -45,9 +45,6 @@ ylims = [
     round(spatial_only_parameters["yrange"][1], 1) + 0.05,
 ]
 
-# area for first report
-reportingregion_x = [140, 155]
-reportingregion_y = [-32, -29]
 
 properties_filename = os.path.join(folder_path_main, "properties_init")
 
@@ -57,4 +54,6 @@ with open(properties_filename, "rb") as file:
 
 
 # plot the animal density
-output.plot_animal_density(properties, xlims, ylims, folder_path=folder_path_main)
+output.plot_animal_density(
+    properties, xlims, ylims, folder_path=folder_path_main
+)  # SHOULD MAKE AN ANIMAL DENSITY PLOT BY LGA or NRM - get total number of animals and then divide by area to get #num animals per km2
