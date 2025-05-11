@@ -41,7 +41,11 @@ with open(plotting_data_name, "rb") as file:
     properties, time, xlims, ylims, controlzone, contacts_for_plotting = pickle.load(file)
 
 
+xlims = [137, xlims[1]]
+ylims = [-37, ylims[1]]
+
 #############################################
+newcontrolzone = {}
 # construct the control zones
 source_indices = []
 for i, premise in enumerate(properties):
@@ -57,11 +61,12 @@ restricted_area = management.define_control_zone_polygons(
     convex=False,
 )  # should be zero movement
 
+
 # define restricted zone for all of Queensland and add to large_movement_restrictions
 Queenslandshape = spatial_setup.get_Queensland_shape()
 restricted_area = unary_union([restricted_area, Queenslandshape])
 
-controlzone["restricted area"] = restricted_area
+newcontrolzone["restricted area"] = restricted_area
 
 # Control area: less restricted
 control_area = management.define_control_zone_polygons(
@@ -73,7 +78,7 @@ control_area = management.define_control_zone_polygons(
 
 control_area = spatial_functions.expand_polygon_to_SALs(control_area)
 
-controlzone["control area"] = control_area
+newcontrolzone["control area"] = control_area
 
 #############################################
 # plot
@@ -81,50 +86,41 @@ controlzone["control area"] = control_area
 fig, ax = plt.subplots(1, 1, figsize=(20, 15))  # ,figsize=(10,12)
 
 colour_dictionary = {
-    "restricted area": "red",
-    "control area": "yellow",
+    "restricted area": {"face": "red", "edge": "darkred"},
+    "control area": {"face": "yellow", "edge": "darkyellow"},
 }
 
 NT_WA = spatial_setup.get_NT_and_WA_shape()
 
-for control_type, zone in controlzone.items():
+for control_type, zone in newcontrolzone.items():
     print(control_type)
     zone = zone.difference(NT_WA)
-    try:
+
+    for subpoly in zone.geoms:
         output.plot_polygon(
             ax,
-            zone,
-            facecolor=colour_dictionary[control_type],
-            edgecolor=colour_dictionary[control_type],
-            alpha=0.2,
+            subpoly,
+            facecolor=colour_dictionary[control_type]["face"],
+            edgecolor=colour_dictionary[control_type]["edge"],
+            alpha=0.3,
             label=control_type,
         )
-        print("first try worked")
 
-    except:
-        try:
-            for subpoly in zone:
-                output.plot_polygon(
-                    ax,
-                    subpoly,
-                    facecolor=colour_dictionary[control_type],
-                    edgecolor=colour_dictionary[control_type],
-                    alpha=0.2,
-                    label=control_type,
-                )
-            print("second try worked")
-        except:
-            for subpoly in zone.geoms:
-                output.plot_polygon(
-                    ax,
-                    subpoly,
-                    facecolor=colour_dictionary[control_type],
-                    edgecolor=colour_dictionary[control_type],
-                    alpha=0.2,
-                    label=control_type,
-                )
-
-            print("last except worked")
+    geometry = [Point(xlims[0] - 0.1, ylims[0] - 0.1)]  # putting the point outside the limits
+    # add a fake point to ensure the legend is there
+    geo_df = gpd.GeoDataFrame(geometry=geometry)
+    geo_df.crs = {"init": "epsg:4326"}
+    # plot the marker
+    ax = geo_df.plot(
+        ax=ax,
+        markersize=50,
+        color=colour_dictionary[control_type]["face"],
+        marker="s",
+        label=control_type,
+        edgecolor=colour_dictionary[control_type]["edge"],
+        aspect=1,
+        alpha=0.3,
+    )
 
 # will only have these points
 geometry_confirmed_infected = []
@@ -140,17 +136,22 @@ for index, premise in enumerate(properties):
 
 # TODO - change these markers potentially
 # TODO - add in the legend for the control and restricted areas (unless I use photoshop / powerpoint)
-for geometry, colour, marker, markerlabel, markersize in [
-    [geometry_undergoing_testing, "#ffa200", "o", "TP/testing", 100],
-    [geometry_confirmed_infected, "#ea4335", "X", "confirmed", 120],
+for geometry, colour, marker, markerlabel, markersize, edgecolour in [
+    [geometry_confirmed_infected, "#ea4335", "X", "confirmed", 120, "#950000"],
+    [geometry_undergoing_testing, "#ffa200", "o", "trace premises", 80, "#ff6600"],
 ]:
 
     geo_df = gpd.GeoDataFrame(geometry=geometry)
     geo_df.crs = {"init": "epsg:4326"}
     # plot the marker
-    ax = geo_df.plot(ax=ax, markersize=markersize, color=colour, marker=marker, label=markerlabel, aspect=1)
+    ax = geo_df.plot(
+        ax=ax, markersize=markersize, color=colour, marker=marker, label=markerlabel, aspect=1, edgecolor=edgecolour
+    )
 
-ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
+ctx.add_basemap(
+    ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron
+)  # source=ctx.providers.OpenStreetMap.Mapnik
+
 
 # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
 points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
