@@ -104,6 +104,17 @@ def run_specific_branch(
             unique_output=unique_output,
         )
 
+        if vaccination:
+            # hack fix to change over the job_manager to the new job_manager version with the correct code
+
+            new_job_manager = management.JobManager(spatial_only_parameters["n"], **job_parameters)
+
+            new_job_manager.jobs_queue = diseaseoutbreak.job_manager.jobs_queue
+
+            new_job_manager.local_movement_restrictions = diseaseoutbreak.job_manager.local_movement_restrictions
+
+            diseaseoutbreak.job_manager = new_job_manager
+
         properties, movement_records, time, total_culled_animals, job_manager = (
             diseaseoutbreak.simulate_outbreak_management(
                 properties, management_parameters, days_to_run_for, resource_setting, vaccination

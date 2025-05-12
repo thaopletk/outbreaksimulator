@@ -62,11 +62,13 @@ restricted_area = management.define_control_zone_polygons(
 )  # should be zero movement
 
 
+newcontrolzone["restricted area"] = restricted_area
+
 # define restricted zone for all of Queensland and add to large_movement_restrictions
 Queenslandshape = spatial_setup.get_Queensland_shape()
-restricted_area = unary_union([restricted_area, Queenslandshape])
+# restricted_area = unary_union([restricted_area, Queenslandshape])
 
-newcontrolzone["restricted area"] = restricted_area
+newcontrolzone["additional movement restrictions"] = Queenslandshape
 
 # Control area: less restricted
 control_area = management.define_control_zone_polygons(
@@ -86,13 +88,16 @@ newcontrolzone["control area"] = control_area
 fig, ax = plt.subplots(1, 1, figsize=(20, 15))  # ,figsize=(10,12)
 
 colour_dictionary = {
-    "restricted area": {"face": "red", "edge": "darkred"},
-    "control area": {"face": "yellow", "edge": "darkyellow"},
+    "restricted area": {"face": "#cc0000", "edge": "#660000"},
+    "control area": {"face": "#ffcc00", "edge": "#cc6600"},
+    "additional movement restrictions": {"face": "#8585ad", "edge": "#3d3d5c"},
 }
 
 NT_WA = spatial_setup.get_NT_and_WA_shape()
 
-for control_type, zone in newcontrolzone.items():
+for control_type in ["additional movement restrictions", "control area", "restricted area"]:
+
+    zone = newcontrolzone[control_type]
     print(control_type)
     zone = zone.difference(NT_WA)
 
@@ -102,9 +107,11 @@ for control_type, zone in newcontrolzone.items():
             subpoly,
             facecolor=colour_dictionary[control_type]["face"],
             edgecolor=colour_dictionary[control_type]["edge"],
-            alpha=0.3,
+            alpha=0.4,
             label=control_type,
         )
+
+for control_type in ["restricted area", "control area", "additional movement restrictions"]:
 
     geometry = [Point(xlims[0] - 0.1, ylims[0] - 0.1)]  # putting the point outside the limits
     # add a fake point to ensure the legend is there
@@ -113,17 +120,18 @@ for control_type, zone in newcontrolzone.items():
     # plot the marker
     ax = geo_df.plot(
         ax=ax,
-        markersize=50,
+        markersize=100,
         color=colour_dictionary[control_type]["face"],
         marker="s",
         label=control_type,
         edgecolor=colour_dictionary[control_type]["edge"],
         aspect=1,
-        alpha=0.3,
+        alpha=0.5,
     )
 
 # will only have these points
 geometry_confirmed_infected = []
+geometry_DCP = []
 geometry_undergoing_testing = []
 
 for index, premise in enumerate(properties):
@@ -131,14 +139,17 @@ for index, premise in enumerate(properties):
     curr_farm = Point(long, lat)
     if premise.reported_status == True:
         geometry_confirmed_infected.append(curr_farm)
+    elif premise.clinical_report_outcome == True or premise.status == "DCP":
+        geometry_DCP.append(curr_farm)
     elif premise.undergoing_testing == True:
         geometry_undergoing_testing.append(curr_farm)
 
 # TODO - change these markers potentially
 # TODO - add in the legend for the control and restricted areas (unless I use photoshop / powerpoint)
 for geometry, colour, marker, markerlabel, markersize, edgecolour in [
-    [geometry_confirmed_infected, "#ea4335", "X", "confirmed", 120, "#950000"],
-    [geometry_undergoing_testing, "#ffa200", "o", "trace premises", 80, "#ff6600"],
+    [geometry_confirmed_infected, "black", "X", "infected premises", 120, "black"],
+    [geometry_DCP, "#e72918", "v", "dangerous contact premises", 120, "#950000"],
+    [geometry_undergoing_testing, "#ffa200", "o", "trace premises", 70, "#ff6600"],
 ]:
 
     geo_df = gpd.GeoDataFrame(geometry=geometry)
@@ -171,12 +182,16 @@ ax.axis("off")
 ax.set_xlim(xlims)
 ax.set_ylim(ylims)
 
+# ax.legend(
+#     loc="upper center",
+#     bbox_to_anchor=(0.5, 0.0),
+#     fancybox=True,
+#     shadow=True,
+#     ncol=2,
+#     fontsize=18,
+# )
+
 ax.legend(
-    loc="upper center",
-    bbox_to_anchor=(0.5, 0.0),
-    fancybox=True,
-    shadow=True,
-    ncol=2,
     fontsize=18,
 )
 
