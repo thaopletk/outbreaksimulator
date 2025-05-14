@@ -126,7 +126,7 @@ def test_property(properties, property_index, time, test_sensitivity, test_type=
 
 class JobManager:
     jobs_queue = {}  # [property_i][job_type][day]=status # TODO: need to refactor  the jobs queue
-    new_jobs = []
+    # new_jobs = []
     local_movement_restrictions = []
 
     def __init__(
@@ -576,7 +576,7 @@ class JobManager:
             elif job_type == "Vaccination":
                 premise = properties[property_index]
                 if not (premise.reported_status or premise.culled_status) and premise.status != "DCP":
-                    premise.vaccinate(self.time)
+                    premise.vaccinate(time)
                     self.jobs_queue[property_index][job_type][day] = ["complete", converted_date]
                     new_combined_narrative.append(
                         [
