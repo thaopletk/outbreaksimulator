@@ -75,7 +75,7 @@ def plot_time_series_columns(
     if x_label is not None: ax.set_xlabel(x_label, fontsize=14)
     if y_label is not None: ax.set_ylabel(y_label, fontsize=14)
     if title is not None: ax.set_title(title, fontsize=14)
-    if legend is not None: ax.legend(legend, fontsize=14)
+    if legend is not None: ax.legend(legend, loc="upper left", fontsize=14)
 
     if save:
         file_name = os.path.join(folder_path, f"{save_name}.png")
@@ -92,8 +92,8 @@ def plot_time_series_columns(
 @click.argument("filename", type=click.Path(exists=True))
 def main(filename):
     print(os.getcwd())
-    print(f"Attempting to load properties information from {filename} ... ", end="")
     try:
+        print(f"Attempting to load properties information from {filename} ... ", end="")
         with open(filename, "rb") as file:
             properties = pickle.load(file)
         print("done.")
@@ -125,7 +125,8 @@ def main(filename):
     bins = np.arange(-0.5, max(days_from_start) + 1.5, step=1)
     x_values = bins[1:] - 0.5
     separate_by = "state"
-    for ii, state in enumerate(df[separate_by].unique()):
+    unique_labels = sorted(df[separate_by].unique())
+    for ii, state in enumerate(unique_labels):
         data = df[df[separate_by] == state]["days_from_start"]
         counts, _ = np.histogram(data, bins=bins)
 
@@ -162,7 +163,7 @@ def main(filename):
         all_counts,
         "Date",
         "Daily confirmed infected premises",
-        legend=df[separate_by].unique(),
+        legend=unique_labels,
         save=True,
         folder_path=folder,
         save_name=f"daily_all_stacked",
@@ -182,7 +183,7 @@ def main(filename):
         all_counts.cumsum(axis=1),
         "Date",
         "Total confirmed infected premises",
-        legend=df[separate_by].unique(),
+        legend=unique_labels,
         save=True,
         folder_path=folder,
         save_name=f"total_all_stacked",
