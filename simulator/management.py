@@ -515,6 +515,7 @@ class JobManager:
 
                 # regardless of whether positive:
                 # schedule contact tracing
+                # TODO - should probably NOT do this, because it leads to a complete proliferation of lots and lots and lots of properties...
                 report = self.schedule_contract_tracing(property_index, time)
                 new_combined_narrative.append([time, converted_date, "tracing", property_index, report])
 
