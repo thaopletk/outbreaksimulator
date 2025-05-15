@@ -3,3 +3,5 @@ venv/
 **/__pycache__/
 *.yaml
 .vscode/
+/figure_gen/properties*
+/figure_gen/**/*.png

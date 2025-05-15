@@ -22,7 +22,7 @@ from simulator.spatial_functions import calculate_area
 geolocator = Nominatim(user_agent="http")
 
 
-def convert_time_to_date(time, start_date=datetime.datetime(year=2026, month=1, day=1)):
+def convert_time_to_date(time, start_date=datetime.datetime(year=2026, month=1, day=1), return_string="%d/%m/%Y"):
     """Converts outbreak days (0, 1, 2...) to fake dates, started at some specified date (day 0).
     Parameters
     ----------
@@ -30,7 +30,8 @@ def convert_time_to_date(time, start_date=datetime.datetime(year=2026, month=1, 
         Simulation day to convert
     start_date : datetime.datetime objective
         Date time object describing "day 0".
-
+    return_string : str
+        String for formatting date output
     Returns
     -------
     date : string
@@ -40,7 +41,7 @@ def convert_time_to_date(time, start_date=datetime.datetime(year=2026, month=1, 
         time = int(np.floor(time))
         # TODO : here, I should allow for "morning" vs "afternoon" or some other time thing
     current_date = start_date + datetime.timedelta(days=time)
-    return current_date.strftime("%d/%m/%Y")
+    return current_date.strftime(return_string)
 
 
 def convert_date_to_time(date, start_date=datetime.datetime(year=2026, month=1, day=1)):
