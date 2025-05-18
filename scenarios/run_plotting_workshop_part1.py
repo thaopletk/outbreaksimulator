@@ -22,6 +22,7 @@ from shapely.geometry import Polygon, Point, LineString, MultiPolygon, MultiPoin
 import geopandas as gpd
 import contextily as ctx
 from matplotlib_scalebar.scalebar import ScaleBar
+import pandas as pd
 
 
 folder_path_main = os.path.join(os.path.dirname(__file__), "outputs", "v03_trial")
@@ -45,6 +46,17 @@ diseaseoutbreak_filename = os.path.join(folder_path, f"outbreakobject_{unique_ou
 with open(diseaseoutbreak_filename, "rb") as file:
     diseaseoutbreak = pickle.load(file)
 
+narrative = pd.read_csv(os.path.join(folder_path, "combinated_narrative.csv"))
+
+reported = narrative[narrative["type"] == "report"]
+
+reported_narrative = reported[reported["report"].str.contains("has been reported possible infection")]
+
+self_reported_list = reported_narrative["property"].values.tolist()
+self_reported_list = [int(x) for x in self_reported_list]
+
+print(self_reported_list)
+
 # xlims = [137, xlims[1]]
 # ylims = [-37, ylims[1]]
 
@@ -55,6 +67,9 @@ source_indices = []
 for i, premise in enumerate(properties):
     if premise.reported_status == True or premise.clinical_report_outcome == True or premise.status == "DCP":
         source_indices.append(i)
+    else:
+        if i in self_reported_list:
+            source_indices.append(i)
 
 # Get current control/etc zones
 # Restricted area
@@ -161,8 +176,14 @@ for index, premise in enumerate(properties):
         )
         TPs.extend(traced_property_indices)
 
-    elif premise.clinical_report_outcome == True or premise.status == "DCP":
+    elif premise.clinical_report_outcome == True or premise.status == "DCP" or index in self_reported_list:
         geometry_DCP.append(curr_farm)
+
+        contact_tracing_report, traced_property_indices = management.contact_tracing(
+            properties, index, diseaseoutbreak.movement_records, time
+        )
+        TPs.extend(traced_property_indices)
+
     elif premise.undergoing_testing == True:
         geometry_undergoing_testing.append(curr_farm)
 
