@@ -24,6 +24,9 @@ import contextily as ctx
 from matplotlib_scalebar.scalebar import ScaleBar
 import pandas as pd
 
+# from matplotlib.patches import Rectangle
+from matplotlib.path import Path
+
 
 folder_path_main = os.path.join(os.path.dirname(__file__), "outputs", "v03_trial")
 
@@ -107,10 +110,16 @@ newcontrolzone["control area"] = control_area
 
 fig, ax = plt.subplots(1, 1, figsize=(20, 15))  # ,figsize=(10,12)
 
+# colour_dictionary = {
+#     "restricted area": {"face": "#cc0000", "edge": "#660000"},
+#     "control area": {"face": "#ffcc00", "edge": "#cc6600"},
+#     "additional movement restrictions": {"face": "#8585ad", "edge": "#3d3d5c"},
+# }
+
 colour_dictionary = {
-    "restricted area": {"face": "#cc0000", "edge": "#660000"},
-    "control area": {"face": "#ffcc00", "edge": "#cc6600"},
-    "additional movement restrictions": {"face": "#8585ad", "edge": "#3d3d5c"},
+    "restricted area": {"face": "#e07b7b", "edge": "#660000"},
+    "control area": {"face": "#fce27b", "edge": "#cc6600"},
+    "additional movement restrictions": {"face": "#bdbdd1", "edge": "#3d3d5c"},
 }
 
 NT_WA = spatial_setup.get_NT_and_WA_shape()
@@ -127,26 +136,66 @@ for control_type in ["additional movement restrictions", "control area", "restri
             subpoly,
             facecolor=colour_dictionary[control_type]["face"],
             edgecolor=colour_dictionary[control_type]["edge"],
-            alpha=0.4,
+            alpha=1,
             label=control_type,
         )
 
 for control_type in ["restricted area", "control area", "additional movement restrictions"]:
 
-    geometry = [Point(xlims[0] - 0.1, ylims[0] - 0.1)]  # putting the point outside the limits
+    # geometry = [Point(xlims[0] - 0.1, ylims[0] - 0.1)]  # putting the point outside the limits
+    # # add a fake point to ensure the legend is there
+    # geo_df = gpd.GeoDataFrame(geometry=geometry)
+    # geo_df.crs = {"init": "epsg:4326"}
+    # # plot the marker
+    # ax = geo_df.plot(
+    #     ax=ax,
+    #     markersize=100,
+    #     color=colour_dictionary[control_type]["face"],
+    #     marker="s",
+    #     label=control_type,
+    #     edgecolor=colour_dictionary[control_type]["edge"],
+    #     aspect=1,
+    #     alpha=0.5,
+    # )
+    # ax.add_patch(Rectangle((xlims[0] - 1, ylims[0] - 1), 0.9, 0.5,
+    #          edgecolor = colour_dictionary[control_type]["edge"],
+    #          facecolor = colour_dictionary[control_type]["face"],
+    #          fill=True,
+    #          label=control_type,
+    #          alpha=0.5,
+    #          lw=0.05))
+
+    verts = [
+        (-1, -0.5),  # left, bottom
+        (-1, 0.5),  # left, top
+        (1.0, 0.5),  # right, top
+        (1.0, -0.5),  # right, bottom
+        (-1.0, -0.5),  # back to left, bottom
+    ]
+
+    codes = [
+        Path.MOVETO,  # begin drawing
+        Path.LINETO,  # straight line
+        Path.LINETO,
+        Path.LINETO,
+        Path.CLOSEPOLY,  # close shape. This is not required for this shape but is "good form"
+    ]
+
+    path = Path(verts, codes)
+
+    geometry = [Point(xlims[0] - 0.2, ylims[0] - 0.2)]  # putting the point outside the limits
     # add a fake point to ensure the legend is there
     geo_df = gpd.GeoDataFrame(geometry=geometry)
     geo_df.crs = {"init": "epsg:4326"}
-    # plot the marker
     ax = geo_df.plot(
         ax=ax,
-        markersize=100,
+        markersize=400,
         color=colour_dictionary[control_type]["face"],
-        marker="s",
+        marker=path,
         label=control_type,
         edgecolor=colour_dictionary[control_type]["edge"],
         aspect=1,
-        alpha=0.5,
+        alpha=1,
     )
 
 # will only have these points
@@ -300,29 +349,69 @@ for control_type in ["additional movement restrictions", "control area", "restri
             subpoly,
             facecolor=colour_dictionary[control_type]["face"],
             edgecolor=colour_dictionary[control_type]["edge"],
-            alpha=0.4,
+            alpha=1,
             label=control_type,
         )
 
 for control_type in ["restricted area", "control area", "additional movement restrictions"]:
 
-    geometry = [Point(xlims[0] - 0.1, ylims[0] - 0.1)]  # putting the point outside the limits
+    # geometry = [Point(xlims[0] - 0.1, ylims[0] - 0.1)]  # putting the point outside the limits
+    # # add a fake point to ensure the legend is there
+    # geo_df = gpd.GeoDataFrame(geometry=geometry)
+    # geo_df.crs = {"init": "epsg:4326"}
+    # # plot the marker
+    # ax = geo_df.plot(
+    #     ax=ax,
+    #     markersize=100,
+    #     color=colour_dictionary[control_type]["face"],
+    #     marker="s",
+    #     label=control_type,
+    #     edgecolor=colour_dictionary[control_type]["edge"],
+    #     aspect=1,
+    #     alpha=0.5,
+    # )
+    # ax.add_patch(Rectangle((xlims[0] - 1, ylims[0] - 1), 0.9, 0.5,
+    #          edgecolor = colour_dictionary[control_type]["edge"],
+    #          facecolor = colour_dictionary[control_type]["face"],
+    #          fill=True,
+    #          label=control_type,
+    #          alpha=0.5,
+    #          lw=0.05))
+
+    verts = [
+        (-1, -0.5),  # left, bottom
+        (-1, 0.5),  # left, top
+        (1.0, 0.5),  # right, top
+        (1.0, -0.5),  # right, bottom
+        (-1.0, -0.5),  # back to left, bottom
+    ]
+
+    codes = [
+        Path.MOVETO,  # begin drawing
+        Path.LINETO,  # straight line
+        Path.LINETO,
+        Path.LINETO,
+        Path.CLOSEPOLY,  # close shape. This is not required for this shape but is "good form"
+    ]
+
+    path = Path(verts, codes)
+
+    geometry = [Point(xlims[0] - 0.2, ylims[0] - 0.2)]  # putting the point outside the limits
     # add a fake point to ensure the legend is there
     geo_df = gpd.GeoDataFrame(geometry=geometry)
     geo_df.crs = {"init": "epsg:4326"}
-    # plot the marker
     ax = geo_df.plot(
         ax=ax,
-        markersize=100,
+        markersize=400,
         color=colour_dictionary[control_type]["face"],
-        marker="s",
+        marker=path,
         label=control_type,
         edgecolor=colour_dictionary[control_type]["edge"],
         aspect=1,
-        alpha=0.5,
+        alpha=1,
     )
 
-# TODO - add in the legend for the control and restricted areas (unless I use photoshop / powerpoint)
+
 for geometry, colour, marker, markerlabel, markersize, edgecolour, alpha in [
     [TPs_undergoing_testing, "#ffa200", "o", "trace premises waiting to be tested", 50, "#ff6600", 1],
     # [TPs_false_result, "#ffa200", "o", "trace premises with negative result", 50, "#ff6600",1],
@@ -365,25 +454,29 @@ ax.legend(
     fontsize=18,
 )
 
-ax.set_xlim([140, 154])
-ax.set_ylim([-38, -28])
-file_name = os.path.join(folder_path, "workshop_p1_map_apparent_NSW_" + file_name_ending)
-plt.savefig(file_name, bbox_inches="tight")
-
 ax.set_xlim([137, 154])
 ax.set_ylim([-29, -10])
 file_name = os.path.join(folder_path, "workshop_p1_map_apparent_QLD_" + file_name_ending)
+plt.savefig(file_name, bbox_inches="tight")
+
+ax.set_xlim([xlims[0], 142])
+ax.set_ylim([-39, -25])
+file_name = os.path.join(folder_path, "workshop_p1_map_apparent_SA_" + file_name_ending)
+plt.savefig(file_name, bbox_inches="tight")
+
+ax.legend(
+    loc="lower left",
+)
+
+ax.set_xlim([140, 154])
+ax.set_ylim([-38, -28])
+file_name = os.path.join(folder_path, "workshop_p1_map_apparent_NSW_" + file_name_ending)
 plt.savefig(file_name, bbox_inches="tight")
 
 
 ax.set_xlim([140, 152])
 ax.set_ylim([-40, -33])
 file_name = os.path.join(folder_path, "workshop_p1_map_apparent_VIC_" + file_name_ending)
-plt.savefig(file_name, bbox_inches="tight")
-
-ax.set_xlim([xlims[0], 142])
-ax.set_ylim([-39, -25])
-file_name = os.path.join(folder_path, "workshop_p1_map_apparent_SA_" + file_name_ending)
 plt.savefig(file_name, bbox_inches="tight")
 
 
