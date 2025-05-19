@@ -15,18 +15,18 @@ from simulator.premises import convert_time_to_date
 
 
 def plot_time_series_columns(
-        x_data,
-        y_data,
-        x_label=None,
-        y_label=None,
-        title=None,
-        legend=None,
-        save=False,
-        folder_path="figures",
-        save_name=None,
-        max_x_ticks=5,
-        max_y_ticks=5,
-        **kwargs
+    x_data,
+    y_data,
+    x_label=None,
+    y_label=None,
+    title=None,
+    legend=None,
+    save=False,
+    folder_path="figures",
+    save_name=None,
+    max_x_ticks=5,
+    max_y_ticks=5,
+    **kwargs,
 ):
     # Check maximum values along each axis
     x_scale = len(x_data)
@@ -48,8 +48,7 @@ def plot_time_series_columns(
 
     x_ticks = list(range(x_scale))
     x_tick_labels = [
-        convert_time_to_date(x, dt.datetime(year=2026, month=3, day=9), "%d/%m")
-        for x in x_ticks[::x_spacing]
+        convert_time_to_date(x, dt.datetime(year=2026, month=3, day=9), "%d/%m") for x in x_ticks[::x_spacing]
     ]
 
     # Set up figure
@@ -72,10 +71,14 @@ def plot_time_series_columns(
     ax.set_xticklabels(x_tick_labels, fontsize=14)
 
     # Set axes parameters
-    if x_label is not None: ax.set_xlabel(x_label, fontsize=14)
-    if y_label is not None: ax.set_ylabel(y_label, fontsize=14)
-    if title is not None: ax.set_title(title, fontsize=14)
-    if legend is not None: ax.legend(legend, loc="upper left", fontsize=14)
+    if x_label is not None:
+        ax.set_xlabel(x_label, fontsize=14)
+    if y_label is not None:
+        ax.set_ylabel(y_label, fontsize=14)
+    if title is not None:
+        ax.set_title(title, fontsize=14)
+    if legend is not None:
+        ax.legend(legend, loc="upper left", fontsize=14)
 
     if save:
         file_name = os.path.join(folder_path, f"{save_name}.png")
@@ -101,15 +104,17 @@ def main(filename):
         print("failed.")
         raise e
 
-    folder = f"figures_{os.path.basename(filename).split(".")[0]}"
+    print(os.path.basename(filename))
+    folder = f"figures_{os.path.basename(filename).split('.')[0]}"
     os.makedirs(folder, exist_ok=True)
+    # folder = os.path.join(os.path.dirname(__file__),"outputs", "v03_trial")
 
     # Get relevant data into a DataFrame
     print("Plotting column graphs... ", end="")
     ids = [ii.id for ii in properties if ii.notification_date != "NA"]
     states_list = [ii.address["state"] for ii in properties if ii.notification_date != "NA"]
     notification_list = [ii.notification_date for ii in properties if ii.notification_date != "NA"]
-    date_series = pd.to_datetime(notification_list)
+    date_series = pd.to_datetime(notification_list, format="%d/%m/%Y")
     start_date = pd.to_datetime("2026-03-09")
     days_from_start = (date_series - start_date).days
     df = pd.DataFrame(
@@ -138,7 +143,7 @@ def main(filename):
             legend=[state],
             save=True,
             folder_path=folder,
-            save_name=f"daily_state_{state.lower().replace(" ", "_")}",
+            save_name=f"daily_state_{state.lower().replace(' ', '_')}",
         )
 
         plot_time_series_columns(
@@ -149,7 +154,7 @@ def main(filename):
             legend=[state],
             save=True,
             folder_path=folder,
-            save_name=f"total_state_{state.lower().replace(" ", "_")}",
+            save_name=f"total_state_{state.lower().replace(' ', '_')}",
         )
 
         if ii == 0:
@@ -205,10 +210,10 @@ if __name__ == "__main__":
     """
     This file uses the click library and can be run from the command line.
     Provide a path to the pickle file which is part of the simulation output.
-    
-    Usage: 
+
+    Usage:
         python3 plot_column_figures.py FILENAME
-    
+
     Outputs:
         several PNGs  in directory "figures_FILENAME"
     """
