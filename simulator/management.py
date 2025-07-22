@@ -109,7 +109,9 @@ def test_property(properties, property_index, time, test_sensitivity, test_type=
 
     if premise.culled_status:
         testing_report += f"No testing: property index {property_index} (IP {premise.ip}) has already been culled"
-    elif premise.infection_status:
+    elif (
+        premise.infection_status and premise.prop_clinical > 0
+    ):  # i.e., for LSD, need to be clinical before tests work well
         prob_successful = np.random.rand()
         if prob_successful < test_sensitivity:
             x, y = premise.coordinates
