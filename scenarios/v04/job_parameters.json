@@ -5,5 +5,5 @@
     "contact_tracing_delay":1,
     "lab_test_delay":2,
     "clinical_delay":1,
-    "vaccination_delay":2
+    "vaccination_delay":4
 }
