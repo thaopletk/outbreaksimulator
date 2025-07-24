@@ -509,6 +509,9 @@ class JobManager:
                 if positive:
                     num_positive_clinical += 1
                     properties[property_index].status = "DCP"
+                    # schedule contact tracing only if positive
+                    report = self.schedule_contract_tracing(property_index, time)
+                    new_combined_narrative.append([time, converted_date, "tracing", property_index, report])
                 else:
                     # TODO: could make it DCP even if negative observation, if it's close to another infected property OR if the property is truly infected
                     pass
@@ -516,11 +519,6 @@ class JobManager:
                 self.jobs_queue[property_index][job_type][day] = ["complete", converted_date]
 
                 # regardless of whether positive:
-                # schedule contact tracing
-                # TODO - should probably NOT do this, because it leads to a complete proliferation of lots and lots and lots of properties...
-                report = self.schedule_contract_tracing(property_index, time)
-                new_combined_narrative.append([time, converted_date, "tracing", property_index, report])
-
                 # schedule lab testing (if not yet done)
                 report, scheduled_successful = self.schedule_lab_testing_after_observation(property_index, time)
                 new_combined_narrative.append([time, converted_date, "test", property_index, report])
