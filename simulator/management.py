@@ -444,6 +444,107 @@ class JobManager:
 
         return jobs_today
 
+    def allocate_jobs_for_today_v04(self, time, properties, resource_setting, decision):
+
+        surveillance_related_jobs_today = []  # tracing, testing
+        vaccination_jobs_today = []  # vaccination
+        culling_jobs_today = []
+        other_jobs_today = []
+
+        jobs_today = []
+
+        for property_index in self.jobs_queue.keys():
+            for job_type in self.jobs_queue[property_index].keys():
+                for day, status in self.jobs_queue[property_index][job_type].items():
+                    if status[0] == "in progress" and float(day) <= time:
+                        if job_type == "Cull":
+                            culling_jobs_today.append([property_index, job_type, day, status])
+                        elif job_type == "Vaccination":
+                            vaccination_jobs_today.append([property_index, job_type, day, status])
+                        elif job_type in ["LabTesting", "ClinicalObservation", "ContactTracing"]:
+                            surveillance_related_jobs_today.append([property_index, job_type, day, status])
+                        else:
+                            # this shouldn't happen, but just in case
+                            other_jobs_today.append([property_index, job_type, day, status])
+
+        total_jobs = (
+            len(other_jobs_today)
+            + len(culling_jobs_today)
+            + len(surveillance_related_jobs_today)
+            + len(vaccination_jobs_today)
+        )
+
+        if resource_setting == "default":
+            max_jobs_today = (
+                min(int(total_jobs * 0.7), int(len(properties) / 50), 500)
+                + np.random.randint(int(len(properties) / 100))
+                + int((time - 28) * 10)
+            )  # last term to account for/ allow for increasing resourcing over time
+
+            focused_jobs = int(max_jobs_today * 0.8)
+
+            if decision == "cullingfocused":
+                if len(culling_jobs_today) <= focused_jobs:
+                    jobs_today = culling_jobs_today
+                else:
+                    jobs_today = random.sample(culling_jobs_today, focused_jobs)
+
+                num_other_jobs = max_jobs_today - len(jobs_today)
+
+                # and then assign the rest
+                all_other_jobs = surveillance_related_jobs_today + vaccination_jobs_today + other_jobs_today
+
+                if len(all_other_jobs) <= num_other_jobs:
+                    jobs_today.extend(all_other_jobs)
+                else:
+                    other_jobs_today = random.sample(all_other_jobs, num_other_jobs)
+                    jobs_today.extend(other_jobs_today)
+
+            elif decision == "vaccinationfocused":
+                if len(vaccination_jobs_today) <= focused_jobs:
+                    jobs_today = vaccination_jobs_today
+                else:
+                    jobs_today = random.sample(vaccination_jobs_today, focused_jobs)
+
+                num_other_jobs = max_jobs_today - len(jobs_today)
+
+                # and then assign the rest
+                all_other_jobs = surveillance_related_jobs_today + culling_jobs_today + other_jobs_today
+
+                if len(all_other_jobs) <= num_other_jobs:
+                    jobs_today.extend(all_other_jobs)
+                else:
+                    other_jobs_today = random.sample(all_other_jobs, num_other_jobs)
+                    jobs_today.extend(other_jobs_today)
+            elif decision == "surveillancefocused":
+                if len(surveillance_related_jobs_today) <= focused_jobs:
+                    jobs_today = surveillance_related_jobs_today
+                else:
+                    jobs_today = random.sample(surveillance_related_jobs_today, focused_jobs)
+
+                num_other_jobs = max_jobs_today - len(jobs_today)
+
+                # and then assign the rest
+                all_other_jobs = vaccination_jobs_today + culling_jobs_today + other_jobs_today
+
+                if len(all_other_jobs) <= num_other_jobs:
+                    jobs_today.extend(all_other_jobs)
+                else:
+                    other_jobs_today = random.sample(all_other_jobs, num_other_jobs)
+                    jobs_today.extend(other_jobs_today)
+
+            else:
+                # this shouldn't happen
+                raise ValueError("Decision not coded")
+
+            if max_jobs_today != len(jobs_today):
+                raise ValueError("The number of jobs to assign doesn't match")
+
+        else:
+            raise ValueError("Currently only default resource setting is configured")
+
+        return jobs_today
+
     def run_jobs(
         self,
         time,
@@ -488,7 +589,7 @@ class JobManager:
         if v4decision == None:
             jobs_today = self.allocate_jobs_for_today(time, properties, control_area, resource_setting)
         else:
-            pass
+            jobs_today = self.allocate_jobs_for_today_v04(time, properties, resource_setting, v4decision)
 
         for job in jobs_today:
             property_index, job_type, day, status = job
