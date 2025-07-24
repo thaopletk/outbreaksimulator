@@ -947,6 +947,7 @@ class DiseaseSimulation:
         resource_setting="default",
         vaccination=False,
         time=None,
+        decision=None,  # introduced for v04
     ):
         """Run simulated outbreak with management, for spread starting from self.time+1 for days_to_run_for, with management
 
@@ -1142,7 +1143,12 @@ class DiseaseSimulation:
             # go through job queue
             new_combined_narrative, local_movement_restrictions, newly_culled_animals, contacts_for_plotting, stats = (
                 self.job_manager.run_jobs(
-                    self.time, properties, self.movement_records, converted_date, resource_setting=resource_setting
+                    self.time,
+                    properties,
+                    self.movement_records,
+                    converted_date,
+                    resource_setting=resource_setting,
+                    v4decision=decision,
                 )
             )
             self.combined_narrative.extend(new_combined_narrative)
