@@ -302,7 +302,12 @@ class DiseaseSimulation:
 
     # TODO: technically, it may be possible to just run a different simulate_outbreak_spread function, but just set the probability of reporting to zero, or to modularise things further (the code parts that are repeated across different functions)
     def simulate_outbreak_spread_only(
-        self, properties, time=None, stop_time=7, reporting_region_check=[[140, 155], [-32, -29]]
+        self,
+        properties,
+        time=None,
+        stop_time=7,
+        reporting_region_check=[[140, 155], [-32, -29]],
+        min_infected_premises=70,
     ):
         """Run simulated outbreak, for undetected spread between (self.time (or time parameter if not NA)+1) and (stop_time) [inclusive], with no management
 
@@ -381,7 +386,7 @@ class DiseaseSimulation:
                 for property_i in properties:
                     if property_i.exposure_date != "NA":
                         total_infected += 1
-                if len(list_of_potential_reporting_properties) == 0 or total_infected < 70:
+                if len(list_of_potential_reporting_properties) == 0 or total_infected < min_infected_premises:
                     stop_time += 1
 
         # since we're not going to show the videos anyway, only saving plot data at the end to limit memory consumption
