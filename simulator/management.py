@@ -347,40 +347,7 @@ class JobManager:
             # may have ongoing surveillance here in the future
         return new_combined_narrative, positive, DCP_status
 
-    def run_jobs(
-        self, time, properties, movement_records, converted_date, control_area=None, resource_setting="default"
-    ):
-        """Run jobs, without prioritisation and without consideration of personel requirements
-
-        THE VERSION WHERE REGARDLESS OF CLINICAL OBSERVATION, lab testing and contact tracing are done anyway
-
-        Parameters
-        ----------
-        time
-            current simulation day
-        properties
-            list of all the premises objects
-        management_parameters : list of dicts
-            dictionaries in list define the management type and associated parameters
-        movement_records :
-            dataframe with historical movements
-
-        Returns
-        -------
-
-
-        """
-
-        total_culled_animals = 0
-        contacts_for_plotting = {}  # from property, to properties
-        new_combined_narrative = []
-        num_positive_clinical = 0
-        num_lab_tested = 0
-        num_confirmed_infected = 0
-        num_tested_negative = 0
-        DCP_tested_negative = 0
-        surveillance_tested_negative = 0
-
+    def allocate_jobs_for_today(self, time, properties, control_area=None, resource_setting="default"):
         # go through the jobs queue & look for "in progress" jobs
         # TODO this probably affects the lab testing of newly DCPs hmm, though maybe that's also fine for now / fix later
         other_jobs_today = []
@@ -474,6 +441,54 @@ class JobManager:
 
         jobs_today.extend(culling_jobs_today)
         jobs_today.extend(extra_other_jobs_today)
+
+        return jobs_today
+
+    def run_jobs(
+        self,
+        time,
+        properties,
+        movement_records,
+        converted_date,
+        control_area=None,
+        resource_setting="default",
+        v4decision=None,
+    ):
+        """Run jobs, without prioritisation and without consideration of personel requirements
+
+        THE VERSION WHERE REGARDLESS OF CLINICAL OBSERVATION, lab testing and contact tracing are done anyway
+
+        Parameters
+        ----------
+        time
+            current simulation day
+        properties
+            list of all the premises objects
+        management_parameters : list of dicts
+            dictionaries in list define the management type and associated parameters
+        movement_records :
+            dataframe with historical movements
+
+        Returns
+        -------
+
+
+        """
+
+        total_culled_animals = 0
+        contacts_for_plotting = {}  # from property, to properties
+        new_combined_narrative = []
+        num_positive_clinical = 0
+        num_lab_tested = 0
+        num_confirmed_infected = 0
+        num_tested_negative = 0
+        DCP_tested_negative = 0
+        surveillance_tested_negative = 0
+
+        if v4decision == None:
+            jobs_today = self.allocate_jobs_for_today(time, properties, control_area, resource_setting)
+        else:
+            pass
 
         for job in jobs_today:
             property_index, job_type, day, status = job
