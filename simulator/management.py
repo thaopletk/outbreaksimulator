@@ -477,13 +477,14 @@ class JobManager:
         if resource_setting == "default":
             max_jobs_today = (
                 min(int(total_jobs * 0.7), int(len(properties) / 50), 500)
-                + np.random.randint(int(len(properties) / 100))
-                + int((time - 28) * 10)
+                # + np.random.randint(int(len(properties) / 100))
+                # + int((time - 28) * 10)
             )  # last term to account for/ allow for increasing resourcing over time
 
-            focused_jobs = int(max_jobs_today * 0.8)
+            focused_jobs = int(math.floor(max_jobs_today * 0.8))
 
             if decision == "cullingfocused":
+                print("culling_jobs_today", len(culling_jobs_today))
                 if len(culling_jobs_today) <= focused_jobs:
                     jobs_today = culling_jobs_today
                 else:
@@ -493,6 +494,7 @@ class JobManager:
 
                 # and then assign the rest
                 all_other_jobs = surveillance_related_jobs_today + vaccination_jobs_today + other_jobs_today
+                print("all_other_jobs", len(all_other_jobs))
 
                 if len(all_other_jobs) <= num_other_jobs:
                     jobs_today.extend(all_other_jobs)
@@ -537,7 +539,11 @@ class JobManager:
                 # this shouldn't happen
                 raise ValueError("Decision not coded")
 
-            if max_jobs_today != len(jobs_today):
+            if max_jobs_today < len(jobs_today):
+                print("total_jobs", total_jobs)
+                print("max_jobs_today ", max_jobs_today)
+                print("focused_jobs", focused_jobs)
+                print("jobs_today", len(jobs_today))
                 raise ValueError("The number of jobs to assign doesn't match")
 
         else:

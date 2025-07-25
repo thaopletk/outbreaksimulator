@@ -127,7 +127,7 @@ if not os.path.exists(properties_seeded_filename):
 
     properties, seed_property = simulator.seed_infection_within_bound(
         northQLDx,
-        northQLDx,
+        northQLDy,
         properties,
         time,
         xlims,
@@ -262,7 +262,7 @@ else:
 # about four weeks of simulation
 unique_output = f"04_to_decision_point"
 folder_path = os.path.join(folder_path_main, unique_output)
-days_to_run_for = 7 * 4
+days_to_run_for = 5  #  7 * 4
 
 if not os.path.exists(folder_path):
     os.makedirs(folder_path)

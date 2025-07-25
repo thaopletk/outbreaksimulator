@@ -54,9 +54,9 @@ ylims = [
 ]
 
 decision_ver = sys.argv[1]
-total_sims = 100
-first_detection_day = 21  # UPDATE/FIX THIS
-day = 82  # FIX/UPDATE THIS
+total_sims = 10
+first_detection_day = 47  # UPDATE/FIX THIS
+day = 59  # FIX/UPDATE THIS
 
 # set up the list for all the different cases, per day
 sims_daily_notified_cases = []
@@ -74,10 +74,10 @@ sims_location_of_all_notified_premises = []
 sims_location_of_daily_notified_premises = []
 sims_location_of_all_infected_premises = []
 
-dates_list = [premises.convert_time_to_date(t) for t in range(first_detection_day, day + 1)]
+dates_list = [premises.convert_time_to_date(t) for t in range(0, day + 1)]
 
 # for each simulation number
-for i in range(total_sims):
+for i in range(1, total_sims + 1):
     # read in the data
     unique_output = f"05_after_decision_{decision_ver}_{i}"
     print(unique_output)
@@ -115,7 +115,7 @@ for i in range(total_sims):
         sims_location_of_daily_notified_premises = []
         sims_location_of_all_infected_premises = []
 
-        daily = [] * len(dates_list)
+        daily = [[] for i in range(len(dates_list))]
 
         for property_i in properties:
             notif_date = property_i.notification_date
@@ -270,11 +270,74 @@ def plot_target_property_density(coords_list, xlims, ylims, folder_path, plottit
     plt.close()
 
 
+def plot_target_property_density_v2(coords_list, xlims, ylims, folder_path, plottitle, plotsavename):
+    """Aim: to plot a map of animal density across space"""
+
+    fig, ax = plt.subplots(1, 1, figsize=(20, 15))
+
+    x = [l[0] for l in coords_list]
+    y = [l[1] for l in coords_list]
+
+    # https://python-graph-gallery.com/85-density-plot-with-matplotlib/
+    nbins = 50
+
+    k = gaussian_kde([x, y])
+    xi, yi = np.mgrid[min(xlims) : max(xlims) : nbins * 1j, min(ylims) : max(ylims) : nbins * 1j]
+    zi = k(np.vstack([xi.flatten(), yi.flatten()])).reshape(xi.shape)
+
+    Australiashape = spatial_setup.Australia_shape()
+    Australiashape = shapely.plotting.patch_from_polygon(Australiashape, facecolor="white")
+    ax.add_patch(Australiashape)
+
+    ax.contour(xi, yi, zi, levels=14, linewidths=0.5, colors="k")
+    cntr1 = ax.contourf(xi, yi, zi, levels=14, cmap="RdBu_r")
+
+    for artist in ax.get_children():
+        artist.set_clip_path(Australiashape)
+
+    fig.colorbar(cntr1, ax=ax)
+
+    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)
+
+    # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
+    points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
+    points = points.to_crs(32619)  # Projected WGS 84 - meters
+    distance_meters = points[0].distance(points[1])
+    ax.add_artist(
+        ScaleBar(
+            distance_meters,
+            box_alpha=0.1,
+            location="lower right",
+        )
+    )
+
+    ax.set_title(plottitle, fontsize=18)
+
+    ax.set_ylabel("latitude", fontsize=16)
+    ax.set_xlabel("longitude", fontsize=16)
+
+    ax.set_xlim(xlims)
+    ax.set_ylim(ylims)
+
+    # ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
+    #       fancybox=True, shadow=True, ncol=5,fontsize=18)
+
+    ax.tick_params(axis="x", labelsize=14)
+    ax.tick_params(axis="y", labelsize=14)
+
+    file_name = f"{plotsavename}.png"
+
+    file_name = os.path.join(folder_path, file_name)
+
+    plt.savefig(file_name, bbox_inches="tight")
+
+    plt.close()
+
+
 coords_list = []
 index = 30
 for sim in sims_location_of_daily_notified_premises:
     coords_list.extend(sim[index])
-
 plot_target_property_density(
     coords_list,
     xlims,
@@ -283,7 +346,41 @@ plot_target_property_density(
     "Forecast of new notified premises",
     f"{decision_ver}_forecast_new_notified_premises_{index}",
 )
+plot_target_property_density_v2(
+    coords_list,
+    xlims,
+    ylims,
+    folder_path_local,
+    "Forecast of new notified premises",
+    f"{decision_ver}_forecast_new_notified_premises_v2_{index}",
+)
 
-# sims_location_of_all_notified_premises = []
-# sims_location_of_daily_notified_premises = []
-# sims_location_of_all_infected_premises = []
+
+coords_list = []
+index = 30
+for sim in sims_location_of_all_notified_premises:
+    coords_list.extend(sim[index])
+
+plot_target_property_density(
+    coords_list,
+    xlims,
+    ylims,
+    folder_path_local,
+    "Forecast of all notified premises",
+    f"{decision_ver}_forecast_all_notified_premises_{index}",
+)
+
+
+coords_list = []
+index = 30
+for sim in sims_location_of_all_infected_premises:
+    coords_list.extend(sim[index])
+
+plot_target_property_density(
+    coords_list,
+    xlims,
+    ylims,
+    folder_path_local,
+    "Forecast of all infected premises",
+    f"{decision_ver}_forecast_all_infected_premises_{index}",
+)
