@@ -115,9 +115,8 @@ with open(os.path.join(folder_path_main, "disease_parameters.json"), "r") as fil
 
 properties_seeded_filename = os.path.join(folder_path_seed, "properties_0")
 
-# DIFFERENT from v03, seeding across queensland rather than just northern queensland
-QLDx = [140, 155]
-QLDy = [-25, -10]
+northQLDx = [141, 146]
+northQLDy = [-17, -10]
 
 
 random.seed(52)
@@ -127,8 +126,8 @@ if not os.path.exists(properties_seeded_filename):
     unique_output = "day0"
 
     properties, seed_property = simulator.seed_infection_within_bound(
-        QLDx,
-        QLDy,
+        northQLDx,
+        northQLDx,
         properties,
         time,
         xlims,
@@ -152,6 +151,8 @@ target_infected_properties = 25
 
 unique_output = f"02_undetected_spread"
 folder_path_undetected_spread = os.path.join(folder_path_main, unique_output)
+if not os.path.exists(folder_path_undetected_spread):
+    os.makedirs(folder_path_undetected_spread)
 
 undetected_spread_properties_filename = os.path.join(folder_path_undetected_spread, "properties_" + unique_output)
 undetected_spread_diseaseoutbreak_filename = os.path.join(
@@ -269,7 +270,7 @@ if not os.path.exists(folder_path):
 spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
 spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
 
-management_parameters = None  # currently not being used anyway
+management_parameters = []  # currently not being used anyway
 
 if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
     # adjust the plotting parameters for this new scenario
