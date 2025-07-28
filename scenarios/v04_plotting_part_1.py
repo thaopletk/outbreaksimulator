@@ -67,12 +67,13 @@ ylims = [
 # read in relevant data--
 unique_output = f"04_to_decision_point"
 folder_path = os.path.join(folder_path_main, unique_output)
-first_detection_day = 47  # TO UPDATE
-day = 80  # TO UPDATE
+first_detection_day = 48  # TO UPDATE
+day = 77  # TO UPDATE
 
-plotting_data_name = os.path.join(folder_path, f"plotting_data{day}")
-with open(plotting_data_name, "rb") as file:
-    properties, time, xlims, ylims, controlzone, contacts_for_plotting = pickle.load(file)
+
+properties_name = os.path.join(folder_path, f"properties_{unique_output}")
+with open(properties_name, "rb") as file:
+    properties = pickle.load(file)
 
 dates_list = [premises.convert_time_to_date(t) for t in range(first_detection_day, day + 1)]
 # print(dates_list)
@@ -89,12 +90,12 @@ save_name = "daily_lab_confirmed_cases"
 for i in range(len(dates_list)):
     plotting_functions.plot_combined_daily_and_total_notifications(
         [0, len(dates_list)],
-        [0, 20],
+        [0, sum(daily_notifs) + 1],
         dates_list,
         dates_list[: i + 1],
         daily_notifs[: i + 1],
         folder_path_local,
-        save_name + "_" + i,
+        f"{save_name}_{i}",
     )
 
 output.make_video(folder_path_local, prefix=save_name + "_", times=list(range(len(dates_list))), save_name_prefix="")
@@ -107,43 +108,92 @@ output.make_video(folder_path_local, prefix=save_name + "_", times=list(range(le
 unique_output = "03_outbreak_detection"
 folder_path_first_report = os.path.join(folder_path_main, unique_output)
 
-day1 = 50  # to update
+# to get properties (really just used to convert indices to locations)
+properties_name = os.path.join(folder_path_first_report, f"properties_{unique_output}")
+with open(properties_name, "rb") as file:
+    properties = pickle.load(file)
 
-plotting_stuff_name = os.path.join(folder_path_first_report, f"preprocessed_plotting_data{day1}")
-with open(plotting_stuff_name, "rb") as file:
-    plotting_stuff = pickle.load(file)
-(
-    source_indices,
-    geometry_culled,
-    geometry_confirmed_infected,
-    geometry_DCP,
-    geometry_undergoing_testing,
-    geometry_vaccinated,
-    geometry_infected,
-    TPs,
-    TPs_undergoing_testing,
-    TPs_false_result,
-) = plotting_stuff
+for day in [48, 49]:
 
-# to get properties
-plotting_data_name = os.path.join(folder_path_first_report, f"plotting_data{day1}")
-with open(plotting_data_name, "rb") as file:
-    properties, time, xlims, ylims, controlzone, contacts_for_plotting = pickle.load(file)
+    plotting_stuff_name = os.path.join(folder_path_first_report, f"preprocessed_plotting_data{day}")
+    with open(plotting_stuff_name, "rb") as file:
+        plotting_stuff = pickle.load(file)
+    (
+        source_indices,
+        geometry_culled,
+        geometry_confirmed_infected,
+        geometry_DCP,
+        geometry_undergoing_testing,
+        geometry_vaccinated,
+        geometry_infected,
+        TPs,
+        TPs_undergoing_testing,
+        TPs_false_result,
+    ) = plotting_stuff
 
-# constructing control zones
-newcontrolzone = plotting_functions.construct_control_zones(properties, source_indices)
+    # constructing control zones
+    newcontrolzone = plotting_functions.construct_control_zones(properties, source_indices)
 
-plotting_functions.plot_premises_with_controls(
-    folder_path_local,
-    "map_" + day1,
-    newcontrolzone,
-    xlims,
-    ylims,
-    geometry_culled,
-    geometry_confirmed_infected,
-    geometry_DCP,
-    TPs_undergoing_testing,
-    geometry_vaccinated,
-    geometry_infected=[],
-    final_vaccination=False,
-)
+    plotting_functions.plot_premises_with_controls(
+        folder_path_local,
+        f"map_{day}",
+        newcontrolzone,
+        xlims,
+        ylims,
+        geometry_culled,
+        geometry_confirmed_infected,
+        geometry_DCP,
+        TPs_undergoing_testing,
+        geometry_vaccinated,
+        geometry_infected=[],
+        final_vaccination=False,
+    )
+
+
+# spread
+unique_output = "04_to_decision_point"
+folder_path = os.path.join(folder_path_main, unique_output)
+
+# to get properties (really just used to convert indices to locations)
+properties_name = os.path.join(folder_path, f"properties_{unique_output}")
+with open(properties_name, "rb") as file:
+    properties = pickle.load(file)
+
+for day in range(50, 77 + 1):
+
+    plotting_stuff_name = os.path.join(folder_path, f"preprocessed_plotting_data{day}")
+    with open(plotting_stuff_name, "rb") as file:
+        plotting_stuff = pickle.load(file)
+    (
+        source_indices,
+        geometry_culled,
+        geometry_confirmed_infected,
+        geometry_DCP,
+        geometry_undergoing_testing,
+        geometry_vaccinated,
+        geometry_infected,
+        TPs,
+        TPs_undergoing_testing,
+        TPs_false_result,
+    ) = plotting_stuff
+
+    # constructing control zones
+    newcontrolzone = plotting_functions.construct_control_zones(properties, source_indices)
+
+    plotting_functions.plot_premises_with_controls(
+        folder_path_local,
+        f"map_{day}",
+        newcontrolzone,
+        xlims,
+        ylims,
+        geometry_culled,
+        geometry_confirmed_infected,
+        geometry_DCP,
+        TPs_undergoing_testing,
+        geometry_vaccinated,
+        geometry_infected=[],
+        final_vaccination=False,
+    )
+
+save_name = "map"
+output.make_video(folder_path_local, prefix=save_name + "_", times=list(range(48, 77 + 1)), save_name_prefix="")

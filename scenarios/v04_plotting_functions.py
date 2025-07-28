@@ -45,24 +45,26 @@ def plot_combined_daily_and_total_notifications(
     ax.plot(masked_x_points, cumulative, marker="o", markersize=15)
 
     ax.set_title("Confirmed infected premises", fontsize=16)
-    ax.grid()
 
     # labels = [item.get_text() for item in ax.get_xticklabels()]
     # labels = [dates_list[x] for x in labels]
 
-    if len(daily_notifs) > 20:
-        day_spacing = 7
-        if len(daily_notifs) > 50:
-            day_spacing = 14
-    else:
-        day_spacing = 2
+    day_spacing = 14
+    # if len(daily_notifs) > 20:
+    #     day_spacing = 7
+    #     if len(daily_notifs) > 50:
+    #         day_spacing = 14
+    # else:
+    #     day_spacing = 2
+
+    ax.set_xlim(xlims)
+    ax.set_ylim(ylims)
 
     ax.set_xticks(x_points[::day_spacing])
     ax.set_xticklabels([x[:-5] for x in dates_list[::day_spacing]], fontsize=14)  # remove the "/2024"
     ax.set_yticklabels(ax.get_yticklabels(), fontsize=14)
 
-    ax.set_xlim(xlims)
-    ax.set_ylim(ylims)
+    ax.grid()
 
     file_name = os.path.join(folder_path, f"{save_name}.png")
 
@@ -92,7 +94,7 @@ def construct_control_zones(properties, source_indices):
 
     newcontrolzone["additional movement restrictions"] = Queenslandshape
 
-    # Control area: less restricted
+    # Control area
     control_area = management.define_control_zone_polygons(
         properties,
         source_indices,
@@ -100,9 +102,13 @@ def construct_control_zones(properties, source_indices):
         convex=False,
     )
 
+    control_area = spatial_functions.expand_polygon_to_SALs(control_area)
+
     control_area = control_area.intersection(Australiashape)
 
     newcontrolzone["control area"] = control_area
+
+    return newcontrolzone
 
 
 def plot_premises_with_controls(
@@ -140,19 +146,30 @@ def plot_premises_with_controls(
 
     for control_type in control_list:
 
-        zone = newcontrolzone[control_type]
-        print(control_type)
-        zone = zone.difference(NT_WA)
-
-        for subpoly in zone.geoms:
-            output.plot_polygon(
-                ax,
-                subpoly,
-                facecolor=colour_dictionary[control_type]["face"],
-                edgecolor=colour_dictionary[control_type]["edge"],
-                alpha=1,
-                label=control_type,
-            )
+        if control_type in newcontrolzone:
+            zone = newcontrolzone[control_type]
+            # print(control_type)
+            zone = zone.difference(NT_WA)
+            try:
+                for subpoly in zone.geoms:
+                    output.plot_polygon(
+                        ax,
+                        subpoly,
+                        facecolor=colour_dictionary[control_type]["face"],
+                        edgecolor=colour_dictionary[control_type]["edge"],
+                        alpha=1,
+                        label=control_type,
+                    )
+                # print("subpoly in zone.geoms")
+            except:
+                output.plot_polygon(
+                    ax,
+                    zone,
+                    facecolor=colour_dictionary[control_type]["face"],
+                    edgecolor=colour_dictionary[control_type]["edge"],
+                    alpha=1,
+                    label=control_type,
+                )
 
     for control_type in control_list_plotting:
         verts = [
@@ -225,12 +242,20 @@ def plot_premises_with_controls(
             alpha=0.7,
         )
 
+    dummy_geometry_beyond_lims = [
+        Point(xlims[0], ylims[0]),
+        Point(xlims[1], ylims[0]),
+        Point(xlims[1], ylims[1]),
+        Point(xlims[0], ylims[1]),
+    ]
+
     for geometry, colour, marker, markerlabel, markersize, edgecolour, alpha in [
         [geometry_culled, "cornflowerblue", "P", "resolved premises", 100, "royalblue", 1],
         [geometry_confirmed_infected, "black", "X", "infected premises", 110, "black", 1],
         [geometry_DCP, "#e72918", "v", "dangerous contact premises and suspect premises", 110, "#950000", 1],
         [TPs_undergoing_testing, "#ffa200", "o", "trace premises waiting to be tested", 50, "#ff6600", 1],
         [geometry_infected, "#00ff42", "*", "undetected infected premises", 700, "#0fbc3c", 1],
+        [dummy_geometry_beyond_lims, "black", ".", "", 0.00001, "black", 0],
         # [geometry_vaccinated, "#7852a4", "P", "vaccinated premsies", 70,"#7852a4",1],
         # [geometry_undergoing_testing, "#ffa200", "o", "TPs, PORs, ARPs, PSS scheduled for testing", 5, "#ff6600",0.3],
         # [final_TPs, "#ffa200", "o", "trace premises", 50, "#ff6600",1],
