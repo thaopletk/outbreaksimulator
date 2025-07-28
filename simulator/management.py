@@ -374,8 +374,8 @@ class JobManager:
             # for now, just randomly halve / get a max of say 100 jobs a day / need to be scaled by the number of properties
             max_jobs_today = (
                 min(int(total_jobs * 0.7), int(len(properties) / 50), 500)
-                + np.random.randint(int(len(properties) / 100))
-                + int((time - 28) * 10)
+                # + np.random.randint(int(len(properties) / 100))
+                # + int((time - 28) * 10)
             )  # last term to account for/ allow for increasing resourcing over time
 
             if len(jobs_outside_control_area) <= max_jobs_today:

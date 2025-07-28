@@ -74,7 +74,8 @@ sims_location_of_all_notified_premises = []
 sims_location_of_daily_notified_premises = []
 sims_location_of_all_infected_premises = []
 
-dates_list = [premises.convert_time_to_date(t) for t in range(0, day + 1)]
+dates_list = [premises.convert_time_to_date(t) for t in range(first_detection_day, day + 1)]
+full_dates_list = [premises.convert_time_to_date(t) for t in range(0, day + 1)]
 
 # for each simulation number
 for i in range(1, total_sims + 1):
@@ -111,11 +112,8 @@ for i in range(1, total_sims + 1):
 
         # set up the list for all  property locations' detection status, per day *
         #  * might be infection status or clinical status
-        sims_location_of_all_notified_premises = []
-        sims_location_of_daily_notified_premises = []
-        sims_location_of_all_infected_premises = []
 
-        daily = [[] for i in range(len(dates_list))]
+        daily = [[] for _ in range(len(dates_list))]
 
         for property_i in properties:
             notif_date = property_i.notification_date
@@ -124,24 +122,23 @@ for i in range(1, total_sims + 1):
                 daily[index].append(property_i.coordinates)
         sims_location_of_daily_notified_premises.append(daily)
 
-        all_notified_daily = [] * len(dates_list)
+        all_notified_daily = [[] for _ in range(len(dates_list))]
         for i in range(len(dates_list)):
             for j in range(i):
-                all_notified_daily.extend(daily[j])
+                all_notified_daily[i].extend(daily[j])
         sims_location_of_all_notified_premises.append(all_notified_daily)
 
-        daily_infected = [] * len(dates_list)
-
+        daily_infected = [[] for _ in range(len(full_dates_list))]
         for property_i in properties:
             clinical_date = property_i.clinical_date
-            if notif_date != "NA":
-                index = dates_list.index(clinical_date)
+            if clinical_date != "NA":
+                index = full_dates_list.index(clinical_date)
                 daily_infected[index].append(property_i.coordinates)
 
-        all_infected_daily = [] * len(dates_list)
-        for i in range(len(dates_list)):
+        all_infected_daily = [[] for _ in range(len(full_dates_list))]
+        for i in range(len(full_dates_list)):
             for j in range(i):
-                all_infected_daily.extend(daily_infected[j])
+                all_infected_daily[i].extend(daily_infected[j])
         sims_location_of_all_infected_premises.append(all_infected_daily)
 
 
@@ -151,8 +148,8 @@ def plot_median_interval_over_time(dates_list, results, plottitle, folder_path, 
 
     x_points = list(range(len(dates_list)))
 
-    ax.plot(x_points, results["median"])
-    ax.fill_between(x_points, results["025"], results["025"])
+    ax.plot(x_points, results["median"], label="median")
+    ax.fill_between(x_points, results["025"], results["025"], alpha=0.5, label="95 interval")
     # ax.set_xlabel('date', fontsize =14)
     # ax.set_ylabel('cases',fontsize= 14)
     ax.set_title(plottitle, fontsize=16)
@@ -171,6 +168,7 @@ def plot_median_interval_over_time(dates_list, results, plottitle, folder_path, 
     ax.set_xticks(x_points[::day_spacing])
     ax.set_xticklabels([x[:-5] for x in dates_list[::day_spacing]], fontsize=14)  # remove the "/2024"
     ax.set_yticklabels(ax.get_yticklabels(), fontsize=14)
+    ax.legend()
 
     file_name = os.path.join(folder_path, f"{save_name}.png")
 
@@ -215,23 +213,25 @@ def plot_target_property_density(coords_list, xlims, ylims, folder_path, plottit
 
     fig, ax = plt.subplots(1, 1, figsize=(20, 15))
 
-    x = [l[0] for l in coords_list]
-    y = [l[1] for l in coords_list]
-
-    # https://python-graph-gallery.com/85-density-plot-with-matplotlib/
-    nbins = 50
-
-    k = gaussian_kde([x, y])
-    xi, yi = np.mgrid[min(xlims) : max(xlims) : nbins * 1j, min(ylims) : max(ylims) : nbins * 1j]
-    zi = k(np.vstack([xi.flatten(), yi.flatten()])).reshape(xi.shape)
-
     Australiashape = spatial_setup.Australia_shape()
     Australiashape = shapely.plotting.patch_from_polygon(Australiashape, facecolor="white")
     ax.add_patch(Australiashape)
 
-    pcm = ax.pcolormesh(xi, yi, zi, alpha=1, cmap="YlOrRd", clip_path=(Australiashape))
+    if coords_list != []:
 
-    fig.colorbar(pcm, ax=ax)
+        x = [l[0] for l in coords_list]
+        y = [l[1] for l in coords_list]
+
+        # https://python-graph-gallery.com/85-density-plot-with-matplotlib/
+        nbins = 50
+
+        k = gaussian_kde([x, y])
+        xi, yi = np.mgrid[min(xlims) : max(xlims) : nbins * 1j, min(ylims) : max(ylims) : nbins * 1j]
+        zi = k(np.vstack([xi.flatten(), yi.flatten()])).reshape(xi.shape)
+
+        pcm = ax.pcolormesh(xi, yi, zi, alpha=1, cmap="YlOrRd", clip_path=(Australiashape))
+
+        fig.colorbar(pcm, ax=ax)
 
     ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)
 
@@ -334,53 +334,74 @@ def plot_target_property_density_v2(coords_list, xlims, ylims, folder_path, plot
     plt.close()
 
 
-coords_list = []
-index = 30
-for sim in sims_location_of_daily_notified_premises:
-    coords_list.extend(sim[index])
-plot_target_property_density(
-    coords_list,
-    xlims,
-    ylims,
-    folder_path_local,
-    "Forecast of new notified premises",
-    f"{decision_ver}_forecast_new_notified_premises_{index}",
-)
-plot_target_property_density_v2(
-    coords_list,
-    xlims,
-    ylims,
-    folder_path_local,
-    "Forecast of new notified premises",
-    f"{decision_ver}_forecast_new_notified_premises_v2_{index}",
-)
+# coords_list = []
+# sim_day = day
+# date = premises.convert_time_to_date(sim_day)
+# index = dates_list.index(date)
+# for sim in sims_location_of_daily_notified_premises:
+#     coords_list.extend(sim[index])
+# print(coords_list)
+# try:
+#     plot_target_property_density(
+#         coords_list,
+#         xlims,
+#         ylims,
+#         folder_path_local,
+#         "Forecast of new notified premises",
+#         f"{decision_ver}_forecast_new_notified_premises_{sim_day}",
+#     )
+# except:
+#     pass
 
 
 coords_list = []
-index = 30
+sim_day = day
+date = premises.convert_time_to_date(sim_day)
+index = dates_list.index(date)
 for sim in sims_location_of_all_notified_premises:
     coords_list.extend(sim[index])
+print("sims_location_of_all_notified_premises", coords_list)
 
-plot_target_property_density(
-    coords_list,
-    xlims,
-    ylims,
-    folder_path_local,
-    "Forecast of all notified premises",
-    f"{decision_ver}_forecast_all_notified_premises_{index}",
-)
+try:
+    plot_target_property_density(
+        coords_list,
+        xlims,
+        ylims,
+        folder_path_local,
+        "Forecast of all notified premises",
+        f"{decision_ver}_forecast_all_notified_premises_{sim_day}",
+    )
+except Exception as e:
+    print(e)
 
+try:
+    plot_target_property_density_v2(
+        coords_list,
+        xlims,
+        ylims,
+        folder_path_local,
+        "Forecast of all notified premises",
+        f"{decision_ver}_forecast_all_notified_premises_{sim_day}_v2",
+    )
+except Exception as e:
+    print(e)
 
 coords_list = []
-index = 30
+sim_day = day
+date = premises.convert_time_to_date(sim_day)
+index = full_dates_list.index(date)
 for sim in sims_location_of_all_infected_premises:
     coords_list.extend(sim[index])
 
-plot_target_property_density(
-    coords_list,
-    xlims,
-    ylims,
-    folder_path_local,
-    "Forecast of all infected premises",
-    f"{decision_ver}_forecast_all_infected_premises_{index}",
-)
+print("sims_location_of_all_infected_premises", coords_list)
+try:
+    plot_target_property_density(
+        coords_list,
+        xlims,
+        ylims,
+        folder_path_local,
+        "Forecast of all infected premises",
+        f"{decision_ver}_forecast_all_infected_premises_{sim_day}",
+    )
+except Exception as e:
+    print(e)

@@ -17,7 +17,8 @@ import pandas as pd
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import numpy as np
 
-# from shapely.geometry import Point
+from shapely.geometry import Point, Polygon
+
 # import csv
 # import math
 import pickle
@@ -211,6 +212,108 @@ class DiseaseSimulation:
         data_df = pd.DataFrame(data, columns=header)
 
         data_df.to_csv(os.path.join(self.folder_path, "daily_statistics.csv"), index=False)
+
+    def save_preprocessed_plotting_information(self, properties):
+
+        self_reported_list = []
+        for row in self.combined_narrative:
+            if row[2] == "report" and row[4].str.contains("has been reported possible infection"):
+                self_reported_list.append(row[3])
+        source_indices = []
+        for i, premise in enumerate(properties):
+            if premise.reported_status == True or premise.clinical_report_outcome == True or premise.status == "DCP":
+                source_indices.append(i)
+            else:
+                if i in self_reported_list:
+                    source_indices.append(i)
+
+        # will only have these points
+        geometry_culled = []
+        geometry_confirmed_infected = []
+        geometry_DCP = []
+        geometry_undergoing_testing = []
+        geometry_vaccinated = []
+        geometry_infected = []
+
+        TPs = []
+
+        for index, premise in enumerate(properties):
+            long, lat = premise.coordinates
+            curr_farm = Point(long, lat)
+            if premise.culled_status == True:
+                geometry_culled.append(curr_farm)
+
+                contact_tracing_report, traced_property_indices = management.contact_tracing(
+                    properties, index, self.movement_records, self.time
+                )
+                TPs.extend(traced_property_indices)
+
+            elif premise.reported_status == True:
+                geometry_confirmed_infected.append(curr_farm)
+
+                contact_tracing_report, traced_property_indices = management.contact_tracing(
+                    properties, index, self.movement_records, self.time
+                )
+                TPs.extend(traced_property_indices)
+
+            elif premise.clinical_report_outcome == True or premise.status == "DCP" or index in self_reported_list:
+                geometry_DCP.append(curr_farm)
+
+                contact_tracing_report, traced_property_indices = management.contact_tracing(
+                    properties, index, self.movement_records, self.time
+                )
+                TPs.extend(traced_property_indices)
+            elif premise.infection_status:
+                geometry_infected.append(curr_farm)
+            elif premise.undergoing_testing == True:
+                geometry_undergoing_testing.append(curr_farm)
+
+            if premise.vaccination_status:
+                # # geometry_vaccinated.append(premise.polygon)
+                # puff_p1 = Polygon(spatial_functions.geodesic_point_buffer(lat, long, km=10))
+                # geometry_vaccinated.append(puff_p1)
+                geometry_vaccinated.append(curr_farm)
+
+        TPs = list(set(TPs))
+
+        final_TPs = []
+        TPs_undergoing_testing = []
+        TPs_false_result = []
+        for index in TPs:
+            if index in geometry_culled or index in geometry_confirmed_infected or index in geometry_DCP:
+                pass
+            else:
+                long, lat = properties[index].coordinates
+                curr_farm = Point(long, lat)
+                final_TPs.append(curr_farm)
+                if properties[index].clinical_report_outcome == False:
+                    if properties[index].undergoing_testing == True:
+                        TPs_undergoing_testing.append(curr_farm)  # aka, it's still waiting for a lab test...
+                    else:
+                        TPs_false_result.append(curr_farm)
+                elif (
+                    properties[index].undergoing_testing == True
+                ):  # clinical_report_outcome == None; means that it's waiting for a clinical team AND a lab test
+                    TPs_undergoing_testing.append(curr_farm)
+
+        plotting_stuff = [
+            source_indices,
+            geometry_culled,
+            geometry_confirmed_infected,
+            geometry_DCP,
+            geometry_undergoing_testing,
+            geometry_vaccinated,
+            geometry_infected,
+            TPs,
+            TPs_undergoing_testing,
+            TPs_false_result,
+        ]
+
+        with open(os.path.join(self.folder_path, "preprocessed_plotting_data" + str(self.time)), "wb") as file:
+            pickle.dump(
+                plotting_stuff,
+                file,
+            )
 
     def make_report(self, reported_property, converted_date, property_index):
         """Saves text in the combined narrative that a property reported"""
@@ -579,6 +682,8 @@ class DiseaseSimulation:
                     file,
                 )
 
+            self.save_preprocessed_plotting_information(properties)
+
         return (
             properties,
             first_report_i,
@@ -703,6 +808,7 @@ class DiseaseSimulation:
                     [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
                     file,
                 )
+            self.save_preprocessed_plotting_information(properties)
 
         return properties
 
@@ -1261,6 +1367,8 @@ class DiseaseSimulation:
                 #         [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
                 #         file,
                 #     )
+
+                self.save_preprocessed_plotting_information(properties)
 
         with open(os.path.join(self.folder_path, "plotting_data" + str(self.time)), "wb") as file:
             pickle.dump(
