@@ -98,7 +98,7 @@ class DiseaseSimulation:
         self.clinical_reporting_threshold = scenario_parameters["clinical_reporting_threshold"]
         self.prob_report = scenario_parameters["prob_report"]
 
-        self.vax_modifier = 0
+        self.vax_modifier = 0.6
 
         self.combined_narrative = []  # ["day","date","type","property","report"]
 
@@ -217,7 +217,7 @@ class DiseaseSimulation:
 
         self_reported_list = []
         for row in self.combined_narrative:
-            if row[2] == "report" and row[4].str.contains("has been reported possible infection"):
+            if row[2] == "report" and row[4].contains("has been reported possible infection"):
                 self_reported_list.append(row[3])
         source_indices = []
         for i, premise in enumerate(properties):

@@ -228,6 +228,27 @@ spread_diseaseoutbreak_filename = os.path.join(folder_path_first_report, "outbre
 random.seed(15)
 np.random.seed(16)
 if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
+
+    # setting up a new disease outbreak object (with new code)
+    diseaseoutbreak_new = disease_simulation.DiseaseSimulation(
+        time=diseaseoutbreak.time,
+        disease_parameters=disease_parameters,
+        spatial_only_parameters=spatial_only_parameters,
+        job_parameters=job_parameters,
+        scenario_parameters=scenario_parameters,
+    )
+    diseaseoutbreak_new.movement_records = diseaseoutbreak.movement_records
+    diseaseoutbreak_new.vax_modifier = diseaseoutbreak.vax_modifier
+    diseaseoutbreak_new.combined_narrative = diseaseoutbreak.combined_narrative
+    diseaseoutbreak_new.job_manager = diseaseoutbreak.job_manager
+    diseaseoutbreak_new.total_culled_animals = diseaseoutbreak.total_culled_animals
+    diseaseoutbreak_new.controlzone = diseaseoutbreak.controlzone
+    diseaseoutbreak_new.contacts_for_plotting = diseaseoutbreak.contacts_for_plotting
+    diseaseoutbreak_new.daily_statistics = diseaseoutbreak.daily_statistics
+    diseaseoutbreak_new.first_detection_day = diseaseoutbreak.first_detection_day
+
+    diseaseoutbreak = diseaseoutbreak_new
+
     # adjust the plotting parameters for this new scenario
     diseaseoutbreak.set_plotting_parameters(
         xlims=xlims,
