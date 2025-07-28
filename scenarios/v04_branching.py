@@ -93,10 +93,10 @@ def run_specific_branch(
             unique_output=unique_output,
         )
 
-        new_job_manager = management.JobManager(spatial_only_parameters["n"], **job_parameters)
-        new_job_manager.jobs_queue = diseaseoutbreak.job_manager.jobs_queue
-        new_job_manager.local_movement_restrictions = diseaseoutbreak.job_manager.local_movement_restrictions
-        diseaseoutbreak.job_manager = new_job_manager
+        # new_job_manager = management.JobManager(spatial_only_parameters["n"], **job_parameters)
+        # new_job_manager.jobs_queue = diseaseoutbreak.job_manager.jobs_queue
+        # new_job_manager.local_movement_restrictions = diseaseoutbreak.job_manager.local_movement_restrictions
+        # diseaseoutbreak.job_manager = new_job_manager
 
         properties, movement_records, time, total_culled_animals, job_manager = (
             diseaseoutbreak.simulate_outbreak_management(
@@ -124,7 +124,7 @@ def run_specific_branch(
         print(f"Total number of infected premises: {total_infected}")
 
 
-days_to_run_for = 5  #  4 * 7
+days_to_run_for = 4 * 7
 management_parameters = []
 
 for properties_filename, diseaseoutbreak_filename, identifier in previous_step_filenames:
