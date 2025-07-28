@@ -55,8 +55,8 @@ ylims = [
 
 decision_ver = sys.argv[1]
 total_sims = 10
-first_detection_day = 47  # UPDATE/FIX THIS
-day = 59  # FIX/UPDATE THIS
+first_detection_day = 48  # UPDATE/FIX THIS
+day = 105  # FIX/UPDATE THIS
 
 # set up the list for all the different cases, per day
 sims_daily_notified_cases = []
