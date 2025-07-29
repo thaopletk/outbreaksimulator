@@ -31,6 +31,8 @@ with open(os.path.join(folder_path_main, "job_parameters.json"), "r") as file:
     job_parameters = json.load(file)
 with open(os.path.join(folder_path_main, "scenario_parameters.json"), "r") as file:
     scenario_parameters = json.load(file)
+with open(os.path.join(folder_path_main, "disease_parameters.json"), "r") as file:
+    disease_parameters = json.load(file)
 
 # limits for the figures
 xlims = [
@@ -84,6 +86,31 @@ def run_specific_branch(
         with open(diseaseoutbreak_filename, "rb") as file:
             diseaseoutbreak = pickle.load(file)
 
+        # setting up a new disease outbreak object (with new code)
+        diseaseoutbreak_new = disease_simulation.DiseaseSimulation(
+            time=diseaseoutbreak.time,
+            disease_parameters=disease_parameters,
+            spatial_only_parameters=spatial_only_parameters,
+            job_parameters=job_parameters,
+            scenario_parameters=scenario_parameters,
+        )
+        diseaseoutbreak_new.movement_records = diseaseoutbreak.movement_records
+        diseaseoutbreak_new.vax_modifier = diseaseoutbreak.vax_modifier
+        diseaseoutbreak_new.combined_narrative = diseaseoutbreak.combined_narrative
+        diseaseoutbreak_new.job_manager = diseaseoutbreak.job_manager
+        diseaseoutbreak_new.total_culled_animals = diseaseoutbreak.total_culled_animals
+        diseaseoutbreak_new.controlzone = diseaseoutbreak.controlzone
+        diseaseoutbreak_new.contacts_for_plotting = diseaseoutbreak.contacts_for_plotting
+        diseaseoutbreak_new.daily_statistics = diseaseoutbreak.daily_statistics
+        diseaseoutbreak_new.first_detection_day = diseaseoutbreak.first_detection_day
+
+        # new_job_manager = management.JobManager(spatial_only_parameters["n"], **job_parameters)
+        # new_job_manager.jobs_queue = diseaseoutbreak.job_manager.jobs_queue
+        # new_job_manager.local_movement_restrictions = diseaseoutbreak.job_manager.local_movement_restrictions
+        # diseaseoutbreak_new.job_manager = new_job_manager
+
+        diseaseoutbreak = diseaseoutbreak_new
+
         # adjust the plotting parameters for this new scenario
         diseaseoutbreak.set_plotting_parameters(
             xlims=xlims,
@@ -92,11 +119,6 @@ def run_specific_branch(
             folder_path=folder_path_local,
             unique_output=unique_output,
         )
-
-        # new_job_manager = management.JobManager(spatial_only_parameters["n"], **job_parameters)
-        # new_job_manager.jobs_queue = diseaseoutbreak.job_manager.jobs_queue
-        # new_job_manager.local_movement_restrictions = diseaseoutbreak.job_manager.local_movement_restrictions
-        # diseaseoutbreak.job_manager = new_job_manager
 
         properties, movement_records, time, total_culled_animals, job_manager = (
             diseaseoutbreak.simulate_outbreak_management(

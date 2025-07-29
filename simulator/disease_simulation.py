@@ -1174,6 +1174,9 @@ class DiseaseSimulation:
 
             self.controlzone["surveillance area"] = high_priority_surveillance_zone
 
+            if decision == "surveillancefocused":
+                self.controlzone["surveillance area"] = control_area
+
             # TODO expand more zones to match LGA and other boundaries?
 
             # assign new jobs - i.e. surveillance based on the control zones
@@ -1201,6 +1204,10 @@ class DiseaseSimulation:
             if vaccination:
                 vaccination_zone = high_priority_surveillance_zone  # leaving it as this for now, for easiness
                 # assigning properties for vaccination
+
+                if decision == "vaccinationfocused":
+                    vaccination_zone = control_area
+
                 for i, premise in enumerate(properties):
                     if (
                         not (premise.reported_status or premise.culled_status)

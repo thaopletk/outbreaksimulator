@@ -291,7 +291,7 @@ def plot_target_property_density_v2(coords_list, xlims, ylims, folder_path, plot
     ax.add_patch(Australiashape)
 
     # set desired contour levels.
-    clevs = np.linspace(0.008, 0.150, 10)
+    clevs = np.linspace(0.001, 0.200, 15)
 
     ax.contour(xi, yi, zi, clevs, linewidths=0.5, colors="k")
     cntr1 = ax.contourf(xi, yi, zi, clevs, cmap="RdBu_r")
@@ -409,11 +409,11 @@ for sim_day in range(78, 105 + 1):
 
 # output.make_video(folder_path_local, prefix=f"{decision_ver}_forecast_all_notified_premises_", times=list(range(78, 105 + 1)), save_name_prefix="")
 
-output.make_video(
-    folder_path_local,
-    prefix=f"{decision_ver}_forecast_all_notified_premises_v2_",
-    times=list(range(78, 105 + 1)),
-    save_name_prefix="",
-)
+# output.make_video(
+#     folder_path_local,
+#     prefix=f"{decision_ver}_forecast_all_notified_premises_v2_",
+#     times=list(range(78, 105 + 1)),
+#     save_name_prefix="",
+# )
 
 # output.make_video(folder_path_local, prefix=f"{decision_ver}_forecast_all_infected_premises_", times=list(range(78, 105 + 1)), save_name_prefix="")

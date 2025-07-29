@@ -208,11 +208,17 @@ def plot_premises_with_controls(
     if final_vaccination:
         new_geometry_vaccinated = []
         for curr_farm in geometry_vaccinated:
+            # long, lat = premise.coordinates
             # curr_farm = Point(long, lat)
-            long, lat = curr_farm.xy
-            puff_p1 = Polygon(spatial_functions.geodesic_point_buffer(lat, long, km=10))
+            xycoords = list(curr_farm.coords)[0]
+            x = xycoords[0]
+            y = xycoords[1]
+            # long, lat = curr_farm.xy
+            puff_p1 = Polygon(spatial_functions.geodesic_point_buffer(y, x, km=10))
             new_geometry_vaccinated.append(puff_p1)
         geometry_vaccinated = new_geometry_vaccinated
+
+        print(geometry_vaccinated)
 
         geometry_vaccinated = unary_union(geometry_vaccinated)
         geometry_vaccinated = geometry_vaccinated.difference(NT_WA)
