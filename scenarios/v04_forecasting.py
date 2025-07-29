@@ -181,7 +181,7 @@ def plot_median_interval_over_time(dates_list, results, plottitle, folder_path, 
 
 # for each representation, get the median, intervals, etc and plot
 
-folder_path_local = os.path.join(folder_path_main, "plot_outputs")
+folder_path_local = os.path.join(folder_path_main, "forecast_plotting")
 if not os.path.exists(folder_path_local):
     os.makedirs(folder_path_local)
 
