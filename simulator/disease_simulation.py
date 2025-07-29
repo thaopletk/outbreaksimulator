@@ -1176,6 +1176,8 @@ class DiseaseSimulation:
 
             if decision == "surveillancefocused":
                 self.controlzone["surveillance area"] = control_area
+                if self.time > 91:  # making it the convex hull, to give more jobs
+                    self.controlzone["surveillance area"] = control_area.convex_hull
 
             # TODO expand more zones to match LGA and other boundaries?
 
@@ -1207,6 +1209,8 @@ class DiseaseSimulation:
 
                 if decision == "vaccinationfocused":
                     vaccination_zone = control_area
+                    if self.time > 91:  # making it the convex hull, to give more jobs
+                        vaccination_zone = control_area.convex_hull
 
                 for i, premise in enumerate(properties):
                     if (
