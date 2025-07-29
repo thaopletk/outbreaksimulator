@@ -209,7 +209,8 @@ def plot_premises_with_controls(
         new_geometry_vaccinated = []
         for curr_farm in geometry_vaccinated:
             # curr_farm = Point(long, lat)
-            puff_p1 = Polygon(spatial_functions.geodesic_point_buffer(curr_farm[1], curr_farm[0], km=10))
+            long, lat = curr_farm.xy
+            puff_p1 = Polygon(spatial_functions.geodesic_point_buffer(lat, long, km=10))
             new_geometry_vaccinated.append(puff_p1)
         geometry_vaccinated = new_geometry_vaccinated
 

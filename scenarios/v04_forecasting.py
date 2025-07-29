@@ -54,7 +54,7 @@ ylims = [
 ]
 
 decision_ver = sys.argv[1]
-total_sims = 10
+total_sims = 20
 first_detection_day = 48  # UPDATE/FIX THIS
 day = 105  # FIX/UPDATE THIS
 
@@ -149,7 +149,7 @@ def plot_median_interval_over_time(dates_list, results, plottitle, folder_path, 
     x_points = list(range(len(dates_list)))
 
     ax.plot(x_points, results["median"], label="median")
-    ax.fill_between(x_points, results["025"], results["025"], alpha=0.5, label="95 interval")
+    ax.fill_between(x_points, results["025"], results["975"], alpha=0.5, label="95 interval")
     # ax.set_xlabel('date', fontsize =14)
     # ax.set_ylabel('cases',fontsize= 14)
     ax.set_title(plottitle, fontsize=16)
@@ -185,25 +185,26 @@ folder_path_local = os.path.join(folder_path_main, "plot_outputs")
 if not os.path.exists(folder_path_local):
     os.makedirs(folder_path_local)
 
-daily_notified_cases = {}
-daily_notified_cases["median"] = np.median(sims_daily_notified_cases, axis=0)
-daily_notified_cases["025"] = np.quantile(sims_daily_notified_cases, 0.025, axis=0)
-daily_notified_cases["975"] = np.quantile(sims_daily_notified_cases, 0.975, axis=0)
-plot_median_interval_over_time(
-    dates_list, daily_notified_cases, "Daily notified cases", folder_path_local, f"{decision_ver}_daily_notified_cases"
-)
+# daily_notified_cases = {}
+# daily_notified_cases["median"] = np.median(sims_daily_notified_cases, axis=0)
+# daily_notified_cases["025"] = np.quantile(sims_daily_notified_cases, 0.025, axis=0)
+# daily_notified_cases["975"] = np.quantile(sims_daily_notified_cases, 0.975, axis=0)
+# print(daily_notified_cases)
+# plot_median_interval_over_time(
+#     dates_list, daily_notified_cases, "Daily notified cases", folder_path_local, f"{decision_ver}_daily_notified_cases"
+# )
 
-cumulative_notified_cases = {}
-cumulative_notified_cases["median"] = np.median(sims_daily_total_notified_cases, axis=0)
-cumulative_notified_cases["025"] = np.quantile(sims_daily_total_notified_cases, 0.025, axis=0)
-cumulative_notified_cases["975"] = np.quantile(sims_daily_total_notified_cases, 0.975, axis=0)
-plot_median_interval_over_time(
-    dates_list,
-    cumulative_notified_cases,
-    "Total notified cases",
-    folder_path_local,
-    f"{decision_ver}_total_notified_cases",
-)
+# cumulative_notified_cases = {}
+# cumulative_notified_cases["median"] = np.median(sims_daily_total_notified_cases, axis=0)
+# cumulative_notified_cases["025"] = np.quantile(sims_daily_total_notified_cases, 0.025, axis=0)
+# cumulative_notified_cases["975"] = np.quantile(sims_daily_total_notified_cases, 0.975, axis=0)
+# plot_median_interval_over_time(
+#     dates_list,
+#     cumulative_notified_cases,
+#     "Total notified cases",
+#     folder_path_local,
+#     f"{decision_ver}_total_notified_cases",
+# )
 
 # gif/ video for the spatial one too
 
@@ -289,13 +290,16 @@ def plot_target_property_density_v2(coords_list, xlims, ylims, folder_path, plot
     Australiashape = shapely.plotting.patch_from_polygon(Australiashape, facecolor="white")
     ax.add_patch(Australiashape)
 
-    ax.contour(xi, yi, zi, levels=14, linewidths=0.5, colors="k")
-    cntr1 = ax.contourf(xi, yi, zi, levels=14, cmap="RdBu_r")
+    # set desired contour levels.
+    clevs = np.linspace(0.008, 0.150, 10)
+
+    ax.contour(xi, yi, zi, clevs, linewidths=0.5, colors="k")
+    cntr1 = ax.contourf(xi, yi, zi, clevs, cmap="RdBu_r")
 
     for artist in ax.get_children():
         artist.set_clip_path(Australiashape)
 
-    fig.colorbar(cntr1, ax=ax)
+    # fig.colorbar(cntr1, ax=ax)
 
     ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)
 
@@ -353,16 +357,18 @@ def plot_target_property_density_v2(coords_list, xlims, ylims, folder_path, plot
 # except:
 #     pass
 
+ylims = [
+    -35,
+    ylims[1],
+]
+for sim_day in range(78, 105 + 1):
+    coords_list = []
+    date = premises.convert_time_to_date(sim_day)
+    index = dates_list.index(date)
+    for sim in sims_location_of_all_notified_premises:
+        coords_list.extend(sim[index])
+    print("sims_location_of_all_notified_premises", coords_list)
 
-coords_list = []
-sim_day = day
-date = premises.convert_time_to_date(sim_day)
-index = dates_list.index(date)
-for sim in sims_location_of_all_notified_premises:
-    coords_list.extend(sim[index])
-print("sims_location_of_all_notified_premises", coords_list)
-
-try:
     plot_target_property_density(
         coords_list,
         xlims,
@@ -371,37 +377,43 @@ try:
         "Forecast of all notified premises",
         f"{decision_ver}_forecast_all_notified_premises_{sim_day}",
     )
-except Exception as e:
-    print(e)
 
-try:
     plot_target_property_density_v2(
         coords_list,
         xlims,
         ylims,
         folder_path_local,
         "Forecast of all notified premises",
-        f"{decision_ver}_forecast_all_notified_premises_{sim_day}_v2",
+        f"{decision_ver}_forecast_all_notified_premises_v2_{sim_day}",
     )
-except Exception as e:
-    print(e)
 
-coords_list = []
-sim_day = day
-date = premises.convert_time_to_date(sim_day)
-index = full_dates_list.index(date)
-for sim in sims_location_of_all_infected_premises:
-    coords_list.extend(sim[index])
+    # coords_list = []
+    # date = premises.convert_time_to_date(sim_day)
+    # index = full_dates_list.index(date)
+    # for sim in sims_location_of_all_infected_premises:
+    #     coords_list.extend(sim[index])
 
-print("sims_location_of_all_infected_premises", coords_list)
-try:
-    plot_target_property_density(
-        coords_list,
-        xlims,
-        ylims,
-        folder_path_local,
-        "Forecast of all infected premises",
-        f"{decision_ver}_forecast_all_infected_premises_{sim_day}",
-    )
-except Exception as e:
-    print(e)
+    # print("sims_location_of_all_infected_premises", coords_list)
+    # try:
+    #     plot_target_property_density(
+    #         coords_list,
+    #         xlims,
+    #         ylims,
+    #         folder_path_local,
+    #         "Forecast of all infected premises",
+    #         f"{decision_ver}_forecast_all_infected_premises_{sim_day}",
+    #     )
+    # except Exception as e:
+    #     print(e)
+
+
+# output.make_video(folder_path_local, prefix=f"{decision_ver}_forecast_all_notified_premises_", times=list(range(78, 105 + 1)), save_name_prefix="")
+
+output.make_video(
+    folder_path_local,
+    prefix=f"{decision_ver}_forecast_all_notified_premises_v2_",
+    times=list(range(78, 105 + 1)),
+    save_name_prefix="",
+)
+
+# output.make_video(folder_path_local, prefix=f"{decision_ver}_forecast_all_infected_premises_", times=list(range(78, 105 + 1)), save_name_prefix="")
