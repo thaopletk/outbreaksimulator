@@ -102,7 +102,10 @@ output.make_video(folder_path_local, prefix=save_name + "_", times=list(range(le
 
 
 # visual map of cases and expanding control zones over time
-
+ylims = [
+    -35,
+    ylims[1],
+]
 
 # outbreak detection
 unique_output = "03_outbreak_detection"

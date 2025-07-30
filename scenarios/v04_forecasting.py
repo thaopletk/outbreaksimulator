@@ -77,6 +77,9 @@ sims_location_of_all_infected_premises = []
 dates_list = [premises.convert_time_to_date(t) for t in range(first_detection_day, day + 1)]
 full_dates_list = [premises.convert_time_to_date(t) for t in range(0, day + 1)]
 
+
+# daily_indices_of_all_notified_premises = [{i:0 for i in range(spatial_only_parameters['n'])} for _ in range(len(dates_list))]
+
 # for each simulation number
 for i in range(1, total_sims + 1):
     # read in the data
@@ -114,18 +117,22 @@ for i in range(1, total_sims + 1):
         #  * might be infection status or clinical status
 
         daily = [[] for _ in range(len(dates_list))]
+        # daily_indices = [[] for _ in range(len(dates_list))]
 
-        for property_i in properties:
+        for i, property_i in enumerate(properties):
             notif_date = property_i.notification_date
             if notif_date != "NA":
                 index = dates_list.index(notif_date)
                 daily[index].append(property_i.coordinates)
+                # daily_indices[index].append(i)
         sims_location_of_daily_notified_premises.append(daily)
 
         all_notified_daily = [[] for _ in range(len(dates_list))]
+        # all_notified_daily_indices = [[] for _ in range(len(dates_list))]
         for i in range(len(dates_list)):
-            for j in range(i):
+            for j in range(i, len(dates_list)):
                 all_notified_daily[i].extend(daily[j])
+
         sims_location_of_all_notified_premises.append(all_notified_daily)
 
         daily_infected = [[] for _ in range(len(full_dates_list))]
@@ -137,7 +144,7 @@ for i in range(1, total_sims + 1):
 
         all_infected_daily = [[] for _ in range(len(full_dates_list))]
         for i in range(len(full_dates_list)):
-            for j in range(i):
+            for j in range(i, len(full_dates_list)):
                 all_infected_daily[i].extend(daily_infected[j])
         sims_location_of_all_infected_premises.append(all_infected_daily)
 
@@ -294,7 +301,7 @@ def plot_target_property_density_v2(coords_list, xlims, ylims, folder_path, plot
     clevs = np.linspace(0.001, 0.200, 15)
 
     ax.contour(xi, yi, zi, clevs, linewidths=0.5, colors="k")
-    cntr1 = ax.contourf(xi, yi, zi, clevs, cmap="RdBu_r")
+    cntr1 = ax.contourf(xi, yi, zi, clevs, cmap="hot", alpha=0.9)  # RdBu_r
 
     for artist in ax.get_children():
         artist.set_clip_path(Australiashape)
@@ -409,11 +416,11 @@ for sim_day in range(78, 105 + 1):
 
 # output.make_video(folder_path_local, prefix=f"{decision_ver}_forecast_all_notified_premises_", times=list(range(78, 105 + 1)), save_name_prefix="")
 
-# output.make_video(
-#     folder_path_local,
-#     prefix=f"{decision_ver}_forecast_all_notified_premises_v2_",
-#     times=list(range(78, 105 + 1)),
-#     save_name_prefix="",
-# )
+output.make_video(
+    folder_path_local,
+    prefix=f"{decision_ver}_forecast_all_notified_premises_v2_",
+    times=list(range(78, 105 + 1)),
+    save_name_prefix="",
+)
 
 # output.make_video(folder_path_local, prefix=f"{decision_ver}_forecast_all_infected_premises_", times=list(range(78, 105 + 1)), save_name_prefix="")

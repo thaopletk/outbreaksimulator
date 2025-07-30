@@ -1186,7 +1186,7 @@ class DiseaseSimulation:
                 if (
                     not (premise.reported_status or premise.culled_status)
                     and premise.status != "DCP"
-                    and premise.polygon.intersects(high_priority_surveillance_zone)
+                    and premise.polygon.intersects(self.controlzone["surveillance area"])
                 ):
                     self.combined_narrative.append(
                         [

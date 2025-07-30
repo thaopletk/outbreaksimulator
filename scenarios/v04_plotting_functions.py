@@ -141,8 +141,8 @@ def plot_premises_with_controls(
 
     NT_WA = spatial_setup.get_NT_and_WA_shape()
 
-    control_list = ["control area", "restricted area"]
-    control_list_plotting = ["restricted area", "control area"]
+    control_list = ["additional movement restrictions", "control area", "restricted area"]
+    control_list_plotting = ["restricted area", "control area", "additional movement restrictions"]
 
     for control_type in control_list:
 
@@ -257,7 +257,8 @@ def plot_premises_with_controls(
     ]
 
     for geometry, colour, marker, markerlabel, markersize, edgecolour, alpha in [
-        [geometry_culled, "cornflowerblue", "P", "resolved premises", 100, "royalblue", 1],
+        [geometry_culled, "grey", "X", "resolved premises", 100, "dimgrey", 1],
+        # [geometry_culled, "cornflowerblue", "P", "resolved premises", 100, "royalblue", 1],
         [geometry_confirmed_infected, "black", "X", "infected premises", 110, "black", 1],
         [geometry_DCP, "#e72918", "v", "dangerous contact premises and suspect premises", 110, "#950000", 1],
         [TPs_undergoing_testing, "#ffa200", "o", "trace premises waiting to be tested", 50, "#ff6600", 1],
