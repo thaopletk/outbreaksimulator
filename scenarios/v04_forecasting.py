@@ -298,10 +298,81 @@ def plot_target_property_density_v2(coords_list, xlims, ylims, folder_path, plot
     ax.add_patch(Australiashape)
 
     # set desired contour levels.
-    clevs = np.linspace(0.001, 0.200, 15)
+    clevs = np.linspace(0.0005, 0.200, 16)
 
     ax.contour(xi, yi, zi, clevs, linewidths=0.5, colors="k")
-    cntr1 = ax.contourf(xi, yi, zi, clevs, cmap="hot", alpha=0.9)  # RdBu_r
+    cntr1 = ax.contourf(xi, yi, zi, clevs, cmap="BuPu")  # , alpha=0.9 # RdBu_r
+
+    for artist in ax.get_children():
+        artist.set_clip_path(Australiashape)
+
+    # fig.colorbar(cntr1, ax=ax)
+
+    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)
+
+    # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
+    points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
+    points = points.to_crs(32619)  # Projected WGS 84 - meters
+    distance_meters = points[0].distance(points[1])
+    ax.add_artist(
+        ScaleBar(
+            distance_meters,
+            box_alpha=0.1,
+            location="lower right",
+        )
+    )
+
+    ax.set_title(plottitle, fontsize=18)
+
+    ax.set_ylabel("latitude", fontsize=16)
+    ax.set_xlabel("longitude", fontsize=16)
+
+    ax.set_xlim(xlims)
+    ax.set_ylim(ylims)
+
+    # ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
+    #       fancybox=True, shadow=True, ncol=5,fontsize=18)
+
+    ax.tick_params(axis="x", labelsize=14)
+    ax.tick_params(axis="y", labelsize=14)
+
+    file_name = f"{plotsavename}.png"
+
+    file_name = os.path.join(folder_path, file_name)
+
+    plt.savefig(file_name, bbox_inches="tight")
+
+    plt.close()
+
+
+def plot_target_property_density_v3(coords_list, xlims, ylims, folder_path, plottitle, plotsavename):
+    """Aim: to plot a map of infection"""
+
+    fig, ax = plt.subplots(1, 1, figsize=(20, 15))
+
+    notified_times = {}
+    for coords in coords_list:
+        x = coords[0]
+        y = coords[1]
+        if (x, y) not in notified_times:
+            notified_times[(x, y)] = 1
+        else:
+            notified_times[(x, y)] += 1
+
+    x = []
+    y = []
+    z = []
+    for key, value in notified_times.items():
+        x.append(key[0])
+        y.append(key[1])
+        z.append(value)
+
+    Australiashape = spatial_setup.Australia_shape()
+    Australiashape = shapely.plotting.patch_from_polygon(Australiashape, facecolor="white")
+    ax.add_patch(Australiashape)
+
+    ax.tricontour(x, y, z, levels=14, linewidths=0.5, colors="k")
+    cntr = ax.tricontourf(x, y, z, levels=14, cmap="BuPu", alpha=0.9)
 
     for artist in ax.get_children():
         artist.set_clip_path(Australiashape)
@@ -376,14 +447,14 @@ for sim_day in range(78, 105 + 1):
         coords_list.extend(sim[index])
     print("sims_location_of_all_notified_premises", coords_list)
 
-    plot_target_property_density(
-        coords_list,
-        xlims,
-        ylims,
-        folder_path_local,
-        "Forecast of all notified premises",
-        f"{decision_ver}_forecast_all_notified_premises_{sim_day}",
-    )
+    # plot_target_property_density(
+    #     coords_list,
+    #     xlims,
+    #     ylims,
+    #     folder_path_local,
+    #     "Forecast of all notified premises",
+    #     f"{decision_ver}_forecast_all_notified_premises_{sim_day}",
+    # )
 
     plot_target_property_density_v2(
         coords_list,
@@ -393,6 +464,13 @@ for sim_day in range(78, 105 + 1):
         "Forecast of all notified premises",
         f"{decision_ver}_forecast_all_notified_premises_v2_{sim_day}",
     )
+
+    # plot_target_property_density_v3(coords_list,
+    #     xlims,
+    #     ylims,
+    #     folder_path_local,
+    #     "Forecast of all notified premises",
+    #     f"{decision_ver}_forecast_all_notified_premises_v3_{sim_day}",)
 
     # coords_list = []
     # date = premises.convert_time_to_date(sim_day)
