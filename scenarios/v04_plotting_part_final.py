@@ -102,6 +102,10 @@ for i in range(len(dates_list)):
 
 output.make_video(folder_path_local, prefix=save_name + "_", times=list(range(len(dates_list))), save_name_prefix="")
 
+ylims = [
+    -35,
+    ylims[1],
+]
 
 # visual map of cases and expanding control zones over time
 for day in range(78, 105 + 1):
@@ -139,6 +143,24 @@ for day in range(78, 105 + 1):
         geometry_infected=[],
         final_vaccination=True,
     )
+
+    if day == 105:
+        plotting_functions.plot_premises_with_controls(
+            folder_path_local,
+            f"{decision_ver}_map_{day}_underlying",
+            newcontrolzone,
+            xlims,
+            ylims,
+            geometry_culled=[],
+            geometry_confirmed_infected=[],
+            geometry_DCP=[],
+            TPs_undergoing_testing=[],
+            geometry_vaccinated=[],
+            geometry_infected=geometry_infected,
+            final_vaccination=False,
+        )
+
+        print("num infected but unknown: ", len(geometry_infected))
 
 save_name = f"{decision_ver}_map"
 output.make_video(folder_path_local, prefix=save_name + "_", times=list(range(78, 105 + 1)), save_name_prefix="")
