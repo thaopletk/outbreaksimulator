@@ -563,11 +563,14 @@ def plot_target_property_density_v4(coords_list, xlims, ylims, folder_path, plot
     plt.close()
 
 
-def plot_target_property_density_v5(coords_list, xlims, ylims, folder_path, plottitle, plotsavename):
+def plot_target_property_density_v5(properties, coords_list, xlims, ylims, folder_path, plottitle, plotsavename):
 
     fig, ax = plt.subplots(1, 1, figsize=(20, 15))
 
     notified_times = {}
+    for property_i in properties:
+        notified_times[(property_i.x, property_i.y)] = 0
+
     for coords in coords_list:
         x = coords[0]
         y = coords[1]
@@ -607,7 +610,7 @@ def plot_target_property_density_v5(coords_list, xlims, ylims, folder_path, plot
     Australiashape = shapely.plotting.patch_from_polygon(Australiashape, facecolor="white")
     ax.add_patch(Australiashape)
 
-    pcm = ax.pcolormesh(xi, yi, zi, alpha=1, cmap="RdBu_r", clip_path=(Australiashape))
+    pcm = ax.pcolormesh(xi, yi, zi, alpha=1, clip_path=(Australiashape))
 
     # might need to be max at 20 (i.e. the number of sims)
     # set desired contour levels.
@@ -727,6 +730,7 @@ for sim_day in range(78 - 1, 105 + 1):
     # )
 
     plot_target_property_density_v5(
+        properties,
         coords_list,
         xlims,
         ylims,
