@@ -35,6 +35,9 @@ small_ver = "_small"  # for testing purposes
 # small_ver = ""  # for running on the cluster
 
 
+with open(os.path.join(folder_path_main, f"spatial_only_parameters{small_ver}.json"), "r") as file:
+    spatial_only_parameters = json.load(file)  # has the total number of properties, hence the {small_ver}
+
 properties_filename = os.path.join(folder_path_main, "properties_init")
 
 random.seed(1)
