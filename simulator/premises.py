@@ -86,10 +86,13 @@ class Premises(Property):
         movement_prop_animals=0,
         allowed_movement=["farm"],
         max_daily_movements=1,
+        animal_type="cattle",
     ):
 
         # currently, the class only requires these two parameters to initialise
         super().__init__({"size": num_animals, "movement_frequency": movement_freq})
+
+        self.animal_type = animal_type
 
         # but we will initialise more, now, rather than doing it in the loop
 
