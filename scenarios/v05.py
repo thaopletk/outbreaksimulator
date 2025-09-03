@@ -94,13 +94,28 @@ else:
 # 2. Property-specific initialisation
 properties_filename = os.path.join(folder_path_main, "properties_init")
 
+with open(os.path.join(folder_path_main, f"properties_specific_parameters.json"), "r") as file:
+    properties_specific_parameters = json.load(file)
+
+
 random.seed(1)
 np.random.seed(1)
 
 if not os.path.exists(properties_filename):
-
     # set up properties
-    pass
+    properties = simulator.property_specific_initialisation_animals(
+        spatial_only_parameters,
+        properties_specific_parameters,
+        property_coordinates,
+        property_areas,
+        neighbourhoods,
+        property_polygons,
+        property_polygons_puffed,
+    )
+
+    with open(properties_filename, "wb") as file:
+        pickle.dump(properties, file)
+
 else:
     # load properties
     with open(properties_filename, "rb") as file:
