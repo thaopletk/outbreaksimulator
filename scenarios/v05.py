@@ -170,6 +170,30 @@ northVICx = [141, 147]
 northVICy = [-37, -34]
 
 
+random.seed(52)
+np.random.seed(23)
+if not os.path.exists(properties_seeded_filename):
+    # seed property
+    unique_output = "day0"
+    properties, seed_property = simulator.seed_infection_within_bound(
+        northVICx,
+        northVICy,
+        properties,
+        time,
+        xlims,
+        ylims,
+        folder_path_seed,
+        unique_output,
+        None,  # disease_parameters["latent_period"],
+        disease_parameters,
+    )
+    # seeds infection within bounds (QLDx,QLDy) and does some plotting and saving
+
+else:
+    with open(properties_seeded_filename, "rb") as file:
+        properties = pickle.load(file)
+
+
 # area for first report Victoria
 reportingregion_x = [141, 150]
 reportingregion_y = [-40, -34]

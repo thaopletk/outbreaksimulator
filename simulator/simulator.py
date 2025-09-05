@@ -846,6 +846,7 @@ def seed_infection_within_bound(
     folder_path="",
     unique_output="",
     latent_period=7,
+    disease_parameters=None,
 ):
     """Seeds an infection at a property within the bounds specified"""
     seed_property = 0  # default
@@ -868,7 +869,12 @@ def seed_infection_within_bound(
     p = properties[seed_property]
     # TODO technically, to encapsulate this better, there should a function that allows you to infect a specific animal(s), and that will then update infection_status, prop_infections, cumulative_infections, and exposure_date, and anything else that may need to be updated
     p.infection_status = 1
-    p.exposure_date = premises.convert_time_to_date(time - latent_period)
+    if latent_period != None:
+        p.exposure_date = premises.convert_time_to_date(time - latent_period)
+    else:  # the version with multiple animals
+        latent_period = disease_parameters[p.animal_type]["latent_period"]
+        p.exposure_date = premises.convert_time_to_date(time - latent_period)
+
     num_infected = 10
     for seed_animal in range(num_infected):
         p.animals[seed_animal].status = "infected"
@@ -1111,6 +1117,7 @@ def save_current_state(properties, time, folder_path, unique_output):
         "ycoord",
         "area",
         "type",
+        "animal",
         "total",
     ]
     file = os.path.join(folder_path, f"fake_data_underlying_{unique_output}.csv")

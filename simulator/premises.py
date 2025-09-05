@@ -410,6 +410,7 @@ class Premises(Property):
             self.coordinates[1],
             self.area,
             self.type,
+            self.animal_type,
             self.size,
         ]
 
@@ -446,6 +447,7 @@ class Premises(Property):
                 self.coordinates[1],
                 self.area,
                 self.type,
+                self.animal_type,
                 self.size,
             ]
         elif RTM:
@@ -481,5 +483,6 @@ class Premises(Property):
                 self.coordinates[1],
                 self.area,
                 self.type,
+                self.animal_type,
                 self.size,
             ]
