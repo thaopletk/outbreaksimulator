@@ -194,6 +194,85 @@ else:
         properties = pickle.load(file)
 
 
+# spread and then detection after a fixed number of properties infected...
+random.seed(10)
+np.random.seed(10)
+minimum_spread_time = 21
+target_infected_properties = 5
+
+
 # area for first report Victoria
 reportingregion_x = [141, 150]
 reportingregion_y = [-40, -34]
+
+
+unique_output = f"02_undetected_spread"
+folder_path_undetected_spread = os.path.join(folder_path_main, unique_output)
+if not os.path.exists(folder_path_undetected_spread):
+    os.makedirs(folder_path_undetected_spread)
+
+undetected_spread_properties_filename = os.path.join(folder_path_undetected_spread, "properties_" + unique_output)
+undetected_spread_diseaseoutbreak_filename = os.path.join(
+    folder_path_undetected_spread, "outbreakobject_" + unique_output
+)
+
+
+with open(os.path.join(folder_path_main, "job_parameters.json"), "r") as file:
+    job_parameters = json.load(file)
+with open(os.path.join(folder_path_main, "scenario_parameters.json"), "r") as file:
+    scenario_parameters = json.load(file)
+
+
+if not os.path.exists(undetected_spread_properties_filename) or not os.path.exists(
+    undetected_spread_diseaseoutbreak_filename
+):
+
+    # initiate various things that start from empty:
+    diseaseoutbreak = disease_simulation.DiseaseSimulation(
+        time=time,
+        disease_parameters=disease_parameters,
+        spatial_only_parameters=spatial_only_parameters,
+        job_parameters=job_parameters,
+        scenario_parameters=scenario_parameters,
+    )
+
+    diseaseoutbreak.set_plotting_parameters(
+        xlims=xlims,
+        ylims=ylims,
+        plotting=True,
+        folder_path=folder_path_undetected_spread,
+        unique_output=unique_output,
+    )
+
+    # print(diseaseoutbreak.job_manager.jobs_queue)
+
+    properties, movement_records, time = diseaseoutbreak.simulate_outbreak_spread_only(
+        properties=properties,
+        time=time,
+        stop_time=minimum_spread_time,
+        reporting_region_check=[reportingregion_x, reportingregion_y],
+        min_infected_premises=target_infected_properties,
+    )
+
+    first_detection_day = time + 1
+
+    # and then resave the end state
+    with open(undetected_spread_properties_filename, "wb") as file:
+        pickle.dump(properties, file)
+
+    # and save the diseaseoutbreak object
+    with open(undetected_spread_diseaseoutbreak_filename, "wb") as file:
+        pickle.dump(diseaseoutbreak, file)
+
+    total_infected = 0
+    for property_i in properties:
+        if property_i.exposure_date != "NA":
+            total_infected += 1
+
+    print(f"Total number of infected premises: {total_infected}")
+
+else:
+    with open(undetected_spread_properties_filename, "rb") as file:
+        properties = pickle.load(file)
+    with open(undetected_spread_diseaseoutbreak_filename, "rb") as file:
+        diseaseoutbreak = pickle.load(file)

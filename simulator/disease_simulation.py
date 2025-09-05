@@ -87,11 +87,14 @@ class DiseaseSimulation:
         self.time = time
 
         self.movement_records = movement_records
-        self.beta_wind = disease_parameters["beta_wind"]
-        self.beta_animal = disease_parameters["beta_animal"]
-        self.latent_period = disease_parameters["latent_period"]
-        self.infectious_period = disease_parameters["infectious_period"]
-        self.preclinical_period = disease_parameters["preclinical_period"]
+
+        animal_types = list(disease_parameters.keys())
+
+        self.beta_wind = {animal: disease_parameters[animal]["beta_wind"] for animal in animal_types}
+        self.beta_animal = {animal: disease_parameters[animal]["beta_animal"] for animal in animal_types}
+        self.latent_period = {animal: disease_parameters[animal]["latent_period"] for animal in animal_types}
+        self.infectious_period = {animal: disease_parameters[animal]["infectious_period"] for animal in animal_types}
+        self.preclinical_period = {animal: disease_parameters[animal]["preclinical_period"] for animal in animal_types}
 
         self.r_wind = spatial_only_parameters["r_wind"]
 
@@ -398,8 +401,13 @@ class DiseaseSimulation:
     def run_infection_model_for_each_property(self, properties, FOI):
         """Runs the infection model for each property, i.e., advances infection stages and checks if properties become infected or not"""
         for i, property_i in enumerate(properties):
+            animal_type = property_i.animal_type
             property_i.infection_model(
-                self.latent_period, self.infectious_period, self.preclinical_period, FOI[i], self.time
+                self.latent_period[animal_type],
+                self.infectious_period[animal_type],
+                self.preclinical_period[animal_type],
+                FOI[i],
+                self.time,
             )
         return properties
 
