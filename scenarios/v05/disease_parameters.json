@@ -1,0 +1,38 @@
+{
+    "cattle": {"beta_wind": 0.0001,
+    "beta_animal": 0.45,
+    "latent_period": 7,
+    "infectious_period": 23.1,
+    "preclinical_period": 7
+},
+    "pig":{"beta_wind": 0.0001,
+    "beta_animal": 0.45,
+    "latent_period": 7,
+    "infectious_period": 23.1,
+    "preclinical_period": 7
+},
+    "sheep": {"beta_wind": 0.0001,
+    "beta_animal": 0.45,
+    "latent_period": 7,
+    "infectious_period": 23.1,
+    "preclinical_period": 7
+},
+    "goals":{"beta_wind": 0.0001,
+    "beta_animal": 0.45,
+    "latent_period": 7,
+    "infectious_period": 23.1,
+    "preclinical_period": 7
+},
+    "deer":{"beta_wind": 0.0001,
+    "beta_animal": 0.45,
+    "latent_period": 7,
+    "infectious_period": 23.1,
+    "preclinical_period": 7
+},
+    "water buffalo": {"beta_wind": 0.0001,
+    "beta_animal": 0.45,
+    "latent_period": 7,
+    "infectious_period": 23.1,
+    "preclinical_period": 7
+}
+}
