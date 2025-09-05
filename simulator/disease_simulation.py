@@ -498,7 +498,8 @@ class DiseaseSimulation:
                     if property_i.exposure_date != "NA":
                         total_infected += 1
                 if len(list_of_potential_reporting_properties) == 0 or total_infected < min_infected_premises:
-                    stop_time += 1
+                    if stop_time < 150:
+                        stop_time += 1
 
         # since we're not going to show the videos anyway, only saving plot data at the end to limit memory consumption
         with open(os.path.join(self.folder_path, "plotting_data" + str(self.time)), "wb") as file:
