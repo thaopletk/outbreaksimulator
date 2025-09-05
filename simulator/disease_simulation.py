@@ -890,9 +890,14 @@ class DiseaseSimulation:
             True if there is a National Standstill, False otherwise
 
         """
-        for item in management_parameters:
-            if item["type"] == "national_standstill":
-                return True
+        if isinstance(management_parameters, list):
+            for item in management_parameters:
+                if item["type"] == "national_standstill":
+                    return True
+        elif isinstance(management_parameters, dict):
+            if "movement_restrictions" in management_parameters:
+                if "national_standstill" in management_parameters["movement_restrictions"]:
+                    return True
         return False
 
     def simulate_national_standstill(self, properties, days_to_run_for, time=None):
@@ -1133,38 +1138,51 @@ class DiseaseSimulation:
 
             # Get current control/etc zones
             # Restricted area: highly restricted
-            restricted_area = management.define_control_zone_polygons(
-                properties,
-                source_indices,
-                80,  # 5 km
-                convex=False,
-            )  # should be zero movement
+            if isinstance(management_parameters, dict) and "movement_restrictions" in management_parameters:
+                if "national_standstill" in management_parameters["movement_restrictions"]:
+                    Australia_shape = spatial_setup.Australia_shape()
+                    restricted_area = Australia_shape
+                else:
+                    raise ValueError("Movement restrictions that aren't national standstill not yet implemented")
+            else:
+                restricted_area = management.define_control_zone_polygons(
+                    properties,
+                    source_indices,
+                    80,  # 5 km
+                    convex=False,
+                )  # should be zero movement
 
-            # define restricted zone for all of Queensland and add to large_movement_restrictions
-            if resource_setting in ["default", "high"]:
-                Queenslandshape = spatial_setup.get_Queensland_shape()
-                restricted_area = unary_union([restricted_area, Queenslandshape])
+                # define restricted zone for all of Queensland and add to large_movement_restrictions
+                if resource_setting in ["default", "high"]:
+                    Queenslandshape = spatial_setup.get_Queensland_shape()
+                    restricted_area = unary_union([restricted_area, Queenslandshape])
 
             self.controlzone["restricted area"] = restricted_area
 
             controlzone_large_movement_restrictions = restricted_area
 
             # Control area: less restricted
-            control_area = management.define_control_zone_polygons(
-                properties,
-                source_indices,
-                100,  # 100 km
-                convex=False,
-            )
-            # TODO: idk if I should include Queensland into the controlzone too or not ah.
-
-            if resource_setting in ["default", "high"]:
-                # I want to do this buffer but it keeps breaking my laptop
-                # control_area = spatial_functions.geodesic_polygon_buffer(properties[0].y, properties[0].x, restricted_area, 80)
-                # control_area = spatial_functions.expand_polygon_to_LGAs(control_area)
-                control_area = spatial_functions.expand_polygon_to_SALs(control_area)
+            if isinstance(management_parameters, dict) and "movement_restrictions" in management_parameters:
+                if "national_standstill" in management_parameters["movement_restrictions"]:
+                    control_area = Australia_shape
+                else:
+                    raise ValueError("Control area restrictions that aren't national standstill not yet implemented")
             else:
-                pass  # the control area will just be a circle around properties
+                control_area = management.define_control_zone_polygons(
+                    properties,
+                    source_indices,
+                    100,  # 100 km
+                    convex=False,
+                )
+                # TODO: idk if I should include Queensland into the controlzone too or not ah.
+
+                if resource_setting in ["default", "high"]:
+                    # I want to do this buffer but it keeps breaking my laptop
+                    # control_area = spatial_functions.geodesic_polygon_buffer(properties[0].y, properties[0].x, restricted_area, 80)
+                    # control_area = spatial_functions.expand_polygon_to_LGAs(control_area)
+                    control_area = spatial_functions.expand_polygon_to_SALs(control_area)
+                else:
+                    pass  # the control area will just be a circle around properties
 
             self.controlzone["control area"] = control_area
 
@@ -1297,36 +1315,36 @@ class DiseaseSimulation:
             # define movement control zones, and conduct animal movement where possible
             controlzone_movement_restrictions = controlzone_large_movement_restrictions
             # movement of animals
-            if not self.check_if_national_standstill(management_parameters):
-                if self.job_manager.local_movement_restrictions != []:
-                    if controlzone_movement_restrictions == None:
-                        controlzone_movement_restrictions = unary_union(self.job_manager.local_movement_restrictions)
-                    else:
-                        controlzone_movement_restrictions = unary_union(
-                            [
-                                controlzone_movement_restrictions,
-                                unary_union(self.job_manager.local_movement_restrictions),
-                            ]
-                        )
 
-                # run animal movements
-                # includes reduced movements in certain areas
-                # TODO: add in illegal movement
-                # TODO: add in a low probability of unreported movement (i.e., movement that can't be traced)
-                if resource_setting == "default" or resource_setting == "low":
-                    movement_reduction_factor = 0.2  # 80% reduction / 20% chance of movement
-                elif resource_setting == "high":
-                    movement_reduction_factor = 0.05  # 95% reduction / 5% chance of movement
+            if self.job_manager.local_movement_restrictions != []:
+                if controlzone_movement_restrictions == None:
+                    controlzone_movement_restrictions = unary_union(self.job_manager.local_movement_restrictions)
+                else:
+                    controlzone_movement_restrictions = unary_union(
+                        [
+                            controlzone_movement_restrictions,
+                            unary_union(self.job_manager.local_movement_restrictions),
+                        ]
+                    )
 
-                movement_record = animal_movement.animal_movement(
-                    properties,
-                    day=self.time,
-                    controlzone=controlzone_movement_restrictions,
-                    reduced_movement_zone=control_area,
-                    movement_reduction_factor=movement_reduction_factor,
-                    all_movement_reduction_factor=0.8,  # reducing probability of overall movement
-                )
-                self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
+            # run animal movements
+            # includes reduced movements in certain areas
+            # TODO: add in illegal movement
+            # TODO: add in a low probability of unreported movement (i.e., movement that can't be traced)
+            if resource_setting == "default" or resource_setting == "low":
+                movement_reduction_factor = 0.2  # 80% reduction / 20% chance of movement
+            elif resource_setting == "high":
+                movement_reduction_factor = 0.05  # 95% reduction / 5% chance of movement
+
+            movement_record = animal_movement.animal_movement(
+                properties,
+                day=self.time,
+                controlzone=controlzone_movement_restrictions,
+                reduced_movement_zone=control_area,
+                movement_reduction_factor=movement_reduction_factor,
+                all_movement_reduction_factor=0.8,  # reducing probability of overall movement
+            )
+            self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
 
             self.controlzone["movement restrictions"] = (
                 controlzone_movement_restrictions  # this is for plotting purposes later

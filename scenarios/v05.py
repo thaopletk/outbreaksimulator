@@ -276,3 +276,117 @@ else:
         properties = pickle.load(file)
     with open(undetected_spread_diseaseoutbreak_filename, "rb") as file:
         diseaseoutbreak = pickle.load(file)
+
+
+# trigger first report and early time processes (no change for now)
+unique_output = "03_outbreak_detection"
+folder_path_first_report = os.path.join(folder_path_main, unique_output)
+
+if not os.path.exists(folder_path_first_report):
+    os.makedirs(folder_path_first_report)
+
+spread_properties_filename = os.path.join(folder_path_first_report, "properties_" + unique_output)
+spread_diseaseoutbreak_filename = os.path.join(folder_path_first_report, "outbreakobject_" + unique_output)
+
+random.seed(15)
+np.random.seed(16)
+if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
+
+    # # setting up a new disease outbreak object (uncomment if I make changes to disease_simulation.py but don't run from the top)
+    # diseaseoutbreak_new = disease_simulation.DiseaseSimulation(
+    #     time=diseaseoutbreak.time,
+    #     disease_parameters=disease_parameters,
+    #     spatial_only_parameters=spatial_only_parameters,
+    #     job_parameters=job_parameters,
+    #     scenario_parameters=scenario_parameters,
+    # )
+    # diseaseoutbreak_new.movement_records = diseaseoutbreak.movement_records
+    # diseaseoutbreak_new.vax_modifier = diseaseoutbreak.vax_modifier
+    # diseaseoutbreak_new.combined_narrative = diseaseoutbreak.combined_narrative
+    # diseaseoutbreak_new.job_manager = diseaseoutbreak.job_manager
+    # diseaseoutbreak_new.total_culled_animals = diseaseoutbreak.total_culled_animals
+    # diseaseoutbreak_new.controlzone = diseaseoutbreak.controlzone
+    # diseaseoutbreak_new.contacts_for_plotting = diseaseoutbreak.contacts_for_plotting
+    # diseaseoutbreak_new.daily_statistics = diseaseoutbreak.daily_statistics
+    # diseaseoutbreak_new.first_detection_day = diseaseoutbreak.first_detection_day
+
+    # diseaseoutbreak = diseaseoutbreak_new
+
+    # adjust the plotting parameters for this new scenario
+    diseaseoutbreak.set_plotting_parameters(
+        xlims=xlims,
+        ylims=ylims,
+        plotting=True,
+        folder_path=folder_path_first_report,
+        unique_output=unique_output,
+    )
+
+    first_detection_day = diseaseoutbreak.time + 1
+
+    # print(diseaseoutbreak.job_manager.jobs_queue)
+
+    properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_first_two_days(
+        properties, reportingregion_x, reportingregion_y
+    )
+
+    # and then resave the end state
+    with open(spread_properties_filename, "wb") as file:
+        pickle.dump(properties, file)
+
+    # and save the diseaseoutbreak object
+    with open(spread_diseaseoutbreak_filename, "wb") as file:
+        pickle.dump(diseaseoutbreak, file)
+else:
+    with open(spread_properties_filename, "rb") as file:
+        properties = pickle.load(file)
+    with open(spread_diseaseoutbreak_filename, "rb") as file:
+        diseaseoutbreak = pickle.load(file)
+
+
+# try two weeks of simulation, but with a national standstill now.
+unique_output = f"04_to_first_decision_point"
+folder_path = os.path.join(folder_path_main, unique_output)
+days_to_run_for = 7 * 2
+
+if not os.path.exists(folder_path):
+    os.makedirs(folder_path)
+
+spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
+spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
+
+management_parameters = {"movement_restrictions": ["national_standstill"]}
+
+if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
+    # adjust the plotting parameters for this new scenario
+    diseaseoutbreak.set_plotting_parameters(
+        xlims=xlims,
+        ylims=ylims,
+        plotting=True,
+        folder_path=folder_path,
+        unique_output=unique_output,
+    )
+
+    # TODO not 100% satisfactorily complete
+    properties, movement_records, time, total_culled_animals, job_manager = (
+        diseaseoutbreak.simulate_outbreak_management(
+            properties, management_parameters, days_to_run_for, resource_setting="default"
+        )
+    )
+
+    # and then resave the end state
+    with open(spread_properties_filename, "wb") as file:
+        pickle.dump(properties, file)
+
+    # and save the diseaseoutbreak object
+    with open(spread_diseaseoutbreak_filename, "wb") as file:
+        pickle.dump(diseaseoutbreak, file)
+
+    total_infected = 0
+    for property_i in properties:
+        if property_i.exposure_date != "NA":
+            total_infected += 1
+
+    print(f"Total number of infected premises: {total_infected}")
+
+
+# then base example decision - high resourcing, but no more standstill
