@@ -1143,6 +1143,13 @@ class DiseaseSimulation:
                 if "national_standstill" in management_parameters["movement_restrictions"]:
                     Australia_shape = spatial_setup.Australia_shape()
                     restricted_area = Australia_shape
+                elif "restricted_area" in management_parameters["movement_restrictions"]:
+                    restricted_area = management.define_control_zone_polygons(
+                        properties,
+                        source_indices,
+                        management_parameters["movement_restrictions"]["restricted_area"],
+                        convex=False,
+                    )  # should be zero movement
                 else:
                     raise ValueError("Movement restrictions that aren't national standstill not yet implemented")
             else:
@@ -1166,6 +1173,14 @@ class DiseaseSimulation:
             if isinstance(management_parameters, dict) and "movement_restrictions" in management_parameters:
                 if "national_standstill" in management_parameters["movement_restrictions"]:
                     control_area = Australia_shape
+                elif "control_area" in management_parameters["movement_restrictions"]:
+                    control_area = management.define_control_zone_polygons(
+                        properties,
+                        source_indices,
+                        management_parameters["movement_restrictions"]["control_area"],  # 30 km
+                        convex=False,
+                    )
+                    control_area = spatial_functions.expand_polygon_to_SALs(control_area)
                 else:
                     raise ValueError("Control area restrictions that aren't national standstill not yet implemented")
             else:

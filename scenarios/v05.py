@@ -321,8 +321,6 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
         unique_output=unique_output,
     )
 
-    first_detection_day = diseaseoutbreak.time + 1
-
     # print(diseaseoutbreak.job_manager.jobs_queue)
 
     properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_first_two_days(
@@ -387,6 +385,3 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
             total_infected += 1
 
     print(f"Total number of infected premises: {total_infected}")
-
-
-# then base example decision - high resourcing, but no more standstill
