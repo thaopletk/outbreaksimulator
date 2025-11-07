@@ -47,7 +47,11 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mort
 
     vector_val = [x for x in vectors_img.sample([properties[premise_index].coordinates])][0][0]
 
-    FOI += vector_val * beta_wind * C_i * A_i / A_is
+    if isinstance(beta_wind, dict):
+        animal_type_i = properties[premise_index].animal_type
+        FOI += vector_val * beta_wind[animal_type_i] * C_i * A_i / A_is
+    else:
+        FOI += vector_val * beta_wind * C_i * A_i / A_is
 
     property_i_polygon = properties[premise_index].polygon
 
@@ -82,7 +86,21 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mort
             vector_mortality_adjustment = 0.5  # assuming they do some just in case
 
         # update FOI
-        FOI += vector_mortality_adjustment * vector_val_neighbour * beta_wind * C_j * distance_modifier * A_ijs / A_js
+        if isinstance(beta_wind, dict):
+            animal_type_j = properties[index].animal_type
+            FOI += (
+                vector_mortality_adjustment
+                * vector_val_neighbour
+                * beta_wind[animal_type_j]
+                * C_j
+                * distance_modifier
+                * A_ijs
+                / A_js
+            )
+        else:
+            FOI += (
+                vector_mortality_adjustment * vector_val_neighbour * beta_wind * C_j * distance_modifier * A_ijs / A_js
+            )
 
     return FOI
 
@@ -95,7 +113,13 @@ def calculate_force_of_infection(properties, premise_index, vax_modifier, r_wind
     vax_status = (vax_modifier - 1) * properties[premise_index].vaccination_status + 1
 
     FOI_wind = wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind)
-    FOI_animal = FOI_calculation_fns.animal_FOI(properties[premise_index], {"beta_animal": beta_animal})
+    if isinstance(beta_animal, dict):
+        animal_type_i = properties[premise_index].animal_type
+        FOI_animal = FOI_calculation_fns.animal_FOI(
+            properties[premise_index], {"beta_animal": beta_animal[animal_type_i]}
+        )
+    else:
+        FOI_animal = FOI_calculation_fns.animal_FOI(properties[premise_index], {"beta_animal": beta_animal})
 
     FOI = vax_status * (FOI_animal + FOI_wind)
 

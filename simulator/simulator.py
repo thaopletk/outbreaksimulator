@@ -32,6 +32,133 @@ from simulator.spatial_functions import quick_distance_haversine
 import time
 
 
+def calculate_num_property_types(num, proportion_dict):
+    # calculate the number of properties for each type (and farms as the remainder)
+    num_properties_per_type = {}
+    if sum(list(proportion_dict.values())) <= 1:
+
+        running_sum = 0
+        for property_type, proportion in proportion_dict.items():
+            num_properties_per_type[property_type] = max(int(math.ceil(num * proportion)), 1)
+            running_sum += num_properties_per_type[property_type]
+
+        if running_sum <= num:
+            num_properties_per_type["farm"] = num - running_sum
+        else:
+            raise ValueError(
+                "Total number of properties too is too high, and can't assign any farms. Recommend to lower proportions."
+            )
+
+    else:
+        raise ValueError("Proportion of different property types exceeds 1 (exceeds 100%)")
+
+    return num_properties_per_type
+
+
+def property_specific_initialisation_animals(
+    spatial_only_parameters,
+    properties_specific_parameters,
+    property_coordinates,
+    property_areas,
+    neighbourhoods,
+    property_polygons,
+    property_polygons_puffed,
+):
+    animal_types = list(properties_specific_parameters["animal_types_proportion"].keys())
+
+    if sum(list(properties_specific_parameters["animal_types_proportion"].values())) != 1:
+        raise ValueError("Total proportion of animals does not equal 1 (100%)")
+
+    num_animal_properties = saferound(
+        [x * spatial_only_parameters["n"] for x in properties_specific_parameters["animal_types_proportion"].values()],
+        places=0,
+    )
+    num_animal_properties = [int(x) for x in num_animal_properties]
+    # some might be zero. whatever.
+
+    # assumes the types of properties are the same for all animals for now
+    num_properties_per_type = {
+        animal: calculate_num_property_types(num, properties_specific_parameters["special_property_types_proportion"])
+        for animal, num in zip(animal_types, num_animal_properties)
+    }
+
+    # initialise properties
+    properties = [None] * spatial_only_parameters["n"]
+
+    available_i_s = list(range(0, len(property_coordinates)))
+    random.shuffle(available_i_s)
+
+    for animal in animal_types:
+        for property_type, n_to_generate in num_properties_per_type[animal].items():
+            for j in range(n_to_generate):
+                new_p_i = available_i_s.pop()
+                animal_multiplier = 1
+                if property_type in ["saleyard", "feedlot"]:
+                    animal_multiplier = 2  # double the number of animals on that property
+
+                try:
+                    new_p = premises.Premises(
+                        num_animals=max(
+                            int(
+                                animal_multiplier
+                                * property_areas[new_p_i]
+                                * properties_specific_parameters["average_animals_per_ha"]
+                            ),
+                            animal_multiplier * 5,
+                        ),  # at least five animals per property
+                        movement_freq=properties_specific_parameters["movement_frequency"][property_type],
+                        coordinates=property_coordinates[new_p_i],
+                        area_ha=property_areas[new_p_i],
+                        neighbourhood=neighbourhoods[new_p_i],
+                        property_polygon=property_polygons[new_p_i],
+                        property_polygon_puffed=property_polygons_puffed[new_p_i],
+                        property_type=property_type,
+                        movement_probability=properties_specific_parameters["movement_probability"][property_type],
+                        movement_prop_animals=properties_specific_parameters["movement_prop_animals"][property_type],
+                        allowed_movement=properties_specific_parameters["allowed_movement"][property_type],
+                        max_daily_movements=properties_specific_parameters["max_daily_movements"][property_type],
+                        animal_type=animal,
+                    )
+                except:
+                    time.sleep(1.0)  # pause for a second to try and avoid errors due to geocoder requests
+
+                properties[new_p_i] = new_p
+                properties[new_p_i].id = (
+                    new_p_i  # override the default assigned id, as the properties were added out of order (above)
+                )
+                properties[new_p_i].init_animals(
+                    None
+                )  # init with empty "params", as no parameters are actually used to initialise animals
+
+    # construct their movement information
+    for i, property_i in enumerate(properties):
+        if property_i.type == "saleyard":
+            # allowing for much longer range movement from saleyards to other places (but not vice-versa)
+            max_allowable_movement = 5 * properties_specific_parameters["max_movement_km"]
+        else:
+            max_allowable_movement = properties_specific_parameters["max_movement_km"]
+
+        property_i_neighbours = {}
+        for allowed_type in property_i.allowed_movement.keys():
+            property_i_neighbours[allowed_type] = []
+
+        for j, property_j in enumerate(properties):
+            if i == j:
+                continue
+            if property_j.type in property_i_neighbours and property_j.animal_type == property_i.animal_type:
+                distance = quick_distance_haversine(
+                    property_i.coordinates,
+                    property_j.coordinates,
+                )
+
+                if distance < max_allowable_movement and distance > 100 and random.uniform(0, 1) < 0.2:
+                    property_i_neighbours[property_j.type].append(j)
+
+        property_i.movement_neighbours = property_i_neighbours
+
+    return properties
+
+
 def property_setup_v03(
     folder_path,
     spatial_only_paramaters={
@@ -719,6 +846,7 @@ def seed_infection_within_bound(
     folder_path="",
     unique_output="",
     latent_period=7,
+    disease_parameters=None,
 ):
     """Seeds an infection at a property within the bounds specified"""
     seed_property = 0  # default
@@ -741,7 +869,12 @@ def seed_infection_within_bound(
     p = properties[seed_property]
     # TODO technically, to encapsulate this better, there should a function that allows you to infect a specific animal(s), and that will then update infection_status, prop_infections, cumulative_infections, and exposure_date, and anything else that may need to be updated
     p.infection_status = 1
-    p.exposure_date = premises.convert_time_to_date(time - latent_period)
+    if latent_period != None:
+        p.exposure_date = premises.convert_time_to_date(time - latent_period)
+    else:  # the version with multiple animals
+        latent_period = disease_parameters[p.animal_type]["latent_period"]
+        p.exposure_date = premises.convert_time_to_date(time - latent_period)
+
     num_infected = 10
     for seed_animal in range(num_infected):
         p.animals[seed_animal].status = "infected"
@@ -984,6 +1117,7 @@ def save_current_state(properties, time, folder_path, unique_output):
         "ycoord",
         "area",
         "type",
+        "animal",
         "total",
     ]
     file = os.path.join(folder_path, f"fake_data_underlying_{unique_output}.csv")
