@@ -57,7 +57,7 @@ random.seed(10 * int(local_ver))
 np.random.seed(10 * int(local_ver))
 
 # obtaining the previous step's file
-unique_output = f"04_to_decision_point"
+unique_output = f"04_to_first_decision_point"
 folder_path = os.path.join(folder_path_main, unique_output)
 spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
 spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
