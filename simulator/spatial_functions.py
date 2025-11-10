@@ -173,13 +173,23 @@ def get_LGAs():
 
 
 @functools.lru_cache(maxsize=None)
-def get_SALs():
+def get_SALs_gdf():
     """Suburbs and localities"""
+
     AustraliaSALs_gdf = gpd.read_file(
         os.path.join(os.path.dirname(__file__), "..", "data", "SAL_2021_AUST_GDA2020_SHP", "SAL_2021_AUST_GDA2020.shp")
     )
 
     print(AustraliaSALs_gdf)
+
+    return AustraliaSALs_gdf
+
+
+@functools.lru_cache(maxsize=None)
+def get_SALs():
+    """Suburbs and localities"""
+
+    AustraliaSALs_gdf = get_SALs_gdf()
     SALs = AustraliaSALs_gdf["geometry"].values.tolist()
     # print(SALs)
 
