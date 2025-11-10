@@ -196,6 +196,57 @@ def get_SALs():
     return SALs
 
 
+@functools.lru_cache(maxsize=None)
+def get_SA2_gdf():
+    """Statistical Areas Level 2
+
+    See more details here: https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs-edition-3/jul2021-jun2026/main-structure-and-greater-capital-city-statistical-areas/statistical-area-level-2
+
+    """
+
+    SA2_gdf = gpd.read_file(
+        os.path.join(os.path.dirname(__file__), "..", "data", "SA2_2021_AUST_SHP_GDA2020", "SA2_2021_AUST_GDA2020.shp")
+    )
+
+    print(SA2_gdf)
+
+    return SA2_gdf
+
+
+@functools.lru_cache(maxsize=None)
+def get_SA4_gdf():
+    """Statistical Areas Level 4
+
+    See more details here: https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs-edition-3/jul2021-jun2026/main-structure-and-greater-capital-city-statistical-areas/statistical-area-level-4
+
+    """
+
+    SA4_gdf = gpd.read_file(
+        os.path.join(os.path.dirname(__file__), "..", "data", "SA4_2021_AUST_SHP_GDA2020", "SA4_2021_AUST_GDA2020.shp")
+    )
+
+    print(SA4_gdf)
+
+    return SA4_gdf
+
+
+@functools.lru_cache(maxsize=None)
+def get_UCL_gdf():
+    """Urban centres and localities
+
+    See more details here: https://www.abs.gov.au/census/guide-census-data/geography/census-geography-glossary#urban-centres-and-localities-ucl-
+
+    """
+
+    UCL_gdf = gpd.read_file(
+        os.path.join(os.path.dirname(__file__), "..", "data", "UCL_2021_AUST_GDA2020_SHP", "UCL_2021_AUST_GDA2020.shp")
+    )
+
+    print(UCL_gdf)
+
+    return UCL_gdf
+
+
 def expand_polygon_to_LGAs(poly_to_expand):
     LGAs = get_LGAs()
     intersecting_LGAs = []
