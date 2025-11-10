@@ -9,3 +9,7 @@ https://www.abs.gov.au/statistics/standards/australian-statistical-geography-sta
 
 Other Australian stuff:
 https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs-edition-3/jul2021-jun2026/access-and-downloads/digital-boundary-files
+
+
+SA2 Australian Shape files 
+https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs-edition-3/jul2021-jun2026/access-and-downloads/digital-boundary-files
