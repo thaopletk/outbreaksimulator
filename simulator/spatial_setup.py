@@ -438,8 +438,8 @@ def assign_neighbours_with_land(property_coordinates, property_polygons, n, r):
                     adjacency_matrix[p1, p2] = 1
 
                     # coordinates of properties
-                    x = [property_coordinates[p1, 0], property_coordinates[p2, 0]]
-                    y = [property_coordinates[p1, 1], property_coordinates[p2, 1]]
+                    x = [property_coordinates[p1][0], property_coordinates[p2][0]]
+                    y = [property_coordinates[p1][1], property_coordinates[p2][1]]
 
                     # append neighbour pair list with coordinates of each property (used for plotting)
                     neighbour_pairs.append([x, y])
