@@ -30,7 +30,7 @@ def FMD_AADIS_input_setup():
     pass
 
 
-def assign_property_locations_in_region(n, region, average_property_ha=100):
+def assign_property_locations_in_region(n, region, average_property_ha=100, excluded_regions=None):
     """Generates n random properties (with rectangular shapes)  within the the input region
 
     Parameters
@@ -108,7 +108,13 @@ def assign_property_locations_in_region(n, region, average_property_ha=100):
 
             # check if the polygon is inside the region
             if region.contains(Polygon_obj):
-                inside_region = True
+                if excluded_regions == None:
+                    inside_region = True
+                else:
+                    if excluded_regions.contains(Polygon_obj):
+                        pass
+                    else:
+                        inside_region = True
 
         property_areas.append(spatial_functions.calculate_area(property_polygon))
 
@@ -124,6 +130,7 @@ def HPAI_setup(
     xrange,
     yrange,
     folder_path_main,
+    num_properties_in_regions={"large": 20, "medium": 50, "small": 100, "very_small": 100},
 ):
     UCL_gdf = spatial_functions.get_UCL_gdf()
     SAL_gdf = spatial_functions.get_SALs_gdf()
@@ -177,6 +184,7 @@ def HPAI_setup(
         "Byron Bay",
     ]
 
+    # TODO: assign these as actual locations
     processing_plant_locations = [
         # "Perth (WA)",
         # "Perth (WA)",
@@ -214,6 +222,15 @@ def HPAI_setup(
                 region_shape = list(region_only["geometry"])[0]
         return region_shape
 
+    def expand_region(region, km=50):
+        # expansion 50 km
+        minx, miny, maxx, maxy = region.bounds
+        lat = (miny + maxy) / 2  # y
+        lon = (minx + maxx) / 2  # x
+        expanded_region = spatial_functions.geodesic_polygon_buffer(lat, lon, region, km)
+
+        return expanded_region
+
     chicken_meat_property_coordinates = []
     chicken_meat_property_polygons = []
     chicken_meat_property_areas = []
@@ -221,8 +238,11 @@ def HPAI_setup(
     for region in chicken_meat_regions_large:
         print(region)
         region_only = get_region_shape(region)
+        expanded_region = expand_region(region_only, km=50)
         property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
-            10, region_only, average_property_ha=100
+            int(np.ceil(num_properties_in_regions["large"] / len(chicken_meat_regions_large))),
+            expanded_region,
+            average_property_ha=300,
         )
 
         chicken_meat_property_coordinates.extend(property_coordinates)
@@ -232,9 +252,12 @@ def HPAI_setup(
     for region in chicken_meat_regions_medium:
         print(region)
         region_only = get_region_shape(region)
+        expanded_region = expand_region(region_only, km=50)
 
         property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
-            5, region_only, average_property_ha=100
+            int(np.ceil(num_properties_in_regions["medium"] / len(chicken_meat_regions_medium))),
+            expanded_region,
+            average_property_ha=100,
         )
 
         chicken_meat_property_coordinates.extend(property_coordinates)
@@ -244,39 +267,204 @@ def HPAI_setup(
     for region in chicken_meat_regions_small:
         print(region)
         region_only = get_region_shape(region)
+        expanded_region = expand_region(region_only, km=50)
 
         property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
-            2, region_only, average_property_ha=100
+            int(np.ceil(num_properties_in_regions["small"] / len(chicken_meat_regions_small))),
+            expanded_region,
+            average_property_ha=50,
         )
 
         chicken_meat_property_coordinates.extend(property_coordinates)
         chicken_meat_property_polygons.extend(property_polygons)
         chicken_meat_property_areas.extend(property_areas)
 
-    (
-        chicken_meat_adjacency_matrix,
-        chicken_meat_neighbour_pairs,
-        chicken_meat_neighbourhoods,
-        chicken_meat_property_polygons_puffed,
-    ) = spatial_setup.assign_neighbours_with_land(
-        chicken_meat_property_coordinates, chicken_meat_property_polygons, len(chicken_meat_property_coordinates), r=8
-    )
+    # TODO very small - in areas 100 km around the prior regions, for simplicity..., with less than 20 chickens
+    # TODO add in very small properties scattered across the landscape (e.g. with <20 chickens) more generally
+    # such that it avoids all the prior areas
 
-    output.plot_map_land(
-        property_polygons,
-        chicken_meat_property_polygons_puffed,
-        xrange,
-        yrange,
-        folder_path_main,
-    )
-
-    # TODO sadd in very small properties scattered across the landscape (e.g. with <20 chickens)
+    # TODO - add in the processing plants
 
     # https://www.poultryhub.org/production/meat-chicken-broiler-industry
     # 40,000 chickens per shet, 3-10 sheds per farm
 
     # CHICKEN EGG
+    # can't really find much information, I'll just make them in the same area as chicken meat for now.
+    # TODO: improve!!!
+
+    chicken_egg_property_coordinates = []
+    chicken_egg_property_polygons = []
+    chicken_egg_property_areas = []
+
+    for region in chicken_meat_regions_large:  # note - using chicken meat regions for now
+        print(region)
+        region_only = get_region_shape(region)
+        expanded_region = expand_region(region_only, km=50)
+        property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
+            int(np.ceil(num_properties_in_regions["large"] / len(chicken_meat_regions_large))),
+            expanded_region,
+            average_property_ha=300,
+            excluded_regions=chicken_meat_property_polygons,
+        )
+
+        chicken_egg_property_coordinates.extend(property_coordinates)
+        chicken_egg_property_polygons.extend(property_polygons)
+        chicken_egg_property_areas.extend(property_areas)
+
+    for region in chicken_meat_regions_medium:
+        print(region)
+        region_only = get_region_shape(region)
+        expanded_region = expand_region(region_only, km=50)
+
+        property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
+            int(np.ceil(num_properties_in_regions["medium"] / len(chicken_meat_regions_medium))),
+            expanded_region,
+            average_property_ha=100,
+            excluded_regions=chicken_meat_property_polygons,
+        )
+
+        chicken_egg_property_coordinates.extend(property_coordinates)
+        chicken_egg_property_polygons.extend(property_polygons)
+        chicken_egg_property_areas.extend(property_areas)
+
+    for region in chicken_meat_regions_small:
+        print(region)
+        region_only = get_region_shape(region)
+        expanded_region = expand_region(region_only, km=50)
+
+        property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
+            int(np.ceil(num_properties_in_regions["small"] / len(chicken_meat_regions_small))),
+            expanded_region,
+            average_property_ha=50,
+            excluded_regions=chicken_meat_property_polygons,
+        )
+
+        chicken_egg_property_coordinates.extend(property_coordinates)
+        chicken_egg_property_polygons.extend(property_polygons)
+        chicken_egg_property_areas.extend(property_areas)
+
+    # TODO very small - in areas 100 km around the prior regions, for simplicity..., with less than 20 chickens
+    # TODO add in very small properties scattered across the landscape (e.g. with <20 chickens) more generally
+    # such that it avoids all the prior areas
+
+    # TODO - add in the processing plants
 
     # DAIRY CATTLE
 
-    pass
+    # TODO - check naming in LGA / data files
+    dairy_cattle_NSW = [
+        "Tweed",
+        "Lismore",
+        "Kyogle",
+        "Richmond Valley",
+        "Clarence valley",
+        "Coffs Harbour",
+        "Bellingen",
+        "Nambucca Valley",
+        "Kempsey",
+        "Port Macquarie-Hastings",
+        "Mid-Coast",
+        "Dungog",
+        "Port Stephens",
+        "Tamworth Regional",
+        "Walcha",
+        "Upper Hunter",
+        "Muswellbrook",
+        "Singleton",
+        "Maitland",
+        "Lachlan",
+        "Forbes",
+        "Dubbo Regional",
+        "Cabonne",
+        "Cowra",
+        "Balyney",
+        "Bathurst Regional",
+        "Liverpool",
+        "Camden",
+        "Wollondilly",
+        "Wingecarribee",
+        "Shellharbour",
+        "Kiama",
+        "Shoalhaven",
+        "Eurobodalla",
+        "Bega Valley",
+        "Snowy Valleys",
+        "Wagga Wagga",
+        "Albury",
+        "Federation",
+        "Murrumbidgee",
+        "Berrigan",
+        "Edward River",
+        "Murray River",
+    ]
+
+    dairy_NSW_processing = [
+        "Casino",
+        "South Lismore",
+        "Releigh",
+        "Wauchope",
+        "Wagga Wagga",
+        "Bega",
+        "Penrith",
+        "Erskine Park",
+        "Winston Hills",
+        "Wetherill Park",
+        "Lidcombe",
+        "Ingleburn",
+        "Smeaton Grange",
+        "Albury",
+    ]
+
+    dairy_QLD = [
+        "Scenic Rim",
+        "Sothern Downs",
+        "Toowoomba",
+        "Lockyer Valley",
+        "Ipswich",
+        "Logan",
+        "Western Downs",
+        "South Burnett",
+        "Somerset",
+        "Sunshine Coast",
+        "Moreton Bay",
+        "Gympie",
+        "Fraser Coast",
+        "Gladstone",
+        "Bundaberg",
+        "North Burnett",
+        "Mackey",
+        "Douglas",
+        "Atherton Tablelands",  # not entirely clear about this i.e. whether it'll appear as an LGA or other kind of region
+    ]
+
+    dairy_QLD_processing = [
+        "Malanda",
+        "Crestmead",
+        "South Brisbane",
+        "Byron Bay",
+        "Labrador",
+        "Beaudesert",
+        "Toowoomba",
+        "Gold Coast",
+    ]
+
+    # TODO: assign wind neighbours, but still return property type information!
+    # (
+    #     chicken_meat_adjacency_matrix,
+    #     chicken_meat_neighbour_pairs,
+    #     chicken_meat_neighbourhoods,
+    #     chicken_meat_property_polygons_puffed,
+    # ) = spatial_setup.assign_neighbours_with_land(
+    #     chicken_meat_property_coordinates, chicken_meat_property_polygons, len(chicken_meat_property_coordinates), r=8
+    # )
+
+    # TODO: make a plot that actually shows the locations of different facilities
+    # output.plot_map_land(
+    #     property_polygons,
+    #     chicken_meat_property_polygons_puffed,
+    #     xrange,
+    #     yrange,
+    #     folder_path_main,
+    # )
+
+    # TODO assign animal numbers based on property size
