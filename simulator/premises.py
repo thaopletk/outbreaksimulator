@@ -136,7 +136,12 @@ class Premises(Property):
         self.x, self.y = self.coordinates
 
         self.location = geolocator.reverse(f"{self.y},{self.x}")
-        self.address = self.location.raw["address"]
+        try:
+            self.address = self.location.raw["address"]
+        except:
+            print(self.coordinates)
+            print(self.location)
+            exit(1)
         self.state = self.address.get("state", "")
         if self.state == "":
             self.state = self.address.get("territory", "")

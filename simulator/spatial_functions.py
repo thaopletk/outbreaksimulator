@@ -157,13 +157,20 @@ def define_control_zone_circles(coordinates, radius_km):
     return controlzone
 
 
+@functools.lru_cache(maxsize=None)
+def get_LGA_gdf():
+    LGA_gdf = gpd.read_file(
+        os.path.join(os.path.dirname(__file__), "..", "data", "LGA_2024_AUST_GDA2020", "LGA_2024_AUST_GDA2020.shp")
+    )
+
+    return LGA_gdf
+
+
 # TODO: rather than using a cache like this (memoisation), I could just initiate it as an object/variable inside disease simulation and just grab it from there lol...
 @functools.lru_cache(maxsize=None)
 def get_LGAs():
     """Local Government Areas"""
-    AustraliaLGAs_gdf = gpd.read_file(
-        os.path.join(os.path.dirname(__file__), "..", "data", "LGA_2024_AUST_GDA2020", "LGA_2024_AUST_GDA2020.shp")
-    )
+    AustraliaLGAs_gdf = get_LGA_gdf()
 
     print(AustraliaLGAs_gdf)
     LGAs = AustraliaLGAs_gdf["geometry"].values.tolist()

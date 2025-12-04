@@ -17,6 +17,8 @@ import shapely.plotting
 import geopandas as gpd
 import contextily as ctx
 from matplotlib_scalebar.scalebar import ScaleBar
+import simulator.premises as premises
+import time
 
 
 def fixed_spatial_setup(xrange, yrange, folder_path_main, disease="FMD", AADIS=True):
@@ -91,7 +93,7 @@ def assign_property_locations_in_region(n, region, average_property_ha=100, excl
 
     i_random_recs = -1
     for i in range(n):
-        print(i)
+        print(i + 1)
         inside_region = False
         while not inside_region:
             i_random_recs += 1
@@ -151,22 +153,19 @@ def plot_map_land_HPAI(
     #         long, lat = premise.coordinates
     # curr_farm = Point(long, lat) -> geometries?
 
-    geo_df = gpd.GeoDataFrame(geometry=chicken_meat_property_coordinates)
-    geo_df.crs = {"init": "epsg:4326"}
-    # plot the marker
-    ax = geo_df.plot(ax=ax, markersize=10, marker="$\U0001F414$")  # , label=markerlabel) # no label
+    for geometries, marker, markerlabel in [
+        [chicken_meat_property_coordinates, "$\U0001F414$", "Chicken Meat"],
+        [processing_chicken_meat_property_coordinates, "$\U0001F3ED$", "Chicken Meat Processing"],
+        [chicken_egg_property_coordinates, "$\U0001F95A$", "Chicken Egg"],
+        [processing_chicken_egg_property_coordinates, "$\U0001F4E6$", "Chicken Egg Processing"],
+        [dairy_property_coordinates, "$\U0001F404$", "Dairy Farm"],
+        [processing_dairy_property_coordinates, "$\U0001F95B$", "Dairy Processing"],
+    ]:
 
-    # for poly in property_polygons_chicken_meat:
-    #     output.plot_polygon(ax, poly, facecolor="tomato", edgecolor="maroon", alpha=1)
-
-    # for poly in processing_property_polygons_chicken_meat:
-    #     output.plot_polygon(ax, poly, facecolor="tomato", edgecolor="maroon", alpha=1)
-
-    # for poly in property_polygons_chicken_egg:
-    #     output.plot_polygon(ax, poly, facecolor="tomato", edgecolor="maroon", alpha=1)
-
-    # for poly in property_polygons_chicken_egg:
-    #     output.plot_polygon(ax, poly, facecolor="tomato", edgecolor="maroon", alpha=1)
+        geo_df = gpd.GeoDataFrame(geometry=geometries)
+        geo_df.crs = {"init": "epsg:4326"}
+        # plot the marker
+        ax = geo_df.plot(ax=ax, markersize=10, marker=marker, label=markerlabel)
 
     ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
 
@@ -205,15 +204,73 @@ def plot_map_land_HPAI(
     plt.close()
 
 
+def property_specific_initialisation_animals_no_neighbours(
+    property_coordinates,
+    property_polygon,
+    property_polygon_area,
+    wind_radius,
+    animal_type,
+    premises_type,
+    num_animals,
+    movement_freq,
+    movement_probability,
+    movement_prop_animals,
+    allowed_movement,
+    max_daily_movements,
+):
+    lat = property_coordinates[1]  # y
+    lon = property_coordinates[0]  # x
+    puff_p1 = spatial_setup.geodesic_polygon_buffer(lat, lon, property_polygon, wind_radius)
+
+    try:
+        new_p = premises.Premises(
+            num_animals=num_animals,  # at least five animals per property
+            movement_freq=movement_freq,
+            coordinates=property_coordinates,
+            area_ha=property_polygon_area,
+            neighbourhood=[],  # TODO - code to get neighbours once all properties are determined; and update self.total_neighbours
+            property_polygon=property_polygon,
+            property_polygon_puffed=puff_p1,
+            property_type=premises_type,
+            movement_probability=movement_probability,
+            movement_prop_animals=movement_prop_animals,
+            allowed_movement=allowed_movement,
+            max_daily_movements=max_daily_movements,
+            animal_type=animal_type,
+        )
+    except:
+        time.sleep(60.0)
+        new_p = premises.Premises(
+            num_animals=num_animals,  # at least five animals per property
+            movement_freq=movement_freq,
+            coordinates=property_coordinates,
+            area_ha=property_polygon_area,
+            neighbourhood=[],
+            property_polygon=property_polygon,
+            property_polygon_puffed=puff_p1,
+            property_type=premises_type,
+            movement_probability=movement_probability,
+            movement_prop_animals=movement_prop_animals,
+            allowed_movement=allowed_movement,
+            max_daily_movements=max_daily_movements,
+            animal_type=animal_type,
+        )
+
+    return new_p
+
+
 def HPAI_setup(
     xrange,
     yrange,
     folder_path_main,
     num_properties_in_regions={"large": 20, "medium": 50, "small": 100, "very_small": 100},
 ):
+    # Australia_gdf = spatial_setup.get_Australia_shape()
+    Australia_shape = spatial_setup.Australia_shape()
     UCL_gdf = spatial_functions.get_UCL_gdf()
     SAL_gdf = spatial_functions.get_SALs_gdf()
     SA4_gdf = spatial_functions.get_SA4_gdf()
+    LGA_gdf = spatial_functions.get_LGA_gdf()
 
     # CHICKEN MEAT
 
@@ -298,7 +355,12 @@ def HPAI_setup(
                 region_shape = list(region_only["geometry"])[0]
             except:
                 region_only = SA4_gdf.loc[SA4_gdf["SA4_NAME21"] == region, :]
-                region_shape = list(region_only["geometry"])[0]
+                try:
+                    region_shape = list(region_only["geometry"])[0]
+                except:
+                    region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == region, :]
+                    region_shape = list(region_only["geometry"])[0]
+
         return region_shape
 
     def expand_region(region, km=50):
@@ -308,9 +370,13 @@ def HPAI_setup(
         lon = (minx + maxx) / 2  # x
         expanded_region = spatial_functions.geodesic_polygon_buffer(lat, lon, region, km)
 
+        # making sure the region doesn't include the ocean!!!!
+        expanded_region = expanded_region.intersection(Australia_shape)
+
         return expanded_region
 
     occupied_regions = []
+    all_properties = []
 
     chicken_meat_property_coordinates = []
     chicken_meat_property_polygons = []
@@ -336,6 +402,24 @@ def HPAI_setup(
 
         occupied_regions.extend(property_polygons)
 
+        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+            new_p = property_specific_initialisation_animals_no_neighbours(
+                coordinates,
+                p_polygon,
+                p_area,
+                wind_radius=5,
+                animal_type="chicken",
+                premises_type="chicken-meat-farm",
+                num_animals=1000,
+                movement_freq=1,
+                movement_probability=0.5,
+                movement_prop_animals=0.2,
+                allowed_movement={"chicken-meat-farm": 0.6, "chicken-meat-processing": 0.4},
+                max_daily_movements=1,
+            )
+
+            all_properties.append(new_p)
+
     for region in chicken_meat_regions_medium:
         print(region)
         region_only = get_region_shape(region)
@@ -353,6 +437,24 @@ def HPAI_setup(
 
         occupied_regions.extend(property_polygons)
 
+        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+            new_p = property_specific_initialisation_animals_no_neighbours(
+                coordinates,
+                p_polygon,
+                p_area,
+                wind_radius=5,
+                animal_type="chicken",
+                premises_type="chicken-meat-farm",
+                num_animals=100,
+                movement_freq=1,
+                movement_probability=0.5,
+                movement_prop_animals=0.2,
+                allowed_movement={"chicken-meat-farm": 0.6, "chicken-meat-processing": 0.4},
+                max_daily_movements=1,
+            )
+
+            all_properties.append(new_p)
+
     for region in chicken_meat_regions_small:
         print(region)
         region_only = get_region_shape(region)
@@ -369,6 +471,24 @@ def HPAI_setup(
         chicken_meat_property_areas.extend(property_areas)
 
         occupied_regions.extend(property_polygons)
+
+        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+            new_p = property_specific_initialisation_animals_no_neighbours(
+                coordinates,
+                p_polygon,
+                p_area,
+                wind_radius=5,
+                animal_type="chicken",
+                premises_type="chicken-meat-farm",
+                num_animals=10,
+                movement_freq=1,
+                movement_probability=0.5,
+                movement_prop_animals=0.2,
+                allowed_movement={"chicken-meat-farm": 0.6, "chicken-meat-processing": 0.4},
+                max_daily_movements=1,
+            )
+
+            all_properties.append(new_p)
 
     # TODO very small - in areas 100 km around the prior regions, for simplicity..., with less than 20 chickens
     # TODO add in very small properties scattered across the landscape (e.g. with <20 chickens) more generally
@@ -389,6 +509,26 @@ def HPAI_setup(
         processing_chicken_meat_property_areas.extend(property_areas)
 
         occupied_regions.extend(property_polygons)
+
+        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+            new_p = property_specific_initialisation_animals_no_neighbours(
+                coordinates,
+                p_polygon,
+                p_area,
+                wind_radius=5,
+                animal_type="chicken",
+                premises_type="chicken-meat-processing",
+                num_animals=1000,
+                movement_freq=1,
+                movement_probability=0.5,
+                movement_prop_animals=0.2,
+                allowed_movement={},
+                max_daily_movements=1,
+            )
+
+            all_properties.append(new_p)
+
+    # TODO - some kind of death sink that removes processed chickens - and similarly, a process that generates more chickens
 
     # https://www.poultryhub.org/production/meat-chicken-broiler-industry
     # 40,000 chickens per shet, 3-10 sheds per farm
@@ -422,6 +562,24 @@ def HPAI_setup(
 
         occupied_regions.extend(property_polygons)
 
+        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+            new_p = property_specific_initialisation_animals_no_neighbours(
+                coordinates,
+                p_polygon,
+                p_area,
+                wind_radius=5,
+                animal_type="chicken",
+                premises_type="chicken-egg-farm",
+                num_animals=1000,
+                movement_freq=1,
+                movement_probability=0.5,
+                movement_prop_animals=0.2,
+                allowed_movement={"chicken-egg-farm": 0.6, "chicken-egg-processing": 0.4},
+                max_daily_movements=1,
+            )
+
+            all_properties.append(new_p)
+
     for region in chicken_meat_regions_medium:
         print(region)
         region_only = get_region_shape(region)
@@ -440,6 +598,24 @@ def HPAI_setup(
 
         occupied_regions.extend(property_polygons)
 
+        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+            new_p = property_specific_initialisation_animals_no_neighbours(
+                coordinates,
+                p_polygon,
+                p_area,
+                wind_radius=5,
+                animal_type="chicken",
+                premises_type="chicken-egg-farm",
+                num_animals=100,
+                movement_freq=1,
+                movement_probability=0.5,
+                movement_prop_animals=0.2,
+                allowed_movement={"chicken-egg-farm": 0.6, "chicken-egg-processing": 0.4},
+                max_daily_movements=1,
+            )
+
+            all_properties.append(new_p)
+
     for region in chicken_meat_regions_small:
         print(region)
         region_only = get_region_shape(region)
@@ -457,6 +633,24 @@ def HPAI_setup(
         chicken_egg_property_areas.extend(property_areas)
 
         occupied_regions.extend(property_polygons)
+
+        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+            new_p = property_specific_initialisation_animals_no_neighbours(
+                coordinates,
+                p_polygon,
+                p_area,
+                wind_radius=5,
+                animal_type="chicken",
+                premises_type="chicken-egg-farm",
+                num_animals=10,
+                movement_freq=1,
+                movement_probability=0.5,
+                movement_prop_animals=0.2,
+                allowed_movement={"chicken-egg-farm": 0.6, "chicken-egg-processing": 0.4},
+                max_daily_movements=1,
+            )
+
+            all_properties.append(new_p)
 
     # TODO very small - in areas 100 km around the prior regions, for simplicity..., with less than 20 chickens
     # TODO add in very small properties scattered across the landscape (e.g. with <20 chickens) more generally
@@ -478,6 +672,24 @@ def HPAI_setup(
 
         occupied_regions.extend(property_polygons)
 
+        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+            new_p = property_specific_initialisation_animals_no_neighbours(
+                coordinates,
+                p_polygon,
+                p_area,
+                wind_radius=5,
+                animal_type="chicken",
+                premises_type="chicken-egg-processing",
+                num_animals=100,
+                movement_freq=1,
+                movement_probability=0.5,
+                movement_prop_animals=0.2,
+                allowed_movement={},
+                max_daily_movements=1,
+            )
+
+            all_properties.append(new_p)
+
     # DAIRY CATTLE
 
     # TODO - check naming in LGA / data files
@@ -486,7 +698,7 @@ def HPAI_setup(
         "Lismore",
         "Kyogle",
         "Richmond Valley",
-        "Clarence valley",
+        "Clarence Valley",
         "Coffs Harbour",
         "Bellingen",
         "Nambucca Valley",
@@ -495,7 +707,7 @@ def HPAI_setup(
         "Mid-Coast",
         "Dungog",
         "Port Stephens",
-        "Tamworth Regional",
+        "Tamworth",  # "Tamworth Regional"
         "Walcha",
         "Upper Hunter",
         "Muswellbrook",
@@ -503,11 +715,11 @@ def HPAI_setup(
         "Maitland",
         "Lachlan",
         "Forbes",
-        "Dubbo Regional",
+        "Dubbo",  # "Dubbo Regional"
         "Cabonne",
         "Cowra",
         "Balyney",
-        "Bathurst Regional",
+        "Bathurst",  # "Bathurst Regional"
         "Liverpool",
         "Camden",
         "Wollondilly",
@@ -563,7 +775,7 @@ def HPAI_setup(
         "North Burnett",
         "Mackey",
         "Douglas",
-        "Atherton Tablelands",  # not entirely clear about this i.e. whether it'll appear as an LGA or other kind of region
+        "Tablelands",  #  "Atherton Tablelands" not entirely clear about this i.e. whether it'll appear as an LGA or other kind of region
     ]
 
     dairy_QLD_processing = [
@@ -602,6 +814,24 @@ def HPAI_setup(
 
         occupied_regions.extend(property_polygons)
 
+        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+            new_p = property_specific_initialisation_animals_no_neighbours(
+                coordinates,
+                p_polygon,
+                p_area,
+                wind_radius=5,
+                animal_type="cow",
+                premises_type="dairy-farm",
+                num_animals=1000,
+                movement_freq=1,
+                movement_probability=0.5,
+                movement_prop_animals=0.2,
+                allowed_movement={"dairy-farm": 0.6, "dairy-processing": 0.4},
+                max_daily_movements=1,
+            )
+
+            all_properties.append(new_p)
+
     for region in dairy_QLD:
         print(region)
         region_only = get_region_shape(region)
@@ -619,10 +849,29 @@ def HPAI_setup(
 
         occupied_regions.extend(property_polygons)
 
+        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+            new_p = property_specific_initialisation_animals_no_neighbours(
+                coordinates,
+                p_polygon,
+                p_area,
+                wind_radius=5,
+                animal_type="cow",
+                premises_type="dairy-farm",
+                num_animals=1000,
+                movement_freq=1,
+                movement_probability=0.5,
+                movement_prop_animals=0.2,
+                allowed_movement={"dairy-farm": 0.6, "dairy-processing": 0.4},
+                max_daily_movements=1,
+            )
+
+            all_properties.append(new_p)
+
     processing_dairy_property_coordinates = []
     processing_dairy_property_polygons = []
     processing_dairy_property_areas = []
 
+    # TODO -- oop how does dairy processing actually work, surely only milk will be moved to these locations, rather than the cows?
     for region in dairy_NSW_processing:
         print(region)
         region_only = get_region_shape(region)
@@ -637,6 +886,24 @@ def HPAI_setup(
         processing_dairy_property_areas.extend(property_areas)
 
         occupied_regions.extend(property_polygons)
+
+        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+            new_p = property_specific_initialisation_animals_no_neighbours(
+                coordinates,
+                p_polygon,
+                p_area,
+                wind_radius=5,
+                animal_type="cow",
+                premises_type="dairy-processing",
+                num_animals=10,
+                movement_freq=1,
+                movement_probability=0.5,
+                movement_prop_animals=0.2,
+                allowed_movement={},
+                max_daily_movements=1,
+            )
+
+            all_properties.append(new_p)
 
     for region in dairy_QLD_processing:
         print(region)
@@ -653,17 +920,25 @@ def HPAI_setup(
 
         occupied_regions.extend(property_polygons)
 
-    # TODO: assign wind neighbours, but still return property type information!
-    # (
-    #     chicken_meat_adjacency_matrix,
-    #     chicken_meat_neighbour_pairs,
-    #     chicken_meat_neighbourhoods,
-    #     chicken_meat_property_polygons_puffed,
-    # ) = spatial_setup.assign_neighbours_with_land(
-    #     chicken_meat_property_coordinates, chicken_meat_property_polygons, len(chicken_meat_property_coordinates), r=8
-    # )
+        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+            new_p = property_specific_initialisation_animals_no_neighbours(
+                coordinates,
+                p_polygon,
+                p_area,
+                wind_radius=5,
+                animal_type="cow",
+                premises_type="dairy-processing",
+                num_animals=10,
+                movement_freq=1,
+                movement_probability=0.5,
+                movement_prop_animals=0.2,
+                allowed_movement={},
+                max_daily_movements=1,
+            )
 
-    # TODO: make a plot that actually shows the locations of different facilities
+            all_properties.append(new_p)
+
+    # plot that actually shows the locations of different facilities
     plot_map_land_HPAI(
         chicken_meat_property_coordinates,
         processing_chicken_meat_property_coordinates,
@@ -677,3 +952,13 @@ def HPAI_setup(
     )
 
     # TODO assign animal numbers based on property size
+
+    # TODO: assign wind neighbours, but still return property type information! ... though maybe I can do this all in one go, since I never use the adjacency matrix anyway?
+    # (
+    #     chicken_meat_adjacency_matrix,
+    #     chicken_meat_neighbour_pairs,
+    #     chicken_meat_neighbourhoods,
+    #     chicken_meat_property_polygons_puffed,
+    # ) = spatial_setup.assign_neighbours_with_land(
+    #     chicken_meat_property_coordinates, chicken_meat_property_polygons, len(chicken_meat_property_coordinates), r=8
+    # )
