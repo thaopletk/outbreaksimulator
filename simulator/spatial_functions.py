@@ -138,7 +138,16 @@ def geodesic_polygon_buffer(lat, lon, poly_to_buff, km):
         always_xy=True,
     )
     buf = poly_to_buff.buffer(km * 1000)  # distance in metres
-    return Polygon(transform(project, buf).exterior.coords[:])
+
+    try:
+        new_polygon = Polygon(transform(project, buf).exterior.coords[:])
+    except Exception as e:
+        # print(e)
+        # print(transform(project, buf))
+        new_polygon = list(transform(project, buf).geoms)[0]
+        new_polygon = Polygon(new_polygon.exterior.coords[:])
+        # print(new_polygon)
+    return new_polygon
 
 
 def define_control_zone_circles(coordinates, radius_km):

@@ -573,6 +573,127 @@ class DiseaseSimulation:
 
         return first_report_i
 
+    def force_sim_pause_after_report(self, properties, restricted_area, control_area):
+        simulator.plot_current_state(
+            properties,
+            self.time,
+            self.xlims,
+            self.ylims,
+            self.folder_path,
+            self.controlzone,
+            infectionpoly=False,
+            contacts_for_plotting=self.contacts_for_plotting,
+        )
+        self.save_preprocessed_plotting_information(properties)
+
+        with open(os.path.join(self.folder_path, "plotting_data" + str(self.time)), "wb") as file:
+            pickle.dump(
+                [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
+                file,
+            )
+
+        simulator.save_outbreak_state(
+            properties,
+            self.time,
+            self.folder_path,
+            self.unique_output,
+            total_culled_animals=self.total_culled_animals,
+            movement_records=self.movement_records,
+            job_manager=self.job_manager,
+        )
+
+        animal_movement.save_movement_record(self.folder_path, self.movement_records)
+        self.save_reports(properties, restricted_area, control_area)
+        self.job_manager.save_jobs_queue(self.folder_path)
+        self.save_daily_statistics()
+
+        # TODO: add in a "total" column? or add in relative costs/estimated costs and a total estimated cost...
+        self.job_manager.calculate_resources_used(self.folder_path)
+
+        dates_list = [premises.convert_time_to_date(t) for t in range(self.first_detection_day, self.time + 1)]
+        # print(dates_list)
+        daily_notifs = [0] * len(dates_list)
+
+        for property_i in properties:
+            notif_date = property_i.notification_date
+            if notif_date != "NA":
+                index = dates_list.index(notif_date)
+                daily_notifs[index] += 1
+
+        save_name = "daily_notifications"
+
+        output.plot_daily_notifications_over_time(dates_list, daily_notifs, self.folder_path, save_name)
+
+        output.plot_total_notifs_over_time(dates_list, daily_notifs, self.folder_path, save_name="total_notifs")
+
+        daily_notifs_by_state = {}
+        for property_i in properties:
+            notif_date = property_i.notification_date
+            if notif_date != "NA":
+                if property_i.state not in daily_notifs_by_state:
+                    daily_notifs_by_state[property_i.state] = [0] * len(dates_list)
+                index = dates_list.index(notif_date)
+                daily_notifs_by_state[property_i.state][index] += 1
+        for state in daily_notifs_by_state.keys():
+            output.plot_daily_notifications_over_time(
+                dates_list, daily_notifs_by_state[state], self.folder_path, "daily_notifs_" + state
+            )
+            output.plot_total_notifs_over_time(
+                dates_list, daily_notifs_by_state[state], self.folder_path, save_name="total_notifs_" + state
+            )
+
+        return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
+
+    def simulate_first_report(self, properties, reportingregion_x, reportingregion_y):
+        """Simulates the first day of reporting and subsequent actions on that first day
+
+        Parameters
+        ----------
+        properties
+            list of all the premises objects
+        reportingregion_x : list
+            contains [min_x, max_x], defining the reporting region boundaries
+        reportingregion_y : list
+            contains [min_y, max_y], defining the reporting region boundaries
+
+        Returns
+        -------
+        properties
+            list of all the premises objects, may have changed
+        first_report_i : int
+            index of the property that was first reported
+        traced_property_indices : list
+            list of indices of the properties that had movements connected to the reported property
+
+        """
+
+        # new day, allow disease spread
+
+        self.time += 1
+        self.first_detection_day = self.time
+        converted_date = premises.convert_time_to_date(self.time)
+        self.daily_statistics[converted_date] = {
+            "num self reports": 0,
+            "num positive clinical": 0,
+            "num lab tested": 0,
+            "num confirmed infected": 0,
+            "num tested negative": 0,
+            "DCP tested negative": 0,
+            "surveillance tested negative": 0,
+        }
+
+        FOI = self.calculate_FOI_for_each_property(properties)
+
+        properties = self.run_infection_model_for_each_property(properties, FOI)
+
+        # forcing a property to report
+        first_report_i = self.select_first_reported_property(properties, reportingregion_x, reportingregion_y)
+        reported_property = properties[first_report_i]
+        self.make_report(reported_property, converted_date, first_report_i)
+        self.daily_statistics[converted_date]["num self reports"] += 1
+
+        return self.force_sim_pause_after_report(properties, restricted_area=None, control_area=None)
+
     def simulate_first_day(self, properties, reportingregion_x, reportingregion_y):
         """Simulates the first day of reporting and subsequent actions on that first day
 

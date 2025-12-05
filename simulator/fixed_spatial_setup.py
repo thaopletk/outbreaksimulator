@@ -19,6 +19,8 @@ import contextily as ctx
 from matplotlib_scalebar.scalebar import ScaleBar
 import simulator.premises as premises
 import time
+import random
+import pickle
 
 
 def fixed_spatial_setup(xrange, yrange, folder_path_main, disease="FMD", AADIS=True):
@@ -150,10 +152,7 @@ def plot_map_land_HPAI(
     """Plot property boundaries"""
     fig, ax = plt.subplots(1, 1, figsize=(20, 20))  # ,figsize=(10,12)
 
-    #         long, lat = premise.coordinates
-    # curr_farm = Point(long, lat) -> geometries?
-
-    for geometries, marker, markerlabel in [
+    for coordinates, marker, markerlabel in [
         [chicken_meat_property_coordinates, "$\U0001F414$", "Chicken Meat"],
         [processing_chicken_meat_property_coordinates, "$\U0001F3ED$", "Chicken Meat Processing"],
         [chicken_egg_property_coordinates, "$\U0001F95A$", "Chicken Egg"],
@@ -161,6 +160,11 @@ def plot_map_land_HPAI(
         [dairy_property_coordinates, "$\U0001F404$", "Dairy Farm"],
         [processing_dairy_property_coordinates, "$\U0001F95B$", "Dairy Processing"],
     ]:
+        geometries = []
+
+        for long, lat in coordinates:
+            curr_farm = Point(long, lat)
+            geometries.append(curr_farm)
 
         geo_df = gpd.GeoDataFrame(geometry=geometries)
         geo_df.crs = {"init": "epsg:4326"}
@@ -238,8 +242,10 @@ def property_specific_initialisation_animals_no_neighbours(
             max_daily_movements=max_daily_movements,
             animal_type=animal_type,
         )
-    except:
-        time.sleep(60.0)
+    except Exception as e:
+        print("Error in creating new premises:")
+        print(e)
+        time.sleep(120.0)
         new_p = premises.Premises(
             num_animals=num_animals,  # at least five animals per property
             movement_freq=movement_freq,
@@ -264,6 +270,7 @@ def HPAI_setup(
     yrange,
     folder_path_main,
     num_properties_in_regions={"large": 20, "medium": 50, "small": 100, "very_small": 100},
+    max_movement_km=500,  # 500km max movement
 ):
     # Australia_gdf = spatial_setup.get_Australia_shape()
     Australia_shape = spatial_setup.Australia_shape()
@@ -718,7 +725,7 @@ def HPAI_setup(
         "Dubbo",  # "Dubbo Regional"
         "Cabonne",
         "Cowra",
-        "Balyney",
+        "Blayney",
         "Bathurst",  # "Bathurst Regional"
         "Liverpool",
         "Camden",
@@ -742,7 +749,7 @@ def HPAI_setup(
     dairy_NSW_processing = [
         "Casino",
         "South Lismore",
-        "Releigh",
+        "Raleigh",
         "Wauchope",
         "Wagga Wagga",
         "Bega",
@@ -758,7 +765,7 @@ def HPAI_setup(
 
     dairy_QLD = [
         "Scenic Rim",
-        "Sothern Downs",
+        "Southern Downs",
         "Toowoomba",
         "Lockyer Valley",
         "Ipswich",
@@ -773,7 +780,7 @@ def HPAI_setup(
         "Gladstone",
         "Bundaberg",
         "North Burnett",
-        "Mackey",
+        "Mackay",
         "Douglas",
         "Tablelands",  #  "Atherton Tablelands" not entirely clear about this i.e. whether it'll appear as an LGA or other kind of region
     ]
@@ -938,6 +945,45 @@ def HPAI_setup(
 
             all_properties.append(new_p)
 
+    output_filename = os.path.join(folder_path_main, "HPAI_properties_setup_part_1")
+
+    with open(output_filename, "wb") as file:
+        pickle.dump(
+            [
+                all_properties,
+                chicken_meat_property_coordinates,
+                processing_chicken_meat_property_coordinates,
+                chicken_egg_property_coordinates,
+                processing_chicken_egg_property_coordinates,
+                dairy_property_coordinates,
+                processing_dairy_property_coordinates,
+            ],
+            file,
+        )
+
+    return (
+        all_properties,
+        chicken_meat_property_coordinates,
+        processing_chicken_meat_property_coordinates,
+        chicken_egg_property_coordinates,
+        processing_chicken_egg_property_coordinates,
+        dairy_property_coordinates,
+        processing_dairy_property_coordinates,
+    )
+
+
+def HPAI_setup_part_2(
+    all_properties,
+    chicken_meat_property_coordinates,
+    processing_chicken_meat_property_coordinates,
+    chicken_egg_property_coordinates,
+    processing_chicken_egg_property_coordinates,
+    dairy_property_coordinates,
+    processing_dairy_property_coordinates,
+    xrange,
+    yrange,
+    folder_path_main,
+):
     # plot that actually shows the locations of different facilities
     plot_map_land_HPAI(
         chicken_meat_property_coordinates,
@@ -951,14 +997,54 @@ def HPAI_setup(
         folder_path_main,
     )
 
-    # TODO assign animal numbers based on property size
+    # ensuring the ids match, init'ing animals at the same time
+    for p1 in range(0, len(all_properties)):
+        all_properties[p1].id = p1
+        all_properties[p1].init_animals(
+            None
+        )  # init with empty "params", as no parameters are actually used to initialise animals
 
-    # TODO: assign wind neighbours, but still return property type information! ... though maybe I can do this all in one go, since I never use the adjacency matrix anyway?
-    # (
-    #     chicken_meat_adjacency_matrix,
-    #     chicken_meat_neighbour_pairs,
-    #     chicken_meat_neighbourhoods,
-    #     chicken_meat_property_polygons_puffed,
-    # ) = spatial_setup.assign_neighbours_with_land(
-    #     chicken_meat_property_coordinates, chicken_meat_property_polygons, len(chicken_meat_property_coordinates), r=8
-    # )
+    # assign wind neighbours and update self.total_neighbours
+    for p1 in range(0, len(all_properties)):
+        p1_neighbourhood = []
+        puff_p1 = all_properties[p1].puffed_poly
+        for p2 in range(0, len(all_properties)):
+            if p1 != p2:
+                # calculate distance between centres
+                # dist = np.linalg.norm(np.array(property_coordinates[p1]) - np.array(property_coordinates[p2]))
+                dist_centres = spatial_functions.quick_distance_haversine(
+                    all_properties[p1].coordinates, all_properties[p2].coordinates
+                )  # distance in km
+
+                # calculate whether they're wind-neighbours
+                p2_poly = all_properties[p2].polygon
+
+                if puff_p1.intersects(p2_poly):
+                    # they're wind-neighbours, congrats
+                    p1_neighbourhood.append([p2, dist_centres])
+
+        all_properties[p1].neighbourhood = p1_neighbourhood
+        all_properties[p1].total_neighbours = len(p1_neighbourhood)
+
+    # now construct and assign movement neighbours
+    for i, property_i in enumerate(all_properties):
+        max_allowable_movement = max_movement_km
+        property_i_neighbours = {}
+        for allowed_type in property_i.allowed_movement.keys():
+            property_i_neighbours[allowed_type] = []
+
+        for j, property_j in enumerate(all_properties):
+            if i == j:
+                continue
+            if property_j.type in property_i_neighbours and property_j.animal_type == property_i.animal_type:
+                distance = spatial_functions.quick_distance_haversine(
+                    property_i.coordinates,
+                    property_j.coordinates,
+                )
+
+                if distance < max_allowable_movement and distance > 100 and random.uniform(0, 1) < 0.2:
+                    property_i_neighbours[property_j.type].append(j)
+
+        property_i.movement_neighbours = property_i_neighbours
+
+    return all_properties
