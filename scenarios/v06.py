@@ -18,7 +18,7 @@ import simulator.spatial_setup as spatial_setup
 import simulator.fixed_spatial_setup as fixed_spatial_setup
 
 xrange = [136, 155]
-yrange = [-40, -25]
+yrange = [-44, -14]
 
 # limits for the figures
 xlims = [
@@ -37,34 +37,74 @@ if not os.path.exists(folder_path_main):
 
 # fixed_spatial_setup.fixed_spatial_setup(xrange, yrange, folder_path_main, disease="HPAI", AADIS=False)
 
-(
-    all_properties,
+output_filename = os.path.join(folder_path_main, "HPAI_properties_setup_part_1")
+if not os.path.exists(output_filename):
+
+    (
+        all_properties,
+        chicken_meat_property_coordinates,
+        processing_chicken_meat_property_coordinates,
+        chicken_egg_property_coordinates,
+        processing_chicken_egg_property_coordinates,
+        dairy_property_coordinates,
+        processing_dairy_property_coordinates,
+    ) = fixed_spatial_setup.HPAI_setup(
+        xrange,
+        yrange,
+        folder_path_main,
+        output_filename,
+        num_properties_in_regions={"large": 20, "medium": 50, "small": 100, "very_small": 100},  # for chickens/eggs
+    )
+
+else:
+    with open(output_filename, "rb") as file:
+        (
+            all_properties,
+            chicken_meat_property_coordinates,
+            processing_chicken_meat_property_coordinates,
+            chicken_egg_property_coordinates,
+            processing_chicken_egg_property_coordinates,
+            dairy_property_coordinates,
+            processing_dairy_property_coordinates,
+        ) = pickle.load(file)
+
+
+# plot that actually shows the locations of different facilities
+fixed_spatial_setup.plot_map_land_HPAI(
     chicken_meat_property_coordinates,
     processing_chicken_meat_property_coordinates,
     chicken_egg_property_coordinates,
     processing_chicken_egg_property_coordinates,
     dairy_property_coordinates,
     processing_dairy_property_coordinates,
-) = fixed_spatial_setup.HPAI_setup(
     xrange,
     yrange,
     folder_path_main,
-    num_properties_in_regions={"large": 20, "medium": 50, "small": 100, "very_small": 100},  # for chickens/eggs
-    max_movement_km=500,  # 500km max movement
 )
 
-properties = fixed_spatial_setup.HPAI_setup_part_2(
-    all_properties,
-    chicken_meat_property_coordinates,
-    processing_chicken_meat_property_coordinates,
-    chicken_egg_property_coordinates,
-    processing_chicken_egg_property_coordinates,
-    dairy_property_coordinates,
-    processing_dairy_property_coordinates,
-    xrange,
-    yrange,
-    folder_path_main,
-)
+
+properties_filename = os.path.join(folder_path_main, "HPAI_properties")
+if not os.path.exists(properties_filename):
+
+    properties = fixed_spatial_setup.HPAI_setup_part_2(
+        all_properties,
+        chicken_meat_property_coordinates,
+        processing_chicken_meat_property_coordinates,
+        chicken_egg_property_coordinates,
+        processing_chicken_egg_property_coordinates,
+        dairy_property_coordinates,
+        processing_dairy_property_coordinates,
+        xrange,
+        yrange,
+        folder_path_main,
+        max_movement_km=500,  # 500km max movement
+    )
+
+    with open(properties_filename, "wb") as file:
+        pickle.dump(properties, file)
+else:
+    with open(properties_filename, "rb") as file:
+        properties = pickle.load(file)
 
 
 # plot the neighbours (not wind-neighbours)

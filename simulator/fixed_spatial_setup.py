@@ -21,6 +21,7 @@ import simulator.premises as premises
 import time
 import random
 import pickle
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
 
 def fixed_spatial_setup(xrange, yrange, folder_path_main, disease="FMD", AADIS=True):
@@ -149,16 +150,35 @@ def plot_map_land_HPAI(
     ylims,
     folder_path,
 ):
-    """Plot property boundaries"""
-    fig, ax = plt.subplots(1, 1, figsize=(20, 20))  # ,figsize=(10,12)
+    """Plot properties"""
+
+    chickenimage = plt.imread(os.path.join(os.path.dirname(__file__), "..", "images", "chicken.png"))
+    chickenimage_box = OffsetImage(chickenimage, zoom=0.1)
+
+    chickenmeatimage = plt.imread(os.path.join(os.path.dirname(__file__), "..", "images", "chickenmeat.png"))
+    chickenmeatimage_box = OffsetImage(chickenmeatimage, zoom=0.025)
+
+    eggimage = plt.imread(os.path.join(os.path.dirname(__file__), "..", "images", "egg.png"))
+    eggimage_box = OffsetImage(eggimage, zoom=0.1)
+
+    eggcartonimage = plt.imread(os.path.join(os.path.dirname(__file__), "..", "images", "eggcarton.png"))
+    eggcartonimage_box = OffsetImage(eggcartonimage, zoom=0.06)
+
+    cowimage = plt.imread(os.path.join(os.path.dirname(__file__), "..", "images", "cow.png"))
+    cowimage_box = OffsetImage(cowimage, zoom=0.2)
+
+    cheeseimage = plt.imread(os.path.join(os.path.dirname(__file__), "..", "images", "cheese.png"))
+    cheeseimage_box = OffsetImage(cheeseimage, zoom=0.3)
+
+    fig, ax = plt.subplots(1, 1, figsize=(30, 30))  # ,figsize=(10,12)
 
     for coordinates, marker, markerlabel in [
-        [chicken_meat_property_coordinates, "$\U0001F414$", "Chicken Meat"],
-        [processing_chicken_meat_property_coordinates, "$\U0001F3ED$", "Chicken Meat Processing"],
-        [chicken_egg_property_coordinates, "$\U0001F95A$", "Chicken Egg"],
-        [processing_chicken_egg_property_coordinates, "$\U0001F4E6$", "Chicken Egg Processing"],
-        [dairy_property_coordinates, "$\U0001F404$", "Dairy Farm"],
-        [processing_dairy_property_coordinates, "$\U0001F95B$", "Dairy Processing"],
+        [dairy_property_coordinates, cowimage_box, "Dairy Farm"],
+        [chicken_meat_property_coordinates, chickenimage_box, "Chicken Meat"],
+        [chicken_egg_property_coordinates, eggimage_box, "Chicken Egg"],
+        [processing_chicken_egg_property_coordinates, eggcartonimage_box, "Chicken Egg Processing"],
+        [processing_chicken_meat_property_coordinates, chickenmeatimage_box, "Chicken Meat Processing"],
+        [processing_dairy_property_coordinates, cheeseimage_box, "Dairy Processing"],
     ]:
         geometries = []
 
@@ -169,7 +189,11 @@ def plot_map_land_HPAI(
         geo_df = gpd.GeoDataFrame(geometry=geometries)
         geo_df.crs = {"init": "epsg:4326"}
         # plot the marker
-        ax = geo_df.plot(ax=ax, markersize=10, marker=marker, label=markerlabel)
+        ax = geo_df.plot(ax=ax, markersize=20)
+
+        for x, y in coordinates:
+            ab = AnnotationBbox(marker, (x, y), frameon=False)
+            ax.add_artist(ab)
 
     ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
 
@@ -194,7 +218,7 @@ def plot_map_land_HPAI(
     ax.set_ylim(ylims)
 
     # ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
-    #       fancybox=True, shadow=True, ncol=5,fontsize=18)
+    #       fancybox=True, shadow=True, fontsize=18)
 
     ax.tick_params(axis="x", labelsize=14)
     ax.tick_params(axis="y", labelsize=14)
@@ -269,8 +293,8 @@ def HPAI_setup(
     xrange,
     yrange,
     folder_path_main,
+    output_filename,
     num_properties_in_regions={"large": 20, "medium": 50, "small": 100, "very_small": 100},
-    max_movement_km=500,  # 500km max movement
 ):
     # Australia_gdf = spatial_setup.get_Australia_shape()
     Australia_shape = spatial_setup.Australia_shape()
@@ -945,8 +969,6 @@ def HPAI_setup(
 
             all_properties.append(new_p)
 
-    output_filename = os.path.join(folder_path_main, "HPAI_properties_setup_part_1")
-
     with open(output_filename, "wb") as file:
         pickle.dump(
             [
@@ -983,19 +1005,8 @@ def HPAI_setup_part_2(
     xrange,
     yrange,
     folder_path_main,
+    max_movement_km=500,  # 500km max movement
 ):
-    # plot that actually shows the locations of different facilities
-    plot_map_land_HPAI(
-        chicken_meat_property_coordinates,
-        processing_chicken_meat_property_coordinates,
-        chicken_egg_property_coordinates,
-        processing_chicken_egg_property_coordinates,
-        dairy_property_coordinates,
-        processing_dairy_property_coordinates,
-        xrange,
-        yrange,
-        folder_path_main,
-    )
 
     # ensuring the ids match, init'ing animals at the same time
     for p1 in range(0, len(all_properties)):
