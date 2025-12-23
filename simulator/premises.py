@@ -150,7 +150,7 @@ class Premises(Property):
         self.chickens = None
         self.eggs = None
 
-    def init_chickens_eggs(self, num_eggs=0):
+    def init_chickens_eggs(self):
         """Initiating things that are specific for chicken premises
         Could turn this into a new class that inherits the premises class in the future
         """

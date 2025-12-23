@@ -277,6 +277,8 @@ def property_specific_initialisation_animals_no_neighbours(
             animal_type=animal_type,
         )
 
+    new_p.init_chickens_eggs()
+
     return new_p
 
 
@@ -301,6 +303,10 @@ def HPAI_NSW_setup_locations(
         print(row["Region name"])
         if "All other poultry" in row["Commodity description or property type"]:
             continue  # skipping other poultry
+        if row["Region name"] in ["A", "B"]:
+            pass
+        else:
+            continue  # temporary setup for testing - to limit how long it takes. TODO: REMOVE
 
         region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == row["Region name"], :]
         region_shape = list(region_only["geometry"])[0]
@@ -361,6 +367,12 @@ def HPAI_NSW_setup_locations(
             all_properties.append(new_p)
 
     for i, row in data_poultryCustom.iterrows():
+        print(row["Region name"])
+        if row["Region name"] in ["A", "B"]:
+            pass
+        else:
+            continue  # temporary setup for testing - to limit how long it takes. TODO: REMOVE
+
         region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == row["Region name"], :]
         region_shape = list(region_only["geometry"])[0]
 
