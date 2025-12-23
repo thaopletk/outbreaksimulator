@@ -22,6 +22,7 @@ import time
 import random
 import pickle
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+import pandas as pd
 
 
 def fixed_spatial_setup(xrange, yrange, folder_path_main, disease="FMD", AADIS=True):
@@ -240,11 +241,11 @@ def property_specific_initialisation_animals_no_neighbours(
     animal_type,
     premises_type,
     num_animals,
-    movement_freq,
-    movement_probability,
-    movement_prop_animals,
-    allowed_movement,
-    max_daily_movements,
+    movement_freq=1,
+    movement_probability=0,
+    movement_prop_animals=0,
+    allowed_movement={},
+    max_daily_movements=1,
 ):
     lat = property_coordinates[1]  # y
     lon = property_coordinates[0]  # x
@@ -287,6 +288,157 @@ def property_specific_initialisation_animals_no_neighbours(
         )
 
     return new_p
+
+
+def HPAI_NSW_setup_locations(
+    output_filename, data_file=os.path.join(os.path.dirname(__file__), "..", "data", "NSW_properties.xlsx")
+):
+    Australia_shape = spatial_setup.Australia_shape()
+    LGA_gdf = spatial_functions.get_LGA_gdf()
+
+    data_poultryAgTrack = pd.read_excel(data_file, sheet_name="PoultryAgTrack")
+    data_poultryCustom = pd.read_excel(data_file, sheet_name="PoultryCustom")
+
+    occupied_regions = []
+    all_properties = []
+
+    chicken_meat_property_coordinates = []
+    processing_chicken_meat_property_coordinates = []
+    chicken_egg_property_coordinates = []
+    processing_chicken_egg_property_coordinates = []
+
+    for i, row in data_poultryAgTrack.iterrows():
+        print(row["Region name"])
+        if "All other poultry" in row["Commodity description or property type"]:
+            continue  # skipping other poultry
+
+        region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == row["Region name"], :]
+        region_shape = list(region_only["geometry"])[0]
+
+        # TODO: for now, assuming 5000 birds per hectare as an approximate
+        average_property_size = int(max(row["Estimate"] / row["Number of agricultural businesses"] / 5000, 1))
+
+        property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
+            int(row["Number of agricultural businesses"]),
+            region_shape,
+            average_property_ha=average_property_size,
+            excluded_regions=occupied_regions,
+        )
+
+        occupied_regions.extend(property_polygons)
+
+        premises_type = ""
+
+        if "Layers - Free-range" in row["Commodity description or property type"]:
+            premises_type = "layers free-range"
+            animal_type = "chicken"
+        elif "Layers - Caged" in row["Commodity description or property type"]:
+            premises_type = "layers caged"
+            animal_type = "chicken"
+        elif "Layers - Barn" in row["Commodity description or property type"]:
+            premises_type = "layers barn"
+            animal_type = "chicken"
+        elif "Meat chickens" in row["Commodity description or property type"]:
+            premises_type = "meat growing-farm"
+            animal_type = "chicken"
+        elif "All other poultry" in row["Commodity description or property type"]:
+            # TODO - not sure about this, just choosing this for now - other poultry farm, for meat, from chick to slaughter
+            premises_type = "other poultry farm"
+            animal_type = "poultry"
+        elif " All other chickens" in row["Commodity description or property type"]:
+            # TODO - should be a mix of pullets and replacement stock, but I'll just make it pullets for now
+            premises_type = "pullets farm"
+            animal_type = "chicken"
+        else:
+            raise ValueError(f"commodity/property not expected: {row['Commodity description or property type']}")
+
+        if "layers" in premises_type or "pullets" in premises_type:
+            chicken_egg_property_coordinates.extend(property_coordinates)
+        else:
+            chicken_meat_property_coordinates.extend(property_coordinates)
+
+        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+            new_p = property_specific_initialisation_animals_no_neighbours(
+                coordinates,
+                p_polygon,
+                p_area,
+                wind_radius=5,
+                animal_type=animal_type,
+                premises_type=premises_type,
+                num_animals=int(max(row["Estimate"] / row["Number of agricultural businesses"], 1)),
+            )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
+
+            all_properties.append(new_p)
+
+    for i, row in data_poultryCustom.iterrows():
+        region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == row["Region name"], :]
+        region_shape = list(region_only["geometry"])[0]
+
+        # TODO: random number chosen
+        average_property_size = 50
+
+        property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
+            int(row["Number of agricultural businesses"]),
+            region_shape,
+            average_property_ha=average_property_size,
+            excluded_regions=occupied_regions,
+        )
+
+        occupied_regions.extend(property_polygons)
+
+        premises_type = row["Commodity description or property type"]
+
+        if premises_type == "egg processing":
+            processing_chicken_egg_property_coordinates.extend(property_coordinates)
+            animal_type = "chicken"
+            num_animals = 0  # no chickens, only eggs
+        elif premises_type == "abbatoir":
+            processing_chicken_meat_property_coordinates.extend(property_coordinates)
+            animal_type = "poultry"
+            num_animals = 1000  # assuming some initial live chickens
+        elif premises_type == "hatchery":
+            processing_chicken_egg_property_coordinates.extend(property_coordinates)
+            animal_type = "chicken"
+            num_animals = 1000
+        else:
+            raise ValueError(f"premises type not expected: {premises_type}")
+
+        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+            new_p = property_specific_initialisation_animals_no_neighbours(
+                coordinates,
+                p_polygon,
+                p_area,
+                wind_radius=5,
+                animal_type=animal_type,
+                premises_type=premises_type,
+                num_animals=num_animals,
+            )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
+
+            all_properties.append(new_p)
+
+    with open(output_filename, "wb") as file:
+        pickle.dump(
+            [
+                all_properties,
+                chicken_meat_property_coordinates,
+                processing_chicken_meat_property_coordinates,
+                chicken_egg_property_coordinates,
+                processing_chicken_egg_property_coordinates,
+            ],
+            file,
+        )
+
+    return (
+        all_properties,
+        chicken_meat_property_coordinates,
+        processing_chicken_meat_property_coordinates,
+        chicken_egg_property_coordinates,
+        processing_chicken_egg_property_coordinates,
+    )
+
+
+def HPAI_QLD_setup():
+    pass
 
 
 def HPAI_setup(
@@ -996,15 +1148,6 @@ def HPAI_setup(
 
 def HPAI_setup_part_2(
     all_properties,
-    chicken_meat_property_coordinates,
-    processing_chicken_meat_property_coordinates,
-    chicken_egg_property_coordinates,
-    processing_chicken_egg_property_coordinates,
-    dairy_property_coordinates,
-    processing_dairy_property_coordinates,
-    xrange,
-    yrange,
-    folder_path_main,
     max_movement_km=500,  # 500km max movement
 ):
 
@@ -1044,18 +1187,30 @@ def HPAI_setup_part_2(
         for allowed_type in property_i.allowed_movement.keys():
             property_i_neighbours[allowed_type] = []
 
-        for j, property_j in enumerate(all_properties):
-            if i == j:
-                continue
-            if property_j.type in property_i_neighbours and property_j.animal_type == property_i.animal_type:
-                distance = spatial_functions.quick_distance_haversine(
-                    property_i.coordinates,
-                    property_j.coordinates,
-                )
+        if property_i.type == "abbatoir":
+            # abbatoirs don't move animals to any other property
+            property_i.movement_neighbours = property_i_neighbours
+        else:
+            for j, property_j in enumerate(all_properties):
+                if i == j:
+                    continue
+                if property_j.type in property_i_neighbours and (
+                    (property_j.animal_type == property_i.animal_type)
+                    or (
+                        property_j.type == "abbatoir"
+                        and property_j.animal_type == "poultry"
+                        and property_i.animal_type == "chicken"
+                    )
+                ):
+                    # poultry abbatoir can accept chickens and poultry as animal types
+                    distance = spatial_functions.quick_distance_haversine(
+                        property_i.coordinates,
+                        property_j.coordinates,
+                    )
 
-                if distance < max_allowable_movement and distance > 100 and random.uniform(0, 1) < 0.2:
-                    property_i_neighbours[property_j.type].append(j)
+                    if distance < max_allowable_movement and random.uniform(0, 1) < 0.2:
+                        property_i_neighbours[property_j.type].append(j)
 
-        property_i.movement_neighbours = property_i_neighbours
+            property_i.movement_neighbours = property_i_neighbours
 
     return all_properties

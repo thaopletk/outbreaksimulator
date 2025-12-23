@@ -263,6 +263,23 @@ def get_UCL_gdf():
     return UCL_gdf
 
 
+@functools.lru_cache(maxsize=None)
+def get_postcodes_gdf():
+    """Postal Areas
+
+    See more details here: https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs-edition-3/jul2021-jun2026/non-abs-structures/postal-areas
+
+    """
+
+    postcodes_gdf = gpd.read_file(
+        os.path.join(os.path.dirname(__file__), "..", "data", "POA_2021_AUST_GDA94_SHP", "POA_2021_AUST_GDA94.shp")
+    )
+
+    print(postcodes_gdf)
+
+    return postcodes_gdf
+
+
 def expand_polygon_to_LGAs(poly_to_expand):
     LGAs = get_LGAs()
     intersecting_LGAs = []
