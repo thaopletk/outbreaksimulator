@@ -331,10 +331,10 @@ def HPAI_NSW_setup_locations(
         elif "Meat chickens" in row["Commodity description or property type"]:
             premises_type = "meat growing-farm"
             animal_type = "chicken"
-        elif "All other poultry" in row["Commodity description or property type"]:
-            # TODO - not sure about this, just choosing this for now - other poultry farm, for meat, from chick to slaughter
-            premises_type = "other poultry farm"
-            animal_type = "poultry"
+        # elif "All other poultry" in row["Commodity description or property type"]:
+        #     # TODO - not sure about this, just choosing this for now - other poultry farm, for meat, from chick to slaughter
+        #     premises_type = "other poultry farm"
+        #     animal_type = "poultry"
         elif " All other chickens" in row["Commodity description or property type"]:
             # TODO - should be a mix of pullets and replacement stock, but I'll just make it pullets for now
             premises_type = "pullets farm"
@@ -389,7 +389,7 @@ def HPAI_NSW_setup_locations(
         elif premises_type == "hatchery":
             processing_chicken_egg_property_coordinates.extend(property_coordinates)
             animal_type = "chicken"
-            num_animals = 1000
+            num_animals = 1000  # TODO: actually need to calculate the number of chickens the hatchery has to support the other stuff
         else:
             raise ValueError(f"premises type not expected: {premises_type}")
 
@@ -432,6 +432,7 @@ def HPAI_QLD_setup():
 
 
 # NOTE: old function, see HPAI_NSW_setup_locations() instead
+# TODO: delete; though kept in case I need parts of it for the QLD data stuff
 # def HPAI_setup(
 #     xrange,
 #     yrange,

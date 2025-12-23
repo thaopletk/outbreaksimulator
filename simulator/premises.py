@@ -145,6 +145,120 @@ class Premises(Property):
         self.day_of_last_lab_test = None
         self.clinical_report_outcome = None  # otherwise, true or false
 
+        # for chicken premises specific
+        self.num_sheds = None
+        self.chickens = None
+        self.eggs = None
+
+    def init_chickens_eggs(self, num_eggs=0):
+        """Initiating things that are specific for chicken premises
+        Could turn this into a new class that inherits the premises class in the future
+        """
+        # num chickens: in self.size
+        self.chickens = []
+        self.eggs = []
+
+        if "layers" in self.property_type:
+            if self.property_type == "layers free-range":
+                approx_chickens_per_shed = 10000  # for free range, the number should be less than other cases
+            elif self.property_type == "layers caged":
+                approx_chickens_per_shed = 14000  # going by 12k-14k of chickens per shed
+            elif self.property_type == "layers barn":
+                approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
+
+            # https://www.poultryhub.org/production/chicken-egg-layer-industry/layer-farm-sequence
+            #  laying chickens, assume age is from 20 weeks to 78 weeks
+            # assuming full capcity, running flow
+            weeks_dispersion = 78 - 20
+            chickens_per_age_group = int(self.size / weeks_dispersion)
+            total_chickens = 0
+            shed_num = 1
+            for week in range(20, 78):
+                if total_chickens > shed_num * approx_chickens_per_shed:
+                    shed_num += 1
+                # num chickens, shed number, age by days
+                self.chickens.append([chickens_per_age_group, shed_num, week * 7])
+                total_chickens += chickens_per_age_group
+
+            self.size = total_chickens  # updating the number in case the division is imperfect
+            self.num_sheds = shed_num
+
+            # eggs: num eggs, age of eggs , no shed?
+            self.eggs = [
+                [int(total_chickens) / 5, 0],  # assuming that not all the chickens lay every day,
+                [int(total_chickens) / 5, 1],  # and that it takes a few days for eggs to be processed/removed
+                [int(total_chickens) / 5, 2],
+            ]
+
+        elif self.property_type == "meat growing-farm":
+            # broilers: 4-6 weeks of age https://kb.rspca.org.au/categories/farmed-animals/poultry/meat-chickens/how-are-meat-chickens-farmed-in-australia
+
+            approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
+            weeks_dispersion = 6 - 4
+            chickens_per_age_group = int(self.size / weeks_dispersion)
+            total_chickens = 0
+            for week in range(4, 6):
+                if total_chickens > shed_num * approx_chickens_per_shed:
+                    shed_num += 1
+                # num chickens, shed number, age by days
+                self.chickens.append([chickens_per_age_group, shed_num, week * 7])
+                total_chickens += chickens_per_age_group
+
+            self.size = total_chickens  # updating the number in case the division is imperfect
+            self.num_sheds = shed_num
+
+            # no eggs at premises
+
+        elif self.property_type == "pullets farm":
+            # 6 to 20 weeks - https://www.poultryhub.org/production/chicken-egg-layer-industry/layer-farm-sequence
+            approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
+            weeks_dispersion = 20 - 6
+            chickens_per_age_group = int(self.size / weeks_dispersion)
+            total_chickens = 0
+            for week in range(6, 20):
+                if total_chickens > shed_num * approx_chickens_per_shed:
+                    shed_num += 1
+                # num chickens, shed number, age by days
+                self.chickens.append([chickens_per_age_group, shed_num, week * 7])
+                total_chickens += chickens_per_age_group
+
+            self.size = total_chickens  # updating the number in case the division is imperfect
+            self.num_sheds = shed_num
+
+            # no eggs at premises
+
+        elif self.property_type == "egg processing":
+            self.num_sheds = 1
+            # no chickens at premises
+            # assuming no eggs at premises on starting
+        elif self.property_type == "abbatoir":
+            self.num_sheds = 1
+            self.chickens = [[self.size, self.num_sheds, 6 * 7]]  # assuming all broiler chickens
+            # no eggs at premises
+        elif self.property_type == "hatchery":
+
+            # laying chickens
+            weeks_dispersion = 78 - 20
+            chickens_per_age_group = int(self.size / weeks_dispersion)
+            total_chickens = 0
+            shed_num = 1
+            for week in range(20, 78):
+                if total_chickens > shed_num * approx_chickens_per_shed:
+                    shed_num += 1
+                # num chickens, shed number, age by days
+                self.chickens.append([chickens_per_age_group, shed_num, week * 7])
+                total_chickens += chickens_per_age_group
+
+            self.size = total_chickens  # updating the number in case the division is imperfect
+            self.num_sheds = shed_num
+
+            self.chickens = [[]]
+            self.eggs = [[chickens_per_age_group, day] for day in range(0, 21)]  # eggs at various age stages
+
+            pass  # TODO actually need to calculate the number of chickens the hatchery has to support the other stuff
+        else:
+            raise ValueError(f"property type not expected: {self.property_type}")
+
     #
     def vaccinate(self, time):
         self.vaccination_status = 1
