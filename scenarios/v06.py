@@ -35,11 +35,8 @@ folder_path_main = os.path.join(os.path.dirname(__file__), "v06")
 if not os.path.exists(folder_path_main):
     os.makedirs(folder_path_main)
 
-# fixed_spatial_setup.fixed_spatial_setup(xrange, yrange, folder_path_main, disease="HPAI", AADIS=False)
-
 output_filename = os.path.join(folder_path_main, "HPAI_NSW_setup_locations")
 if not os.path.exists(output_filename):
-
     (
         all_properties,
         chicken_meat_property_coordinates,
@@ -65,8 +62,6 @@ fixed_spatial_setup.plot_map_land_HPAI(
     processing_chicken_meat_property_coordinates,
     chicken_egg_property_coordinates,
     processing_chicken_egg_property_coordinates,
-    [],  # dairy_property_coordinates
-    [],  # processing_dairy_property_coordinates
     xrange,
     yrange,
     folder_path_main,

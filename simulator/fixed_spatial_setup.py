@@ -145,8 +145,6 @@ def plot_map_land_HPAI(
     processing_chicken_meat_property_coordinates,
     chicken_egg_property_coordinates,
     processing_chicken_egg_property_coordinates,
-    dairy_property_coordinates,
-    processing_dairy_property_coordinates,
     xlims,
     ylims,
     folder_path,
@@ -165,21 +163,13 @@ def plot_map_land_HPAI(
     eggcartonimage = plt.imread(os.path.join(os.path.dirname(__file__), "..", "images", "eggcarton.png"))
     eggcartonimage_box = OffsetImage(eggcartonimage, zoom=0.06)
 
-    cowimage = plt.imread(os.path.join(os.path.dirname(__file__), "..", "images", "cow.png"))
-    cowimage_box = OffsetImage(cowimage, zoom=0.2)
-
-    cheeseimage = plt.imread(os.path.join(os.path.dirname(__file__), "..", "images", "cheese.png"))
-    cheeseimage_box = OffsetImage(cheeseimage, zoom=0.3)
-
     fig, ax = plt.subplots(1, 1, figsize=(30, 30))  # ,figsize=(10,12)
 
     for coordinates, marker, markerlabel in [
-        [dairy_property_coordinates, cowimage_box, "Dairy Farm"],
         [chicken_meat_property_coordinates, chickenimage_box, "Chicken Meat"],
         [chicken_egg_property_coordinates, eggimage_box, "Chicken Egg"],
         [processing_chicken_egg_property_coordinates, eggcartonimage_box, "Chicken Egg Processing"],
         [processing_chicken_meat_property_coordinates, chickenmeatimage_box, "Chicken Meat Processing"],
-        [processing_dairy_property_coordinates, cheeseimage_box, "Dairy Processing"],
     ]:
         geometries = []
 
@@ -394,7 +384,7 @@ def HPAI_NSW_setup_locations(
             num_animals = 0  # no chickens, only eggs
         elif premises_type == "abbatoir":
             processing_chicken_meat_property_coordinates.extend(property_coordinates)
-            animal_type = "poultry"
+            animal_type = "chicken"
             num_animals = 1000  # assuming some initial live chickens
         elif premises_type == "hatchery":
             processing_chicken_egg_property_coordinates.extend(property_coordinates)
@@ -441,709 +431,710 @@ def HPAI_QLD_setup():
     pass
 
 
-def HPAI_setup(
-    xrange,
-    yrange,
-    folder_path_main,
-    output_filename,
-    num_properties_in_regions={"large": 20, "medium": 50, "small": 100, "very_small": 100},
-):
-    # Australia_gdf = spatial_setup.get_Australia_shape()
-    Australia_shape = spatial_setup.Australia_shape()
-    UCL_gdf = spatial_functions.get_UCL_gdf()
-    SAL_gdf = spatial_functions.get_SALs_gdf()
-    SA4_gdf = spatial_functions.get_SA4_gdf()
-    LGA_gdf = spatial_functions.get_LGA_gdf()
-
-    # CHICKEN MEAT
-
-    # https://chicken.org.au/our-product/facts-and-figures/
-    # https://chicken.org.au/wp-content/uploads/2024/09/Industry-Map-8.png
-    # https://chicken.org.au/wp-content/uploads/2024/09/Industry-Map-2.png
-    # https://www.poultryhub.org/production/meat-chicken-broiler-industry
-
-    # use a 50-100 km radius around these areas
-    chicken_meat_regions_large = [
-        # "Perth (WA)",
-        # "Mount Barker (WA)",
-        # "Adelaide",
-        "Brisbane",
-        "Mount Cotton",
-        "Inglewood (L) (Qld)",
-        "Galston",
-        "Girraween (NSW)",
-        "Griffith",
-        "Hunter Valley exc Newcastle",
-        "Sydney",
-        "Mangrove Mountain",
-    ]
-    chicken_meat_regions_medium = [
-        # "Geelong",
-        "Tamworth",
-        # "Bendigo",
-        "Beresfield",
-    ]
-    chicken_meat_regions_small = [
-        # "Thomastown",
-        "Mareeba",
-        # "Somerville (Vic.)",
-        # "Sassafras (Vic.)",
-        # "Hobart",
-        # "Port Wakefield",
-        # "Murray Bridge",
-        "Goulburn",
-        # "Nagambie",
-        # "Melbourne",
-        # "Mornington Peninsula",
-        # "Devonport",
-        # "Launceston",
-        "Newcastle",
-        "Redland Bay",
-        "Two Wells",
-        "Byron Bay",
-    ]
-
-    # TODO: assign these as actual locations
-    processing_plant_locations = [
-        # "Perth (WA)",
-        # "Perth (WA)",
-        # "Mount Barker (WA)",
-        "Mareeba",
-        # "Adelaide",
-        # "Adelaide",
-        # "Adelaide",
-        "Brisbane",
-        "Mount Cotton",
-        "Inglewood (L) (Qld)",
-        "Tamworth",
-        "Beresfield",
-        "Galston",
-        "Girraween (NSW)",
-        "Griffith",
-        # "Bendigo",
-        # "Thomastown",
-        # "Geelong",
-        # "Somerville (Vic.)",
-        # "Sassafras (Vic.)",
-        # "Hobart",
-    ]
-
-    def get_region_shape(region):
-        region_only = UCL_gdf.loc[UCL_gdf["UCL_NAME21"] == region, :]
-        try:
-            region_shape = list(region_only["geometry"])[0]
-        except:
-            region_only = SAL_gdf.loc[SAL_gdf["SAL_NAME21"] == region, :]
-            try:
-                region_shape = list(region_only["geometry"])[0]
-            except:
-                region_only = SA4_gdf.loc[SA4_gdf["SA4_NAME21"] == region, :]
-                try:
-                    region_shape = list(region_only["geometry"])[0]
-                except:
-                    region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == region, :]
-                    region_shape = list(region_only["geometry"])[0]
-
-        return region_shape
-
-    def expand_region(region, km=50):
-        # expansion 50 km
-        minx, miny, maxx, maxy = region.bounds
-        lat = (miny + maxy) / 2  # y
-        lon = (minx + maxx) / 2  # x
-        expanded_region = spatial_functions.geodesic_polygon_buffer(lat, lon, region, km)
-
-        # making sure the region doesn't include the ocean!!!!
-        expanded_region = expanded_region.intersection(Australia_shape)
-
-        return expanded_region
-
-    occupied_regions = []
-    all_properties = []
-
-    chicken_meat_property_coordinates = []
-    chicken_meat_property_polygons = []
-    chicken_meat_property_areas = []
-
-    processing_chicken_meat_property_coordinates = []
-    processing_chicken_meat_property_polygons = []
-    processing_chicken_meat_property_areas = []
-
-    for region in chicken_meat_regions_large:
-        print(region)
-        region_only = get_region_shape(region)
-        expanded_region = expand_region(region_only, km=50)
-        property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
-            int(np.ceil(num_properties_in_regions["large"] / len(chicken_meat_regions_large))),
-            expanded_region,
-            average_property_ha=300,
-        )
-
-        chicken_meat_property_coordinates.extend(property_coordinates)
-        chicken_meat_property_polygons.extend(property_polygons)
-        chicken_meat_property_areas.extend(property_areas)
-
-        occupied_regions.extend(property_polygons)
-
-        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
-            new_p = property_specific_initialisation_animals_no_neighbours(
-                coordinates,
-                p_polygon,
-                p_area,
-                wind_radius=5,
-                animal_type="chicken",
-                premises_type="chicken-meat-farm",
-                num_animals=1000,
-                movement_freq=1,
-                movement_probability=0.5,
-                movement_prop_animals=0.2,
-                allowed_movement={"chicken-meat-farm": 0.6, "chicken-meat-processing": 0.4},
-                max_daily_movements=1,
-            )
-
-            all_properties.append(new_p)
-
-    for region in chicken_meat_regions_medium:
-        print(region)
-        region_only = get_region_shape(region)
-        expanded_region = expand_region(region_only, km=50)
-
-        property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
-            int(np.ceil(num_properties_in_regions["medium"] / len(chicken_meat_regions_medium))),
-            expanded_region,
-            average_property_ha=100,
-        )
-
-        chicken_meat_property_coordinates.extend(property_coordinates)
-        chicken_meat_property_polygons.extend(property_polygons)
-        chicken_meat_property_areas.extend(property_areas)
-
-        occupied_regions.extend(property_polygons)
-
-        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
-            new_p = property_specific_initialisation_animals_no_neighbours(
-                coordinates,
-                p_polygon,
-                p_area,
-                wind_radius=5,
-                animal_type="chicken",
-                premises_type="chicken-meat-farm",
-                num_animals=100,
-                movement_freq=1,
-                movement_probability=0.5,
-                movement_prop_animals=0.2,
-                allowed_movement={"chicken-meat-farm": 0.6, "chicken-meat-processing": 0.4},
-                max_daily_movements=1,
-            )
-
-            all_properties.append(new_p)
-
-    for region in chicken_meat_regions_small:
-        print(region)
-        region_only = get_region_shape(region)
-        expanded_region = expand_region(region_only, km=50)
-
-        property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
-            int(np.ceil(num_properties_in_regions["small"] / len(chicken_meat_regions_small))),
-            expanded_region,
-            average_property_ha=50,
-        )
-
-        chicken_meat_property_coordinates.extend(property_coordinates)
-        chicken_meat_property_polygons.extend(property_polygons)
-        chicken_meat_property_areas.extend(property_areas)
-
-        occupied_regions.extend(property_polygons)
-
-        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
-            new_p = property_specific_initialisation_animals_no_neighbours(
-                coordinates,
-                p_polygon,
-                p_area,
-                wind_radius=5,
-                animal_type="chicken",
-                premises_type="chicken-meat-farm",
-                num_animals=10,
-                movement_freq=1,
-                movement_probability=0.5,
-                movement_prop_animals=0.2,
-                allowed_movement={"chicken-meat-farm": 0.6, "chicken-meat-processing": 0.4},
-                max_daily_movements=1,
-            )
-
-            all_properties.append(new_p)
-
-    # TODO very small - in areas 100 km around the prior regions, for simplicity..., with less than 20 chickens
-    # TODO add in very small properties scattered across the landscape (e.g. with <20 chickens) more generally
-    # such that it avoids all the prior areas
-
-    # add in the processing plants
-    for region in processing_plant_locations:
-        print(region)
-        region_only = get_region_shape(region)
-        expanded_region = expand_region(region_only, km=50)
-
-        property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
-            1, expanded_region, average_property_ha=50, excluded_regions=occupied_regions  # one per region
-        )
-
-        processing_chicken_meat_property_coordinates.extend(property_coordinates)
-        processing_chicken_meat_property_polygons.extend(property_polygons)
-        processing_chicken_meat_property_areas.extend(property_areas)
-
-        occupied_regions.extend(property_polygons)
-
-        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
-            new_p = property_specific_initialisation_animals_no_neighbours(
-                coordinates,
-                p_polygon,
-                p_area,
-                wind_radius=5,
-                animal_type="chicken",
-                premises_type="chicken-meat-processing",
-                num_animals=1000,
-                movement_freq=1,
-                movement_probability=0.5,
-                movement_prop_animals=0.2,
-                allowed_movement={},
-                max_daily_movements=1,
-            )
-
-            all_properties.append(new_p)
-
-    # TODO - some kind of death sink that removes processed chickens - and similarly, a process that generates more chickens
-
-    # https://www.poultryhub.org/production/meat-chicken-broiler-industry
-    # 40,000 chickens per shet, 3-10 sheds per farm
-
-    # CHICKEN EGG
-    # can't really find much information, I'll just make them in the same area as chicken meat for now.
-    # TODO: improve!!!
-
-    chicken_egg_property_coordinates = []
-    chicken_egg_property_polygons = []
-    chicken_egg_property_areas = []
-
-    processing_chicken_egg_property_coordinates = []
-    processing_chicken_egg_property_polygons = []
-    processing_chicken_egg_property_areas = []
-
-    for region in chicken_meat_regions_large:  # note - using chicken meat regions for now
-        print(region)
-        region_only = get_region_shape(region)
-        expanded_region = expand_region(region_only, km=50)
-        property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
-            int(np.ceil(num_properties_in_regions["large"] / len(chicken_meat_regions_large))),
-            expanded_region,
-            average_property_ha=300,
-            excluded_regions=occupied_regions,
-        )
-
-        chicken_egg_property_coordinates.extend(property_coordinates)
-        chicken_egg_property_polygons.extend(property_polygons)
-        chicken_egg_property_areas.extend(property_areas)
-
-        occupied_regions.extend(property_polygons)
-
-        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
-            new_p = property_specific_initialisation_animals_no_neighbours(
-                coordinates,
-                p_polygon,
-                p_area,
-                wind_radius=5,
-                animal_type="chicken",
-                premises_type="chicken-egg-farm",
-                num_animals=1000,
-                movement_freq=1,
-                movement_probability=0.5,
-                movement_prop_animals=0.2,
-                allowed_movement={"chicken-egg-farm": 0.6, "chicken-egg-processing": 0.4},
-                max_daily_movements=1,
-            )
-
-            all_properties.append(new_p)
-
-    for region in chicken_meat_regions_medium:
-        print(region)
-        region_only = get_region_shape(region)
-        expanded_region = expand_region(region_only, km=50)
-
-        property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
-            int(np.ceil(num_properties_in_regions["medium"] / len(chicken_meat_regions_medium))),
-            expanded_region,
-            average_property_ha=100,
-            excluded_regions=occupied_regions,
-        )
-
-        chicken_egg_property_coordinates.extend(property_coordinates)
-        chicken_egg_property_polygons.extend(property_polygons)
-        chicken_egg_property_areas.extend(property_areas)
-
-        occupied_regions.extend(property_polygons)
-
-        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
-            new_p = property_specific_initialisation_animals_no_neighbours(
-                coordinates,
-                p_polygon,
-                p_area,
-                wind_radius=5,
-                animal_type="chicken",
-                premises_type="chicken-egg-farm",
-                num_animals=100,
-                movement_freq=1,
-                movement_probability=0.5,
-                movement_prop_animals=0.2,
-                allowed_movement={"chicken-egg-farm": 0.6, "chicken-egg-processing": 0.4},
-                max_daily_movements=1,
-            )
-
-            all_properties.append(new_p)
-
-    for region in chicken_meat_regions_small:
-        print(region)
-        region_only = get_region_shape(region)
-        expanded_region = expand_region(region_only, km=50)
-
-        property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
-            int(np.ceil(num_properties_in_regions["small"] / len(chicken_meat_regions_small))),
-            expanded_region,
-            average_property_ha=50,
-            excluded_regions=occupied_regions,
-        )
-
-        chicken_egg_property_coordinates.extend(property_coordinates)
-        chicken_egg_property_polygons.extend(property_polygons)
-        chicken_egg_property_areas.extend(property_areas)
-
-        occupied_regions.extend(property_polygons)
-
-        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
-            new_p = property_specific_initialisation_animals_no_neighbours(
-                coordinates,
-                p_polygon,
-                p_area,
-                wind_radius=5,
-                animal_type="chicken",
-                premises_type="chicken-egg-farm",
-                num_animals=10,
-                movement_freq=1,
-                movement_probability=0.5,
-                movement_prop_animals=0.2,
-                allowed_movement={"chicken-egg-farm": 0.6, "chicken-egg-processing": 0.4},
-                max_daily_movements=1,
-            )
-
-            all_properties.append(new_p)
-
-    # TODO very small - in areas 100 km around the prior regions, for simplicity..., with less than 20 chickens
-    # TODO add in very small properties scattered across the landscape (e.g. with <20 chickens) more generally
-    # such that it avoids all the prior areas
-
-    # add in the processing plants
-    for region in processing_plant_locations:
-        print(region)
-        region_only = get_region_shape(region)
-        expanded_region = expand_region(region_only, km=50)
-
-        property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
-            1, expanded_region, average_property_ha=50, excluded_regions=occupied_regions  # assign one per region
-        )
-
-        processing_chicken_egg_property_coordinates.extend(property_coordinates)
-        processing_chicken_egg_property_polygons.extend(property_polygons)
-        processing_chicken_egg_property_areas.extend(property_areas)
-
-        occupied_regions.extend(property_polygons)
-
-        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
-            new_p = property_specific_initialisation_animals_no_neighbours(
-                coordinates,
-                p_polygon,
-                p_area,
-                wind_radius=5,
-                animal_type="chicken",
-                premises_type="chicken-egg-processing",
-                num_animals=100,
-                movement_freq=1,
-                movement_probability=0.5,
-                movement_prop_animals=0.2,
-                allowed_movement={},
-                max_daily_movements=1,
-            )
-
-            all_properties.append(new_p)
-
-    # DAIRY CATTLE
-
-    # TODO - check naming in LGA / data files
-    dairy_cattle_NSW = [
-        "Tweed",
-        "Lismore",
-        "Kyogle",
-        "Richmond Valley",
-        "Clarence Valley",
-        "Coffs Harbour",
-        "Bellingen",
-        "Nambucca Valley",
-        "Kempsey",
-        "Port Macquarie-Hastings",
-        "Mid-Coast",
-        "Dungog",
-        "Port Stephens",
-        "Tamworth",  # "Tamworth Regional"
-        "Walcha",
-        "Upper Hunter",
-        "Muswellbrook",
-        "Singleton",
-        "Maitland",
-        "Lachlan",
-        "Forbes",
-        "Dubbo",  # "Dubbo Regional"
-        "Cabonne",
-        "Cowra",
-        "Blayney",
-        "Bathurst",  # "Bathurst Regional"
-        "Liverpool",
-        "Camden",
-        "Wollondilly",
-        "Wingecarribee",
-        "Shellharbour",
-        "Kiama",
-        "Shoalhaven",
-        "Eurobodalla",
-        "Bega Valley",
-        "Snowy Valleys",
-        "Wagga Wagga",
-        "Albury",
-        "Federation",
-        "Murrumbidgee",
-        "Berrigan",
-        "Edward River",
-        "Murray River",
-    ]
-
-    dairy_NSW_processing = [
-        "Casino",
-        "South Lismore",
-        "Raleigh",
-        "Wauchope",
-        "Wagga Wagga",
-        "Bega",
-        "Penrith",
-        "Erskine Park",
-        "Winston Hills",
-        "Wetherill Park",
-        "Lidcombe",
-        "Ingleburn",
-        "Smeaton Grange",
-        "Albury",
-    ]
-
-    dairy_QLD = [
-        "Scenic Rim",
-        "Southern Downs",
-        "Toowoomba",
-        "Lockyer Valley",
-        "Ipswich",
-        "Logan",
-        "Western Downs",
-        "South Burnett",
-        "Somerset",
-        "Sunshine Coast",
-        "Moreton Bay",
-        "Gympie",
-        "Fraser Coast",
-        "Gladstone",
-        "Bundaberg",
-        "North Burnett",
-        "Mackay",
-        "Douglas",
-        "Tablelands",  #  "Atherton Tablelands" not entirely clear about this i.e. whether it'll appear as an LGA or other kind of region
-    ]
-
-    dairy_QLD_processing = [
-        "Malanda",
-        "Crestmead",
-        "South Brisbane",
-        "Byron Bay",
-        "Labrador",
-        "Beaudesert",
-        "Toowoomba",
-        "Gold Coast",
-    ]
-
-    dairy_property_coordinates = []
-    dairy_property_polygons = []
-    dairy_property_areas = []
-
-    processing_dairy_property_coordinates = []
-    processing_dairy_property_polygons = []
-    processing_dairy_property_areas = []
-
-    for region in dairy_cattle_NSW:
-        print(region)
-        region_only = get_region_shape(region)
-        expanded_region = expand_region(region_only, km=50)
-        property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
-            10,
-            expanded_region,
-            average_property_ha=500,
-            excluded_regions=occupied_regions,
-        )
-
-        dairy_property_coordinates.extend(property_coordinates)
-        dairy_property_polygons.extend(property_polygons)
-        dairy_property_areas.extend(property_areas)
-
-        occupied_regions.extend(property_polygons)
-
-        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
-            new_p = property_specific_initialisation_animals_no_neighbours(
-                coordinates,
-                p_polygon,
-                p_area,
-                wind_radius=5,
-                animal_type="cow",
-                premises_type="dairy-farm",
-                num_animals=1000,
-                movement_freq=1,
-                movement_probability=0.5,
-                movement_prop_animals=0.2,
-                allowed_movement={"dairy-farm": 0.6, "dairy-processing": 0.4},
-                max_daily_movements=1,
-            )
-
-            all_properties.append(new_p)
-
-    for region in dairy_QLD:
-        print(region)
-        region_only = get_region_shape(region)
-        expanded_region = expand_region(region_only, km=50)
-        property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
-            10,
-            expanded_region,
-            average_property_ha=1000,
-            excluded_regions=occupied_regions,
-        )
-
-        dairy_property_coordinates.extend(property_coordinates)
-        dairy_property_polygons.extend(property_polygons)
-        dairy_property_areas.extend(property_areas)
-
-        occupied_regions.extend(property_polygons)
-
-        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
-            new_p = property_specific_initialisation_animals_no_neighbours(
-                coordinates,
-                p_polygon,
-                p_area,
-                wind_radius=5,
-                animal_type="cow",
-                premises_type="dairy-farm",
-                num_animals=1000,
-                movement_freq=1,
-                movement_probability=0.5,
-                movement_prop_animals=0.2,
-                allowed_movement={"dairy-farm": 0.6, "dairy-processing": 0.4},
-                max_daily_movements=1,
-            )
-
-            all_properties.append(new_p)
-
-    processing_dairy_property_coordinates = []
-    processing_dairy_property_polygons = []
-    processing_dairy_property_areas = []
-
-    # TODO -- oop how does dairy processing actually work, surely only milk will be moved to these locations, rather than the cows?
-    for region in dairy_NSW_processing:
-        print(region)
-        region_only = get_region_shape(region)
-        expanded_region = expand_region(region_only, km=50)
-
-        property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
-            1, expanded_region, average_property_ha=50, excluded_regions=occupied_regions  # one per region
-        )
-
-        processing_dairy_property_coordinates.extend(property_coordinates)
-        processing_dairy_property_polygons.extend(property_polygons)
-        processing_dairy_property_areas.extend(property_areas)
-
-        occupied_regions.extend(property_polygons)
-
-        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
-            new_p = property_specific_initialisation_animals_no_neighbours(
-                coordinates,
-                p_polygon,
-                p_area,
-                wind_radius=5,
-                animal_type="cow",
-                premises_type="dairy-processing",
-                num_animals=10,
-                movement_freq=1,
-                movement_probability=0.5,
-                movement_prop_animals=0.2,
-                allowed_movement={},
-                max_daily_movements=1,
-            )
-
-            all_properties.append(new_p)
-
-    for region in dairy_QLD_processing:
-        print(region)
-        region_only = get_region_shape(region)
-        expanded_region = expand_region(region_only, km=50)
-
-        property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
-            1, expanded_region, average_property_ha=50, excluded_regions=occupied_regions  # one per region
-        )
-
-        processing_dairy_property_coordinates.extend(property_coordinates)
-        processing_dairy_property_polygons.extend(property_polygons)
-        processing_dairy_property_areas.extend(property_areas)
-
-        occupied_regions.extend(property_polygons)
-
-        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
-            new_p = property_specific_initialisation_animals_no_neighbours(
-                coordinates,
-                p_polygon,
-                p_area,
-                wind_radius=5,
-                animal_type="cow",
-                premises_type="dairy-processing",
-                num_animals=10,
-                movement_freq=1,
-                movement_probability=0.5,
-                movement_prop_animals=0.2,
-                allowed_movement={},
-                max_daily_movements=1,
-            )
-
-            all_properties.append(new_p)
-
-    with open(output_filename, "wb") as file:
-        pickle.dump(
-            [
-                all_properties,
-                chicken_meat_property_coordinates,
-                processing_chicken_meat_property_coordinates,
-                chicken_egg_property_coordinates,
-                processing_chicken_egg_property_coordinates,
-                dairy_property_coordinates,
-                processing_dairy_property_coordinates,
-            ],
-            file,
-        )
-
-    return (
-        all_properties,
-        chicken_meat_property_coordinates,
-        processing_chicken_meat_property_coordinates,
-        chicken_egg_property_coordinates,
-        processing_chicken_egg_property_coordinates,
-        dairy_property_coordinates,
-        processing_dairy_property_coordinates,
-    )
+# NOTE: old function, see HPAI_NSW_setup_locations() instead
+# def HPAI_setup(
+#     xrange,
+#     yrange,
+#     folder_path_main,
+#     output_filename,
+#     num_properties_in_regions={"large": 20, "medium": 50, "small": 100, "very_small": 100},
+# ):
+#     # Australia_gdf = spatial_setup.get_Australia_shape()
+#     Australia_shape = spatial_setup.Australia_shape()
+#     UCL_gdf = spatial_functions.get_UCL_gdf()
+#     SAL_gdf = spatial_functions.get_SALs_gdf()
+#     SA4_gdf = spatial_functions.get_SA4_gdf()
+#     LGA_gdf = spatial_functions.get_LGA_gdf()
+
+#     # CHICKEN MEAT
+
+#     # https://chicken.org.au/our-product/facts-and-figures/
+#     # https://chicken.org.au/wp-content/uploads/2024/09/Industry-Map-8.png
+#     # https://chicken.org.au/wp-content/uploads/2024/09/Industry-Map-2.png
+#     # https://www.poultryhub.org/production/meat-chicken-broiler-industry
+
+#     # use a 50-100 km radius around these areas
+#     chicken_meat_regions_large = [
+#         # "Perth (WA)",
+#         # "Mount Barker (WA)",
+#         # "Adelaide",
+#         "Brisbane",
+#         "Mount Cotton",
+#         "Inglewood (L) (Qld)",
+#         "Galston",
+#         "Girraween (NSW)",
+#         "Griffith",
+#         "Hunter Valley exc Newcastle",
+#         "Sydney",
+#         "Mangrove Mountain",
+#     ]
+#     chicken_meat_regions_medium = [
+#         # "Geelong",
+#         "Tamworth",
+#         # "Bendigo",
+#         "Beresfield",
+#     ]
+#     chicken_meat_regions_small = [
+#         # "Thomastown",
+#         "Mareeba",
+#         # "Somerville (Vic.)",
+#         # "Sassafras (Vic.)",
+#         # "Hobart",
+#         # "Port Wakefield",
+#         # "Murray Bridge",
+#         "Goulburn",
+#         # "Nagambie",
+#         # "Melbourne",
+#         # "Mornington Peninsula",
+#         # "Devonport",
+#         # "Launceston",
+#         "Newcastle",
+#         "Redland Bay",
+#         "Two Wells",
+#         "Byron Bay",
+#     ]
+
+#     # TODO: assign these as actual locations
+#     processing_plant_locations = [
+#         # "Perth (WA)",
+#         # "Perth (WA)",
+#         # "Mount Barker (WA)",
+#         "Mareeba",
+#         # "Adelaide",
+#         # "Adelaide",
+#         # "Adelaide",
+#         "Brisbane",
+#         "Mount Cotton",
+#         "Inglewood (L) (Qld)",
+#         "Tamworth",
+#         "Beresfield",
+#         "Galston",
+#         "Girraween (NSW)",
+#         "Griffith",
+#         # "Bendigo",
+#         # "Thomastown",
+#         # "Geelong",
+#         # "Somerville (Vic.)",
+#         # "Sassafras (Vic.)",
+#         # "Hobart",
+#     ]
+
+#     def get_region_shape(region):
+#         region_only = UCL_gdf.loc[UCL_gdf["UCL_NAME21"] == region, :]
+#         try:
+#             region_shape = list(region_only["geometry"])[0]
+#         except:
+#             region_only = SAL_gdf.loc[SAL_gdf["SAL_NAME21"] == region, :]
+#             try:
+#                 region_shape = list(region_only["geometry"])[0]
+#             except:
+#                 region_only = SA4_gdf.loc[SA4_gdf["SA4_NAME21"] == region, :]
+#                 try:
+#                     region_shape = list(region_only["geometry"])[0]
+#                 except:
+#                     region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == region, :]
+#                     region_shape = list(region_only["geometry"])[0]
+
+#         return region_shape
+
+#     def expand_region(region, km=50):
+#         # expansion 50 km
+#         minx, miny, maxx, maxy = region.bounds
+#         lat = (miny + maxy) / 2  # y
+#         lon = (minx + maxx) / 2  # x
+#         expanded_region = spatial_functions.geodesic_polygon_buffer(lat, lon, region, km)
+
+#         # making sure the region doesn't include the ocean!!!!
+#         expanded_region = expanded_region.intersection(Australia_shape)
+
+#         return expanded_region
+
+#     occupied_regions = []
+#     all_properties = []
+
+#     chicken_meat_property_coordinates = []
+#     chicken_meat_property_polygons = []
+#     chicken_meat_property_areas = []
+
+#     processing_chicken_meat_property_coordinates = []
+#     processing_chicken_meat_property_polygons = []
+#     processing_chicken_meat_property_areas = []
+
+#     for region in chicken_meat_regions_large:
+#         print(region)
+#         region_only = get_region_shape(region)
+#         expanded_region = expand_region(region_only, km=50)
+#         property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
+#             int(np.ceil(num_properties_in_regions["large"] / len(chicken_meat_regions_large))),
+#             expanded_region,
+#             average_property_ha=300,
+#         )
+
+#         chicken_meat_property_coordinates.extend(property_coordinates)
+#         chicken_meat_property_polygons.extend(property_polygons)
+#         chicken_meat_property_areas.extend(property_areas)
+
+#         occupied_regions.extend(property_polygons)
+
+#         for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+#             new_p = property_specific_initialisation_animals_no_neighbours(
+#                 coordinates,
+#                 p_polygon,
+#                 p_area,
+#                 wind_radius=5,
+#                 animal_type="chicken",
+#                 premises_type="chicken-meat-farm",
+#                 num_animals=1000,
+#                 movement_freq=1,
+#                 movement_probability=0.5,
+#                 movement_prop_animals=0.2,
+#                 allowed_movement={"chicken-meat-farm": 0.6, "chicken-meat-processing": 0.4},
+#                 max_daily_movements=1,
+#             )
+
+#             all_properties.append(new_p)
+
+#     for region in chicken_meat_regions_medium:
+#         print(region)
+#         region_only = get_region_shape(region)
+#         expanded_region = expand_region(region_only, km=50)
+
+#         property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
+#             int(np.ceil(num_properties_in_regions["medium"] / len(chicken_meat_regions_medium))),
+#             expanded_region,
+#             average_property_ha=100,
+#         )
+
+#         chicken_meat_property_coordinates.extend(property_coordinates)
+#         chicken_meat_property_polygons.extend(property_polygons)
+#         chicken_meat_property_areas.extend(property_areas)
+
+#         occupied_regions.extend(property_polygons)
+
+#         for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+#             new_p = property_specific_initialisation_animals_no_neighbours(
+#                 coordinates,
+#                 p_polygon,
+#                 p_area,
+#                 wind_radius=5,
+#                 animal_type="chicken",
+#                 premises_type="chicken-meat-farm",
+#                 num_animals=100,
+#                 movement_freq=1,
+#                 movement_probability=0.5,
+#                 movement_prop_animals=0.2,
+#                 allowed_movement={"chicken-meat-farm": 0.6, "chicken-meat-processing": 0.4},
+#                 max_daily_movements=1,
+#             )
+
+#             all_properties.append(new_p)
+
+#     for region in chicken_meat_regions_small:
+#         print(region)
+#         region_only = get_region_shape(region)
+#         expanded_region = expand_region(region_only, km=50)
+
+#         property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
+#             int(np.ceil(num_properties_in_regions["small"] / len(chicken_meat_regions_small))),
+#             expanded_region,
+#             average_property_ha=50,
+#         )
+
+#         chicken_meat_property_coordinates.extend(property_coordinates)
+#         chicken_meat_property_polygons.extend(property_polygons)
+#         chicken_meat_property_areas.extend(property_areas)
+
+#         occupied_regions.extend(property_polygons)
+
+#         for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+#             new_p = property_specific_initialisation_animals_no_neighbours(
+#                 coordinates,
+#                 p_polygon,
+#                 p_area,
+#                 wind_radius=5,
+#                 animal_type="chicken",
+#                 premises_type="chicken-meat-farm",
+#                 num_animals=10,
+#                 movement_freq=1,
+#                 movement_probability=0.5,
+#                 movement_prop_animals=0.2,
+#                 allowed_movement={"chicken-meat-farm": 0.6, "chicken-meat-processing": 0.4},
+#                 max_daily_movements=1,
+#             )
+
+#             all_properties.append(new_p)
+
+#     # TODO very small - in areas 100 km around the prior regions, for simplicity..., with less than 20 chickens
+#     # TODO add in very small properties scattered across the landscape (e.g. with <20 chickens) more generally
+#     # such that it avoids all the prior areas
+
+#     # add in the processing plants
+#     for region in processing_plant_locations:
+#         print(region)
+#         region_only = get_region_shape(region)
+#         expanded_region = expand_region(region_only, km=50)
+
+#         property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
+#             1, expanded_region, average_property_ha=50, excluded_regions=occupied_regions  # one per region
+#         )
+
+#         processing_chicken_meat_property_coordinates.extend(property_coordinates)
+#         processing_chicken_meat_property_polygons.extend(property_polygons)
+#         processing_chicken_meat_property_areas.extend(property_areas)
+
+#         occupied_regions.extend(property_polygons)
+
+#         for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+#             new_p = property_specific_initialisation_animals_no_neighbours(
+#                 coordinates,
+#                 p_polygon,
+#                 p_area,
+#                 wind_radius=5,
+#                 animal_type="chicken",
+#                 premises_type="chicken-meat-processing",
+#                 num_animals=1000,
+#                 movement_freq=1,
+#                 movement_probability=0.5,
+#                 movement_prop_animals=0.2,
+#                 allowed_movement={},
+#                 max_daily_movements=1,
+#             )
+
+#             all_properties.append(new_p)
+
+#     # TODO - some kind of death sink that removes processed chickens - and similarly, a process that generates more chickens
+
+#     # https://www.poultryhub.org/production/meat-chicken-broiler-industry
+#     # 40,000 chickens per shet, 3-10 sheds per farm
+
+#     # CHICKEN EGG
+#     # can't really find much information, I'll just make them in the same area as chicken meat for now.
+#     # TODO: improve!!!
+
+#     chicken_egg_property_coordinates = []
+#     chicken_egg_property_polygons = []
+#     chicken_egg_property_areas = []
+
+#     processing_chicken_egg_property_coordinates = []
+#     processing_chicken_egg_property_polygons = []
+#     processing_chicken_egg_property_areas = []
+
+#     for region in chicken_meat_regions_large:  # note - using chicken meat regions for now
+#         print(region)
+#         region_only = get_region_shape(region)
+#         expanded_region = expand_region(region_only, km=50)
+#         property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
+#             int(np.ceil(num_properties_in_regions["large"] / len(chicken_meat_regions_large))),
+#             expanded_region,
+#             average_property_ha=300,
+#             excluded_regions=occupied_regions,
+#         )
+
+#         chicken_egg_property_coordinates.extend(property_coordinates)
+#         chicken_egg_property_polygons.extend(property_polygons)
+#         chicken_egg_property_areas.extend(property_areas)
+
+#         occupied_regions.extend(property_polygons)
+
+#         for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+#             new_p = property_specific_initialisation_animals_no_neighbours(
+#                 coordinates,
+#                 p_polygon,
+#                 p_area,
+#                 wind_radius=5,
+#                 animal_type="chicken",
+#                 premises_type="chicken-egg-farm",
+#                 num_animals=1000,
+#                 movement_freq=1,
+#                 movement_probability=0.5,
+#                 movement_prop_animals=0.2,
+#                 allowed_movement={"chicken-egg-farm": 0.6, "chicken-egg-processing": 0.4},
+#                 max_daily_movements=1,
+#             )
+
+#             all_properties.append(new_p)
+
+#     for region in chicken_meat_regions_medium:
+#         print(region)
+#         region_only = get_region_shape(region)
+#         expanded_region = expand_region(region_only, km=50)
+
+#         property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
+#             int(np.ceil(num_properties_in_regions["medium"] / len(chicken_meat_regions_medium))),
+#             expanded_region,
+#             average_property_ha=100,
+#             excluded_regions=occupied_regions,
+#         )
+
+#         chicken_egg_property_coordinates.extend(property_coordinates)
+#         chicken_egg_property_polygons.extend(property_polygons)
+#         chicken_egg_property_areas.extend(property_areas)
+
+#         occupied_regions.extend(property_polygons)
+
+#         for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+#             new_p = property_specific_initialisation_animals_no_neighbours(
+#                 coordinates,
+#                 p_polygon,
+#                 p_area,
+#                 wind_radius=5,
+#                 animal_type="chicken",
+#                 premises_type="chicken-egg-farm",
+#                 num_animals=100,
+#                 movement_freq=1,
+#                 movement_probability=0.5,
+#                 movement_prop_animals=0.2,
+#                 allowed_movement={"chicken-egg-farm": 0.6, "chicken-egg-processing": 0.4},
+#                 max_daily_movements=1,
+#             )
+
+#             all_properties.append(new_p)
+
+#     for region in chicken_meat_regions_small:
+#         print(region)
+#         region_only = get_region_shape(region)
+#         expanded_region = expand_region(region_only, km=50)
+
+#         property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
+#             int(np.ceil(num_properties_in_regions["small"] / len(chicken_meat_regions_small))),
+#             expanded_region,
+#             average_property_ha=50,
+#             excluded_regions=occupied_regions,
+#         )
+
+#         chicken_egg_property_coordinates.extend(property_coordinates)
+#         chicken_egg_property_polygons.extend(property_polygons)
+#         chicken_egg_property_areas.extend(property_areas)
+
+#         occupied_regions.extend(property_polygons)
+
+#         for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+#             new_p = property_specific_initialisation_animals_no_neighbours(
+#                 coordinates,
+#                 p_polygon,
+#                 p_area,
+#                 wind_radius=5,
+#                 animal_type="chicken",
+#                 premises_type="chicken-egg-farm",
+#                 num_animals=10,
+#                 movement_freq=1,
+#                 movement_probability=0.5,
+#                 movement_prop_animals=0.2,
+#                 allowed_movement={"chicken-egg-farm": 0.6, "chicken-egg-processing": 0.4},
+#                 max_daily_movements=1,
+#             )
+
+#             all_properties.append(new_p)
+
+#     # TODO very small - in areas 100 km around the prior regions, for simplicity..., with less than 20 chickens
+#     # TODO add in very small properties scattered across the landscape (e.g. with <20 chickens) more generally
+#     # such that it avoids all the prior areas
+
+#     # add in the processing plants
+#     for region in processing_plant_locations:
+#         print(region)
+#         region_only = get_region_shape(region)
+#         expanded_region = expand_region(region_only, km=50)
+
+#         property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
+#             1, expanded_region, average_property_ha=50, excluded_regions=occupied_regions  # assign one per region
+#         )
+
+#         processing_chicken_egg_property_coordinates.extend(property_coordinates)
+#         processing_chicken_egg_property_polygons.extend(property_polygons)
+#         processing_chicken_egg_property_areas.extend(property_areas)
+
+#         occupied_regions.extend(property_polygons)
+
+#         for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+#             new_p = property_specific_initialisation_animals_no_neighbours(
+#                 coordinates,
+#                 p_polygon,
+#                 p_area,
+#                 wind_radius=5,
+#                 animal_type="chicken",
+#                 premises_type="chicken-egg-processing",
+#                 num_animals=100,
+#                 movement_freq=1,
+#                 movement_probability=0.5,
+#                 movement_prop_animals=0.2,
+#                 allowed_movement={},
+#                 max_daily_movements=1,
+#             )
+
+#             all_properties.append(new_p)
+
+#     # DAIRY CATTLE
+
+#     # TODO - check naming in LGA / data files
+#     dairy_cattle_NSW = [
+#         "Tweed",
+#         "Lismore",
+#         "Kyogle",
+#         "Richmond Valley",
+#         "Clarence Valley",
+#         "Coffs Harbour",
+#         "Bellingen",
+#         "Nambucca Valley",
+#         "Kempsey",
+#         "Port Macquarie-Hastings",
+#         "Mid-Coast",
+#         "Dungog",
+#         "Port Stephens",
+#         "Tamworth",  # "Tamworth Regional"
+#         "Walcha",
+#         "Upper Hunter",
+#         "Muswellbrook",
+#         "Singleton",
+#         "Maitland",
+#         "Lachlan",
+#         "Forbes",
+#         "Dubbo",  # "Dubbo Regional"
+#         "Cabonne",
+#         "Cowra",
+#         "Blayney",
+#         "Bathurst",  # "Bathurst Regional"
+#         "Liverpool",
+#         "Camden",
+#         "Wollondilly",
+#         "Wingecarribee",
+#         "Shellharbour",
+#         "Kiama",
+#         "Shoalhaven",
+#         "Eurobodalla",
+#         "Bega Valley",
+#         "Snowy Valleys",
+#         "Wagga Wagga",
+#         "Albury",
+#         "Federation",
+#         "Murrumbidgee",
+#         "Berrigan",
+#         "Edward River",
+#         "Murray River",
+#     ]
+
+#     dairy_NSW_processing = [
+#         "Casino",
+#         "South Lismore",
+#         "Raleigh",
+#         "Wauchope",
+#         "Wagga Wagga",
+#         "Bega",
+#         "Penrith",
+#         "Erskine Park",
+#         "Winston Hills",
+#         "Wetherill Park",
+#         "Lidcombe",
+#         "Ingleburn",
+#         "Smeaton Grange",
+#         "Albury",
+#     ]
+
+#     dairy_QLD = [
+#         "Scenic Rim",
+#         "Southern Downs",
+#         "Toowoomba",
+#         "Lockyer Valley",
+#         "Ipswich",
+#         "Logan",
+#         "Western Downs",
+#         "South Burnett",
+#         "Somerset",
+#         "Sunshine Coast",
+#         "Moreton Bay",
+#         "Gympie",
+#         "Fraser Coast",
+#         "Gladstone",
+#         "Bundaberg",
+#         "North Burnett",
+#         "Mackay",
+#         "Douglas",
+#         "Tablelands",  #  "Atherton Tablelands" not entirely clear about this i.e. whether it'll appear as an LGA or other kind of region
+#     ]
+
+#     dairy_QLD_processing = [
+#         "Malanda",
+#         "Crestmead",
+#         "South Brisbane",
+#         "Byron Bay",
+#         "Labrador",
+#         "Beaudesert",
+#         "Toowoomba",
+#         "Gold Coast",
+#     ]
+
+#     dairy_property_coordinates = []
+#     dairy_property_polygons = []
+#     dairy_property_areas = []
+
+#     processing_dairy_property_coordinates = []
+#     processing_dairy_property_polygons = []
+#     processing_dairy_property_areas = []
+
+#     for region in dairy_cattle_NSW:
+#         print(region)
+#         region_only = get_region_shape(region)
+#         expanded_region = expand_region(region_only, km=50)
+#         property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
+#             10,
+#             expanded_region,
+#             average_property_ha=500,
+#             excluded_regions=occupied_regions,
+#         )
+
+#         dairy_property_coordinates.extend(property_coordinates)
+#         dairy_property_polygons.extend(property_polygons)
+#         dairy_property_areas.extend(property_areas)
+
+#         occupied_regions.extend(property_polygons)
+
+#         for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+#             new_p = property_specific_initialisation_animals_no_neighbours(
+#                 coordinates,
+#                 p_polygon,
+#                 p_area,
+#                 wind_radius=5,
+#                 animal_type="cow",
+#                 premises_type="dairy-farm",
+#                 num_animals=1000,
+#                 movement_freq=1,
+#                 movement_probability=0.5,
+#                 movement_prop_animals=0.2,
+#                 allowed_movement={"dairy-farm": 0.6, "dairy-processing": 0.4},
+#                 max_daily_movements=1,
+#             )
+
+#             all_properties.append(new_p)
+
+#     for region in dairy_QLD:
+#         print(region)
+#         region_only = get_region_shape(region)
+#         expanded_region = expand_region(region_only, km=50)
+#         property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
+#             10,
+#             expanded_region,
+#             average_property_ha=1000,
+#             excluded_regions=occupied_regions,
+#         )
+
+#         dairy_property_coordinates.extend(property_coordinates)
+#         dairy_property_polygons.extend(property_polygons)
+#         dairy_property_areas.extend(property_areas)
+
+#         occupied_regions.extend(property_polygons)
+
+#         for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+#             new_p = property_specific_initialisation_animals_no_neighbours(
+#                 coordinates,
+#                 p_polygon,
+#                 p_area,
+#                 wind_radius=5,
+#                 animal_type="cow",
+#                 premises_type="dairy-farm",
+#                 num_animals=1000,
+#                 movement_freq=1,
+#                 movement_probability=0.5,
+#                 movement_prop_animals=0.2,
+#                 allowed_movement={"dairy-farm": 0.6, "dairy-processing": 0.4},
+#                 max_daily_movements=1,
+#             )
+
+#             all_properties.append(new_p)
+
+#     processing_dairy_property_coordinates = []
+#     processing_dairy_property_polygons = []
+#     processing_dairy_property_areas = []
+
+#     # TODO -- oop how does dairy processing actually work, surely only milk will be moved to these locations, rather than the cows?
+#     for region in dairy_NSW_processing:
+#         print(region)
+#         region_only = get_region_shape(region)
+#         expanded_region = expand_region(region_only, km=50)
+
+#         property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
+#             1, expanded_region, average_property_ha=50, excluded_regions=occupied_regions  # one per region
+#         )
+
+#         processing_dairy_property_coordinates.extend(property_coordinates)
+#         processing_dairy_property_polygons.extend(property_polygons)
+#         processing_dairy_property_areas.extend(property_areas)
+
+#         occupied_regions.extend(property_polygons)
+
+#         for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+#             new_p = property_specific_initialisation_animals_no_neighbours(
+#                 coordinates,
+#                 p_polygon,
+#                 p_area,
+#                 wind_radius=5,
+#                 animal_type="cow",
+#                 premises_type="dairy-processing",
+#                 num_animals=10,
+#                 movement_freq=1,
+#                 movement_probability=0.5,
+#                 movement_prop_animals=0.2,
+#                 allowed_movement={},
+#                 max_daily_movements=1,
+#             )
+
+#             all_properties.append(new_p)
+
+#     for region in dairy_QLD_processing:
+#         print(region)
+#         region_only = get_region_shape(region)
+#         expanded_region = expand_region(region_only, km=50)
+
+#         property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
+#             1, expanded_region, average_property_ha=50, excluded_regions=occupied_regions  # one per region
+#         )
+
+#         processing_dairy_property_coordinates.extend(property_coordinates)
+#         processing_dairy_property_polygons.extend(property_polygons)
+#         processing_dairy_property_areas.extend(property_areas)
+
+#         occupied_regions.extend(property_polygons)
+
+#         for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+#             new_p = property_specific_initialisation_animals_no_neighbours(
+#                 coordinates,
+#                 p_polygon,
+#                 p_area,
+#                 wind_radius=5,
+#                 animal_type="cow",
+#                 premises_type="dairy-processing",
+#                 num_animals=10,
+#                 movement_freq=1,
+#                 movement_probability=0.5,
+#                 movement_prop_animals=0.2,
+#                 allowed_movement={},
+#                 max_daily_movements=1,
+#             )
+
+#             all_properties.append(new_p)
+
+#     with open(output_filename, "wb") as file:
+#         pickle.dump(
+#             [
+#                 all_properties,
+#                 chicken_meat_property_coordinates,
+#                 processing_chicken_meat_property_coordinates,
+#                 chicken_egg_property_coordinates,
+#                 processing_chicken_egg_property_coordinates,
+#                 dairy_property_coordinates,
+#                 processing_dairy_property_coordinates,
+#             ],
+#             file,
+#         )
+
+#     return (
+#         all_properties,
+#         chicken_meat_property_coordinates,
+#         processing_chicken_meat_property_coordinates,
+#         chicken_egg_property_coordinates,
+#         processing_chicken_egg_property_coordinates,
+#         dairy_property_coordinates,
+#         processing_dairy_property_coordinates,
+#     )
 
 
 def HPAI_setup_part_2(
