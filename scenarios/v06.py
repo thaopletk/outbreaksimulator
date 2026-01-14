@@ -67,6 +67,9 @@ print(len(all_properties))
 for p in all_properties:
     print(p)
 
+
+fixed_spatial_setup.save_chicken_property_csv(all_properties, 0, folder_path_main, suffix)
+
 # plot that actually shows the locations of different facilities
 fixed_spatial_setup.plot_map_land_HPAI(
     chicken_meat_property_coordinates,

@@ -23,23 +23,24 @@ import random
 import pickle
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import pandas as pd
+import csv
 
 
-def fixed_spatial_setup(xrange, yrange, folder_path_main, disease="FMD", AADIS=True):
+# def fixed_spatial_setup(xrange, yrange, folder_path_main, disease="FMD", AADIS=True):
 
-    if disease == "FMD" and AADIS == True:
-        FMD_AADIS_input_setup()
-    elif disease == "HPAI" and AADIS == False:
-        HPAI_setup(
-            xrange,
-            yrange,
-            folder_path_main,
-        )
+#     if disease == "FMD" and AADIS == True:
+#         FMD_AADIS_input_setup()
+#     elif disease == "HPAI" and AADIS == False:
+#         HPAI_setup(
+#             xrange,
+#             yrange,
+#             folder_path_main,
+#         )
 
 
-def FMD_AADIS_input_setup():
-    data_folder = os.path.join(os.path.dirname(__file__), "..", "data", "AADIS_derived_data")
-    pass
+# def FMD_AADIS_input_setup():
+#     data_folder = os.path.join(os.path.dirname(__file__), "..", "data", "AADIS_derived_data")
+#     pass
 
 
 def assign_property_locations_in_region(n, region, average_property_ha=100, excluded_regions=None):
@@ -461,6 +462,51 @@ def HPAI_NSW_setup_locations(
         chicken_egg_property_coordinates,
         processing_chicken_egg_property_coordinates,
     )
+
+
+def save_chicken_property_csv(properties, time, folder_path, unique_output):
+
+    to_save = properties
+
+    with open(os.path.join(folder_path, "properties_" + str(time)), "wb") as file:
+        pickle.dump(to_save, file)
+
+    # print output: all
+    header = [
+        "id",
+        "status",
+        "ip",
+        "exposure_date",
+        "clinical_date",
+        "notification_date",
+        "removal_date",
+        "recovery_date",
+        "vacc_date",
+        "region",
+        "county",
+        "cluster",
+        "xcoord",
+        "ycoord",
+        "area",
+        "type",
+        "animal",
+        "total",
+        "sheds",
+        "chickens",
+        "eggs",
+    ]
+    file = os.path.join(folder_path, f"data_underlying_{unique_output}.csv")
+    with open(file, "w", newline="") as f:
+
+        # create the csv writer
+        writer = csv.writer(f)
+
+        # write the header
+        writer.writerow(header)
+
+        for premise in properties:
+            row = premise.return_output_row_chickens()
+            writer.writerow(row)
 
 
 def HPAI_QLD_setup():

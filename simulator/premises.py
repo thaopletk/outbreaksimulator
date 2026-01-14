@@ -151,7 +151,7 @@ class Premises(Property):
         self.eggs = None
 
     def init_chickens_eggs(self):
-        """Initiating things that are specific for chicken premises
+        """Initiating things that are specific for chicken (meat and egg) premises
         Could turn this into a new class that inherits the premises class in the future
         """
         # num chickens: in self.size
@@ -583,7 +583,7 @@ class Premises(Property):
         else:
             return [
                 self.id,
-                self.status if self.status == "IP" else "NA",
+                self.status,  # if self.status == "IP" else "NA",
                 self.ip,
                 "NA",  # self.exposure_date,
                 "NA",  # self.clinical_date,
@@ -601,3 +601,38 @@ class Premises(Property):
                 self.animal_type,
                 self.size,
             ]
+
+    def return_output_row_chickens(self):
+        """Returns a row with information for outputing (required downstream for forecasting)
+
+        Returns
+        -------
+        list
+            a list containing the following information in order:
+            id, status, ip, exposure_date, clinical_date, notification_date, removal_date, recovery_date, vacc_date, region, county, cluster, xcoord, ycoord, area, type, total
+
+        """
+
+        return [
+            self.id,
+            self.status,
+            self.ip,
+            self.exposure_date,
+            self.clinical_date,
+            self.notification_date,
+            self.removal_date,
+            self.recovery_date,
+            self.vacc_date,
+            self.region,
+            self.county,
+            self.cluster,
+            self.coordinates[0],
+            self.coordinates[1],
+            self.area,
+            self.type,
+            self.animal_type,
+            self.size,
+            self.num_sheds,
+            self.chickens,
+            self.eggs,
+        ]
