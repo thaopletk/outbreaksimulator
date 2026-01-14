@@ -166,10 +166,15 @@ class Premises(Property):
             elif self.type == "layers barn":
                 approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
 
-            # https://www.poultryhub.org/production/chicken-egg-layer-industry/layer-farm-sequence
-            #  laying chickens, assume age is from 20 weeks to 78 weeks
-            # assuming full capcity, running flow
-            weeks_dispersion = 78 - 20
+            if 2 * approx_chickens_per_shed < self.size:
+                # if there are a LOT of chickens, then let them also rear pullets
+                # TODO: place them in different sheds technically
+                weeks_dispersion = 78 - 1
+            else:
+                # https://www.poultryhub.org/production/chicken-egg-layer-industry/layer-farm-sequence
+                #  laying chickens, assume age is from 20 weeks to 78 weeks
+                # assuming full capcity, running flow
+                weeks_dispersion = 78 - 20
             chickens_per_age_group = int(self.size / weeks_dispersion)
             total_chickens = 0
             shed_num = 1
@@ -197,6 +202,7 @@ class Premises(Property):
             weeks_dispersion = 6 - 4
             chickens_per_age_group = int(self.size / weeks_dispersion)
             total_chickens = 0
+            shed_num = 1
             for week in range(4, 6):
                 if total_chickens > shed_num * approx_chickens_per_shed:
                     shed_num += 1
@@ -212,9 +218,10 @@ class Premises(Property):
         elif self.type == "pullets farm":
             # 6 to 20 weeks - https://www.poultryhub.org/production/chicken-egg-layer-industry/layer-farm-sequence
             approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
-            weeks_dispersion = 20 - 6
+            weeks_dispersion = 20 - 1  # starting from week old chicks
             chickens_per_age_group = int(self.size / weeks_dispersion)
             total_chickens = 0
+            shed_num = 1
             for week in range(6, 20):
                 if total_chickens > shed_num * approx_chickens_per_shed:
                     shed_num += 1
@@ -259,6 +266,9 @@ class Premises(Property):
             pass  # TODO actually need to calculate the number of chickens the hatchery has to support the other stuff
         else:
             raise ValueError(f"property type not expected: {self.type}")
+
+    def convert_to_animal_objects(self):
+        pass
 
     #
     def vaccinate(self, time):
