@@ -16,9 +16,11 @@ import simulator.premises as premises
 import simulator.spatial_functions as spatial_functions
 import simulator.spatial_setup as spatial_setup
 import simulator.fixed_spatial_setup as fixed_spatial_setup
+import simulator.HPAI_functions as HPAI_functions
 
+# FOR NSW
 xrange = [136, 155]
-yrange = [-44, -14]
+yrange = [-40, -26]
 
 # limits for the figures
 xlims = [
@@ -82,94 +84,85 @@ fixed_spatial_setup.plot_map_land_HPAI(
     plot_suffix=suffix,
 )
 
-exit(0)
+
+properties_filename = os.path.join(folder_path_main, f"HPAI_properties{suffix}")
+if not os.path.exists(properties_filename):
+
+    properties = fixed_spatial_setup.HPAI_setup_part_2(
+        all_properties,
+        max_movement_km=500,  # 500km max movement
+    )
+
+    with open(properties_filename, "wb") as file:
+        pickle.dump(properties, file)
+else:
+    with open(properties_filename, "rb") as file:
+        properties = pickle.load(file)
 
 
-# properties_filename = os.path.join(folder_path_main, "HPAI_properties")
-# if not os.path.exists(properties_filename):
-
-#     properties = fixed_spatial_setup.HPAI_setup_part_2(
-#         all_properties,
-#         chicken_meat_property_coordinates,
-#         processing_chicken_meat_property_coordinates,
-#         chicken_egg_property_coordinates,
-#         processing_chicken_egg_property_coordinates,
-#         dairy_property_coordinates,
-#         processing_dairy_property_coordinates,
-#         xrange,
-#         yrange,
-#         folder_path_main,
-#         max_movement_km=500,  # 500km max movement
-#     )
-
-#     with open(properties_filename, "wb") as file:
-#         pickle.dump(properties, file)
-# else:
-#     with open(properties_filename, "rb") as file:
-#         properties = pickle.load(file)
+# plot the neighbours (not wind-neighbours)
+if not os.path.exists(os.path.join(folder_path_main, f"map_underlying_neighbours{suffix}.png")):
+    output.plot_map(
+        properties,
+        time=0,
+        xlims=xlims,
+        ylims=ylims,
+        folder_path=folder_path_main,
+        real_situation=True,
+        controlzone=None,
+        infectionpoly=False,
+        contacts_for_plotting={},
+        show_movement_neighbours=True,
+        save_suffix=suffix,
+    )
 
 
-# # plot the neighbours (not wind-neighbours)
-# if not os.path.exists(os.path.join(folder_path_main, "map_underlying_neighbours.png")):
-#     output.plot_map(
-#         properties,
-#         time=0,
-#         xlims=xlims,
-#         ylims=ylims,
-#         folder_path=folder_path_main,
-#         real_situation=True,
-#         controlzone=None,
-#         infectionpoly=False,
-#         contacts_for_plotting={},
-#         show_movement_neighbours=True,
-#     )
+# plot the animal density
+if not os.path.exists(os.path.join(folder_path_main, f"animal_density{suffix}.png")):
+    output.plot_animal_density(
+        properties, xlims, ylims, folder_path=folder_path_main, file_name=f"animal_density{suffix}.png"
+    )
 
 
-# # plot the animal density
-# if not os.path.exists(os.path.join(folder_path_main, "animal_density.png")):
-#     output.plot_animal_density(properties, xlims, ylims, folder_path=folder_path_main)
+# seed infection
+time = 0
+
+folder_path_seed = os.path.join(folder_path_main, "01_seed")
+if not os.path.exists(folder_path_seed):
+    os.makedirs(folder_path_seed)
 
 
-# # seed infection
-# time = 0
+# parameters
+with open(os.path.join(folder_path_main, "disease_parameters.json"), "r") as file:
+    disease_parameters = json.load(file)
 
-# folder_path_seed = os.path.join(folder_path_main, "01_seed")
-# if not os.path.exists(folder_path_seed):
-#     os.makedirs(folder_path_seed)
-
-
-# # parameters
-# with open(os.path.join(folder_path_main, "disease_parameters.json"), "r") as file:
-#     disease_parameters = json.load(file)
-
-# properties_seeded_filename = os.path.join(folder_path_seed, "properties_0")
+properties_seeded_filename = os.path.join(folder_path_seed, f"properties_0{suffix}")
 
 
-# seedlocationx = xrange
-# seedlocationy = yrange
+seedlocationx = xrange
+seedlocationy = yrange
 
+random.seed(52)
+np.random.seed(23)
+if not os.path.exists(properties_seeded_filename):
+    # seed property
+    unique_output = "day0"
+    properties, seed_property = HPAI_functions.seed_HPAI_infection(
+        seedlocationx,
+        seedlocationy,
+        properties,
+        time,
+        xlims,
+        ylims,
+        folder_path_seed,
+        unique_output,
+        None,  # disease_parameters["latent_period"],
+        disease_parameters,
+    )
 
-# random.seed(52)
-# np.random.seed(23)
-# if not os.path.exists(properties_seeded_filename):
-#     # seed property
-#     unique_output = "day0"
-#     properties, seed_property = simulator.seed_infection_within_bound(
-#         seedlocationx,
-#         seedlocationy,
-#         properties,
-#         time,
-#         xlims,
-#         ylims,
-#         folder_path_seed,
-#         unique_output,
-#         None,  # disease_parameters["latent_period"],
-#         disease_parameters,
-#     )
-
-# else:
-#     with open(properties_seeded_filename, "rb") as file:
-#         properties = pickle.load(file)
+else:
+    with open(properties_seeded_filename, "rb") as file:
+        properties = pickle.load(file)
 
 
 # # spread and then detection after a fixed number of properties infected...
