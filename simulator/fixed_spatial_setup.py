@@ -322,7 +322,7 @@ def HPAI_NSW_setup_locations(
             continue  # skipping other poultry - remove this if we want to include, e.g., ducks
 
         if testing:
-            if "A" in row["Region name"]:
+            if "A" in row["Region name"] or "B" in row["Region name"]:
                 pass
             else:
                 continue  # temporary setup for testing - to limit how long it takes. TODO: REMOVE
@@ -391,7 +391,7 @@ def HPAI_NSW_setup_locations(
 
     for i, row in data_poultryCustom.iterrows():
         if testing:
-            if "A" in row["Region name"]:
+            if "A" in row["Region name"] or "B" in row["Region name"]:
                 pass
             else:
                 continue  # temporary setup for testing - to limit how long it takes.
