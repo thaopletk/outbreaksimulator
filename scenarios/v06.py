@@ -35,7 +35,14 @@ folder_path_main = os.path.join(os.path.dirname(__file__), "v06")
 if not os.path.exists(folder_path_main):
     os.makedirs(folder_path_main)
 
-output_filename = os.path.join(folder_path_main, "HPAI_NSW_setup_locations")
+suffix = ""
+
+testing = True
+if testing:
+    suffix = "_test"
+
+# generates locations for properties, and makes them into property objects  (which contain information about what type of premises it is)
+output_filename = os.path.join(folder_path_main, f"HPAI_NSW_setup_locations{suffix}")
 if not os.path.exists(output_filename):
     (
         all_properties,
@@ -43,7 +50,7 @@ if not os.path.exists(output_filename):
         processing_chicken_meat_property_coordinates,
         chicken_egg_property_coordinates,
         processing_chicken_egg_property_coordinates,
-    ) = fixed_spatial_setup.HPAI_NSW_setup_locations(output_filename)
+    ) = fixed_spatial_setup.HPAI_NSW_setup_locations(output_filename, testing)
 
 else:
     with open(output_filename, "rb") as file:
@@ -55,6 +62,10 @@ else:
             processing_chicken_egg_property_coordinates,
         ) = pickle.load(file)
 
+print(len(all_properties))
+
+for p in all_properties:
+    print(p)
 
 # plot that actually shows the locations of different facilities
 fixed_spatial_setup.plot_map_land_HPAI(
@@ -65,6 +76,7 @@ fixed_spatial_setup.plot_map_land_HPAI(
     xrange,
     yrange,
     folder_path_main,
+    plot_suffix=suffix,
 )
 
 exit(0)

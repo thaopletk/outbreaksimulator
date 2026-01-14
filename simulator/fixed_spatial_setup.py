@@ -148,6 +148,7 @@ def plot_map_land_HPAI(
     xlims,
     ylims,
     folder_path,
+    plot_suffix="",
 ):
     """Plot properties"""
 
@@ -172,6 +173,11 @@ def plot_map_land_HPAI(
         [processing_chicken_meat_property_coordinates, chickenmeatimage_box, "Chicken Meat Processing"],
     ]:
         geometries = []
+        print(markerlabel)
+        print(coordinates)
+
+        if len(coordinates) == 0:
+            continue
 
         for long, lat in coordinates:
             curr_farm = Point(long, lat)
@@ -214,7 +220,7 @@ def plot_map_land_HPAI(
     ax.tick_params(axis="x", labelsize=14)
     ax.tick_params(axis="y", labelsize=14)
 
-    file_name = "property_locations_base_map.png"
+    file_name = f"property_locations_base_map{plot_suffix}.png"
 
     file_name = os.path.join(folder_path, file_name)
 
@@ -283,8 +289,17 @@ def property_specific_initialisation_animals_no_neighbours(
 
 
 def HPAI_NSW_setup_locations(
-    output_filename, data_file=os.path.join(os.path.dirname(__file__), "..", "data", "NSW_properties.xlsx")
+    output_filename,
+    testing=False,
+    data_file=os.path.join(os.path.dirname(__file__), "..", "data", "NSW_properties.xlsx"),
 ):
+    """
+    Generates locations for poultry and egg premises in NSW, and creates "Premises" objects from them.
+
+    output_filename : location to save the list of premises objects
+    testing : flag for testing purposes, it generates fewer properties (and so runs faster)
+    data_file : file that contains LGA + premises type + number of premises, used to generate properties
+    """
     Australia_shape = spatial_setup.Australia_shape()
     LGA_gdf = spatial_functions.get_LGA_gdf()
 
@@ -294,24 +309,29 @@ def HPAI_NSW_setup_locations(
     occupied_regions = []
     all_properties = []
 
+    # these are for plotting purposes
     chicken_meat_property_coordinates = []
     processing_chicken_meat_property_coordinates = []
     chicken_egg_property_coordinates = []
     processing_chicken_egg_property_coordinates = []
 
     for i, row in data_poultryAgTrack.iterrows():
-        print(row["Region name"])
+
         if "All other poultry" in row["Commodity description or property type"]:
-            continue  # skipping other poultry
-        if row["Region name"] in ["A", "B"]:
-            pass
-        else:
-            continue  # temporary setup for testing - to limit how long it takes. TODO: REMOVE
+            continue  # skipping other poultry - remove this if we want to include, e.g., ducks
+
+        if testing:
+            if "A" in row["Region name"]:
+                pass
+            else:
+                continue  # temporary setup for testing - to limit how long it takes. TODO: REMOVE
+
+        print(row["Region name"])
 
         region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == row["Region name"], :]
         region_shape = list(region_only["geometry"])[0]
 
-        # TODO: for now, assuming 5000 birds per hectare as an approximate
+        # TODO: for now, assuming 5000 birds per hectare (of total farm) as an approximate
         average_property_size = int(max(row["Estimate"] / row["Number of agricultural businesses"] / 5000, 1))
 
         property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
@@ -348,6 +368,8 @@ def HPAI_NSW_setup_locations(
         else:
             raise ValueError(f"commodity/property not expected: {row['Commodity description or property type']}")
 
+        print(premises_type)
+
         if "layers" in premises_type or "pullets" in premises_type:
             chicken_egg_property_coordinates.extend(property_coordinates)
         else:
@@ -367,11 +389,12 @@ def HPAI_NSW_setup_locations(
             all_properties.append(new_p)
 
     for i, row in data_poultryCustom.iterrows():
+        if testing:
+            if "A" in row["Region name"]:
+                pass
+            else:
+                continue  # temporary setup for testing - to limit how long it takes.
         print(row["Region name"])
-        if row["Region name"] in ["A", "B"]:
-            pass
-        else:
-            continue  # temporary setup for testing - to limit how long it takes. TODO: REMOVE
 
         region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == row["Region name"], :]
         region_shape = list(region_only["geometry"])[0]
@@ -389,6 +412,7 @@ def HPAI_NSW_setup_locations(
         occupied_regions.extend(property_polygons)
 
         premises_type = row["Commodity description or property type"]
+        print(premises_type)
 
         if premises_type == "egg processing":
             processing_chicken_egg_property_coordinates.extend(property_coordinates)

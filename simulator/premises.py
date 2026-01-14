@@ -158,12 +158,12 @@ class Premises(Property):
         self.chickens = []
         self.eggs = []
 
-        if "layers" in self.property_type:
-            if self.property_type == "layers free-range":
+        if "layers" in self.type:
+            if self.type == "layers free-range":
                 approx_chickens_per_shed = 10000  # for free range, the number should be less than other cases
-            elif self.property_type == "layers caged":
+            elif self.type == "layers caged":
                 approx_chickens_per_shed = 14000  # going by 12k-14k of chickens per shed
-            elif self.property_type == "layers barn":
+            elif self.type == "layers barn":
                 approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
 
             # https://www.poultryhub.org/production/chicken-egg-layer-industry/layer-farm-sequence
@@ -190,7 +190,7 @@ class Premises(Property):
                 [int(total_chickens) / 5, 2],
             ]
 
-        elif self.property_type == "meat growing-farm":
+        elif self.type == "meat growing-farm":
             # broilers: 4-6 weeks of age https://kb.rspca.org.au/categories/farmed-animals/poultry/meat-chickens/how-are-meat-chickens-farmed-in-australia
 
             approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
@@ -209,7 +209,7 @@ class Premises(Property):
 
             # no eggs at premises
 
-        elif self.property_type == "pullets farm":
+        elif self.type == "pullets farm":
             # 6 to 20 weeks - https://www.poultryhub.org/production/chicken-egg-layer-industry/layer-farm-sequence
             approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
             weeks_dispersion = 20 - 6
@@ -227,15 +227,16 @@ class Premises(Property):
 
             # no eggs at premises
 
-        elif self.property_type == "egg processing":
+        elif self.type == "egg processing":
             self.num_sheds = 1
             # no chickens at premises
             # assuming no eggs at premises on starting
-        elif self.property_type == "abbatoir":
+        elif self.type == "abbatoir":
             self.num_sheds = 1
             self.chickens = [[self.size, self.num_sheds, 6 * 7]]  # assuming all broiler chickens
             # no eggs at premises
-        elif self.property_type == "hatchery":
+        elif self.type == "hatchery":
+            approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
 
             # laying chickens
             weeks_dispersion = 78 - 20
@@ -257,7 +258,7 @@ class Premises(Property):
 
             pass  # TODO actually need to calculate the number of chickens the hatchery has to support the other stuff
         else:
-            raise ValueError(f"property type not expected: {self.property_type}")
+            raise ValueError(f"property type not expected: {self.type}")
 
     #
     def vaccinate(self, time):
