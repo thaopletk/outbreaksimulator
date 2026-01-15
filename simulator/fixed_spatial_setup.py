@@ -1233,12 +1233,12 @@ def HPAI_movement_network_setup(
     :param max_movement_km: Description
     """
 
-    # ensuring the ids match, init'ing animals at the same time
+    # ensuring the ids match, not "initialising" animal objects for now to limit
     for p1 in range(0, len(all_properties)):
         all_properties[p1].id = p1
-        all_properties[p1].init_animals(
-            None
-        )  # init with empty "params", as no parameters are actually used to initialise animals
+        # all_properties[p1].init_animals(
+        #     None
+        # )  # init with empty "params", as no parameters are actually used to initialise animals
 
     # assign wind neighbours and update self.total_neighbours
     for p1 in range(0, len(all_properties)):

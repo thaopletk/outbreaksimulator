@@ -286,6 +286,22 @@ class Premises(Property):
     def convert_to_animal_objects(self):
         pass
 
+    def init_animals(self, params):
+        if self.animal_type != "chicken":
+            super().init_animals(params)  # call the OG init_animals function
+        else:
+            # TODO
+            # plan is: either (1) create animals with an age or
+            # create animals and keep them in arrays based on their age and shed location.
+            # self.chickens.append([chickens_per_age_group, shed_num, week * 7])
+            for i in range(self.chickens):
+                original_row = self.chickens[i]
+                num_chickens = original_row[0]
+                chicken_animal_objs = [Animal(params) for _ in range(num_chickens)]
+                original_row.append(chicken_animal_objs)
+                self.chickens[i] = original_row
+        return
+
     #
     def vaccinate(self, time):
         self.vaccination_status = 1
@@ -434,7 +450,9 @@ class Premises(Property):
 
     def calculate_num_animals_to_move(self):
         """note, this assumes that movement WILL occur; the return value can be zero"""
-        property_size = len(self.animals)
+        property_size = len(
+            self.animals
+        )  # TODO need to update this, self.animals may not be accurate anymore with chickens in arrays
         number_animals = int(np.floor(self.movement_prop_animals * property_size))
         if property_size > 1 and number_animals == 0:
             number_animals = 1  # keeping at least one animal in each property

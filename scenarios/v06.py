@@ -25,6 +25,9 @@ import simulator.premises as premises
 import simulator.spatial_functions as spatial_functions
 import simulator.spatial_setup as spatial_setup
 
+###################################################
+# ---- Code run set up ---------------------------#
+###################################################
 
 # Boundaries for NSW
 xrange = [136, 155]
@@ -49,6 +52,10 @@ suffix = ""
 testing = True  # TODO: adjust this if running the true simulation / vs testing sims
 if testing:
     suffix = "_test"
+
+###################################################
+# ---- Set up properties and locations -----------#
+###################################################
 
 # generates locations for properties, and makes them into property objects  (which contain information about what type of premises it is)
 output_filename = os.path.join(folder_path_main, f"HPAI_NSW_setup_locations{suffix}")
@@ -125,21 +132,21 @@ if not os.path.exists(os.path.join(folder_path_main, f"animal_density{suffix}.pn
         properties, xlims, ylims, folder_path=folder_path_main, file_name=f"animal_density{suffix}.png"
     )
 
+###################################################
+# ---- Seed the first infection ------------------#
+###################################################
 
-# seed infection
 time = 0
 
 folder_path_seed = os.path.join(folder_path_main, "01_seed")
 if not os.path.exists(folder_path_seed):
     os.makedirs(folder_path_seed)
 
-
 # parameters
 with open(os.path.join(folder_path_main, "disease_parameters.json"), "r") as file:
     disease_parameters = json.load(file)
 
 properties_seeded_filename = os.path.join(folder_path_seed, f"properties_0{suffix}")
-
 
 seedlocationx = xrange
 seedlocationy = yrange
@@ -161,7 +168,6 @@ if not os.path.exists(properties_seeded_filename):
         None,  # disease_parameters["latent_period"],
         disease_parameters,
     )
-
 else:
     with open(properties_seeded_filename, "rb") as file:
         properties = pickle.load(file)
