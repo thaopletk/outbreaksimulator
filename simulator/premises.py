@@ -132,6 +132,7 @@ class Premises(Property):
 
         self.allowed_movement = allowed_movement
         self.max_daily_movements = max_daily_movements
+        self.allowed_movement_details = None
 
         self.x, self.y = self.coordinates
 
@@ -149,6 +150,7 @@ class Premises(Property):
         self.num_sheds = None
         self.chickens = None
         self.eggs = None
+        self.eggs_fertilised = None
 
     def init_chickens_eggs(self):
         """Initiating things that are specific for chicken (meat and egg) premises
@@ -157,6 +159,7 @@ class Premises(Property):
         # num chickens: in self.size
         self.chickens = []
         self.eggs = []
+        self.eggs_fertilised = []
 
         if "layers" in self.type:
             if self.type == "layers free-range":
@@ -170,29 +173,34 @@ class Premises(Property):
                 # if there are a LOT of chickens, then let them also rear pullets
                 # TODO: place them in different sheds technically
                 weeks_dispersion = 78 - 1
+                age_group_lower = 1
             else:
                 # https://www.poultryhub.org/production/chicken-egg-layer-industry/layer-farm-sequence
                 #  laying chickens, assume age is from 20 weeks to 78 weeks
                 # assuming full capcity, running flow
                 weeks_dispersion = 78 - 20
+                age_group_lower = 20
             chickens_per_age_group = int(self.size / weeks_dispersion)
             total_chickens = 0
             shed_num = 1
-            for week in range(20, 78):
+            total_laying_chickens = 0
+            for week in range(age_group_lower, 78):
                 if total_chickens > shed_num * approx_chickens_per_shed:
                     shed_num += 1
                 # num chickens, shed number, age by days
                 self.chickens.append([chickens_per_age_group, shed_num, week * 7])
                 total_chickens += chickens_per_age_group
+                if week >= 20:
+                    total_laying_chickens += chickens_per_age_group
 
             self.size = total_chickens  # updating the number in case the division is imperfect
             self.num_sheds = shed_num
 
             # eggs: num eggs, age of eggs , no shed?
             self.eggs = [
-                [int(total_chickens) / 5, 0],  # assuming that not all the chickens lay every day,
-                [int(total_chickens) / 5, 1],  # and that it takes a few days for eggs to be processed/removed
-                [int(total_chickens) / 5, 2],
+                [int(total_laying_chickens / 5), 0],  # assuming that not all the chickens lay every day,
+                [int(total_laying_chickens / 5), 1],  # and that it takes a few days for eggs to be processed/removed
+                [int(total_laying_chickens / 5), 2],
             ]
 
         elif self.type == "meat growing-farm":
@@ -207,8 +215,17 @@ class Premises(Property):
                 if total_chickens > shed_num * approx_chickens_per_shed:
                     shed_num += 1
                 # num chickens, shed number, age by days
-                self.chickens.append([chickens_per_age_group, shed_num, week * 7])
-                total_chickens += chickens_per_age_group
+                if chickens_per_age_group > approx_chickens_per_shed:
+                    num_sheds_needed = int(chickens_per_age_group / approx_chickens_per_shed)
+                    approx_chickens_per_shed_in_age_group = int(chickens_per_age_group / num_sheds_needed)
+                    for shed in range(num_sheds_needed):
+                        self.chickens.append([approx_chickens_per_shed_in_age_group, shed_num, week * 7])
+                        total_chickens += approx_chickens_per_shed_in_age_group
+                        if shed < num_sheds_needed - 1:
+                            shed_num += 1
+                else:
+                    self.chickens.append([chickens_per_age_group, shed_num, week * 7])
+                    total_chickens += chickens_per_age_group
 
             self.size = total_chickens  # updating the number in case the division is imperfect
             self.num_sheds = shed_num
@@ -260,8 +277,7 @@ class Premises(Property):
             self.size = total_chickens  # updating the number in case the division is imperfect
             self.num_sheds = shed_num
 
-            self.chickens = [[]]
-            self.eggs = [[chickens_per_age_group, day] for day in range(0, 21)]  # eggs at various age stages
+            self.eggs_fertilised = [[self.size, day] for day in [0, 7, 14, 20]]  # eggs at various stages
 
             pass  # TODO actually need to calculate the number of chickens the hatchery has to support the other stuff
         else:
@@ -645,4 +661,5 @@ class Premises(Property):
             self.num_sheds,
             self.chickens,
             self.eggs,
+            self.eggs_fertilised,
         ]

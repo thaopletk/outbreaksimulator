@@ -494,6 +494,7 @@ def save_chicken_property_csv(properties, time, folder_path, unique_output):
         "sheds",
         "chickens",
         "eggs",
+        "fertilised eggs",
     ]
     file = os.path.join(folder_path, f"data_underlying_{unique_output}.csv")
     with open(file, "w", newline="") as f:
@@ -1220,10 +1221,17 @@ def HPAI_QLD_setup():
 #     )
 
 
-def HPAI_setup_part_2(
+def HPAI_movement_network_setup(
     all_properties,
     max_movement_km=500,  # 500km max movement
+    data_file=os.path.join(os.path.dirname(__file__), "..", "data", "MovementNetwork.xlsx"),
 ):
+    """
+    Sets up wind neighbours and movement neighbours
+
+    :param all_properties: Description
+    :param max_movement_km: Description
+    """
 
     # ensuring the ids match, init'ing animals at the same time
     for p1 in range(0, len(all_properties)):
@@ -1255,7 +1263,29 @@ def HPAI_setup_part_2(
         all_properties[p1].total_neighbours = len(p1_neighbourhood)
 
     # now construct and assign movement neighbours
+    data_allowed_movements = pd.read_excel(data_file, sheet_name="PoultryMovement")
+
+    allowed_movement_setup = {}
+    allowed_movement_details = {}
+    for i, row in data_allowed_movements.iterrows():
+        if row["From"] in allowed_movement_setup:
+            allowed_movement_setup[row["From"]][row["To"]] = 1  # movement probability/allowance: 100%
+            allowed_movement_details[row["From"]][row["To"]] = {"entity": row["What"], "age": row["Age"]}
+        else:
+            allowed_movement_setup[row["From"]] = {row["To"]: 1}
+            allowed_movement_details[row["From"]] = {row["To"]: {"entity": row["What"], "age": row["Age"]}}
+
+    print(allowed_movement_setup)
+    print(allowed_movement_details)
+
     for i, property_i in enumerate(all_properties):
+        if property_i.type in allowed_movement_setup:
+            property_i.allowed_movement = allowed_movement_setup[property_i.type]
+            property_i.allowed_movement_details = allowed_movement_details[property_i.type]
+        else:
+            property_i.allowed_movement = {}
+            property_i.allowed_movement_details = {}  # case for abbatoirs and egg processing (which will be sinks)
+
         max_allowable_movement = max_movement_km
         property_i_neighbours = {}
         for allowed_type in property_i.allowed_movement.keys():
@@ -1282,7 +1312,7 @@ def HPAI_setup_part_2(
                         property_j.coordinates,
                     )
 
-                    if distance < max_allowable_movement and random.uniform(0, 1) < 0.2:
+                    if distance < max_allowable_movement and random.uniform(0, 1) < 0.5:
                         property_i_neighbours[property_j.type].append(j)
 
             property_i.movement_neighbours = property_i_neighbours

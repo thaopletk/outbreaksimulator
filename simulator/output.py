@@ -382,7 +382,13 @@ def plot_map(
                 )
 
     for geometry, colour, marker, markerlabel, markersize in [
-        # [geometry_susceptible, "#5284b3", "o", "susceptible", 20], # taking out susceptible plotting to make it clearer to see what's happening
+        [
+            geometry_susceptible,
+            "#5284b3",
+            "o",
+            "susceptible",
+            20,
+        ],  # TODO: can take out susceptible plotting to make it clearer to see what's happening
         [geometry_vaccinated, "#7852a4", "P", "vaccinated", 70],
         [geometry_undergoing_testing, "#ffa200", "d", "TP/testing", 100],
         [geometry_infected, "purple", "x", "infected", 30],
@@ -469,6 +475,7 @@ def plot_animal_density(
     xlims,
     ylims,
     folder_path,
+    file_name="animal_density.png",
 ):
     """Aim: to plot a map of animal density across space"""
 
@@ -479,7 +486,8 @@ def plot_animal_density(
 
     for index, premise in enumerate(properties):
         property_polygon = premise.polygon
-        num_animals = len(premise.animals)
+        # num_animals = len(premise.animals)
+        num_animals = premise.size
         # Generates random points inside polygon
         animal_points = pointpats.random.poisson(property_polygon, size=num_animals)
         # what format is this in? an array of points?
@@ -538,8 +546,6 @@ def plot_animal_density(
 
     ax.tick_params(axis="x", labelsize=14)
     ax.tick_params(axis="y", labelsize=14)
-
-    file_name = "animal_density.png"
 
     file_name = os.path.join(folder_path, file_name)
 

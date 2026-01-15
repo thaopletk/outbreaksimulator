@@ -1,24 +1,32 @@
+""" v06 | Script for running simulations for HASTE NSW HPAI simulation
+
+"""
+
 import os
 import sys
 import json
 import pickle
 import random
 import numpy as np
-import subprocess
-import pandas
+
+# import subprocess
+# import pandas
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-import simulator.simulator as simulator
+
+import simulator.fixed_spatial_setup as fixed_spatial_setup
+import simulator.HPAI_functions as HPAI_functions
 import simulator.output as output
+
+import simulator.simulator as simulator
 import simulator.disease_simulation as disease_simulation
 import simulator.management as management
 import simulator.premises as premises
 import simulator.spatial_functions as spatial_functions
 import simulator.spatial_setup as spatial_setup
-import simulator.fixed_spatial_setup as fixed_spatial_setup
-import simulator.HPAI_functions as HPAI_functions
 
-# FOR NSW
+
+# Boundaries for NSW
 xrange = [136, 155]
 yrange = [-40, -26]
 
@@ -38,8 +46,7 @@ if not os.path.exists(folder_path_main):
     os.makedirs(folder_path_main)
 
 suffix = ""
-
-testing = True
+testing = True  # TODO: adjust this if running the true simulation / vs testing sims
 if testing:
     suffix = "_test"
 
@@ -53,7 +60,6 @@ if not os.path.exists(output_filename):
         chicken_egg_property_coordinates,
         processing_chicken_egg_property_coordinates,
     ) = fixed_spatial_setup.HPAI_NSW_setup_locations(output_filename, testing)
-
 else:
     with open(output_filename, "rb") as file:
         (
@@ -69,7 +75,6 @@ print(len(all_properties))
 for p in all_properties:
     print(p)
 
-
 fixed_spatial_setup.save_chicken_property_csv(all_properties, 0, folder_path_main, suffix)
 
 # plot that actually shows the locations of different facilities
@@ -84,11 +89,10 @@ fixed_spatial_setup.plot_map_land_HPAI(
     plot_suffix=suffix,
 )
 
-
 properties_filename = os.path.join(folder_path_main, f"HPAI_properties{suffix}")
 if not os.path.exists(properties_filename):
 
-    properties = fixed_spatial_setup.HPAI_setup_part_2(
+    properties = fixed_spatial_setup.HPAI_movement_network_setup(
         all_properties,
         max_movement_km=500,  # 500km max movement
     )
@@ -99,9 +103,8 @@ else:
     with open(properties_filename, "rb") as file:
         properties = pickle.load(file)
 
-
 # plot the neighbours (not wind-neighbours)
-if not os.path.exists(os.path.join(folder_path_main, f"map_underlying_neighbours{suffix}.png")):
+if not os.path.exists(os.path.join(folder_path_main, f"map_underlying0{suffix}_neighbours.png")):
     output.plot_map(
         properties,
         time=0,
@@ -113,9 +116,8 @@ if not os.path.exists(os.path.join(folder_path_main, f"map_underlying_neighbours
         infectionpoly=False,
         contacts_for_plotting={},
         show_movement_neighbours=True,
-        save_suffix=suffix,
+        save_suffix=suffix + "_neighbours",
     )
-
 
 # plot the animal density
 if not os.path.exists(os.path.join(folder_path_main, f"animal_density{suffix}.png")):
