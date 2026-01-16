@@ -45,7 +45,7 @@ def seed_HPAI_infection(
             and coords[0] >= xrange_bounds[0]
             and coords[1] <= yrange_bounds[1]
             and coords[1] >= yrange_bounds[0]
-        ):
+        ) and property.type not in ["egg processing", "abbatoir"]:
             viable_properties.append(i)
 
     # seed this property
@@ -62,9 +62,11 @@ def seed_HPAI_infection(
         p.exposure_date = premises.convert_time_to_date(time - latent_period)
 
     num_infected = 10
-    # TODO: need to update some status/check the status update; need to convert the chicken arrays into objects
+    # TODO: need to update some status/check the status update;
+    p.init_animals(None)
+    infected_row = np.random.randint(0, len(p.chickens))  # this picks a random age
     for seed_animal in range(num_infected):
-        p.animals[seed_animal].status = "infected"
+        p.chickens[infected_row][3][seed_animal].status = "infected"
 
     p.prop_infectious = num_infected / p.size
     p.cumulative_infections = num_infected
@@ -84,3 +86,46 @@ def seed_HPAI_infection(
     fixed_spatial_setup.save_chicken_property_csv(properties, time, folder_path, unique_output)
 
     return properties, seed_property
+
+
+def advance_chicken_egg_ages(properties):
+    """increases the age of all the chickens and eggs by one day"""
+    for facility in properties:
+        for i in range(len(facility.chickens)):
+            facility.chickens[i][2] += 1  # the third index is the age, by day
+        for i in range(len(facility.eggs)):
+            facility.eggs[i][1] += 1  # the second index is the age, by day
+        for i in range(len(facility.eggs_fertilised)):
+            facility.eggs_fertilised[i][1] += 1  # the second index is the age, by day
+
+
+def egg_production(properties):
+    """implements production of eggs..."""
+    for facility in properties:
+        if "layers" in facility.type:
+            total_laying_chickens = 0
+            for row in facility.chickens:
+                if row[2] > 20 * 7 and row[2] < 78 * 7:  # i.e., if age is greater than 20 weeks
+                    total_laying_chickens += row[0]  # the number of chickens
+            facility.eggs.append(
+                [int(total_laying_chickens / 2), 0]
+            )  # assume half of the chickens lay eggs; age of eggs is zero
+        elif facility.type == "meat growing-farm":
+            pass  # no egg production
+        elif facility.type == "pullets farm":
+            pass  # no egg production
+        elif facility.type == "egg processing":
+            pass  # no egg production
+        elif facility.type == "abbatoir":
+            pass  # no egg production
+        elif facility.type == "hatchery":
+            total_laying_chickens = 0
+            for row in facility.chickens:
+                if row[2] > 20 * 7 and row[2] < 78 * 7:  # i.e., if age is greater than 20 weeks and less than 78
+                    total_laying_chickens += row[0]  # the number of chickens
+            facility.eggs_fertilised.append(
+                [int(total_laying_chickens / 2), 0]
+            )  # assume half of the chickens lay eggs; age of eggs is zero
+            # NOTE I think the eggs should be hatched in pulses (.g. every 14 days) but for now, it'll be like this....
+        else:
+            raise ValueError(f"egg_production: property type not expected: {facility.type}")

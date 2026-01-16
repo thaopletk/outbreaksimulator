@@ -173,68 +173,73 @@ else:
         properties = pickle.load(file)
 
 
-# # spread and then detection after a fixed number of properties infected...
-# random.seed(10)
-# np.random.seed(10)
-# minimum_spread_time = 21
-# target_infected_properties = 5
+###################################################
+# ---- Undetected spread -------------------------#
+###################################################
+# spread and then detection after a fixed number of properties infected...
 
-# # area for first report - anywhere for now
-# reportingregion_x = xrange
-# reportingregion_y = yrange
+random.seed(10)
+np.random.seed(10)
+minimum_spread_time = 21
+target_infected_properties = 5
 
-
-# unique_output = f"02_undetected_spread"
-# folder_path_undetected_spread = os.path.join(folder_path_main, unique_output)
-# if not os.path.exists(folder_path_undetected_spread):
-#     os.makedirs(folder_path_undetected_spread)
-
-# undetected_spread_properties_filename = os.path.join(folder_path_undetected_spread, "properties_" + unique_output)
-# undetected_spread_diseaseoutbreak_filename = os.path.join(
-#     folder_path_undetected_spread, "outbreakobject_" + unique_output
-# )
+# area for first report - anywhere for now
+reportingregion_x = xrange
+reportingregion_y = yrange
 
 
-# with open(os.path.join(folder_path_main, f"spatial_only_parameters.json"), "r") as file:
-#     spatial_only_parameters = json.load(file)
-# with open(os.path.join(folder_path_main, "job_parameters.json"), "r") as file:
-#     job_parameters = json.load(file)
-# with open(os.path.join(folder_path_main, "scenario_parameters.json"), "r") as file:
-#     scenario_parameters = json.load(file)
+unique_output = f"02_undetected_spread"
+folder_path_undetected_spread = os.path.join(folder_path_main, unique_output)
+if not os.path.exists(folder_path_undetected_spread):
+    os.makedirs(folder_path_undetected_spread)
+
+undetected_spread_properties_filename = os.path.join(folder_path_undetected_spread, "properties_" + unique_output)
+undetected_spread_diseaseoutbreak_filename = os.path.join(
+    folder_path_undetected_spread, "outbreakobject_" + unique_output
+)
 
 
-# spatial_only_parameters["n"] = len(properties)
+with open(os.path.join(folder_path_main, f"spatial_only_parameters.json"), "r") as file:
+    spatial_only_parameters = json.load(file)
+with open(os.path.join(folder_path_main, "job_parameters.json"), "r") as file:
+    job_parameters = json.load(file)
+with open(os.path.join(folder_path_main, "scenario_parameters.json"), "r") as file:
+    scenario_parameters = json.load(file)
 
-# if not os.path.exists(undetected_spread_properties_filename) or not os.path.exists(
-#     undetected_spread_diseaseoutbreak_filename
-# ):
 
-#     # initiate various things that start from empty:
-#     diseaseoutbreak = disease_simulation.DiseaseSimulation(
-#         time=time,
-#         disease_parameters=disease_parameters,
-#         spatial_only_parameters=spatial_only_parameters,
-#         job_parameters=job_parameters,
-#         scenario_parameters=scenario_parameters,
-#     )
+spatial_only_parameters["n"] = len(properties)
 
-#     diseaseoutbreak.set_plotting_parameters(
-#         xlims=xlims,
-#         ylims=ylims,
-#         plotting=True,
-#         folder_path=folder_path_undetected_spread,
-#         unique_output=unique_output,
-#     )
+if not os.path.exists(undetected_spread_properties_filename) or not os.path.exists(
+    undetected_spread_diseaseoutbreak_filename
+):
 
-#     # print(diseaseoutbreak.job_manager.jobs_queue)
+    # initiate various things that start from empty:
+    diseaseoutbreak = disease_simulation.DiseaseSimulation(
+        time=time,
+        disease_parameters=disease_parameters,
+        spatial_only_parameters=spatial_only_parameters,
+        job_parameters=job_parameters,
+        scenario_parameters=scenario_parameters,
+    )
 
-#     properties, movement_records, time = diseaseoutbreak.simulate_outbreak_spread_only(
-#         properties=properties,
-#         time=time,
-#         stop_time=minimum_spread_time,
-#         reporting_region_check=[reportingregion_x, reportingregion_y],
-#         min_infected_premises=target_infected_properties,
-#     )
+    diseaseoutbreak.set_plotting_parameters(
+        xlims=xlims,
+        ylims=ylims,
+        plotting=True,
+        folder_path=folder_path_undetected_spread,
+        unique_output=unique_output,
+    )
+
+    print(diseaseoutbreak.job_manager.jobs_queue)
+
+    properties, movement_records, time = diseaseoutbreak.simulate_outbreak_spread_only(
+        properties=properties,
+        time=time,
+        stop_time=minimum_spread_time,
+        reporting_region_check=[reportingregion_x, reportingregion_y],
+        min_infected_premises=target_infected_properties,
+        outbreak_sim="HPAI",
+    )
 
 #     first_detection_day = time + 1
 

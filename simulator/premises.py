@@ -294,7 +294,7 @@ class Premises(Property):
             # plan is: either (1) create animals with an age or
             # create animals and keep them in arrays based on their age and shed location.
             # self.chickens.append([chickens_per_age_group, shed_num, week * 7])
-            for i in range(self.chickens):
+            for i in range(len(self.chickens)):
                 original_row = self.chickens[i]
                 num_chickens = original_row[0]
                 chicken_animal_objs = [Animal(params) for _ in range(num_chickens)]
@@ -646,6 +646,19 @@ class Premises(Property):
                 self.size,
             ]
 
+    def chicken_array(self):
+        """Returns the chicken array for printing - needed in the case that it's actually full of chicken objects"""
+        if len(self.chickens) > 0:
+            if len(self.chickens[0]) == 3:
+                return self.chickens  # just a normal array
+            else:
+                array_only_setting = []
+                for row in self.chickens:
+                    array_only_setting.append(row[:-1])
+                return array_only_setting
+
+        return self.chickens
+
     def return_output_row_chickens(self):
         """Returns a row with information for outputing (required downstream for forecasting)
 
@@ -677,7 +690,7 @@ class Premises(Property):
             self.animal_type,
             self.size,
             self.num_sheds,
-            self.chickens,
+            self.chicken_array(),  # self.chickens,
             self.eggs,
             self.eggs_fertilised,
         ]

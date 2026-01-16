@@ -30,7 +30,8 @@ import simulator.SEIR as SEIR
 import simulator.output as output
 import simulator.animal_movement as animal_movement
 import simulator.spatial_functions as spatial_functions
-import simulator.output as output
+import simulator.HPAI_functions as HPAI_functions
+
 
 # from iteround import saferound
 from shapely.ops import transform, unary_union
@@ -419,6 +420,7 @@ class DiseaseSimulation:
         stop_time=7,
         reporting_region_check=[[140, 155], [-32, -29]],
         min_infected_premises=70,
+        outbreak_sim="LSD",
     ):
         """Run simulated outbreak, for undetected spread between (self.time (or time parameter if not NA)+1) and (stop_time) [inclusive], with no management
 
@@ -441,6 +443,13 @@ class DiseaseSimulation:
 
         while self.time < stop_time:
             self.time += 1
+
+            # function that ages eggs and chickens
+            if outbreak_sim == "HPAI":
+                HPAI_functions.advance_chicken_egg_ages(properties)
+                HPAI_functions.egg_production(properties)
+
+            # TODO: check if these functions make sense for chickens and eggs
             # calculate FOI for each property
             FOI = self.calculate_FOI_for_each_property(properties)
 
@@ -450,15 +459,20 @@ class DiseaseSimulation:
             # movement of animals
             controlzone_movement_restrictions = None
 
-            # movement_record = animal_movement.animal_movement(
-            #     properties, day=self.time, controlzone=controlzone_movement_restrictions
-            # )
-            # self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
-
-            if self.time % 2 == 0:
-                movement_record = animal_movement.extra_southward_movement(properties, day=self.time)
-                self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
-            else:
+            if outbreak_sim == "LSD":
+                if self.time % 2 == 0:
+                    movement_record = animal_movement.extra_southward_movement(properties, day=self.time)
+                    self.movement_records = pd.concat(
+                        [self.movement_records, movement_record], axis=0, ignore_index=True
+                    )
+                else:
+                    movement_record = animal_movement.animal_movement(
+                        properties, day=self.time, controlzone=controlzone_movement_restrictions
+                    )
+                    self.movement_records = pd.concat(
+                        [self.movement_records, movement_record], axis=0, ignore_index=True
+                    )
+            elif outbreak_sim == "HPAI":  # TODO : make special movement, given chickens and eggs
                 movement_record = animal_movement.animal_movement(
                     properties, day=self.time, controlzone=controlzone_movement_restrictions
                 )
