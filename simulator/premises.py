@@ -510,15 +510,45 @@ class Premises(Property):
         return 0
 
     def infection_model(self, latent_period, infectious_period, preclinical_period, FOI, time):
-        super().infection_model(
+        params = (
             {
                 "latent_period": latent_period,
                 "infectious_period": infectious_period,
                 "pre-clinical_period": preclinical_period,
             },
-            FOI,
         )
 
+        if self.animal_type != "chicken":
+            super().infection_model(
+                params,
+                FOI,
+            )
+        else:
+            # infection model for each animals
+
+            for i in range(len(self.chickens)):
+                # if there are already animal objects...
+                if len(self.chickens[i]) > 3:
+                    for chicken in self.chickens[i][3]:
+                        animal_inf = chicken.infection_event(params, FOI)
+                        if animal_inf:
+                            self.cumulative_infections += 1
+                        chicken.check_transition(params)
+                        chicken.update_clock()
+                else:
+                    if FOI > 0:  # i.e., they can get infected
+                        # convert to animal objects
+                        self.init_animals(None)
+                        for chicken in self.chickens[i][3]:
+                            animal_inf = chicken.infection_event(params, FOI)
+                            if animal_inf:
+                                self.cumulative_infections += 1
+                            chicken.check_transition(params)
+                            chicken.update_clock()
+                    else:
+                        pass  # pass  - no infection risk
+
+        # TODO to be honest, not sure if this is correct, since infection staus and stuff don't update until later....
         if self.infection_status == 1 and self.exposure_date == "NA":
             self.exposure_date = convert_time_to_date(time)
 

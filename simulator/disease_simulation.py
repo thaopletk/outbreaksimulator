@@ -389,13 +389,13 @@ class DiseaseSimulation:
 
         return did_any_properties_report
 
-    def calculate_FOI_for_each_property(self, properties):
+    def calculate_FOI_for_each_property(self, properties, outbreak_sim="LSD"):
         """Calculates the force of infection for each property, to be run at the start of each day (before movement occurs)"""
         FOI = list(np.zeros(len(properties)))
         for i, property_i in enumerate(properties):
             if not property_i.culled_status:
                 FOI[i] = SEIR.calculate_force_of_infection(
-                    properties, i, self.vax_modifier, self.r_wind, self.beta_wind, self.beta_animal
+                    properties, i, self.vax_modifier, self.r_wind, self.beta_wind, self.beta_animal, outbreak_sim
                 )
         return FOI
 
@@ -449,7 +449,6 @@ class DiseaseSimulation:
                 HPAI_functions.advance_chicken_egg_ages(properties)
                 HPAI_functions.egg_production(properties)
 
-            # TODO: check if these functions make sense for chickens and eggs
             # calculate FOI for each property
             FOI = self.calculate_FOI_for_each_property(properties)
 
@@ -473,7 +472,7 @@ class DiseaseSimulation:
                         [self.movement_records, movement_record], axis=0, ignore_index=True
                     )
             elif outbreak_sim == "HPAI":  # TODO : make special movement, given chickens and eggs
-                movement_record = animal_movement.animal_movement(
+                movement_record = HPAI_functions.animal_movement(
                     properties, day=self.time, controlzone=controlzone_movement_restrictions
                 )
                 self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)

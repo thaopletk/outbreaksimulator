@@ -22,7 +22,7 @@ from shapely.geometry import Point, Polygon
 from simulator.premises import convert_date_to_time
 
 
-def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mortality_rate=0.04):
+def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mortality_rate=0.04, outbreak_sim="LSD"):
     """Adapted from FMD modelling code
 
     In order to change the definition of circle creation
@@ -30,11 +30,15 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mort
     """
     FOI = 0
 
-    # vector modification
-    vectors_file = os.path.join(
-        os.path.dirname(__file__), "vectors_rangebag.tif"
-    )  # Proj_current_Philaenus.spumarius..Linnaeus..1758._rangebag.tif from Biosecurity Commons
-    vectors_img = rasterio.open(vectors_file)
+    if outbreak_sim == "LSD":
+        # vector modification
+        vectors_file = os.path.join(
+            os.path.dirname(__file__), "vectors_rangebag.tif"
+        )  # Proj_current_Philaenus.spumarius..Linnaeus..1758._rangebag.tif from Biosecurity Commons
+        vectors_img = rasterio.open(vectors_file)
+        vector_val = [x for x in vectors_img.sample([properties[premise_index].coordinates])][0][0]
+    else:
+        vector_val = 1  # aka no effect
 
     # contribution from property i
     C_i = properties[premise_index].cumulative_infections
@@ -44,8 +48,6 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mort
     # unsafe dist is the puffed polygons!
     # unsafe_disc_i = properties[premise_index].puff_poly
     A_is = properties[premise_index].puffed_poly_area
-
-    vector_val = [x for x in vectors_img.sample([properties[premise_index].coordinates])][0][0]
 
     if isinstance(beta_wind, dict):
         animal_type_i = properties[premise_index].animal_type
@@ -71,19 +73,23 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mort
         d_ij = quick_distance_haversine([p1.x, p1.y], [p2.x, p2.y])
         distance_modifier = max(0.001, 1 - (d_ij / r_wind))
 
-        # vector-relevant parts
-
-        vector_val_neighbour = [x for x in vectors_img.sample([properties[index].coordinates])][0][0]
-
-        # also, if this neighbouring property has already been culled, then calculate how long they have been culled, and implement a basic death rate for the vectors
-        vector_mortality_adjustment = 1
-        if properties[index].culled_status:
-            days_since_culled = convert_date_to_time(properties[index].removal_date)
-            vector_mortality_adjustment = 0.1 * np.exp(-vector_mortality_rate * days_since_culled)
-        elif properties[index].reported_status or properties[index].clinical_report_outcome == True:
-            vector_mortality_adjustment = 0.3  # assuming that they enact some vector control just in case
-        elif properties[index].undergoing_testing:
-            vector_mortality_adjustment = 0.5  # assuming they do some just in case
+        if outbreak_sim == "LSD":
+            # vector-relevant parts
+            vector_val_neighbour = [x for x in vectors_img.sample([properties[index].coordinates])][0][0]
+            # also, if this neighbouring property has already been culled, then calculate how long they have been culled, and implement a basic death rate for the vectors
+            vector_mortality_adjustment = 1
+            if properties[index].culled_status:
+                days_since_culled = convert_date_to_time(properties[index].removal_date)
+                vector_mortality_adjustment = 0.1 * np.exp(-vector_mortality_rate * days_since_culled)
+            elif properties[index].reported_status or properties[index].clinical_report_outcome == True:
+                vector_mortality_adjustment = 0.3  # assuming that they enact some vector control just in case
+            elif properties[index].undergoing_testing:
+                vector_mortality_adjustment = 0.5  # assuming they do some just in case
+        elif outbreak_sim == "HPAI":
+            vector_val_neighbour = 1
+            vector_mortality_adjustment = (
+                1  # TODO | this basically assumes that the virus remains in the environment....
+            )
 
         # update FOI
         if isinstance(beta_wind, dict):
@@ -105,14 +111,16 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mort
     return FOI
 
 
-def calculate_force_of_infection(properties, premise_index, vax_modifier, r_wind, beta_wind, beta_animal):
+def calculate_force_of_infection(
+    properties, premise_index, vax_modifier, r_wind, beta_wind, beta_animal, outbreak_sim="LSD"
+):
     """Calculate the force of infection
     Adapted from the FOI calculations from the FMD modelling code
     Reason: due to the differing units...
     """
     vax_status = (vax_modifier - 1) * properties[premise_index].vaccination_status + 1
 
-    FOI_wind = wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind)
+    FOI_wind = wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, outbreak_sim=outbreak_sim)
     if isinstance(beta_animal, dict):
         animal_type_i = properties[premise_index].animal_type
         FOI_animal = FOI_calculation_fns.animal_FOI(
