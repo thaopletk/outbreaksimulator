@@ -676,6 +676,15 @@ class Premises(Property):
                 self.size,
             ]
 
+    def check_if_chicken_objects(self):
+        """Return False if it's still array; return true if there are chicken objects"""
+        if len(self.chickens) > 0:
+            if len(self.chickens[0]) == 3:
+                return False
+            else:
+                return True
+        return False
+
     def chicken_array(self):
         """Returns the chicken array for printing - needed in the case that it's actually full of chicken objects"""
         if len(self.chickens) > 0:

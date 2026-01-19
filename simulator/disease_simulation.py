@@ -448,6 +448,7 @@ class DiseaseSimulation:
             if outbreak_sim == "HPAI":
                 HPAI_functions.advance_chicken_egg_ages(properties)
                 HPAI_functions.egg_production(properties)
+                # TODO : in the future, can add some natural deaths...
 
             # calculate FOI for each property
             FOI = self.calculate_FOI_for_each_property(properties)
