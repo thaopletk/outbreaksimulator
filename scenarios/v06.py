@@ -18,12 +18,13 @@ import simulator.fixed_spatial_setup as fixed_spatial_setup
 import simulator.HPAI_functions as HPAI_functions
 import simulator.output as output
 
-import simulator.simulator as simulator
+# import simulator.simulator as simulator
 import simulator.disease_simulation as disease_simulation
-import simulator.management as management
-import simulator.premises as premises
-import simulator.spatial_functions as spatial_functions
-import simulator.spatial_setup as spatial_setup
+
+# import simulator.management as management
+# import simulator.premises as premises
+# import simulator.spatial_functions as spatial_functions
+# import simulator.spatial_setup as spatial_setup
 
 ###################################################
 # ---- Code run set up ---------------------------#

@@ -472,7 +472,7 @@ class DiseaseSimulation:
                     self.movement_records = pd.concat(
                         [self.movement_records, movement_record], axis=0, ignore_index=True
                     )
-            elif outbreak_sim == "HPAI":  # TODO : make special movement, given chickens and eggs
+            elif outbreak_sim == "HPAI":
                 movement_record = HPAI_functions.animal_movement(
                     properties, day=self.time, controlzone=controlzone_movement_restrictions
                 )
@@ -480,7 +480,7 @@ class DiseaseSimulation:
 
             # update counts of infected/clinical/etc animals on each farm
             for i, premise in enumerate(properties):
-                premise.update_counts()
+                premise.update_counts()  # TODO: update self.size
 
             if self.plotting:
                 simulator.plot_current_state(  # TODO - simulator is a weird place to put plotting, probably...

@@ -510,13 +510,11 @@ class Premises(Property):
         return 0
 
     def infection_model(self, latent_period, infectious_period, preclinical_period, FOI, time):
-        params = (
-            {
-                "latent_period": latent_period,
-                "infectious_period": infectious_period,
-                "pre-clinical_period": preclinical_period,
-            },
-        )
+        params = {
+            "latent_period": latent_period,
+            "infectious_period": infectious_period,
+            "pre-clinical_period": preclinical_period,
+        }
 
         if self.animal_type != "chicken":
             super().infection_model(
@@ -697,6 +695,63 @@ class Premises(Property):
                 return array_only_setting
 
         return self.chickens
+
+    def update_counts(self):
+        if self.animal_type != "chicken":
+            super.update_counts()
+        else:
+            number_infected = 0
+            number_infectious = 0
+            number_clinical = 0
+            if self.check_if_chicken_objects() == False:
+                # no infections
+                self.prop_infectious = 0
+                self.prop_clinical = 0
+                self.number_infected = 0
+            else:
+                # potential infection, check chickens one by one
+                total_number_of_chickens = 0
+                for row in self.chickens:
+                    total_number_of_chickens += row[0]
+                    for chicken in row[3]:
+                        if chicken.infection_status == "exposed":
+                            number_infected += 1
+                        elif chicken.infection_status == "infectious":
+                            number_infected += 1
+                            number_infectious += 1
+
+                        # check how many animals are showing clinical symptoms (reporting)
+                        if chicken.clinical_status == "clinical":
+                            number_clinical += 1
+
+                self.size = total_number_of_chickens
+
+                # record proportion of animals infectious and clinical for other calculations
+                self.prop_infectious = number_infectious / total_number_of_chickens
+                self.prop_clinical = number_clinical / total_number_of_chickens
+
+                # if there's any infection, property is labelled infected
+                self.number_infected = number_infected
+                if number_infected > 0:
+                    self.infection_status = 1
+
+    def get_num_chickens(self):
+        num_chickens = 0
+        for row in self.chickens:
+            num_chickens += row[0]
+        return num_chickens
+
+    def get_num_eggs(self):
+        num_eggs = 0
+        for row in self.eggs:
+            num_eggs += row[0]
+        return num_eggs
+
+    def get_num_fertilised_eggs(self):
+        num_eggs = 0
+        for row in self.eggs_fertilised:
+            num_eggs += row[0]
+        return num_eggs
 
     def return_output_row_chickens(self):
         """Returns a row with information for outputing (required downstream for forecasting)
