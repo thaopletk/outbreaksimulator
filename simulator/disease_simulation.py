@@ -31,6 +31,7 @@ import simulator.output as output
 import simulator.animal_movement as animal_movement
 import simulator.spatial_functions as spatial_functions
 import simulator.HPAI_functions as HPAI_functions
+import simulator.fixed_spatial_setup as fixed_spatial_setup
 
 
 # from iteround import saferound
@@ -480,7 +481,7 @@ class DiseaseSimulation:
 
             # update counts of infected/clinical/etc animals on each farm
             for i, premise in enumerate(properties):
-                premise.update_counts()  # TODO: update self.size
+                premise.update_counts()
 
             if self.plotting:
                 simulator.plot_current_state(  # TODO - simulator is a weird place to put plotting, probably...
@@ -492,6 +493,7 @@ class DiseaseSimulation:
                     self.controlzone,
                     infectionpoly=False,
                     contacts_for_plotting=self.contacts_for_plotting,
+                    apparent_situation_plot=False,  # no point plotting this
                 )
 
                 # # should also save things for plotting: i.e., everything that I had used to actually plot
@@ -535,6 +537,9 @@ class DiseaseSimulation:
             movement_records=self.movement_records,
             job_manager=self.job_manager,
         )
+
+        if outbreak_sim == "HPAI":
+            fixed_spatial_setup.save_chicken_property_csv(properties, self.time, self.folder_path, self.unique_output)
 
         animal_movement.save_movement_record(self.folder_path, self.movement_records)
 

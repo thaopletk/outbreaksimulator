@@ -243,6 +243,7 @@ def property_specific_initialisation_animals_no_neighbours(
     movement_prop_animals=0,
     allowed_movement={},
     max_daily_movements=1,
+    LGA="NA",
 ):
     lat = property_coordinates[1]  # y
     lon = property_coordinates[0]  # x
@@ -264,6 +265,7 @@ def property_specific_initialisation_animals_no_neighbours(
             max_daily_movements=max_daily_movements,
             animal_type=animal_type,
         )
+        new_p.region = LGA
     except Exception as e:
         print("Error in creating new premises:")
         print(e)
@@ -283,6 +285,7 @@ def property_specific_initialisation_animals_no_neighbours(
             max_daily_movements=max_daily_movements,
             animal_type=animal_type,
         )
+        new_p.region = LGA
 
     new_p.init_chickens_eggs()
 
@@ -385,6 +388,7 @@ def HPAI_NSW_setup_locations(
                 animal_type=animal_type,
                 premises_type=premises_type,
                 num_animals=int(max(row["Estimate"] / row["Number of agricultural businesses"], 1)),
+                LGA=row["Region name"],
             )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
 
             all_properties.append(new_p)
@@ -439,6 +443,7 @@ def HPAI_NSW_setup_locations(
                 animal_type=animal_type,
                 premises_type=premises_type,
                 num_animals=num_animals,
+                LGA=row["Region name"],
             )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
 
             all_properties.append(new_p)

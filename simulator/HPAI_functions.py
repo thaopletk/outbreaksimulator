@@ -227,6 +227,9 @@ def animal_movement(
                             num_chickens_to_move += row[0]
                             row_indices_to_move.append(i)
 
+                    if num_chickens_to_move == 0:
+                        continue
+
                     for i in reversed(row_indices_to_move):
                         chickens_to_move.append(facility.chickens.pop(i))
 
@@ -341,7 +344,7 @@ def animal_movement(
                             number_animals,
                             facility.type,
                             new_facility.type,
-                            f"DAY {date} - moved {number_animals} {entity_to_move}(s) from {facility.type} ID {facility.id} ({facility.state}) to {new_facility.type} ID {new_facility.id} ({new_facility.state})",
+                            f"DAY {date} - moved {number_animals} {entity_to_move}(s) from {facility.type} ID {facility.id} ({facility.state}, {facility.region}) to {new_facility.type} ID {new_facility.id} ({new_facility.state}, {new_facility.region})",
                         ]
 
                         if len(row) != len(movement_record_header):
@@ -351,7 +354,7 @@ def animal_movement(
                         movement_record.append(row)
 
                 elif facility.allowed_movement_details[allowed_type]["entity"] == "egg":  # for layers
-
+                    entity_to_move == "egg"
                     num_eggs_to_move = 0
                     row_indices_to_move = []
                     egg_rows_to_move = []
@@ -361,6 +364,9 @@ def animal_movement(
                         if egg_age > facility.allowed_movement_details[allowed_type]["age"]:
                             num_eggs_to_move += row[0]
                             row_indices_to_move.append(i)
+
+                    if num_eggs_to_move == 0:
+                        continue
 
                     for i in reversed(row_indices_to_move):  # pop from the end...
                         egg_rows_to_move.append(facility.eggs.pop(i))
@@ -414,7 +420,7 @@ def animal_movement(
                             number_eggs,
                             facility.type,
                             new_facility.type,
-                            f"DAY {date} - moved {number_eggs} {entity_to_move}(s) from {facility.type} ID {facility.id} ({facility.state}) to {new_facility.type} ID {new_facility.id} ({new_facility.state})",
+                            f"DAY {date} - moved {number_eggs} {entity_to_move}(s) from {facility.type} ID {facility.id} ({facility.state}, {facility.region}) to {new_facility.type} ID {new_facility.id} ({new_facility.state}, {new_facility.region})",
                         ]
 
                         if len(row) != len(movement_record_header):
@@ -424,11 +430,16 @@ def animal_movement(
                         movement_record.append(row)
 
         elif facility.type == "egg processing":
+            entity_to_move == "egg"
             # movements possible - eggs removed from system, i.e., sent to distribution
             total_eggs_being_moved = 0
             for i in range(len(facility.eggs)):
                 row = facility.eggs[i]
                 total_eggs_being_moved += row[0]
+
+            if total_eggs_being_moved == 0:
+                continue
+
             facility.eggs = []  # reset to zero
 
             # create the movement record
@@ -441,7 +452,7 @@ def animal_movement(
                 total_eggs_being_moved,
                 facility.type,
                 "egg distributor",
-                f"DAY {date} - moved {total_eggs_being_moved} {entity_to_move}(s) from {facility.type} ID {facility.id} ({facility.state}) to egg distributor",
+                f"DAY {date} - moved {total_eggs_being_moved} {entity_to_move}(s) from {facility.type} ID {facility.id} ({facility.state}, {facility.region}) to egg distributor",
             ]
 
             if len(row) != len(movement_record_header):
@@ -451,6 +462,9 @@ def animal_movement(
             movement_record.append(row)
 
         elif facility.type == "hatchery":
+            minimum_chickens_on_property = (
+                1000  # TODO - to improve, making the hatchery keep some chickens for laying purposes
+            )
             # TODO: movements possible - baby chicks to layers, meat growing, pullets; old chickens to abbatoir
             # need to somehow separate the baby chicks from the old laying chickens...
             # move the older ones first...?
@@ -469,12 +483,41 @@ def animal_movement(
                 num_chickens_to_move = 0
                 row_indices_to_move = []
                 chickens_to_move = []
+
                 for i in range(len(facility.chickens)):
                     row = facility.chickens[i]
                     chicken_age = row[2]
                     if chicken_age > facility.allowed_movement_details[allowed_type]["age"]:
-                        num_chickens_to_move += row[0]
-                        row_indices_to_move.append(i)
+                        if (
+                            facility.allowed_movement_details[allowed_type]["age"] < 119
+                        ):  # moving chicks - pullets or growing farm # TODO should make this nicer LOL
+                            if chicken_age < 119:
+                                num_chickens_to_move += row[0]
+                                row_indices_to_move.append(i)
+                        else:  # should be >=546 days
+                            num_chickens_to_move += row[0]
+                            row_indices_to_move.append(i)
+
+                if num_chickens_to_move == 0 or (
+                    facility.allowed_movement_details[allowed_type]["age"] < 119
+                    and num_chickens_to_move < minimum_chickens_on_property
+                ):
+                    continue
+
+                if facility.allowed_movement_details[allowed_type]["age"] < 119:
+                    num_chickens_to_actually_move_approx = num_chickens_to_move - minimum_chickens_on_property
+                    num_chickens_to_move = 0
+                    row_indices_to_move = []
+                    chickens_to_move = []
+
+                    for i in range(len(facility.chickens)):
+                        row = facility.chickens[i]
+                        chicken_age = row[2]
+                        if chicken_age > facility.allowed_movement_details[allowed_type]["age"] and chicken_age < 119:
+                            num_chickens_to_move += row[0]
+                            row_indices_to_move.append(i)
+                        if num_chickens_to_move >= num_chickens_to_actually_move_approx - 100:
+                            break
 
                 for i in reversed(row_indices_to_move):
                     chickens_to_move.append(facility.chickens.pop(i))
@@ -590,7 +633,7 @@ def animal_movement(
                         number_animals,
                         facility.type,
                         new_facility.type,
-                        f"DAY {date} - moved {number_animals} {entity_to_move}(s) from {facility.type} ID {facility.id} ({facility.state}) to {new_facility.type} ID {new_facility.id} ({new_facility.state})",
+                        f"DAY {date} - moved {number_animals} {entity_to_move}(s) from {facility.type} ID {facility.id} ({facility.state}, {facility.region}) to {new_facility.type} ID {new_facility.id} ({new_facility.state}, {new_facility.region})",
                     ]
 
                     if len(row) != len(movement_record_header):
@@ -606,7 +649,12 @@ def animal_movement(
             for i in range(len(facility.chickens)):
                 row = facility.chickens[i]
                 total_chickens_being_slaughtered += row[0]
+
+            if total_chickens_being_slaughtered == 0:
+                continue
+
             facility.chickens = []  # reset to zero
+            entity_to_move = "chicken"
 
             # create the movement record
             row = [
@@ -618,7 +666,7 @@ def animal_movement(
                 total_chickens_being_slaughtered,
                 facility.type,
                 "chicken meat distributor",
-                f"DAY {date} - moved {total_chickens_being_slaughtered} {entity_to_move}(s) from {facility.type} ID {facility.id} ({facility.state}) to chicken meat distributor",
+                f"DAY {date} - moved {total_chickens_being_slaughtered} {entity_to_move}(s) from {facility.type} ID {facility.id} ({facility.state}, {facility.region}) to chicken meat distributor",
             ]
 
             if len(row) != len(movement_record_header):
@@ -628,6 +676,8 @@ def animal_movement(
             movement_record.append(row)
         else:
             raise ValueError(f"animal_movement: property type not expected: {facility.type}")
+
+    print(movement_record)
 
     movement_record = pd.DataFrame(movement_record, columns=movement_record_header)
 

@@ -1021,6 +1021,7 @@ def plot_current_state(
     controlzone,
     infectionpoly=False,
     contacts_for_plotting={},
+    apparent_situation_plot=True,
 ):
     """Plots the map for the "apparent" state (known be decision-makers) and the true underlying state (includes undetected infected properties)"""
 
@@ -1035,17 +1036,18 @@ def plot_current_state(
         infectionpoly=infectionpoly,
         contacts_for_plotting={},  # contacts_for_plotting,  # hiding the contacts for plotting, to make things look clearer,,,, TODO in the real situation, these should be the actual movements, or something
     )
-    output.plot_map(
-        properties,
-        time,
-        xlims=xlims,
-        ylims=ylims,
-        folder_path=folder_path,
-        real_situation=False,
-        controlzone=controlzone,
-        infectionpoly=infectionpoly,
-        contacts_for_plotting={},  # contacts_for_plotting, # not plotting them to make it easier to see what's happening...
-    )
+    if apparent_situation_plot:
+        output.plot_map(
+            properties,
+            time,
+            xlims=xlims,
+            ylims=ylims,
+            folder_path=folder_path,
+            real_situation=False,
+            controlzone=controlzone,
+            infectionpoly=infectionpoly,
+            contacts_for_plotting={},  # contacts_for_plotting, # not plotting them to make it easier to see what's happening...
+        )
 
 
 def save_reports(
