@@ -83,29 +83,33 @@ print(f"total facilities started: {len(all_properties)}")
 # for p in all_properties:
 #     print(p)
 
-fixed_spatial_setup.save_chicken_property_csv(all_properties, 0, folder_path_main, suffix)
+if not os.path.exists(os.path.join(folder_path_main, f"data_underlying_{suffix}.csv")):
+    fixed_spatial_setup.save_chicken_property_csv(all_properties, 0, folder_path_main, suffix)
 
 # plot that actually shows the locations of different facilities
-fixed_spatial_setup.plot_map_land_HPAI(
-    chicken_meat_property_coordinates,
-    processing_chicken_meat_property_coordinates,
-    chicken_egg_property_coordinates,
-    processing_chicken_egg_property_coordinates,
-    xrange,
-    yrange,
-    folder_path_main,
-    plot_suffix=suffix,
-)
+if not os.path.exists(os.path.join(folder_path_main, f"property_locations_base_map{suffix}.png")):
+    fixed_spatial_setup.plot_map_land_HPAI(
+        chicken_meat_property_coordinates,
+        processing_chicken_meat_property_coordinates,
+        chicken_egg_property_coordinates,
+        processing_chicken_egg_property_coordinates,
+        xrange,
+        yrange,
+        folder_path_main,
+        plot_suffix=suffix,
+    )
 
-fixed_spatial_setup.plot_map_land_HPAI_2(
-    all_properties,
-    xrange,
-    yrange,
-    folder_path_main,
-    plot_suffix=suffix,
-)
+if not os.path.exists(os.path.join(folder_path_main, f"property_locations_base_map_types{suffix}.png")):
+    fixed_spatial_setup.plot_map_land_HPAI_2(
+        all_properties,
+        xrange,
+        yrange,
+        folder_path_main,
+        plot_suffix=suffix,
+    )
 
-HPAI_functions.save_approx_known_data(all_properties, folder_path_main, suffix)
+if not os.path.exists(os.path.join(folder_path_main, f"approx_known_data_{suffix}.png")):
+    HPAI_functions.save_approx_known_data(all_properties, folder_path_main, suffix)
 
 properties_filename = os.path.join(folder_path_main, f"HPAI_properties{suffix}")
 if not os.path.exists(properties_filename):
@@ -137,12 +141,11 @@ if not os.path.exists(os.path.join(folder_path_main, f"map_underlying0{suffix}_n
         save_suffix=suffix + "_neighbours",
     )
 
-# plot the animal density
-if not os.path.exists(os.path.join(folder_path_main, f"animal_density{suffix}.png")):
-    output.plot_animal_density(
-        properties, xlims, ylims, folder_path=folder_path_main, file_name=f"animal_density{suffix}.png"
-    )
-
+# # plot the animal density
+# if not os.path.exists(os.path.join(folder_path_main, f"animal_density{suffix}.png")):
+#     output.plot_animal_density(
+#         properties, xlims, ylims, folder_path=folder_path_main, file_name=f"animal_density{suffix}.png"
+#     )
 
 ###################################################
 # ---- Seed the first infection ------------------#
@@ -193,7 +196,7 @@ else:
 random.seed(5)
 np.random.seed(5)
 minimum_spread_time = 7
-target_infected_properties = 5
+target_infected_properties = 4
 
 # area for first report - anywhere for now
 reportingregion_x = xrange
@@ -242,7 +245,7 @@ if not os.path.exists(undetected_spread_properties_filename) or not os.path.exis
         unique_output=unique_output,
     )
 
-    print(diseaseoutbreak.job_manager.jobs_queue)
+    # print(diseaseoutbreak.job_manager.jobs_queue)
 
     properties, movement_records, time = diseaseoutbreak.simulate_outbreak_spread_only(
         properties=properties,
@@ -251,6 +254,7 @@ if not os.path.exists(undetected_spread_properties_filename) or not os.path.exis
         reporting_region_check=[reportingregion_x, reportingregion_y],
         min_infected_premises=target_infected_properties,
         outbreak_sim="HPAI",
+        max_spread_time=30,
     )
 
     first_detection_day = time + 1
