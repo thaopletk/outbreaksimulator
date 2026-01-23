@@ -22,8 +22,8 @@ import simulator.disease_simulation as disease_simulation
 ###################################################
 
 # Boundaries for NSW
-xrange = [136, 155]
-yrange = [-40, -26]
+xrange = [140, 155]
+yrange = [-38, -28]
 
 # limits for the figures
 xlims = [
@@ -36,12 +36,6 @@ ylims = [
 ]
 
 folder_path_main = os.path.join(os.path.dirname(__file__), "v06")
-
-suffix = ""
-testing = True  # TODO: adjust this if running the true simulation / vs testing sims
-if testing:
-    suffix = "_test"
-
 
 ###################################################
 # ---- Previous output files ---------------------#
@@ -58,12 +52,9 @@ with open(spread_properties_filename, "rb") as file:
 with open(spread_diseaseoutbreak_filename, "rb") as file:
     diseaseoutbreak = pickle.load(file)
 
-
 ###################################################
 # ---- Run first set of actions ------------------#
 ###################################################
-
-# TODOs: need to be able to read in things....!
 
 # # Step 1: generate a list of scheduled management actions
 # # actions, basic: date, property_id, action-to-take-on-date, extra deets for action if necessary (e.g., if culling, the number of animals culled on that day)
@@ -73,7 +64,7 @@ property_jobs = pd.read_excel(actions_input, sheet_name="jobs")
 property_based_zones = pd.read_excel(
     actions_input, sheet_name="zones"
 )  # could consider "expanding to SAL, LGA" or something like that
-days_to_run_for = 3
+days_to_run_for = 2
 
 unique_output = f"04_actioning_actions_1"
 folder_path = os.path.join(folder_path_main, unique_output)
@@ -115,3 +106,5 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
             total_infected += 1
 
     print(f"Total number of infected premises: {total_infected}")
+
+HPAI_functions.save_approx_known_data(properties, folder_path, unique_output)
