@@ -174,8 +174,8 @@ def plot_map_land_HPAI(
         [processing_chicken_meat_property_coordinates, chickenmeatimage_box, "Chicken Meat Processing"],
     ]:
         geometries = []
-        print(markerlabel)
-        print(coordinates)
+        # print(markerlabel)
+        # print(coordinates)
 
         if len(coordinates) == 0:
             continue
@@ -222,6 +222,77 @@ def plot_map_land_HPAI(
     ax.tick_params(axis="y", labelsize=14)
 
     file_name = f"property_locations_base_map{plot_suffix}.png"
+
+    file_name = os.path.join(folder_path, file_name)
+
+    plt.savefig(file_name, bbox_inches="tight")
+
+    plt.close()
+
+
+def plot_map_land_HPAI_2(
+    properties,
+    xlims,
+    ylims,
+    folder_path,
+    plot_suffix="",
+    property_type_list=[
+        "layers free-range",
+        "layers caged",
+        "layers barn",
+        "meat growing-farm",
+        "pullets farm",
+        "egg processing",
+        "abbatoir",
+        "hatchery",
+    ],
+):
+    """Plot properties"""
+
+    geometries = {prop_type: [] for prop_type in property_type_list}
+
+    for facility in properties:
+        long, lat = facility.coordinates
+        curr_farm = Point(long, lat)
+        geometries[facility.type].append(curr_farm)
+
+    fig, ax = plt.subplots(1, 1, figsize=(30, 30))  # ,figsize=(10,12)
+
+    for markerlabel, geometry in geometries.items():
+
+        geo_df = gpd.GeoDataFrame(geometry=geometry)
+        geo_df.crs = {"init": "epsg:4326"}
+        # plot the marker
+        ax = geo_df.plot(ax=ax, markersize=20, label=markerlabel)
+
+    ax.set_xlim(xlims)
+    ax.set_ylim(ylims)
+
+    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
+
+    # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
+    points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
+    points = points.to_crs(32619)  # Projected WGS 84 - meters
+    distance_meters = points[0].distance(points[1])
+    ax.add_artist(
+        ScaleBar(
+            distance_meters,
+            box_alpha=0.1,
+            location="lower right",
+        )
+    )
+
+    ax.set_title("Map", fontsize=18)
+
+    ax.set_ylabel("latitude", fontsize=16)
+    ax.set_xlabel("longitude", fontsize=16)
+
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, fontsize=18)
+
+    ax.tick_params(axis="x", labelsize=14)
+    ax.tick_params(axis="y", labelsize=14)
+
+    file_name = f"property_locations_base_map_types{plot_suffix}.png"
 
     file_name = os.path.join(folder_path, file_name)
 
@@ -319,13 +390,15 @@ def HPAI_NSW_setup_locations(
     chicken_egg_property_coordinates = []
     processing_chicken_egg_property_coordinates = []
 
+    total_chickens_LGA = {}
+
     for i, row in data_poultryAgTrack.iterrows():
 
         if "All other poultry" in row["Commodity description or property type"]:
             continue  # skipping other poultry - remove this if we want to include, e.g., ducks
 
         if testing:
-            if "A" in row["Region name"] or "B" in row["Region name"]:
+            if "A" in row["Region name"] or "B" in row["Region name"] or "C" in row["Region name"]:
                 pass
             else:
                 continue  # temporary setup for testing - to limit how long it takes. TODO: REMOVE
@@ -337,6 +410,11 @@ def HPAI_NSW_setup_locations(
 
         # TODO: for now, assuming 5000 birds per hectare (of total farm) as an approximate
         average_property_size = int(max(row["Estimate"] / row["Number of agricultural businesses"] / 5000, 1))
+
+        if row["Region name"] in total_chickens_LGA:
+            total_chickens_LGA[row["Region name"]] += row["Estimate"]
+        else:
+            total_chickens_LGA[row["Region name"]] = row["Estimate"]
 
         property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
             int(row["Number of agricultural businesses"]),
@@ -380,6 +458,9 @@ def HPAI_NSW_setup_locations(
             chicken_meat_property_coordinates.extend(property_coordinates)
 
         for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+            num_animals = int(max(row["Estimate"] / row["Number of agricultural businesses"], 1))
+            if num_animals > 10000:
+                num_animals = int(num_animals / 1.5)
             new_p = property_specific_initialisation_animals_no_neighbours(
                 coordinates,
                 p_polygon,
@@ -387,7 +468,7 @@ def HPAI_NSW_setup_locations(
                 wind_radius=5,
                 animal_type=animal_type,
                 premises_type=premises_type,
-                num_animals=int(max(row["Estimate"] / row["Number of agricultural businesses"], 1)),
+                num_animals=num_animals,
                 LGA=row["Region name"],
             )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
 
@@ -395,7 +476,7 @@ def HPAI_NSW_setup_locations(
 
     for i, row in data_poultryCustom.iterrows():
         if testing:
-            if "A" in row["Region name"] or "B" in row["Region name"]:
+            if "A" in row["Region name"] or "B" in row["Region name"] or "C" in row["Region name"]:
                 pass
             else:
                 continue  # temporary setup for testing - to limit how long it takes.
@@ -430,7 +511,8 @@ def HPAI_NSW_setup_locations(
         elif premises_type == "hatchery":
             processing_chicken_egg_property_coordinates.extend(property_coordinates)
             animal_type = "chicken"
-            num_animals = 1000  # TODO: actually need to calculate the number of chickens the hatchery has to support the other stuff
+            # num_animals = 1000  # TODO: actually need to calculate the number of chickens the hatchery has to support the other stuff
+            num_animals = total_chickens_LGA[row["Region name"]] / 10  # hmmm how are these actually counted???
         else:
             raise ValueError(f"premises type not expected: {premises_type}")
 
