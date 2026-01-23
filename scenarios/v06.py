@@ -31,8 +31,8 @@ import simulator.disease_simulation as disease_simulation
 ###################################################
 
 # Boundaries for NSW
-xrange = [136, 155]
-yrange = [-40, -26]
+xrange = [140, 155]
+yrange = [-38, -28]
 
 # limits for the figures
 xlims = [
