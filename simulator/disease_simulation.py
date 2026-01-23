@@ -452,7 +452,7 @@ class DiseaseSimulation:
                 # TODO : in the future, can add some natural deaths...
 
             # calculate FOI for each property
-            FOI = self.calculate_FOI_for_each_property(properties)
+            FOI = self.calculate_FOI_for_each_property(properties, outbreak_sim)
 
             # run infection model for each property
             properties = self.run_infection_model_for_each_property(properties, FOI)
@@ -663,7 +663,7 @@ class DiseaseSimulation:
 
         return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
 
-    def simulate_first_report(self, properties, reportingregion_x, reportingregion_y):
+    def simulate_first_report(self, properties, reportingregion_x, reportingregion_y, outbreak_sim="LSD"):
         """Simulates the first day of reporting and subsequent actions on that first day
 
         Parameters
@@ -701,7 +701,12 @@ class DiseaseSimulation:
             "surveillance tested negative": 0,
         }
 
-        FOI = self.calculate_FOI_for_each_property(properties)
+        if outbreak_sim == "HPAI":
+            HPAI_functions.advance_chicken_egg_ages(properties)
+            HPAI_functions.egg_production(properties)
+            # TODO : in the future, can add some natural deaths...
+
+        FOI = self.calculate_FOI_for_each_property(properties, outbreak_sim)
 
         properties = self.run_infection_model_for_each_property(properties, FOI)
 
@@ -1681,6 +1686,147 @@ class DiseaseSimulation:
             )
 
         return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
+
+    def simulate_HPAI_outbreak_management(
+        self, properties, property_jobs, property_based_zones, days_to_run_for, outbreak_sim="HPAI", time=None
+    ):
+
+        if time != None:
+            self.time = time
+        if self.folder_path == "":
+            raise Warning("Default folder path hasn't changed - recommend that set_plotting_parameters() be run first")
+
+        time_list = []
+        stop_time = self.time + days_to_run_for
+        while self.time < stop_time:
+            self.time += 1
+            converted_date = premises.convert_time_to_date(self.time)
+            self.daily_statistics[converted_date] = {
+                "num positive clinical": 0,
+                "num lab tested": 0,
+                "num confirmed infected": 0,
+                "num tested negative": 0,
+                "DCP tested negative": 0,
+                "surveillance tested negative": 0,
+            }
+
+            HPAI_functions.advance_chicken_egg_ages(properties)
+            HPAI_functions.egg_production(properties)
+
+            # calculate FOI for each property
+            FOI = self.calculate_FOI_for_each_property(properties, outbreak_sim)
+
+            # check if any property wants to report
+            self.simulate_property_reporting(properties)
+
+            # run infection model for each property
+            properties = self.run_infection_model_for_each_property(properties, FOI)
+
+            # get control zones
+            RA_df = property_based_zones[property_based_zones["zone_type"] == "RA"]
+            RA_geo_list = []
+            for i, row in RA_df.iterrows():
+
+                restricted_area = management.define_control_zone_polygons(
+                    properties,
+                    row["ID"],
+                    row["radius_km"],
+                    convex=False,
+                )  # should be zero movement
+                RA_geo_list.append(restricted_area)
+
+            restricted_area = unary_union(RA_geo_list)
+
+            CA_df = property_based_zones[property_based_zones["zone_type"] == "CA"]
+            CA_geo_list = []
+            for i, row in CA_df.iterrows():
+
+                control_area = management.define_control_zone_polygons(
+                    properties,
+                    row["ID"],
+                    row["radius_km"],
+                    convex=False,
+                )  # should be zero movement
+                CA_geo_list.append(control_area)
+
+            control_area = unary_union(CA_geo_list)
+
+            self.controlzone["restricted area"] = restricted_area
+            self.controlzone["control area"] = control_area
+
+            # TODO: update statuses based on the zones? PORs, ARPs?
+            HPAI_functions.update_status_based_on_zones(properties, restricted_area, control_area)
+
+            # TODO management actions
+            for i, row in property_jobs.iterrows():
+                if row["date_scheduled"] == converted_date:
+                    job_type = row["action"]
+                    property_index = row["ID"]
+                    if job_type == "LabTesting":
+                        # TODO ? add job to job manager anyway for print out purposes?
+                        testing_report, positive = self.job_manager.conduct_labtesting(
+                            properties, property_index, self.time
+                        )
+                        full_testing_report = [self.time, converted_date, "test", property_index, testing_report]
+                        self.combined_narrative.append(full_testing_report)
+
+                        DCP_status = False
+                        if properties[property_index].status == "DCP":
+                            DCP_status = True
+
+                        num_lab_tested += 1
+                        premise = properties[property_index]
+                        premise.day_of_last_lab_test = self.time
+
+                        if positive:
+                            num_confirmed_infected += 1
+
+                            # report property
+                            premise_report = premise.report_only(self.time)
+                            self.combined_narrative.append(
+                                [self.time, converted_date, "report", property_index, premise_report]
+                            )
+                        else:
+                            num_tested_negative += 1
+                            if DCP_status:
+                                DCP_tested_negative += 1
+                            else:
+                                surveillance_tested_negative += 1
+
+                    elif job_type == "ClinicalObservation":
+                        testing_report, positive = self.job_manager.conduct_clinicalobservation(
+                            properties, property_index, self.time
+                        )
+                        self.combined_narrative.append(
+                            [self.time, converted_date, "test", property_index, testing_report]
+                        )
+
+                    elif job_type == "Cull":
+                        num_animals_to_cull = row["num"]
+                        pass
+                    elif job_type == "ContactTracing":
+                        pass
+                    elif job_type == "Vaccination":
+                        num_animals_to_vaccinate = row["num"]
+                        pass
+
+            controlzone_movement_restrictions = restricted_area
+            movement_reduction_factor = 0.2  # 80% reduction / 20% chance of movement
+
+            movement_record = HPAI_functions.animal_movement(
+                properties,
+                day=self.time,
+                controlzone=controlzone_movement_restrictions,
+                movement_reduction_factor=movement_reduction_factor,
+                all_movement_reduction_factor=0.8,  # reducing probability of overall movement
+            )
+            self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
+
+            self.controlzone["movement restrictions"] = (
+                controlzone_movement_restrictions  # this is for plotting purposes later
+            )
+
+        fixed_spatial_setup.save_chicken_property_csv(properties, self.time, self.folder_path, self.unique_output)
 
     # TODO delete this once the above one is written
     def old_simulate_outbreak_management(self, properties, management_parameters, days_to_run_for, time=None):
