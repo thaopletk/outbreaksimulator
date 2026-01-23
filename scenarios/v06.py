@@ -10,7 +10,7 @@ import random
 import numpy as np
 
 # import subprocess
-# import pandas
+import pandas as pd
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -78,10 +78,10 @@ else:
             processing_chicken_egg_property_coordinates,
         ) = pickle.load(file)
 
-print(len(all_properties))
+print(f"total facilities started: {len(all_properties)}")
 
-for p in all_properties:
-    print(p)
+# for p in all_properties:
+#     print(p)
 
 fixed_spatial_setup.save_chicken_property_csv(all_properties, 0, folder_path_main, suffix)
 
@@ -96,6 +96,16 @@ fixed_spatial_setup.plot_map_land_HPAI(
     folder_path_main,
     plot_suffix=suffix,
 )
+
+fixed_spatial_setup.plot_map_land_HPAI_2(
+    all_properties,
+    xrange,
+    yrange,
+    folder_path_main,
+    plot_suffix=suffix,
+)
+
+HPAI_functions.save_approx_known_data(all_properties, folder_path_main, suffix)
 
 properties_filename = os.path.join(folder_path_main, f"HPAI_properties{suffix}")
 if not os.path.exists(properties_filename):
@@ -132,6 +142,7 @@ if not os.path.exists(os.path.join(folder_path_main, f"animal_density{suffix}.pn
     output.plot_animal_density(
         properties, xlims, ylims, folder_path=folder_path_main, file_name=f"animal_density{suffix}.png"
     )
+
 
 ###################################################
 # ---- Seed the first infection ------------------#
@@ -179,9 +190,9 @@ else:
 ###################################################
 # spread and then detection after a fixed number of properties infected...
 
-random.seed(10)
-np.random.seed(10)
-minimum_spread_time = 21
+random.seed(5)
+np.random.seed(5)
+minimum_spread_time = 7
 target_infected_properties = 5
 
 # area for first report - anywhere for now
@@ -242,132 +253,73 @@ if not os.path.exists(undetected_spread_properties_filename) or not os.path.exis
         outbreak_sim="HPAI",
     )
 
-#     first_detection_day = time + 1
+    first_detection_day = time + 1
 
-#     # and then resave the end state
-#     with open(undetected_spread_properties_filename, "wb") as file:
-#         pickle.dump(properties, file)
+    # and then resave the end state
+    with open(undetected_spread_properties_filename, "wb") as file:
+        pickle.dump(properties, file)
 
-#     # and save the diseaseoutbreak object
-#     with open(undetected_spread_diseaseoutbreak_filename, "wb") as file:
-#         pickle.dump(diseaseoutbreak, file)
+    # and save the diseaseoutbreak object
+    with open(undetected_spread_diseaseoutbreak_filename, "wb") as file:
+        pickle.dump(diseaseoutbreak, file)
 
-#     total_infected = 0
-#     for property_i in properties:
-#         if property_i.exposure_date != "NA":
-#             total_infected += 1
+    total_infected = 0
+    for property_i in properties:
+        if property_i.exposure_date != "NA":
+            total_infected += 1
 
-#     print(f"Total number of infected premises: {total_infected}")
+    print(f"Total number of infected premises: {total_infected}")
 
-# else:
-#     with open(undetected_spread_properties_filename, "rb") as file:
-#         properties = pickle.load(file)
-#     with open(undetected_spread_diseaseoutbreak_filename, "rb") as file:
-#         diseaseoutbreak = pickle.load(file)
+else:
+    with open(undetected_spread_properties_filename, "rb") as file:
+        properties = pickle.load(file)
+    with open(undetected_spread_diseaseoutbreak_filename, "rb") as file:
+        diseaseoutbreak = pickle.load(file)
 
-# # trigger first report and stop / output
-# unique_output = "03_outbreak_detection"
-# folder_path_first_report = os.path.join(folder_path_main, unique_output)
+HPAI_functions.save_approx_known_data(properties, folder_path_undetected_spread, unique_output)
 
-# if not os.path.exists(folder_path_first_report):
-#     os.makedirs(folder_path_first_report)
+###################################################
+# ---- Trigger first report ----------------------#
+###################################################
 
+# trigger first report and stop / output
+unique_output = "03_outbreak_detection"
+folder_path_first_report = os.path.join(folder_path_main, unique_output)
 
-# spread_properties_filename = os.path.join(folder_path_first_report, "properties_" + unique_output)
-# spread_diseaseoutbreak_filename = os.path.join(folder_path_first_report, "outbreakobject_" + unique_output)
+if not os.path.exists(folder_path_first_report):
+    os.makedirs(folder_path_first_report)
 
-# random.seed(15)
-# np.random.seed(16)
-# if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
+spread_properties_filename = os.path.join(folder_path_first_report, "properties_" + unique_output)
+spread_diseaseoutbreak_filename = os.path.join(folder_path_first_report, "outbreakobject_" + unique_output)
 
-#     # adjust the plotting parameters for this new scenario
-#     diseaseoutbreak.set_plotting_parameters(
-#         xlims=xlims,
-#         ylims=ylims,
-#         plotting=True,
-#         folder_path=folder_path_first_report,
-#         unique_output=unique_output,
-#     )
+random.seed(15)
+np.random.seed(16)
+if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
 
-#     # print(diseaseoutbreak.job_manager.jobs_queue)
+    # adjust the plotting parameters for this new scenario
+    diseaseoutbreak.set_plotting_parameters(
+        xlims=xlims,
+        ylims=ylims,
+        plotting=True,
+        folder_path=folder_path_first_report,
+        unique_output=unique_output,
+    )
 
-#     properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_first_report(
-#         properties, reportingregion_x, reportingregion_y
-#     )
+    properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_first_report(
+        properties, reportingregion_x, reportingregion_y
+    )
 
-#     # and then resave the end state
-#     with open(spread_properties_filename, "wb") as file:
-#         pickle.dump(properties, file)
+    # and then resave the end state
+    with open(spread_properties_filename, "wb") as file:
+        pickle.dump(properties, file)
 
-#     # and save the diseaseoutbreak object
-#     with open(spread_diseaseoutbreak_filename, "wb") as file:
-#         pickle.dump(diseaseoutbreak, file)
-# else:
-#     with open(spread_properties_filename, "rb") as file:
-#         properties = pickle.load(file)
-#     with open(spread_diseaseoutbreak_filename, "rb") as file:
-#         diseaseoutbreak = pickle.load(file)
+    # and save the diseaseoutbreak object
+    with open(spread_diseaseoutbreak_filename, "wb") as file:
+        pickle.dump(diseaseoutbreak, file)
+else:
+    with open(spread_properties_filename, "rb") as file:
+        properties = pickle.load(file)
+    with open(spread_diseaseoutbreak_filename, "rb") as file:
+        diseaseoutbreak = pickle.load(file)
 
-
-# # TODO - actually, start earlier to override the job manager
-
-# # TODOs: need to be able to read in things....!
-
-# # Step 1: generate a list of scheduled management actions
-# # actions, basic: date, property_id, action-to-take-on-date, extra deets for action if necessary (e.g., if culling, the number of animals culled on that day)
-
-
-# # TODO check what the job_manager looks like hmmm and consider putting in some things by hand LOL
-# scheduled_management_actions = pandas.read_csv(os.path.join(folder_path_main, "scheduled_actions_for_period_04.csv"))
-
-# # and control/restricted zones: list of properties + radius + expansion to either LGA, SALs, SA2, etc... , and movement probability reduction in which zones
-# # {1: {"zone": "zone_name", property_ids:[], radius: 10k, expand_to: SAL, movement_probability_reduction: 0.5}}
-# # number from high to low priority/ in to out
-# management_zone_parameters = pandas.read_csv(os.path.join(folder_path_main, "management_zone_parameters.json"))
-
-# # # Step 2: read in the management actions and implement -> if there are scheduled actions, then the job_manager stuff should be overrid
-
-# # # try one week of simulation, but with a national standstill now.
-# # unique_output = f"04_to_first_decision_point"
-# # folder_path = os.path.join(folder_path_main, unique_output)
-# # days_to_run_for = 7
-
-# # if not os.path.exists(folder_path):
-# #     os.makedirs(folder_path)
-
-# # spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
-# # spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
-
-# # management_parameters = {"movement_restrictions": ["national_standstill"]}
-
-# # if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
-# #     # adjust the plotting parameters for this new scenario
-# #     diseaseoutbreak.set_plotting_parameters(
-# #         xlims=xlims,
-# #         ylims=ylims,
-# #         plotting=True,
-# #         folder_path=folder_path,
-# #         unique_output=unique_output,
-# #     )
-
-# #     # TODO not 100% satisfactorily complete
-# #     properties, movement_records, time, total_culled_animals, job_manager = (
-# #         diseaseoutbreak.simulate_outbreak_management(
-# #             properties, management_parameters, days_to_run_for, resource_setting="default"
-# #         )
-# #     )
-
-# #     # and then resave the end state
-# #     with open(spread_properties_filename, "wb") as file:
-# #         pickle.dump(properties, file)
-
-# #     # and save the diseaseoutbreak object
-# #     with open(spread_diseaseoutbreak_filename, "wb") as file:
-# #         pickle.dump(diseaseoutbreak, file)
-
-# #     total_infected = 0
-# #     for property_i in properties:
-# #         if property_i.exposure_date != "NA":
-# #             total_infected += 1
-
-# #     print(f"Total number of infected premises: {total_infected}")
+HPAI_functions.save_approx_known_data(properties, folder_path_first_report, unique_output)
