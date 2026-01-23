@@ -1,8 +1,8 @@
 {
-    "chicken": {"beta_wind": 0.001,
-    "beta_animal": 0.8,
-    "latent_period": 1,
-    "infectious_period": 3,
-    "preclinical_period": 1
+    "chicken": {"beta_wind": 1.0,
+    "beta_animal": 2.0,
+    "latent_period": 2,
+    "infectious_period": 14,
+    "preclinical_period": 2
     }
 }
