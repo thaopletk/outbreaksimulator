@@ -152,6 +152,10 @@ class Premises(Property):
         self.eggs = None
         self.eggs_fertilised = None
 
+        self.custom_info = (
+            {}
+        )  # setting up an empty dictionary to add in any custom info to be set live during the simulation
+
     def init_chickens_eggs(self):
         """Initiating things that are specific for chicken (meat and egg) premises
         Could turn this into a new class that inherits the premises class in the future
@@ -396,7 +400,12 @@ class Premises(Property):
         # TODO ! there should be some kind of status change here...
         self.clinical_report_outcome = True
 
-        report = f"Property ID {self.id} ({self.type}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been reported possible infection."
+        if self.animal_type != "chicken":
+
+            report = f"Property ID {self.id} ({self.type}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been reported possible infection."
+        else:
+            report = f"Property ID {self.id} ({self.type}) at location ({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been reported possible infection."
+            self.status = "SP"  # suspect premises
 
         return report
 
