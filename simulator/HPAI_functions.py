@@ -784,6 +784,19 @@ def save_approx_known_data(properties, folder_path, unique_output):
             writer.writerow(row)
 
 
+def update_negative_status_based_on_zones(facility, restricted_area, control_area):
+    if facility.polygon.intersects(restricted_area):
+        facility.status = "ARP"  # at risk premises
+    elif facility.polygon.intersects(control_area):
+        # if it contains chickens -> POR -> Premises of relevance
+        if facility.get_num_chickens() > 0 or facility.get_num_eggs() > 0 or facility.get_num_fertilised_eggs() > 0:
+            facility.status = "POR"
+        else:
+            facility.status = "ZP"
+    else:
+        facility.status = "NA"
+
+
 def update_status_based_on_zones(properties, restricted_area, control_area):
     # TODO could probably make this better (like everything else)
     higher_priority_statuses = ["IP", "DCP", "TP", "SP", "DCPF", "RP"]
