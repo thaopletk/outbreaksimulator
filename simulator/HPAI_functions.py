@@ -677,8 +677,98 @@ def animal_movement(
         else:
             raise ValueError(f"animal_movement: property type not expected: {facility.type}")
 
-    print(movement_record)
+    # print(movement_record)
+    print(f"movements for day {day} / {date} completed")
 
     movement_record = pd.DataFrame(movement_record, columns=movement_record_header)
 
     return movement_record
+
+
+def rounding_entities(val):
+    if val < 10:
+        return val
+    if val < 100:
+        return math.floor(val / 5) * 5
+    if val < 500:
+        return math.floor(val / 50) * 50
+    if val < 1000:
+        return math.floor(val / 100) * 100
+    if val < 10000:
+        return math.floor(val / 1000) * 1000
+    if val < 100000:
+        return math.floor(val / 10000) * 10000
+    return math.floor(val / 100000) * 100000
+
+
+def save_approx_known_data(properties, folder_path, unique_output):
+    """Outputs a csv with the approximately known data on properties and premises
+
+    Returns
+    -------
+    list
+
+    """
+
+    header = [
+        "id",
+        "status",
+        "ip",
+        "clinical_date",
+        "notification_date",
+        "removal_date",
+        "recovery_date",
+        "vacc_date",
+        "LGA",
+        "xcoord",
+        "ycoord",
+        "area",
+        "type",
+        "sheds",
+        "total_chickens",
+        "total_eggs",
+    ]
+
+    file = os.path.join(folder_path, f"approx_known_data_{unique_output}.csv")
+    with open(file, "w", newline="") as f:
+
+        # create the csv writer
+        writer = csv.writer(f)
+
+        # write the header
+        writer.writerow(header)
+
+        for facility in properties:
+
+            row = [
+                facility.id,
+                facility.status,
+                facility.ip,
+                facility.clinical_date,
+                facility.notification_date,
+                facility.removal_date,
+                facility.recovery_date,
+                facility.vacc_date,
+                facility.region,
+                facility.coordinates[0],
+                facility.coordinates[1],
+                facility.area,
+                facility.type,
+                facility.num_sheds,
+                rounding_entities(facility.get_num_chickens()),
+                rounding_entities(
+                    facility.get_num_eggs() + facility.get_num_fertilised_eggs()
+                ),  # TODO: will want premise attribute that looks at whether this property has been inspected yet or not, and if the number of animals have been counted more accurately or not.
+            ]
+
+            writer.writerow(row)
+
+
+def update_status_based_on_zones(properties, restricted_area, control_area):
+    for facility in properties:
+        if facility.polygon.intersects(restricted_area):  # restricted area is the tighter one
+            if facility.status not in ["IP", "DCP", "TP", "SP"]:
+                facility.status = ""
+        elif facility.polygon.intersects(control_area):  # control area is the disease free buffer
+            if facility.status not in ["IP", "DCP", "TP", "SP"]:
+                facility.status = ""
