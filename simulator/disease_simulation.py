@@ -32,6 +32,7 @@ import simulator.animal_movement as animal_movement
 import simulator.spatial_functions as spatial_functions
 import simulator.HPAI_functions as HPAI_functions
 import simulator.fixed_spatial_setup as fixed_spatial_setup
+from datetime import datetime as dt
 
 
 # from iteround import saferound
@@ -325,6 +326,8 @@ class DiseaseSimulation:
         report = reported_property.report_suspicion(self.time)
         self.combined_narrative.append([self.time, converted_date, "report", property_index, report])
 
+        reported_property.custom_info["self_report_date"] = converted_date
+
     def add_local_movement_restriction(self, reported_property, converted_date):
         """Adds the property area to movement restrictions (no movements to or from this property) and saves text in the combined narrative that this occurred"""
         self.combined_narrative.append(
@@ -422,6 +425,7 @@ class DiseaseSimulation:
         reporting_region_check=[[140, 155], [-32, -29]],
         min_infected_premises=70,
         outbreak_sim="LSD",
+        max_spread_time=150,
     ):
         """Run simulated outbreak, for undetected spread between (self.time (or time parameter if not NA)+1) and (stop_time) [inclusive], with no management
 
@@ -514,7 +518,7 @@ class DiseaseSimulation:
                     if property_i.exposure_date != "NA":
                         total_infected += 1
                 if len(list_of_potential_reporting_properties) == 0 or total_infected < min_infected_premises:
-                    if stop_time < 150:
+                    if stop_time < max_spread_time:
                         stop_time += 1
 
         # since we're not going to show the videos anyway, only saving plot data at the end to limit memory consumption
@@ -1717,7 +1721,16 @@ class DiseaseSimulation:
             FOI = self.calculate_FOI_for_each_property(properties, outbreak_sim)
 
             # check if any property wants to report
-            self.simulate_property_reporting(properties)
+            for i, facility in enumerate(properties):
+                if (
+                    not facility.culled_status
+                    and not facility.reported_status
+                    and (facility.status != "SP")  # self reported status
+                    and facility.prob_of_reporting_only(
+                        self.clinical_reporting_threshold, self.prob_report
+                    )  # TODO: this is the place to add in false positives
+                ):
+                    self.make_report(facility, converted_date, i)
 
             # run infection model for each property
             properties = self.run_infection_model_for_each_property(properties, FOI)
@@ -1729,7 +1742,7 @@ class DiseaseSimulation:
 
                 restricted_area = management.define_control_zone_polygons(
                     properties,
-                    row["ID"],
+                    [row["ID"]],
                     row["radius_km"],
                     convex=False,
                 )  # should be zero movement
@@ -1754,12 +1767,17 @@ class DiseaseSimulation:
             self.controlzone["restricted area"] = restricted_area
             self.controlzone["control area"] = control_area
 
-            # TODO: update statuses based on the zones? PORs, ARPs?
+            # update statuses based on the zones
             HPAI_functions.update_status_based_on_zones(properties, restricted_area, control_area)
+            contacts_for_plotting = {}
 
             # TODO management actions
+            print(converted_date)
+            converted_date_dt = dt.strptime(converted_date, "%d/%m/%Y")
             for i, row in property_jobs.iterrows():
-                if row["date_scheduled"] == converted_date:
+                print(row)
+
+                if row["date_scheduled"] == converted_date_dt:
                     job_type = row["action"]
                     property_index = row["ID"]
                     if job_type == "LabTesting":
@@ -1774,12 +1792,13 @@ class DiseaseSimulation:
                         if properties[property_index].status == "DCP":
                             DCP_status = True
 
-                        num_lab_tested += 1
+                        self.daily_statistics[converted_date]["num lab tested"] += 1
                         premise = properties[property_index]
                         premise.day_of_last_lab_test = self.time
 
                         if positive:
-                            num_confirmed_infected += 1
+                            self.daily_statistics[converted_date]["num confirmed infected"] += 1
+                            properties[property_index].custom_info["infection_data_known"] = True
 
                             # report property
                             premise_report = premise.report_only(self.time)
@@ -1787,11 +1806,18 @@ class DiseaseSimulation:
                                 [self.time, converted_date, "report", property_index, premise_report]
                             )
                         else:
-                            num_tested_negative += 1
+                            self.daily_statistics[converted_date]["num tested negative"] += 1
+
                             if DCP_status:
-                                DCP_tested_negative += 1
+                                self.daily_statistics[converted_date]["DCP tested negative"] += 1
+
                             else:
-                                surveillance_tested_negative += 1
+                                self.daily_statistics[converted_date]["surveillance tested negative"] += 1
+
+                            # updating status
+                            HPAI_functions.update_negative_status_based_on_zones(
+                                properties[property_index], restricted_area, control_area
+                            )
 
                     elif job_type == "ClinicalObservation":
                         testing_report, positive = self.job_manager.conduct_clinicalobservation(
@@ -1801,14 +1827,42 @@ class DiseaseSimulation:
                             [self.time, converted_date, "test", property_index, testing_report]
                         )
 
+                        facility.custom_info["property_data_known"] = True
+
+                        if positive:
+                            self.daily_statistics[converted_date]["num positive clinical"] += 1
+                            properties[property_index].status = "DCP"
+
                     elif job_type == "Cull":
+                        # TODO
                         num_animals_to_cull = row["num"]
+
+                        newly_culled_animals = 0
+
+                        self.total_culled_animals += newly_culled_animals
+
                         pass
                     elif job_type == "ContactTracing":
-                        pass
+                        contact_tracing_report, traced_property_indices = management.contact_tracing(
+                            properties, property_index, self.movement_records, self.time
+                        )
+                        self.combined_narrative.append(
+                            [self.time, converted_date, "tracing", property_index, contact_tracing_report]
+                        )
+
+                        contacts_for_plotting[property_index] = traced_property_indices
+
+                        for t_i in traced_property_indices:
+                            facility = properties[t_i]
+                            if facility.status not in ["IP", "DCP", "TP", "SP", "DCPF", "RP"]:
+                                facility.status = "TP"
+
                     elif job_type == "Vaccination":
+                        # TODO
                         num_animals_to_vaccinate = row["num"]
                         pass
+
+            self.contacts_for_plotting = contacts_for_plotting
 
             controlzone_movement_restrictions = restricted_area
             movement_reduction_factor = 0.2  # 80% reduction / 20% chance of movement
@@ -1816,7 +1870,7 @@ class DiseaseSimulation:
             movement_record = HPAI_functions.animal_movement(
                 properties,
                 day=self.time,
-                controlzone=controlzone_movement_restrictions,
+                controlzone=controlzone_movement_restrictions,  # TODO : to separate restricted zones and control zones
                 movement_reduction_factor=movement_reduction_factor,
                 all_movement_reduction_factor=0.8,  # reducing probability of overall movement
             )
@@ -1826,7 +1880,68 @@ class DiseaseSimulation:
                 controlzone_movement_restrictions  # this is for plotting purposes later
             )
 
+            # update counts of infected/clinical/etc animals on each farm
+            for i, premise in enumerate(properties):
+                premise.update_counts()
+
+            # then close off this day
+            time_list.append(self.time)
+            if self.plotting:
+                simulator.plot_current_state(  # TODO - simulator is a weird place to put plotting, probably...
+                    properties,
+                    self.time,
+                    self.xlims,
+                    self.ylims,
+                    self.folder_path,
+                    self.controlzone,
+                    infectionpoly=False,
+                    contacts_for_plotting=self.contacts_for_plotting,
+                    apparent_situation_plot=True,
+                )
+
+                self.save_preprocessed_plotting_information(properties)
+
+        with open(os.path.join(self.folder_path, "plotting_data" + str(self.time)), "wb") as file:
+            pickle.dump(
+                [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
+                file,
+            )
+
+        simulator.save_outbreak_state(
+            properties,
+            self.time,
+            self.folder_path,
+            self.unique_output,
+            total_culled_animals=0,
+            movement_records=self.movement_records,
+            job_manager=self.job_manager,
+        )
+
         fixed_spatial_setup.save_chicken_property_csv(properties, self.time, self.folder_path, self.unique_output)
+
+        animal_movement.save_movement_record(self.folder_path, self.movement_records)
+        self.save_reports(properties, restricted_area, control_area)
+        self.job_manager.save_jobs_queue(self.folder_path)
+        self.save_daily_statistics()
+
+        self.job_manager.calculate_resources_used(self.folder_path)
+
+        dates_list = [premises.convert_time_to_date(t) for t in range(self.first_detection_day, self.time + 1)]
+        # print(dates_list)
+        daily_notifs = [0] * len(dates_list)
+
+        for property_i in properties:
+            notif_date = property_i.notification_date
+            if notif_date != "NA":
+                index = dates_list.index(notif_date)
+                daily_notifs[index] += 1
+
+        save_name = "daily_notifications"
+        output.plot_daily_notifications_over_time(dates_list, daily_notifs, self.folder_path, save_name)
+
+        output.plot_total_notifs_over_time(dates_list, daily_notifs, self.folder_path, save_name="total_notifs")
+
+        return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
 
     # TODO delete this once the above one is written
     def old_simulate_outbreak_management(self, properties, management_parameters, days_to_run_for, time=None):
