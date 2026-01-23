@@ -181,7 +181,7 @@ class DiseaseSimulation:
                 "summary",
                 "",
                 f"Total culled properties: {total_culled}; total vaccinated properties: {total_vaccinated}; total culled animals: {self.total_culled_animals}; total properties in restricted area: {total_properties_in_restricted_area}; total properties in control area: {total_properties_in_control_area}; DCPs_positive_clinical_test_pending: {DCPs_positive_clinical_test_pending}; DCPs_negative_clinical_test_pending: {DCPs_negative_clinical_test_pending}",
-            ]
+            ]  # TODO: update this for chickens
         )
         narrative_df = pd.DataFrame(to_save_narrative, columns=["day", "date", "type", "property", "report"])
 
@@ -1725,7 +1725,7 @@ class DiseaseSimulation:
                 if (
                     not facility.culled_status
                     and not facility.reported_status
-                    and (facility.status != "SP")  # self reported status
+                    and (facility.status not in ["SP", "DCP"])  # self reported status
                     and facility.prob_of_reporting_only(
                         self.clinical_reporting_threshold, self.prob_report
                     )  # TODO: this is the place to add in false positives
@@ -1775,9 +1775,9 @@ class DiseaseSimulation:
             print(converted_date)
             converted_date_dt = dt.strptime(converted_date, "%d/%m/%Y")
             for i, row in property_jobs.iterrows():
-                print(row)
 
                 if row["date_scheduled"] == converted_date_dt:
+                    print(row)
                     job_type = row["action"]
                     property_index = row["ID"]
                     if job_type == "LabTesting":
