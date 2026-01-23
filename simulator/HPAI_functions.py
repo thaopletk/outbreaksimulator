@@ -715,7 +715,8 @@ def save_approx_known_data(properties, folder_path, unique_output):
         "status",
         "ip",
         "clinical_date",
-        "notification_date",
+        "self_report_date",
+        "confirmation_date",  # aka notification date
         "removal_date",
         "recovery_date",
         "vacc_date",
@@ -739,15 +740,34 @@ def save_approx_known_data(properties, folder_path, unique_output):
         writer.writerow(header)
 
         for facility in properties:
+            # TODO: need to fix this to NOT show clinical date, notification dates etc depending on situation....
+            try:
+                self_report_date = facility.custom_info["self_report_date"]
+            except:
+                self_report_date = "NA"
+
+            try:
+                infection_data_known = facility.custom_info["infection_data_known"]
+            except:
+                infection_data_known = False
+
+            try:
+                property_data_known = facility.custom_info["property_data_known"]
+            except:
+                property_data_known = False
+
+            num_chickens = facility.get_num_chickens()
+            num_eggs = facility.get_num_eggs() + facility.get_num_fertilised_eggs()
 
             row = [
                 facility.id,
                 facility.status,
                 facility.ip,
-                facility.clinical_date,
+                facility.clinical_date if infection_data_known else "NA",
+                self_report_date,
                 facility.notification_date,
                 facility.removal_date,
-                facility.recovery_date,
+                facility.recovery_date if infection_data_known else "NA",
                 facility.vacc_date,
                 facility.region,
                 facility.coordinates[0],
@@ -755,20 +775,31 @@ def save_approx_known_data(properties, folder_path, unique_output):
                 facility.area,
                 facility.type,
                 facility.num_sheds,
-                rounding_entities(facility.get_num_chickens()),
-                rounding_entities(
-                    facility.get_num_eggs() + facility.get_num_fertilised_eggs()
-                ),  # TODO: will want premise attribute that looks at whether this property has been inspected yet or not, and if the number of animals have been counted more accurately or not.
+                num_chickens if property_data_known else rounding_entities(num_chickens),
+                (
+                    num_eggs if property_data_known else rounding_entities(num_eggs)
+                ),  # TODO: technically, the numbers might change over time...so really it should be saving the info *at the time* of inspect....
             ]
 
             writer.writerow(row)
 
 
 def update_status_based_on_zones(properties, restricted_area, control_area):
+    # TODO could probably make this better (like everything else)
+    higher_priority_statuses = ["IP", "DCP", "TP", "SP", "DCPF", "RP"]
+
     for facility in properties:
         if facility.polygon.intersects(restricted_area):  # restricted area is the tighter one
-            if facility.status not in ["IP", "DCP", "TP", "SP"]:
-                facility.status = ""
+            if facility.status not in higher_priority_statuses:
+                facility.status = "ARP"  # at risk premises
         elif facility.polygon.intersects(control_area):  # control area is the disease free buffer
-            if facility.status not in ["IP", "DCP", "TP", "SP"]:
-                facility.status = ""
+            if facility.status not in higher_priority_statuses:
+                # if it contains chickens -> POR -> Premises of relevance
+                if (
+                    facility.get_num_chickens() > 0
+                    or facility.get_num_eggs() > 0
+                    or facility.get_num_fertilised_eggs() > 0
+                ):
+                    facility.status = "POR"
+                else:
+                    facility.status = "ZP"
