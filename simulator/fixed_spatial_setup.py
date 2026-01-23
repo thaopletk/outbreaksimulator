@@ -156,14 +156,16 @@ def plot_map_land_HPAI(
     chickenimage = plt.imread(os.path.join(os.path.dirname(__file__), "..", "images", "chicken.png"))
     chickenimage_box = OffsetImage(chickenimage, zoom=0.1)
 
-    chickenmeatimage = plt.imread(os.path.join(os.path.dirname(__file__), "..", "images", "chickenmeat.png"))
-    chickenmeatimage_box = OffsetImage(chickenmeatimage, zoom=0.025)
+    # chickenmeatimage = plt.imread(os.path.join(os.path.dirname(__file__), "..", "images", "chickenmeat.png"))
+    # chickenmeatimage_box = OffsetImage(chickenmeatimage, zoom=0.03)
+    chickenmeatimage = plt.imread(os.path.join(os.path.dirname(__file__), "..", "images", "factory.png"))
+    chickenmeatimage_box = OffsetImage(chickenmeatimage, zoom=0.3)
 
     eggimage = plt.imread(os.path.join(os.path.dirname(__file__), "..", "images", "egg.png"))
     eggimage_box = OffsetImage(eggimage, zoom=0.1)
 
     eggcartonimage = plt.imread(os.path.join(os.path.dirname(__file__), "..", "images", "eggcarton.png"))
-    eggcartonimage_box = OffsetImage(eggcartonimage, zoom=0.06)
+    eggcartonimage_box = OffsetImage(eggcartonimage, zoom=0.055)
 
     fig, ax = plt.subplots(1, 1, figsize=(30, 30))  # ,figsize=(10,12)
 
@@ -193,6 +195,9 @@ def plot_map_land_HPAI(
             ab = AnnotationBbox(marker, (x, y), frameon=False)
             ax.add_artist(ab)
 
+    ax.set_xlim(xlims)
+    ax.set_ylim(ylims)
+
     ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
@@ -211,9 +216,6 @@ def plot_map_land_HPAI(
 
     ax.set_ylabel("latitude", fontsize=16)
     ax.set_xlabel("longitude", fontsize=16)
-
-    ax.set_xlim(xlims)
-    ax.set_ylim(ylims)
 
     # ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
     #       fancybox=True, shadow=True, fontsize=18)
