@@ -380,7 +380,7 @@ class Premises(Property):
         else:
             self.size = self.get_num_chickens()
             culled_animals = self.size
-            report = f"DAY {self.notification_date} - IP {self.ip} (ID {self.id}), {round(self.area,1)} ha property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been found infected. A total of {culled_animals} animal(s) will be culled."
+            report = f"DAY {self.notification_date} - Property ID {self.id} has been designated IP {self.ip}, located at (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}. The property has a total of {culled_animals} chicken(s) and {self.get_num_eggs()+self.get_num_fertilised_eggs()} egg(s)."
 
         return report
 

@@ -91,7 +91,7 @@ def contact_tracing(properties, property_index, movement_records, time):
             contact_tracing_report = contact_tracing_report + " - " + movement_text + "\n"
 
     if not properties_found:
-        contact_tracing_report += " - no movements found in the last {timeframe_days} days\n"
+        contact_tracing_report += f" - no movements found in the last {timeframe_days} days\n"
     else:
         for t_i in traced_property_indices:
             if properties[t_i].status == "NA":
@@ -107,7 +107,7 @@ def test_property(properties, property_index, time, test_sensitivity, test_type=
     positive = False
     premise = properties[property_index]
 
-    testing_report = f"DAY {convert_time_to_date(time)} - {test_type} report for property index {property_index}: "
+    testing_report = f"DAY {convert_time_to_date(time)} - {test_type} report for property ID {property_index} ({premise.type} in {premise.region}): "
 
     if premise.culled_status:
         testing_report += f"No testing: property index {property_index} (IP {premise.ip}) has already been culled"

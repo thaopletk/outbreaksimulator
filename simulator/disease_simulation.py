@@ -704,13 +704,16 @@ class DiseaseSimulation:
         self.first_detection_day = self.time
         converted_date = premises.convert_time_to_date(self.time)
         self.daily_statistics[converted_date] = {
-            "num self reports": 0,
+            "num self-reported": 0,
             "num positive clinical": 0,
             "num lab tested": 0,
             "num confirmed infected": 0,
             "num tested negative": 0,
             "DCP tested negative": 0,
             "surveillance tested negative": 0,
+            "culled birds": 0,
+            "destroyed eggs": 0,
+            "vaccinated birds": 0,
         }
 
         if outbreak_sim == "HPAI":
@@ -726,7 +729,7 @@ class DiseaseSimulation:
         first_report_i = self.select_first_reported_property(properties, reportingregion_x, reportingregion_y)
         reported_property = properties[first_report_i]
         self.make_report(reported_property, converted_date, first_report_i)
-        self.daily_statistics[converted_date]["num self reports"] += 1
+        self.daily_statistics[converted_date]["num self-reported"] += 1
 
         return self.force_sim_pause_after_report(properties, restricted_area=None, control_area=None)
 
@@ -1841,7 +1844,7 @@ class DiseaseSimulation:
                             [self.time, converted_date, "test", property_index, testing_report]
                         )
 
-                        facility.custom_info["property_data_known"] = True
+                        properties[property_index].custom_info["property_data_known"] = True
 
                         if positive:
                             self.daily_statistics[converted_date]["num positive clinical"] += 1
@@ -1885,7 +1888,7 @@ class DiseaseSimulation:
 
                     self.job_manager.jobs_queue[property_index][job_type][str(self.time)] = ["complete", converted_date]
 
-            property_jobs.drop(property_jobs["date_scheduled" == converted_date_dt].index, inplace=True)
+            property_jobs = property_jobs.loc[property_jobs["date_scheduled"] != converted_date_dt]
 
             self.contacts_for_plotting = contacts_for_plotting
 
