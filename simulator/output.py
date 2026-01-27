@@ -257,6 +257,7 @@ def plot_map(
     geometry_culled = []
     geometry_vaccinated = []
     geometry_susceptible = []
+    geometry_selfreport = []
     # geometry_culled_on_suspicion = [] # TODO/NOTE: currently removed because we don't expect ring culling to actually be implemented
     # geomtry_culled_on_suspicion_actually_infected = []
     geometry_undergoing_testing = []
@@ -327,6 +328,8 @@ def plot_map(
                 infected_coords.append(premise.coordinates)
             elif premise.vaccination_status:
                 geometry_vaccinated.append(curr_farm)
+            elif premise.status == "SP":
+                geometry_selfreport.append(curr_farm)
             else:
                 geometry_susceptible.append(curr_farm)
         if infectionpoly == True:
@@ -366,6 +369,8 @@ def plot_map(
                 geometry_undergoing_testing.append(curr_farm)
             elif premise.vaccination_status:
                 geometry_vaccinated.append(curr_farm)
+            elif premise.status == "SP":
+                geometry_selfreport.append(curr_farm)
             else:
                 geometry_susceptible.append(curr_farm)
 
@@ -389,6 +394,7 @@ def plot_map(
             "susceptible",
             20,
         ],  # TODO: can take out susceptible plotting to make it clearer to see what's happening
+        [geometry_selfreport, "grey", "s", "self-reported", 70],
         [geometry_vaccinated, "#7852a4", "P", "vaccinated", 70],
         [geometry_undergoing_testing, "#ffa200", "d", "TP/testing", 100],
         [geometry_infected, "purple", "x", "infected", 30],
