@@ -748,6 +748,10 @@ def save_approx_known_data(properties, folder_path, unique_output):
         "sheds",
         "total_chickens",
         "total_eggs",
+        "last_surveillance_date",
+        "animals_clinical",
+        "last_PCR_date",
+        "PCR_result",
     ]
 
     file = os.path.join(folder_path, f"approx_known_data_{unique_output}.csv")
@@ -776,6 +780,26 @@ def save_approx_known_data(properties, folder_path, unique_output):
             except:
                 property_data_known = False
 
+            try:
+                last_surveillance_date = facility.custom_info["last_surveillance_date"]
+            except:
+                last_surveillance_date = "NA"
+
+            try:
+                animals_clinical = facility.custom_info["animals_clinical"]
+            except:
+                animals_clinical = "NA"
+
+            try:
+                last_PCR_date = facility.custom_info["last_PCR_date"]
+            except:
+                last_PCR_date = "NA"
+
+            try:
+                PCR_result = facility.custom_info["PCR_result"]
+            except:
+                PCR_result = "NA"
+
             num_chickens = facility.get_num_chickens()
             num_eggs = facility.get_num_eggs() + facility.get_num_fertilised_eggs()
 
@@ -799,6 +823,10 @@ def save_approx_known_data(properties, folder_path, unique_output):
                 (
                     num_eggs if property_data_known else rounding_entities(num_eggs)
                 ),  # TODO: technically, the numbers might change over time...so really it should be saving the info *at the time* of inspect....
+                last_surveillance_date,
+                animals_clinical,
+                last_PCR_date,
+                PCR_result,
             ]
 
             writer.writerow(row)

@@ -1812,6 +1812,7 @@ class DiseaseSimulation:
                         self.daily_statistics[converted_date]["num lab tested"] += 1
                         premise = properties[property_index]
                         premise.day_of_last_lab_test = self.time
+                        properties[property_index].custom_info["last_PCR_date"] = converted_date
 
                         if positive:
                             self.daily_statistics[converted_date]["num confirmed infected"] += 1
@@ -1822,8 +1823,11 @@ class DiseaseSimulation:
                             self.combined_narrative.append(
                                 [self.time, converted_date, "report", property_index, premise_report]
                             )
+
+                            properties[property_index].custom_info["PCR_result"] = "positive"
                         else:
                             self.daily_statistics[converted_date]["num tested negative"] += 1
+                            properties[property_index].custom_info["PCR_result"] = "negative"
 
                             if DCP_status:
                                 self.daily_statistics[converted_date]["DCP tested negative"] += 1
@@ -1845,10 +1849,14 @@ class DiseaseSimulation:
                         )
 
                         properties[property_index].custom_info["property_data_known"] = True
+                        properties[property_index].custom_info["last_surveillance_date"] = converted_date
 
                         if positive:
                             self.daily_statistics[converted_date]["num positive clinical"] += 1
                             properties[property_index].status = "DCP"
+                            properties[property_index].custom_info["animals_clinical"] = True
+                        else:
+                            properties[property_index].custom_info["animals_clinical"] = False
 
                     elif job_type == "Cull":
                         # TODO
