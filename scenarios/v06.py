@@ -116,7 +116,7 @@ if not os.path.exists(properties_filename):
 
     properties = fixed_spatial_setup.HPAI_movement_network_setup(
         all_properties,
-        max_movement_km=500,  # 500km max movement
+        max_movement_km=200,  # 200km max movement
     )
 
     with open(properties_filename, "wb") as file:
