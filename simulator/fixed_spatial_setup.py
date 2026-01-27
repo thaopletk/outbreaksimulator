@@ -454,7 +454,7 @@ def HPAI_NSW_setup_locations(
 
         print(premises_type)
 
-        if "layers" in premises_type or "pullets" in premises_type:
+        if "layers" in premises_type or "pullet" in premises_type:
             chicken_egg_property_coordinates.extend(property_coordinates)
         else:
             chicken_meat_property_coordinates.extend(property_coordinates)
