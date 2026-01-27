@@ -1859,18 +1859,75 @@ class DiseaseSimulation:
                             properties[property_index].custom_info["animals_clinical"] = False
 
                     elif job_type == "Cull":
-                        # TODO
                         num_animals_to_cull = row["num"]
 
-                        newly_culled_animals = 0
-                        newly_destroyed_eggs = 0
+                        facility = properties[property_index]
+                        facility.custom_info["last_cull_date"] = converted_date
+
+                        facility.culled_status = 1
+
+                        facility.removal_date = converted_date
+
+                        num_eggs = (
+                            properties[property_index].get_num_eggs()
+                            + properties[property_index].get_num_fertilised_eggs()
+                        )
+                        if num_eggs > 0:
+                            properties[property_index].custom_info["destroyed_eggs"] = num_eggs
+                            properties[property_index].eggs = []
+                            properties[property_index].fertilised_eggs = []
+
+                        num_chickens_left = properties[property_index].get_num_chickens()
+                        if num_chickens_left <= num_animals_to_cull:
+                            # cull everything
+                            properties[property_index].chickens = []
+                            if "culled_birds" in properties[property_index].custom_info:
+                                properties[property_index].custom_info["culled_birds"] += num_chickens_left
+                            else:
+                                properties[property_index].custom_info["culled_birds"] = num_chickens_left
+
+                            newly_culled_animals = num_chickens_left
+                        else:
+                            # there are more chickens than capacity to cull
+                            chickens_left_to_cull_today = num_animals_to_cull
+                            newly_culled_animals = num_animals_to_cull
+
+                            while chickens_left_to_cull_today > 0:
+                                chickens_row = properties[property_index].chickens.pop(i)
+                                if chickens_row[0] < chickens_left_to_cull_today:
+                                    chickens_left_to_cull_today -= chickens_row[0]  # removing entire row
+                                else:
+                                    # can't actually cull all the animals in this row
+                                    if properties[property_index].check_if_chicken_objects():
+                                        new_row = [
+                                            chickens_row[0] - chickens_left_to_cull_today,
+                                            chickens_row[1],
+                                            chickens_row[2],
+                                            chickens_row[3][: chickens_row[0] - chickens_left_to_cull_today],
+                                        ]
+                                    else:
+                                        new_row = [
+                                            chickens_row[0] - chickens_left_to_cull_today,
+                                            chickens_row[1],
+                                            chickens_row[2],
+                                        ]
+
+                                    properties[property_index].chickens.append(new_row)
+
+                                    chickens_left_to_cull_today = 0
+
+                        if facility.get_num_chickens() == 0:
+                            facility.infection_status = 0
+
+                        premise_report = f"DAY {converted_date} - IP {self.ip} (ID {self.id}), {round(self.area,1)} ha property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}: \nA total of {newly_culled_animals} animal(s) have been culled and {num_eggs} egg(s) destroyed."
+                        self.combined_narrative.append(
+                            [self.time, converted_date, "cull", property_index, premise_report]
+                        )
 
                         self.total_culled_animals += newly_culled_animals
-
                         self.daily_statistics[converted_date]["culled birds"] += newly_culled_animals
-                        self.daily_statistics[converted_date]["destroyed eggs"] += newly_destroyed_eggs
+                        self.daily_statistics[converted_date]["destroyed eggs"] += num_eggs
 
-                        pass
                     elif job_type == "ContactTracing":
                         contact_tracing_report, traced_property_indices = management.contact_tracing(
                             properties, property_index, self.movement_records, self.time

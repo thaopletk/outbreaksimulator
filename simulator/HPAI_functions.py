@@ -752,6 +752,9 @@ def save_approx_known_data(properties, folder_path, unique_output):
         "animals_clinical",
         "last_PCR_date",
         "PCR_result",
+        "last_cull_date",
+        "culled_birds",
+        "destroyed_eggs",
     ]
 
     file = os.path.join(folder_path, f"approx_known_data_{unique_output}.csv")
@@ -800,6 +803,21 @@ def save_approx_known_data(properties, folder_path, unique_output):
             except:
                 PCR_result = "NA"
 
+            try:
+                last_cull_date = facility.custom_info["last_cull_date"]
+            except:
+                last_cull_date = "NA"
+
+            try:
+                culled_birds = facility.custom_info["culled_birds"]
+            except:
+                culled_birds = "NA"
+
+            try:
+                destroyed_eggs = facility.custom_info["destroyed_eggs"]
+            except:
+                destroyed_eggs = "NA"
+
             num_chickens = facility.get_num_chickens()
             num_eggs = facility.get_num_eggs() + facility.get_num_fertilised_eggs()
 
@@ -827,6 +845,9 @@ def save_approx_known_data(properties, folder_path, unique_output):
                 animals_clinical,
                 last_PCR_date,
                 PCR_result,
+                last_cull_date,
+                culled_birds,
+                destroyed_eggs,
             ]
 
             writer.writerow(row)
