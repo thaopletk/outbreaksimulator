@@ -68,12 +68,14 @@ def contact_tracing(properties, property_index, movement_records, time):
 
     """
 
-    contact_tracing_report = f"DAY {convert_time_to_date(time)} - contact tracing report compiled for movements to/from IP {properties[property_index].ip} (ID {properties[property_index].id}) in {properties[property_index].state}\n"
+    contact_tracing_report = f"DAY {convert_time_to_date(time)} - contact tracing report compiled for movements to/from {properties[property_index].status} (ID: {properties[property_index].id}, IP: {properties[property_index].ip}) in {properties[property_index].state}\n"
     traced_property_indices = []
 
     properties_found = False
 
-    timeframe = movement_records.loc[movement_records["day"] >= time - 56]
+    timeframe_days = 56
+
+    timeframe = movement_records.loc[movement_records["day"] >= time - timeframe_days]
     forward = timeframe.loc[timeframe["to"] == property_index]
     if not forward.empty:
         properties_found = True
@@ -89,7 +91,7 @@ def contact_tracing(properties, property_index, movement_records, time):
             contact_tracing_report = contact_tracing_report + " - " + movement_text + "\n"
 
     if not properties_found:
-        contact_tracing_report += " - no movements found\n"
+        contact_tracing_report += " - no movements found in the last {timeframe_days} days\n"
     else:
         for t_i in traced_property_indices:
             if properties[t_i].status == "NA":
