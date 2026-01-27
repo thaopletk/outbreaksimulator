@@ -243,7 +243,7 @@ def plot_map_land_HPAI_2(
         "layers caged",
         "layers barn",
         "meat growing-farm",
-        "pullets farm",
+        "pullet farm",
         "egg processing",
         "abbatoir",
         "hatchery",
@@ -447,7 +447,7 @@ def HPAI_NSW_setup_locations(
         #     animal_type = "poultry"
         elif " All other chickens" in row["Commodity description or property type"]:
             # TODO - should be a mix of pullets and replacement stock, but I'll just make it pullets for now
-            premises_type = "pullets farm"
+            premises_type = "pullet farm"
             animal_type = "chicken"
         else:
             raise ValueError(f"commodity/property not expected: {row['Commodity description or property type']}")

@@ -131,7 +131,7 @@ def egg_production(properties):
             )  # assume half of the chickens lay eggs; age of eggs is zero
         elif facility.type == "meat growing-farm":
             pass  # no egg production
-        elif facility.type == "pullets farm":
+        elif facility.type == "pullet farm":
             pass  # no egg production
         elif facility.type == "egg processing":
             pass  # no egg production
@@ -206,7 +206,7 @@ def animal_movement(
         )
 
         if (
-            "layers" in facility.type or facility.type == "meat growing-farm" or facility.type == "pullets farm"
+            "layers" in facility.type or facility.type == "meat growing-farm" or facility.type == "pullet farm"
         ):  # these have the same procedure for chickens
             # movements possible: eggs to egg processing; old chickens to abbatoir
             for allowed_type in allowed_movement_neighbours:
@@ -468,7 +468,7 @@ def animal_movement(
             # TODO: movements possible - baby chicks to layers, meat growing, pullets; old chickens to abbatoir
             # need to somehow separate the baby chicks from the old laying chickens...
             # move the older ones first...?
-            for allowed_type in ["abbatoir", "pullets farm", "meat growing-farm"]:  # forcing this priority ordering
+            for allowed_type in ["abbatoir", "pullet farm", "meat growing-farm"]:  # forcing this priority ordering
                 if allowed_type in allowed_movement_neighbours:
                     pass
                 else:

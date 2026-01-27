@@ -236,7 +236,7 @@ class Premises(Property):
 
             # no eggs at premises
 
-        elif self.type == "pullets farm":
+        elif self.type == "pullet farm":
             # 6 to 20 weeks - https://www.poultryhub.org/production/chicken-egg-layer-industry/layer-farm-sequence
             approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
             weeks_dispersion = 20 - 1  # starting from week old chicks
