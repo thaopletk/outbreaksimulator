@@ -174,15 +174,15 @@ class DiseaseSimulation:
                             DCPs_negative_clinical_test_pending += 1
 
         to_save_narrative = [x[:] for x in self.combined_narrative]
-        to_save_narrative.append(
-            [
-                self.time,
-                premises.convert_time_to_date(self.time),
-                "summary",
-                "",
-                f"Total culled properties: {total_culled}; total vaccinated properties: {total_vaccinated}; total culled animals: {self.total_culled_animals}; total properties in restricted area: {total_properties_in_restricted_area}; total properties in control area: {total_properties_in_control_area}; DCPs_positive_clinical_test_pending: {DCPs_positive_clinical_test_pending}; DCPs_negative_clinical_test_pending: {DCPs_negative_clinical_test_pending}",
-            ]  # TODO: update this for chickens
-        )
+        # to_save_narrative.append(
+        #     [
+        #         self.time,
+        #         premises.convert_time_to_date(self.time),
+        #         "summary",
+        #         "",
+        #         f"Total culled properties: {total_culled}; total vaccinated properties: {total_vaccinated}; total culled animals: {self.total_culled_animals}; total properties in restricted area: {total_properties_in_restricted_area}; total properties in control area: {total_properties_in_control_area}; DCPs_positive_clinical_test_pending: {DCPs_positive_clinical_test_pending}; DCPs_negative_clinical_test_pending: {DCPs_negative_clinical_test_pending}",
+        #     ]  # TODO: update this for chickens
+        # )
         narrative_df = pd.DataFrame(to_save_narrative, columns=["day", "date", "type", "property", "report"])
 
         narrative_df.to_csv(os.path.join(self.folder_path, "combinated_narrative.csv"), index=False)
@@ -190,12 +190,16 @@ class DiseaseSimulation:
     def save_daily_statistics(self):
         header = [
             "date",
+            "num self-reported",
             "num positive clinical",
             "num lab tested",
             "num confirmed infected",
             "num tested negative",
             "DCP tested negative",
             "surveillance tested negative",
+            "culled birds",
+            "destroyed eggs",
+            "vaccinated birds",
         ]
         data = []
 
@@ -203,12 +207,16 @@ class DiseaseSimulation:
             data.append(
                 [
                     key,
+                    value["num self-reported"],
                     value["num positive clinical"],
                     value["num lab tested"],
                     value["num confirmed infected"],
                     value["num tested negative"],
                     value["DCP tested negative"],
                     value["surveillance tested negative"],
+                    value["culled birds"],
+                    value["destroyed eggs"],
+                    value["vaccinated birds"],
                 ]
             )
         # order by the date
@@ -1702,16 +1710,21 @@ class DiseaseSimulation:
 
         time_list = []
         stop_time = self.time + days_to_run_for
+
         while self.time < stop_time:
             self.time += 1
             converted_date = premises.convert_time_to_date(self.time)
             self.daily_statistics[converted_date] = {
+                "num self-reported": 0,
                 "num positive clinical": 0,
                 "num lab tested": 0,
                 "num confirmed infected": 0,
                 "num tested negative": 0,
                 "DCP tested negative": 0,
                 "surveillance tested negative": 0,
+                "culled birds": 0,
+                "destroyed eggs": 0,
+                "vaccinated birds": 0,
             }
 
             HPAI_functions.advance_chicken_egg_ages(properties)
@@ -1731,6 +1744,7 @@ class DiseaseSimulation:
                     )  # TODO: this is the place to add in false positives
                 ):
                     self.make_report(facility, converted_date, i)
+                    self.daily_statistics[converted_date]["num self-reported"] += 1
 
             # run infection model for each property
             properties = self.run_infection_model_for_each_property(properties, FOI)
@@ -1838,8 +1852,12 @@ class DiseaseSimulation:
                         num_animals_to_cull = row["num"]
 
                         newly_culled_animals = 0
+                        newly_destroyed_eggs = 0
 
                         self.total_culled_animals += newly_culled_animals
+
+                        self.daily_statistics[converted_date]["culled birds"] += newly_culled_animals
+                        self.daily_statistics[converted_date]["destroyed eggs"] += newly_destroyed_eggs
 
                         pass
                     elif job_type == "ContactTracing":
@@ -1860,7 +1878,14 @@ class DiseaseSimulation:
                     elif job_type == "Vaccination":
                         # TODO
                         num_animals_to_vaccinate = row["num"]
+
+                        self.daily_statistics[converted_date]["vaccinated birds"] = 0
+
                         pass
+
+                    self.job_manager.jobs_queue[property_index][job_type][str(self.time)] = ["complete", converted_date]
+
+            property_jobs.drop(property_jobs["date_scheduled" == converted_date_dt].index, inplace=True)
 
             self.contacts_for_plotting = contacts_for_plotting
 
