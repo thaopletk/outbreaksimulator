@@ -207,7 +207,7 @@ class Premises(Property):
                 [int(total_laying_chickens / 5), 2],
             ]
 
-        elif self.type == "meat growing-farm":
+        elif self.type == "broiler farm":
             # broilers: 4-6 weeks of age https://kb.rspca.org.au/categories/farmed-animals/poultry/meat-chickens/how-are-meat-chickens-farmed-in-australia
 
             approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed

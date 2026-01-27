@@ -242,7 +242,7 @@ def plot_map_land_HPAI_2(
         "layers free-range",
         "layers caged",
         "layers barn",
-        "meat growing-farm",
+        "broiler farm",
         "pullet farm",
         "egg processing",
         "abbatoir",
@@ -439,7 +439,7 @@ def HPAI_NSW_setup_locations(
             premises_type = "layers barn"
             animal_type = "chicken"
         elif "Meat chickens" in row["Commodity description or property type"]:
-            premises_type = "meat growing-farm"
+            premises_type = "broiler farm"
             animal_type = "chicken"
         # elif "All other poultry" in row["Commodity description or property type"]:
         #     # TODO - not sure about this, just choosing this for now - other poultry farm, for meat, from chick to slaughter
