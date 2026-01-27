@@ -1773,7 +1773,7 @@ class DiseaseSimulation:
 
                 control_area = management.define_control_zone_polygons(
                     properties,
-                    row["ID"],
+                    [row["ID"]],
                     row["radius_km"],
                     convex=False,
                 )  # should be zero movement
@@ -1859,7 +1859,7 @@ class DiseaseSimulation:
                             properties[property_index].custom_info["animals_clinical"] = False
 
                     elif job_type == "Cull":
-                        num_animals_to_cull = row["num"]
+                        num_animals_to_cull = int(row["num"])
 
                         facility = properties[property_index]
                         facility.custom_info["last_cull_date"] = converted_date
@@ -1893,17 +1893,18 @@ class DiseaseSimulation:
                             newly_culled_animals = num_animals_to_cull
 
                             while chickens_left_to_cull_today > 0:
-                                chickens_row = properties[property_index].chickens.pop(i)
+                                chickens_row = properties[property_index].chickens.pop(0)
                                 if chickens_row[0] < chickens_left_to_cull_today:
                                     chickens_left_to_cull_today -= chickens_row[0]  # removing entire row
                                 else:
                                     # can't actually cull all the animals in this row
                                     if properties[property_index].check_if_chicken_objects():
+                                        num_chickens_left_in_row = chickens_row[0] - chickens_left_to_cull_today
                                         new_row = [
-                                            chickens_row[0] - chickens_left_to_cull_today,
+                                            num_chickens_left_in_row,
                                             chickens_row[1],
                                             chickens_row[2],
-                                            chickens_row[3][: chickens_row[0] - chickens_left_to_cull_today],
+                                            chickens_row[3][:num_chickens_left_in_row],
                                         ]
                                     else:
                                         new_row = [
@@ -1919,7 +1920,7 @@ class DiseaseSimulation:
                         if facility.get_num_chickens() == 0:
                             facility.infection_status = 0
 
-                        premise_report = f"DAY {converted_date} - IP {self.ip} (ID {self.id}), {round(self.area,1)} ha property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}: \nA total of {newly_culled_animals} animal(s) have been culled and {num_eggs} egg(s) destroyed."
+                        premise_report = f"DAY {converted_date} - IP {facility.ip} (ID {facility.id}), {round(facility.area,1)} ha property at location (x,y)=({round(facility.x,2)}, {round(facility.y,2)}), {facility.location}: \nA total of {newly_culled_animals} animal(s) have been culled and {num_eggs} egg(s) destroyed."
                         self.combined_narrative.append(
                             [self.time, converted_date, "cull", property_index, premise_report]
                         )

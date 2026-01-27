@@ -106,5 +106,66 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
             total_infected += 1
 
     print(f"Total number of infected premises: {total_infected}")
+else:
+    with open(spread_properties_filename, "rb") as file:
+        properties = pickle.load(file)
+    with open(spread_diseaseoutbreak_filename, "rb") as file:
+        diseaseoutbreak = pickle.load(file)
+
+
+HPAI_functions.save_approx_known_data(properties, folder_path, unique_output)
+
+
+###################################################
+# ---- Run second set of actions ------------------#
+###################################################
+
+actions_input = os.path.join(folder_path_main, f"actions_2.xlsx")
+property_jobs = pd.read_excel(actions_input, sheet_name="jobs")
+property_based_zones = pd.read_excel(
+    actions_input, sheet_name="zones"
+)  # could consider "expanding to SAL, LGA" or something like that
+days_to_run_for = 3
+
+unique_output = f"05_actioning_actions_2"
+folder_path = os.path.join(folder_path_main, unique_output)
+
+if not os.path.exists(folder_path):
+    os.makedirs(folder_path)
+
+spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
+spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
+
+if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
+    # adjust the plotting parameters for this new scenario
+    diseaseoutbreak.set_plotting_parameters(
+        xlims=xlims,
+        ylims=ylims,
+        plotting=True,
+        folder_path=folder_path,
+        unique_output=unique_output,
+    )
+
+    # TODO
+    properties, movement_records, time, total_culled_animals, job_manager = (
+        diseaseoutbreak.simulate_HPAI_outbreak_management(
+            properties, property_jobs, property_based_zones, days_to_run_for
+        )
+    )
+
+    # and then resave the end state
+    with open(spread_properties_filename, "wb") as file:
+        pickle.dump(properties, file)
+
+    # and save the diseaseoutbreak object
+    with open(spread_diseaseoutbreak_filename, "wb") as file:
+        pickle.dump(diseaseoutbreak, file)
+
+    total_infected = 0
+    for property_i in properties:
+        if property_i.exposure_date != "NA":
+            total_infected += 1
+
+    print(f"Total number of infected premises: {total_infected}")
 
 HPAI_functions.save_approx_known_data(properties, folder_path, unique_output)
