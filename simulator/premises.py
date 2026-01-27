@@ -151,10 +151,18 @@ class Premises(Property):
         self.chickens = None
         self.eggs = None
         self.eggs_fertilised = None
+        self.chicken_capacity = self.size
 
         self.custom_info = (
             {}
         )  # setting up an empty dictionary to add in any custom info to be set live during the simulation
+
+    def requesting_chickens(self):
+        current_chickens = self.get_num_chickens()
+        if self.chicken_capacity < current_chickens or np.abs((self.chicken_capacity - current_chickens) / 100) < 0.01:
+            return 0
+        else:
+            return self.chicken_capacity - current_chickens
 
     def init_chickens_eggs(self):
         """Initiating things that are specific for chicken (meat and egg) premises
@@ -176,6 +184,8 @@ class Premises(Property):
             if 2 * approx_chickens_per_shed < self.size:
                 # if there are a LOT of chickens, then let them also rear pullets
                 # TODO: place them in different sheds technically
+                # TODO meaning they shouldn't accept birds from pullet farms, only hatched chickens
+                # or maybe they should actually have fertilised eggs too and stuff....
                 weeks_dispersion = 78 - 1
                 age_group_lower = 1
             else:

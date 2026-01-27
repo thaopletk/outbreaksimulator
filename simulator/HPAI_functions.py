@@ -212,6 +212,7 @@ def animal_movement(
             for allowed_type in allowed_movement_neighbours:
                 if allowed_movement_neighbours[allowed_type] == []:
                     continue
+
                 num_properties_to_move_to = np.random.randint(1, len(allowed_movement_neighbours[allowed_type]) + 1)
 
                 entity_to_move = facility.allowed_movement_details[allowed_type]["entity"]
@@ -233,16 +234,20 @@ def animal_movement(
                     for i in reversed(row_indices_to_move):
                         chickens_to_move.append(facility.chickens.pop(i))
 
-                    chickens_per_property_to_move = saferound(
-                        [num_chickens_to_move / num_properties_to_move_to] * num_properties_to_move_to,
-                        places=0,
-                    )
-                    chickens_per_property_to_move = [int(x) for x in chickens_per_property_to_move]
+                    total_chickens_left = num_chickens_to_move
 
-                    for moving_to_premise_index, number_animals in zip(
-                        allowed_movement_neighbours[allowed_type], chickens_per_property_to_move
-                    ):
+                    for moving_to_premise_index in allowed_movement_neighbours[allowed_type]:
+                        if total_chickens_left == 0:
+                            break
+
                         new_facility = properties[moving_to_premise_index]
+                        number_animals = new_facility.requesting_chickens()
+                        if number_animals == 0:
+                            continue
+
+                        if total_chickens_left < number_animals:
+                            number_animals = total_chickens_left
+
                         animals_moved = 0
 
                         # uh oh, how do I deal with sheds.... - just move into shed #1 for now? / do abbatoir have sheds?
@@ -302,6 +307,8 @@ def animal_movement(
                                 new_facility.chickens.append(new_row)
 
                                 animals_moved += animals_left_to_move
+
+                                total_chickens_left -= animals_left_to_move
                             else:
 
                                 # this means we pop the entire first row
@@ -332,6 +339,8 @@ def animal_movement(
 
                                 new_facility.chickens.append(new_row)
                                 animals_moved += moving_row[0]
+
+                                total_chickens_left -= moving_row[0]
                         if animals_moved != number_animals:
                             raise ValueError("The number of animals moved does not match the target")
 
@@ -352,6 +361,10 @@ def animal_movement(
                             # added in case I decide to change the information recorded again
 
                         movement_record.append(row)
+
+                    if total_chickens_left > 0:
+                        # i.e., there are still chickens left, add them back to the facility
+                        facility.chickens.extend(chickens_to_move)
 
                 elif facility.allowed_movement_details[allowed_type]["entity"] == "egg":  # for layers
                     entity_to_move == "egg"
@@ -522,16 +535,18 @@ def animal_movement(
                 for i in reversed(row_indices_to_move):
                     chickens_to_move.append(facility.chickens.pop(i))
 
-                chickens_per_property_to_move = saferound(
-                    [num_chickens_to_move / num_properties_to_move_to] * num_properties_to_move_to,
-                    places=0,
-                )
-                chickens_per_property_to_move = [int(x) for x in chickens_per_property_to_move]
+                total_chickens_left = num_chickens_to_move
 
-                for moving_to_premise_index, number_animals in zip(
-                    allowed_movement_neighbours[allowed_type], chickens_per_property_to_move
-                ):
+                for moving_to_premise_index in allowed_movement_neighbours[allowed_type]:
+                    if total_chickens_left == 0:
+                        break
+
                     new_facility = properties[moving_to_premise_index]
+                    number_animals = new_facility.requesting_chickens()
+                    if number_animals == 0:
+                        continue
+                    if number_animals > total_chickens_left:
+                        number_animals = total_chickens_left
                     animals_moved = 0
 
                     # uh oh, how do I deal with sheds.... - just move into shed #1 for now? / do abbatoir have sheds?
@@ -623,6 +638,7 @@ def animal_movement(
                             animals_moved += moving_row[0]
                     if animals_moved != number_animals:
                         raise ValueError("The number of animals moved does not match the target")
+                    total_chickens_left -= number_animals
 
                     row = [
                         day,
@@ -641,6 +657,10 @@ def animal_movement(
                         # added in case I decide to change the information recorded again
 
                     movement_record.append(row)
+
+                if total_chickens_left > 0:
+                    # i.e., there are still chickens left, add them back to the facility
+                    facility.chickens.extend(chickens_to_move)
 
         elif facility.type == "abbatoir":
             # movements possible - chickens removed from system, i.e., sent to distribution
