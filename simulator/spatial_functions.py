@@ -97,10 +97,16 @@ def calculate_area(polygon):
     # first check if it is in dictionary form or not
     if type(polygon) != dict:
         # in this case, it should be a polygon (normal shapely polygon)
-        polygon = {
-            "type": "Polygon",
-            "coordinates": [polygon.exterior.coords[:]],
-        }
+        try:
+            polygon = {
+                "type": "Polygon",
+                "coordinates": [polygon.exterior.coords[:]],
+            }
+        except:  # multipolygon case....
+            polygon = {
+                "type": "Polygon",
+                "coordinates": [polygon.convex_hull.exterior.coords[:]],
+            }
 
     poly_area = area(polygon)  # it's not exact-exact but should be good enough, value in square metres
 

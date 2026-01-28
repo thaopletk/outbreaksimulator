@@ -599,8 +599,196 @@ def save_chicken_property_csv(properties, time, folder_path, unique_output):
             writer.writerow(row)
 
 
-def HPAI_QLD_setup():
-    pass
+def HPAI_QLD_setup_locations(
+    output_filename,
+    testing=False,
+    data_file=os.path.join(os.path.dirname(__file__), "..", "data", "QLD_properties.xlsx"),
+    shp_file=os.path.join(
+        os.path.dirname(__file__), "..", "data", "QLD_intensive_livestock", "intensive_livestock.shp"
+    ),
+):
+    """
+    Generates locations for poultry and egg premises in QLD, and creates "Premises" objects from them.
+
+    output_filename : location to save the list of premises objects
+    testing : flag for testing purposes, it generates fewer properties (and so runs faster)
+    data_file : file that contains LGA + premises type + number of premises, used to generate properties
+    shp_file : QLD's intensive_livestock shape file that contains locations of various poultry farming premises
+    """
+
+    Australia_shape = spatial_setup.Australia_shape()
+    LGA_gdf = spatial_functions.get_LGA_gdf()
+
+    data_poultryCustom = pd.read_excel(
+        data_file, sheet_name="PoultryCustom"
+    )  # contains custom egg processing, hatchery, abbatoirs - format same as NSW
+
+    data_poultry = gpd.read_file(shp_file)
+
+    data_poultry = data_poultry.loc[data_poultry["era"] == "Poultry farming", :]
+
+    occupied_regions = []
+    all_properties = []
+
+    # these are for plotting purposes
+    chicken_meat_property_coordinates = []
+    processing_chicken_meat_property_coordinates = []
+    chicken_egg_property_coordinates = []
+    processing_chicken_egg_property_coordinates = []
+
+    total_chickens_LGA = {}
+
+    for index, row in data_poultry.iterrows():
+
+        region_name = row["lga"]
+        if testing:
+            if "A" in region_name or "B" in region_name or "C" in region_name:
+                pass
+            else:
+                continue  # temporary setup for testing
+
+        if " City" in region_name:
+            region_name = region_name.replace(" City", "")
+        if " Regional" in region_name:
+            region_name = region_name.replace(" Regional", "")
+        if " Council" in region_name:
+            region_name = region_name.replace(" Council", "")
+        print(region_name)
+
+        region_only = LGA_gdf.loc[
+            LGA_gdf["LGA_NAME24"] == region_name, :
+        ]  # checking if the region name is actually standard or not lol
+        if region_only.empty:
+            raise ValueError(f"{region_name} doesn't exist")
+
+        property_polygon = row["geometry"]
+        minx, miny, maxx, maxy = row["geometry"].bounds
+        property_area = spatial_functions.calculate_area(property_polygon)
+        property_coordinates = [property_polygon.centroid.x, property_polygon.centroid.y]
+
+        occupied_regions.append(property_polygon)
+
+        premises_type = random.choices(
+            ["layers free-range", "layers caged", "layers barn", "broiler farm", "pullet farm"],
+            weights=(10, 10, 10, 10, 5),
+        )[0]
+        animal_type = "chicken"
+
+        print(premises_type)
+
+        if "layers" in premises_type or "pullet" in premises_type:
+            chicken_egg_property_coordinates.extend(property_coordinates)
+        else:
+            chicken_meat_property_coordinates.extend(property_coordinates)
+
+        approx_num_animals = row["ea_cap"].replace(" ", "").replace(",", "").split("-")
+        print(f"approx_num_animals: {approx_num_animals}")
+        if len(approx_num_animals) == 2:
+            lower_lim = int(approx_num_animals[0].replace(">", ""))
+            upper_lim = int(approx_num_animals[1])
+
+            num_animals = random.randint(lower_lim, upper_lim)
+        else:
+            lower_lim = int(approx_num_animals[0].replace(">", ""))
+            if ">" in approx_num_animals:
+                num_animals = random.randint(lower_lim, 600000)
+            else:
+                num_animals = random.randint(int(lower_lim * 0.9), int(lower_lim * 1.1))
+
+        print(f"num_animals: {num_animals}")
+
+        if region_name in total_chickens_LGA:
+            total_chickens_LGA[region_name] += num_animals
+        else:
+            total_chickens_LGA[region_name] = num_animals
+
+        new_p = property_specific_initialisation_animals_no_neighbours(
+            property_coordinates,
+            property_polygon,
+            property_area,
+            wind_radius=5,
+            animal_type=animal_type,
+            premises_type=premises_type,
+            num_animals=num_animals,
+            LGA=region_name,
+        )
+        all_properties.append(new_p)
+
+    for i, row in data_poultryCustom.iterrows():
+        if testing:
+            if "A" in row["Region name"] or "B" in row["Region name"] or "C" in row["Region name"]:
+                pass
+            else:
+                continue  # temporary setup for testing - to limit how long it takes.
+        print(row["Region name"])
+
+        region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == row["Region name"], :]
+        region_shape = list(region_only["geometry"])[0]
+
+        # TODO: random number chosen
+        average_property_size = 50
+
+        property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
+            int(row["Number of agricultural businesses"]),
+            region_shape,
+            average_property_ha=average_property_size,
+            excluded_regions=occupied_regions,
+        )
+
+        occupied_regions.extend(property_polygons)
+
+        premises_type = row["Commodity description or property type"]
+        print(premises_type)
+
+        if premises_type == "egg processing":
+            processing_chicken_egg_property_coordinates.extend(property_coordinates)
+            animal_type = "chicken"
+            num_animals = 0  # no chickens, only eggs
+        elif premises_type == "abbatoir":
+            processing_chicken_meat_property_coordinates.extend(property_coordinates)
+            animal_type = "chicken"
+            num_animals = 1000  # assuming some initial live chickens
+        elif premises_type == "hatchery":
+            processing_chicken_egg_property_coordinates.extend(property_coordinates)
+            animal_type = "chicken"
+            # num_animals = 1000  # TODO: actually need to calculate the number of chickens the hatchery has to support the other stuff
+            num_animals = total_chickens_LGA[row["Region name"]] / 10  # hmmm how are these actually counted???
+        else:
+            raise ValueError(f"premises type not expected: {premises_type}")
+
+        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+            new_p = property_specific_initialisation_animals_no_neighbours(
+                coordinates,
+                p_polygon,
+                p_area,
+                wind_radius=5,
+                animal_type=animal_type,
+                premises_type=premises_type,
+                num_animals=num_animals,
+                LGA=row["Region name"],
+            )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
+
+            all_properties.append(new_p)
+
+    with open(output_filename, "wb") as file:
+        pickle.dump(
+            [
+                all_properties,
+                chicken_meat_property_coordinates,
+                processing_chicken_meat_property_coordinates,
+                chicken_egg_property_coordinates,
+                processing_chicken_egg_property_coordinates,
+            ],
+            file,
+        )
+
+    return (
+        all_properties,
+        chicken_meat_property_coordinates,
+        processing_chicken_meat_property_coordinates,
+        chicken_egg_property_coordinates,
+        processing_chicken_egg_property_coordinates,
+    )
 
 
 # NOTE: old function, see HPAI_NSW_setup_locations() instead
