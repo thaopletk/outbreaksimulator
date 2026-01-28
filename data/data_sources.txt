@@ -16,3 +16,6 @@ https://www.abs.gov.au/statistics/standards/australian-statistical-geography-sta
 
 Urban Centres and Localities 
 https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs-edition-3/jul2021-jun2026/access-and-downloads/digital-boundary-files
+
+
+Queensland intensive livestock https://qldspatial.information.qld.gov.au/catalogue/custom/detail.page?fid={3AE6FD7E-FE3D-43B3-A077-C18976261836}
