@@ -1,1 +1,6 @@
-*.png
+# Ignore everything
+*
+
+# Except the following files
+!*.json
+!*.xlsx

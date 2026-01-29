@@ -2023,7 +2023,7 @@ class DiseaseSimulation:
 
         animal_movement.save_movement_record(self.folder_path, self.movement_records)
         self.save_reports(properties, restricted_area, control_area)
-        self.job_manager.save_jobs_queue(self.folder_path)
+        self.job_manager.save_jobs_queue(self.folder_path, "completed_jobs.csv")
         self.save_daily_statistics()
 
         self.job_manager.calculate_resources_used(self.folder_path)

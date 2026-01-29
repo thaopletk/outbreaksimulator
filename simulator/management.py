@@ -154,7 +154,7 @@ class JobManager:
 
         self.jobs_queue = {i: {job_type: {} for job_type in job_types} for i in range(n)}
 
-    def save_jobs_queue(self, folder_path):
+    def save_jobs_queue(self, folder_path, save_name="jobs_queue.csv"):
 
         header = ["day_scheduled", "date_scheduled", "property", "job_type", "status", "completion_date"]
         jobs = []
@@ -168,7 +168,7 @@ class JobManager:
         # save the dataframe
         jobs_df = pd.DataFrame(jobs, columns=header)
 
-        jobs_df.to_csv(os.path.join(folder_path, "jobs_queue.csv"), index=False)
+        jobs_df.to_csv(os.path.join(folder_path, save_name), index=False)
 
     def conduct_labtesting(self, properties, property_index, time):
         testing_report, positive = test_property(
