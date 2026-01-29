@@ -604,7 +604,7 @@ def HPAI_QLD_setup_locations(
     testing=False,
     data_file=os.path.join(os.path.dirname(__file__), "..", "data", "QLD_properties.xlsx"),
     shp_file=os.path.join(
-        os.path.dirname(__file__), "..", "data", "QLD_intensive_livestock", "intensive_livestock.shp"
+        os.path.dirname(__file__), "..", "data", "QLD_intensive_livestock", "Intensive_livestock.shp"
     ),
 ):
     """
@@ -677,9 +677,9 @@ def HPAI_QLD_setup_locations(
         print(premises_type)
 
         if "layers" in premises_type or "pullet" in premises_type:
-            chicken_egg_property_coordinates.extend(property_coordinates)
+            chicken_egg_property_coordinates.append(property_coordinates)
         else:
-            chicken_meat_property_coordinates.extend(property_coordinates)
+            chicken_meat_property_coordinates.append(property_coordinates)
 
         approx_num_animals = row["ea_cap"].replace(" ", "").replace(",", "").split("-")
         print(f"approx_num_animals: {approx_num_animals}")
@@ -724,6 +724,11 @@ def HPAI_QLD_setup_locations(
 
         region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == row["Region name"], :]
         region_shape = list(region_only["geometry"])[0]
+
+        if row["Region name"] in total_chickens_LGA:
+            pass
+        else:
+            continue  # would mean that there aren't chicken properties in this LGA....
 
         # TODO: random number chosen
         average_property_size = 50

@@ -185,7 +185,7 @@ class DiseaseSimulation:
         # )
         narrative_df = pd.DataFrame(to_save_narrative, columns=["day", "date", "type", "property", "report"])
 
-        narrative_df.to_csv(os.path.join(self.folder_path, "combinated_narrative.csv"), index=False)
+        narrative_df.to_csv(os.path.join(self.folder_path, "combined_narrative.csv"), index=False)
 
     def save_daily_statistics(self):
         header = [
@@ -1873,7 +1873,10 @@ class DiseaseSimulation:
                             + properties[property_index].get_num_fertilised_eggs()
                         )
                         if num_eggs > 0:
-                            properties[property_index].custom_info["destroyed_eggs"] = num_eggs
+                            if "destroyed_eggs" in properties[property_index].custom_info:
+                                properties[property_index].custom_info["destroyed_eggs"] += num_eggs
+                            else:
+                                properties[property_index].custom_info["destroyed_eggs"] = num_eggs
                             properties[property_index].eggs = []
                             properties[property_index].fertilised_eggs = []
 
@@ -1891,6 +1894,11 @@ class DiseaseSimulation:
                             # there are more chickens than capacity to cull
                             chickens_left_to_cull_today = num_animals_to_cull
                             newly_culled_animals = num_animals_to_cull
+
+                            if "culled_birds" in properties[property_index].custom_info:
+                                properties[property_index].custom_info["culled_birds"] += num_animals_to_cull
+                            else:
+                                properties[property_index].custom_info["culled_birds"] = num_animals_to_cull
 
                             while chickens_left_to_cull_today > 0:
                                 chickens_row = properties[property_index].chickens.pop(0)
