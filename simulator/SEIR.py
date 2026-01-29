@@ -7,6 +7,7 @@ import sys
 import os
 import rasterio
 import numpy as np
+import geopandas as gpd
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "FMD_modelling"))
@@ -38,7 +39,18 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mort
         vectors_img = rasterio.open(vectors_file)
         vector_val = [x for x in vectors_img.sample([properties[premise_index].coordinates])][0][0]
     else:
-        vector_val = 1  # aka no effect
+
+        ducks_file = os.path.join(
+            os.path.dirname(__file__), "..", "data", "wildlife", "pabduc1_abundance_seasonal_year_round_mean_2023.tif"
+        )
+        ducks_img = rasterio.open(ducks_file)
+        max_val = ducks_img.statistics(1).max  # around 100
+
+        points = gpd.GeoSeries(
+            [Point(properties[premise_index].coordinates[0], properties[premise_index].coordinates[1])], crs=4326
+        )  # Geographic WGS 84 - degrees
+        points = points.to_crs(8857)  # Projected WGS 84 - meters - format the tif file is in
+        vector_val = ([x for x in ducks_img.sample([[points.x[0], points.y[0]]])][0][0]) / max_val * 10
 
     # contribution from property i
     C_i = properties[premise_index].cumulative_infections
