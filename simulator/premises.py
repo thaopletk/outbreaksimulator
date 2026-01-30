@@ -170,6 +170,7 @@ class Premises(Property):
         self.eggs = None
         self.eggs_fertilised = None
         self.chicken_capacity = self.size
+        self.accepts_hatchlings = False  # whether they rear pullets or not
 
         self.custom_info = (
             {}
@@ -242,7 +243,11 @@ class Premises(Property):
 
             # NEW CHICKEN ALLOCATION - more akin to "all in / all out", with chickens of the same age in each shed
             self.num_sheds = math.ceil(self.size / approx_chickens_per_shed)
-            chickens_possible_week_ages = list(range(4, 6 + 1))
+            if self.num_sheds > 3:
+                chickens_possible_week_ages = list(range(1, 6 + 1))  # lower age limit - rearing pullets
+                self.accepts_hatchlings = True
+            else:
+                chickens_possible_week_ages = list(range(4, 6 + 1))
             actual_chickens_per_shed = int(self.size / self.num_sheds)
 
             for shed_i in range(1, self.num_sheds + 1):
