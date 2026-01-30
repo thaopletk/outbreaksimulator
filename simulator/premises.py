@@ -18,6 +18,24 @@ import datetime
 import itertools
 from simulator.spatial_functions import calculate_area
 
+import math
+
+
+def rounding_entities(val):
+    if val < 10:
+        return val
+    if val < 100:
+        return math.floor(val / 5) * 5
+    if val < 500:
+        return math.floor(val / 50) * 50
+    if val < 1000:
+        return math.floor(val / 100) * 100
+    if val < 10000:
+        return math.floor(val / 1000) * 1000
+    if val < 100000:
+        return math.floor(val / 10000) * 10000
+    return math.floor(val / 100000) * 100000
+
 
 geolocator = Nominatim(user_agent="http")
 
@@ -589,6 +607,16 @@ class Premises(Property):
 
         """
         if RTM:
+            if self.animal_type == "chicken":
+                if self.status == "IP":  # meaning that some culling has occured
+                    num_animals = (
+                        self.get_num_chickens() + self.custom_info["culled_birds"]
+                    )  # get the total number of live chickens and culled birds
+                else:
+                    num_animals = self.get_num_chickens()
+            else:
+                num_animals = self.size
+
             return [
                 self.id,
                 self.status if self.status == "IP" else "NIL",
@@ -600,7 +628,7 @@ class Premises(Property):
                 self.coordinates[0],
                 self.coordinates[1],
                 self.area,
-                self.size,
+                num_animals,
             ]
 
         return [
@@ -637,6 +665,25 @@ class Premises(Property):
 
         """
 
+        if self.animal_type == "chicken":
+            try:
+                property_data_known = self.custom_info["property_data_known"]
+            except:
+                property_data_known = False
+
+            if property_data_known:
+                num_animals = self.get_num_chickens()
+                if "culled_birds" in self.custom_info:
+                    num_animals += self.custom_info["culled_birds"]
+            else:
+                num_animals = rounding_entities(
+                    self.get_num_chickens()
+                )  # technically, this should only get used if the property isn't an IP? so don't need to add in culled birds
+                if "culled_birds" in self.custom_info:
+                    num_animals += self.custom_info["culled_birds"]
+        else:
+            num_animals = self.size
+
         if self.reported_status:  # if reported already, then all information can be provided
             return self.return_output_row(RTM)
         if self.culled_on_suspicion:  # if culled on suspicion, then exposure, clinical, notification dates should be NA
@@ -658,7 +705,7 @@ class Premises(Property):
                 self.area,
                 self.type,
                 self.animal_type,
-                self.size,
+                num_animals,
             ]
         elif RTM:
             return [
@@ -672,7 +719,7 @@ class Premises(Property):
                 self.coordinates[0],
                 self.coordinates[1],
                 self.area,
-                self.size,
+                num_animals,
             ]
 
         else:
@@ -694,7 +741,7 @@ class Premises(Property):
                 self.area,
                 self.type,
                 self.animal_type,
-                self.size,
+                num_animals,
             ]
 
     def check_if_chicken_objects(self):
