@@ -251,28 +251,6 @@ class Premises(Property):
 
                 total_chickens += actual_chickens_per_shed
 
-            # # PREVIOUS CHICKEN ALLOCATION - mixture of ages
-            # weeks_dispersion = 6 - 4
-            # chickens_per_age_group = int(self.size / weeks_dispersion)
-            # total_chickens = 0
-            # shed_num = 1
-            # for week in range(4, 6):
-            #     if total_chickens > shed_num * approx_chickens_per_shed:
-            #         shed_num += 1
-            #     # num chickens, shed number, age by days
-            #     if chickens_per_age_group > approx_chickens_per_shed:
-            #         num_sheds_needed = int(chickens_per_age_group / approx_chickens_per_shed)
-            #         approx_chickens_per_shed_in_age_group = int(chickens_per_age_group / num_sheds_needed)
-            #         for shed in range(num_sheds_needed):
-            #             self.chickens.append([approx_chickens_per_shed_in_age_group, shed_num, week * 7])
-            #             total_chickens += approx_chickens_per_shed_in_age_group
-            #             if shed < num_sheds_needed - 1:
-            #                 shed_num += 1
-            #     else:
-            #         self.chickens.append([chickens_per_age_group, shed_num, week * 7])
-            #         total_chickens += chickens_per_age_group
-            # self.num_sheds = shed_num
-
             self.size = total_chickens  # updating the number in case the division is imperfect
 
             # no eggs at premises
