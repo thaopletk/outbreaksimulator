@@ -263,16 +263,17 @@ class Premises(Property):
         elif self.type == "pullet farm":
             # 6 to 20 weeks - https://www.poultryhub.org/production/chicken-egg-layer-industry/layer-farm-sequence
             approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
-            weeks_dispersion = 20 - 1  # starting from week old chicks
-            chickens_per_age_group = int(self.size / weeks_dispersion)
+
+            self.num_sheds = math.ceil(self.size / approx_chickens_per_shed)
+            chickens_possible_week_ages = list(range(1, 20 + 1))
+            self.accepts_hatchlings = True
+            actual_chickens_per_shed = int(self.size / self.num_sheds)
+
             total_chickens = 0
-            shed_num = 1
-            for week in range(6, 20):
-                if total_chickens > shed_num * approx_chickens_per_shed:
-                    shed_num += 1
-                # num chickens, shed number, age by days
-                self.chickens.append([chickens_per_age_group, shed_num, week * 7])
-                total_chickens += chickens_per_age_group
+            for shed_i in range(1, self.num_sheds + 1):
+                week = np.random.choice(chickens_possible_week_ages)
+                self.chickens.append([actual_chickens_per_shed, shed_i, week * 7])
+                total_chickens += actual_chickens_per_shed
 
             self.size = total_chickens  # updating the number in case the division is imperfect
             self.num_sheds = shed_num
