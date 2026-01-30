@@ -214,13 +214,11 @@ class Premises(Property):
                 chickens_possible_week_ages = list(range(20, 78))
 
             actual_chickens_per_shed = int(self.size / self.num_sheds)
-
+            total_chickens = 0
             total_laying_chickens = 0
             for shed_i in range(1, self.num_sheds + 1):
                 week = np.random.choice(chickens_possible_week_ages)
-
                 self.chickens.append([actual_chickens_per_shed, shed_i, week * 7])
-
                 total_chickens += actual_chickens_per_shed
 
                 if week >= 20:
@@ -288,27 +286,24 @@ class Premises(Property):
             self.num_sheds = 1
             self.chickens = [[self.size, self.num_sheds, 6 * 7]]  # assuming all broiler chickens
             # no eggs at premises
-        elif self.type == "hatchery":
+        elif self.type == "hatchery":  #  technically also breeder?
             approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
 
-            # laying chickens
-            weeks_dispersion = 78 - 20
-            chickens_per_age_group = int(self.size / weeks_dispersion)
+            self.num_sheds = math.ceil(self.size / approx_chickens_per_shed)
+            chickens_possible_week_ages = list(range(20, 78))  # laying chickens
+            actual_chickens_per_shed = int(self.size / self.num_sheds)
+
             total_chickens = 0
-            shed_num = 1
-            for week in range(20, 78):
-                if total_chickens > shed_num * approx_chickens_per_shed:
-                    shed_num += 1
-                # num chickens, shed number, age by days
-                self.chickens.append([chickens_per_age_group, shed_num, week * 7])
-                total_chickens += chickens_per_age_group
+            for shed_i in range(1, self.num_sheds + 1):
+                week = np.random.choice(chickens_possible_week_ages)
+                self.chickens.append([actual_chickens_per_shed, shed_i, week * 7])
+                total_chickens += actual_chickens_per_shed
 
             self.size = total_chickens  # updating the number in case the division is imperfect
-            self.num_sheds = shed_num
 
             self.eggs_fertilised = [[self.size, day] for day in [0, 7, 14, 20]]  # eggs at various stages
 
-            pass  # TODO actually need to calculate the number of chickens the hatchery has to support the other stuff
+            # TODO actually need to calculate the number of chickens the hatchery has to support the other stuff ??
         else:
             raise ValueError(f"property type not expected: {self.type}")
 
