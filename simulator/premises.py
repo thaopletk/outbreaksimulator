@@ -239,28 +239,41 @@ class Premises(Property):
             # broilers: 4-6 weeks of age https://kb.rspca.org.au/categories/farmed-animals/poultry/meat-chickens/how-are-meat-chickens-farmed-in-australia
 
             approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
-            weeks_dispersion = 6 - 4
-            chickens_per_age_group = int(self.size / weeks_dispersion)
-            total_chickens = 0
-            shed_num = 1
-            for week in range(4, 6):
-                if total_chickens > shed_num * approx_chickens_per_shed:
-                    shed_num += 1
-                # num chickens, shed number, age by days
-                if chickens_per_age_group > approx_chickens_per_shed:
-                    num_sheds_needed = int(chickens_per_age_group / approx_chickens_per_shed)
-                    approx_chickens_per_shed_in_age_group = int(chickens_per_age_group / num_sheds_needed)
-                    for shed in range(num_sheds_needed):
-                        self.chickens.append([approx_chickens_per_shed_in_age_group, shed_num, week * 7])
-                        total_chickens += approx_chickens_per_shed_in_age_group
-                        if shed < num_sheds_needed - 1:
-                            shed_num += 1
-                else:
-                    self.chickens.append([chickens_per_age_group, shed_num, week * 7])
-                    total_chickens += chickens_per_age_group
+
+            # NEW CHICKEN ALLOCATION - more akin to "all in / all out", with chickens of the same age in each shed
+            self.num_sheds = math.ceil(self.size / approx_chickens_per_shed)
+            chickens_possible_week_ages = list(range(4, 6 + 1))
+            actual_chickens_per_shed = int(self.size / self.num_sheds)
+
+            for shed_i in range(1, self.num_sheds + 1):
+                week = np.random.choice(chickens_possible_week_ages)
+                self.chickens.append([actual_chickens_per_shed, shed_i, week * 7])
+
+                total_chickens += actual_chickens_per_shed
+
+            # # PREVIOUS CHICKEN ALLOCATION - mixture of ages
+            # weeks_dispersion = 6 - 4
+            # chickens_per_age_group = int(self.size / weeks_dispersion)
+            # total_chickens = 0
+            # shed_num = 1
+            # for week in range(4, 6):
+            #     if total_chickens > shed_num * approx_chickens_per_shed:
+            #         shed_num += 1
+            #     # num chickens, shed number, age by days
+            #     if chickens_per_age_group > approx_chickens_per_shed:
+            #         num_sheds_needed = int(chickens_per_age_group / approx_chickens_per_shed)
+            #         approx_chickens_per_shed_in_age_group = int(chickens_per_age_group / num_sheds_needed)
+            #         for shed in range(num_sheds_needed):
+            #             self.chickens.append([approx_chickens_per_shed_in_age_group, shed_num, week * 7])
+            #             total_chickens += approx_chickens_per_shed_in_age_group
+            #             if shed < num_sheds_needed - 1:
+            #                 shed_num += 1
+            #     else:
+            #         self.chickens.append([chickens_per_age_group, shed_num, week * 7])
+            #         total_chickens += chickens_per_age_group
+            # self.num_sheds = shed_num
 
             self.size = total_chickens  # updating the number in case the division is imperfect
-            self.num_sheds = shed_num
 
             # no eggs at premises
 
