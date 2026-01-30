@@ -1576,8 +1576,8 @@ def HPAI_movement_network_setup(
         for allowed_type in property_i.allowed_movement.keys():
             property_i_neighbours[allowed_type] = []
 
-        if property_i.type == "abbatoir":
-            # abbatoirs don't move animals to any other property
+        if property_i.type in ["abbatoir", "egg processing"]:
+            # abbatoirs/egg processors don't move animals to any other property (they move chickens/eggs to "sinks")
             property_i.movement_neighbours = property_i_neighbours
         else:
             for j, property_j in enumerate(all_properties):
@@ -1587,7 +1587,7 @@ def HPAI_movement_network_setup(
                     (property_j.animal_type == property_i.animal_type)
                     or (
                         property_j.type == "abbatoir"
-                        and property_j.animal_type == "poultry"
+                        and property_j.animal_type == "poultry"  # todo - probably adjust to ducks in the future
                         and property_i.animal_type == "chicken"
                     )
                 ):
@@ -1598,7 +1598,11 @@ def HPAI_movement_network_setup(
                     )
 
                     if distance < max_allowable_movement and random.uniform(0, 1) < 0.5:
-                        property_i_neighbours[property_j.type].append(j)
+                        if property_i.type == "hatchery":
+                            if property_j.accepts_hatchlings:
+                                property_i_neighbours[property_j.type].append(j)
+                        else:
+                            property_i_neighbours[property_j.type].append(j)
 
             property_i.movement_neighbours = property_i_neighbours
 

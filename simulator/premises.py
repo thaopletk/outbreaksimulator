@@ -274,7 +274,6 @@ class Premises(Property):
                 total_chickens += actual_chickens_per_shed
 
             self.size = total_chickens  # updating the number in case the division is imperfect
-            self.num_sheds = shed_num
 
             # no eggs at premises
 
