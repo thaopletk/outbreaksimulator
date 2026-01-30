@@ -8,6 +8,7 @@ import json
 import pickle
 import random
 import numpy as np
+import shutil
 
 # import subprocess
 import pandas as pd
@@ -326,6 +327,19 @@ else:
 HPAI_functions.save_approx_known_data(properties, folder_path_first_report, unique_output)
 
 
+download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
+
+if not os.path.exists(download_folder_path):
+    os.makedirs(download_folder_path)
+
+# Loop through the files in the source directory and copy just the png or csv files
+for file in os.listdir(folder_path_first_report):
+    if file.endswith(".png") or file.endswith(".csv"):
+        source_path = os.path.join(folder_path_first_report, file)
+        destination_path = os.path.join(download_folder_path, file)
+        shutil.copy(source_path, destination_path)
+
+
 ###################################################
 # ---- Run first set of actions ------------------#
 ###################################################
@@ -389,9 +403,21 @@ else:
 
 HPAI_functions.save_approx_known_data(properties, folder_path, unique_output)
 
+download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
+
+if not os.path.exists(download_folder_path):
+    os.makedirs(download_folder_path)
+
+# Loop through the files in the source directory and copy just the png or csv files
+for file in os.listdir(folder_path):
+    if file.endswith(".png") or file.endswith(".csv"):
+        source_path = os.path.join(folder_path, file)
+        destination_path = os.path.join(download_folder_path, file)
+        shutil.copy(source_path, destination_path)
+
 
 ###################################################
-# ---- Run second set of actions ------------------#
+# ---- Run second set of actions -----------------#
 ###################################################
 
 actions_input = os.path.join(folder_path_main, f"actions_2.xlsx")
@@ -443,3 +469,16 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
     print(f"Total number of infected premises: {total_infected}")
 
 HPAI_functions.save_approx_known_data(properties, folder_path, unique_output)
+
+
+download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
+
+if not os.path.exists(download_folder_path):
+    os.makedirs(download_folder_path)
+
+# Loop through the files in the source directory and copy just the png or csv files
+for file in os.listdir(folder_path):
+    if file.endswith(".png") or file.endswith(".csv"):
+        source_path = os.path.join(folder_path, file)
+        destination_path = os.path.join(download_folder_path, file)
+        shutil.copy(source_path, destination_path)
