@@ -200,36 +200,35 @@ class Premises(Property):
             elif self.type == "layers barn":
                 approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
 
-            if 2 * approx_chickens_per_shed < self.size:
-                # if there are a LOT of chickens, then let them also rear pullets
-                # TODO: place them in different sheds technically
-                # TODO meaning they shouldn't accept birds from pullet farms, only hatched chickens
-                # or maybe they should actually have fertilised eggs too and stuff....
-                weeks_dispersion = 78 - 1
-                age_group_lower = 1
+            # all in / all out style
+            # https://www.poultryhub.org/production/chicken-egg-layer-industry/layer-farm-sequence
+            #  laying chickens, assume age is from 20 weeks to 78 weeks
+            # assuming full capcity, running flow
+
+            self.num_sheds = math.ceil(self.size / approx_chickens_per_shed)
+            if self.num_sheds > 5:
+                chickens_possible_week_ages = list(range(1, 78))  # lower age limit - rearing pullets
+                self.accepts_hatchlings = True
+                # TODO meaning they shouldn't accept birds from pullet farms, only hatched chicks?
             else:
-                # https://www.poultryhub.org/production/chicken-egg-layer-industry/layer-farm-sequence
-                #  laying chickens, assume age is from 20 weeks to 78 weeks
-                # assuming full capcity, running flow
-                weeks_dispersion = 78 - 20
-                age_group_lower = 20
-            chickens_per_age_group = int(self.size / weeks_dispersion)
-            total_chickens = 0
-            shed_num = 1
+                chickens_possible_week_ages = list(range(20, 78))
+
+            actual_chickens_per_shed = int(self.size / self.num_sheds)
+
             total_laying_chickens = 0
-            for week in range(age_group_lower, 78):
-                if total_chickens > shed_num * approx_chickens_per_shed:
-                    shed_num += 1
-                # num chickens, shed number, age by days
-                self.chickens.append([chickens_per_age_group, shed_num, week * 7])
-                total_chickens += chickens_per_age_group
+            for shed_i in range(1, self.num_sheds + 1):
+                week = np.random.choice(chickens_possible_week_ages)
+
+                self.chickens.append([actual_chickens_per_shed, shed_i, week * 7])
+
+                total_chickens += actual_chickens_per_shed
+
                 if week >= 20:
-                    total_laying_chickens += chickens_per_age_group
+                    total_laying_chickens += actual_chickens_per_shed
 
             self.size = total_chickens  # updating the number in case the division is imperfect
-            self.num_sheds = shed_num
 
-            # eggs: num eggs, age of eggs , no shed?
+            # eggs: num eggs, age of eggs , no shed location right now
             self.eggs = [
                 [int(total_laying_chickens / 5), 0],  # assuming that not all the chickens lay every day,
                 [int(total_laying_chickens / 5), 1],  # and that it takes a few days for eggs to be processed/removed
@@ -246,6 +245,7 @@ class Premises(Property):
             if self.num_sheds > 3:
                 chickens_possible_week_ages = list(range(1, 6 + 1))  # lower age limit - rearing pullets
                 self.accepts_hatchlings = True
+                # TODO meaning they shouldn't accept birds from pullet farms, only hatched chicks?
             else:
                 chickens_possible_week_ages = list(range(4, 6 + 1))
             actual_chickens_per_shed = int(self.size / self.num_sheds)
