@@ -1840,6 +1840,8 @@ class DiseaseSimulation:
                                 properties[property_index], restricted_area, control_area
                             )
 
+                        extra_job_info = ""
+
                     elif job_type == "ClinicalObservation":
                         testing_report, positive = self.job_manager.conduct_clinicalobservation(
                             properties, property_index, self.time
@@ -1857,6 +1859,8 @@ class DiseaseSimulation:
                             properties[property_index].custom_info["animals_clinical"] = True
                         else:
                             properties[property_index].custom_info["animals_clinical"] = False
+
+                        extra_job_info = ""
 
                     elif job_type == "Cull":
                         num_animals_to_cull = int(row["num"])
@@ -1937,6 +1941,10 @@ class DiseaseSimulation:
                         self.daily_statistics[converted_date]["culled birds"] += newly_culled_animals
                         self.daily_statistics[converted_date]["destroyed eggs"] += num_eggs
 
+                        extra_job_info = f"{newly_culled_animals} chickens culled, {num_eggs} eggs destroyed"
+                        if facility.infection_status == 0:
+                            extra_job_info += "; culling on property complete"
+
                     elif job_type == "ContactTracing":
                         contact_tracing_report, traced_property_indices = management.contact_tracing(
                             properties, property_index, self.movement_records, self.time
@@ -1952,15 +1960,21 @@ class DiseaseSimulation:
                             if facility.status not in ["IP", "DCP", "TP", "SP", "DCPF", "RP"]:
                                 facility.status = "TP"
 
+                        extra_job_info = ""
+
                     elif job_type == "Vaccination":
                         # TODO
                         num_animals_to_vaccinate = row["num"]
 
                         self.daily_statistics[converted_date]["vaccinated birds"] = 0
 
-                        pass
+                        extra_job_info = ""
 
-                    self.job_manager.jobs_queue[property_index][job_type][str(self.time)] = ["complete", converted_date]
+                    self.job_manager.jobs_queue[property_index][job_type][str(self.time)] = [
+                        "complete",
+                        converted_date,
+                        extra_job_info,
+                    ]
 
             property_jobs = property_jobs.loc[property_jobs["date_scheduled"] != converted_date_dt]
 
@@ -2023,7 +2037,7 @@ class DiseaseSimulation:
 
         animal_movement.save_movement_record(self.folder_path, self.movement_records)
         self.save_reports(properties, restricted_area, control_area)
-        self.job_manager.save_jobs_queue(self.folder_path, "completed_jobs.csv")
+        self.job_manager.save_jobs_HPAI(self.folder_path, "completed_jobs.csv")
         self.save_daily_statistics()
 
         self.job_manager.calculate_resources_used(self.folder_path)

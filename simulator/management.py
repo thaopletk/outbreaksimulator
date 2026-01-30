@@ -170,6 +170,32 @@ class JobManager:
 
         jobs_df.to_csv(os.path.join(folder_path, save_name), index=False)
 
+    def save_jobs_HPAI(self, folder_path, save_name="jobs_queue.csv"):
+
+        header = ["day_scheduled", "date_scheduled", "property", "job_type", "status", "completion_date", "extra_info"]
+        jobs = []
+        for property_index in self.jobs_queue.keys():
+            for job_type in self.jobs_queue[property_index].keys():
+                for day, status in self.jobs_queue[property_index][job_type].items():
+                    jobs.append(
+                        [
+                            day,
+                            convert_time_to_date(float(day)),
+                            property_index,
+                            job_type,
+                            status[0],
+                            status[1],
+                            status[2],
+                        ]
+                    )
+        # order by the date
+        jobs.sort(key=lambda x: x[0])
+        # convert to dataframe
+        # save the dataframe
+        jobs_df = pd.DataFrame(jobs, columns=header)
+
+        jobs_df.to_csv(os.path.join(folder_path, save_name), index=False)
+
     def conduct_labtesting(self, properties, property_index, time):
         testing_report, positive = test_property(
             properties,
