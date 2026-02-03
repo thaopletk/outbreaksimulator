@@ -179,6 +179,7 @@ class Premises(Property):
         self.eggs_fertilised = None
         self.chicken_capacity = self.size
         self.accepts_hatchlings = False  # whether they rear pullets or not
+        self.approx_chickens_per_shed = None
 
         self.custom_info = (
             {}
@@ -202,18 +203,18 @@ class Premises(Property):
 
         if "layers" in self.type:
             if self.type == "layers free-range":
-                approx_chickens_per_shed = 10000  # for free range, the number should be less than other cases
+                self.approx_chickens_per_shed = 10000  # for free range, the number should be less than other cases
             elif self.type == "layers caged":
-                approx_chickens_per_shed = 14000  # going by 12k-14k of chickens per shed
+                self.approx_chickens_per_shed = 14000  # going by 12k-14k of chickens per shed
             elif self.type == "layers barn":
-                approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
+                self.approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
 
             # all in / all out style
             # https://www.poultryhub.org/production/chicken-egg-layer-industry/layer-farm-sequence
             #  laying chickens, assume age is from 20 weeks to 78 weeks
             # assuming full capcity, running flow
 
-            self.num_sheds = math.ceil(self.size / approx_chickens_per_shed)
+            self.num_sheds = math.ceil(self.size / self.approx_chickens_per_shed)
             if self.num_sheds > 5:
                 chickens_possible_week_ages = list(range(1, 78))  # lower age limit - rearing pullets
                 self.accepts_hatchlings = True
@@ -244,10 +245,10 @@ class Premises(Property):
         elif self.type == "broiler farm":
             # broilers: 4-6 weeks of age https://kb.rspca.org.au/categories/farmed-animals/poultry/meat-chickens/how-are-meat-chickens-farmed-in-australia
 
-            approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
+            self.approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
 
             # NEW CHICKEN ALLOCATION - more akin to "all in / all out", with chickens of the same age in each shed
-            self.num_sheds = math.ceil(self.size / approx_chickens_per_shed)
+            self.num_sheds = math.ceil(self.size / self.approx_chickens_per_shed)
             if self.num_sheds > 3:
                 chickens_possible_week_ages = list(range(1, 6 + 1))  # lower age limit - rearing pullets
                 self.accepts_hatchlings = True
@@ -269,9 +270,9 @@ class Premises(Property):
 
         elif self.type == "pullet farm":
             # 6 to 20 weeks - https://www.poultryhub.org/production/chicken-egg-layer-industry/layer-farm-sequence
-            approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
+            self.approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
 
-            self.num_sheds = math.ceil(self.size / approx_chickens_per_shed)
+            self.num_sheds = math.ceil(self.size / self.approx_chickens_per_shed)
             chickens_possible_week_ages = list(range(1, 20 + 1))
             self.accepts_hatchlings = True
             actual_chickens_per_shed = int(self.size / self.num_sheds)
@@ -295,9 +296,9 @@ class Premises(Property):
             self.chickens = [[self.size, self.num_sheds, 6 * 7]]  # assuming all broiler chickens
             # no eggs at premises
         elif self.type == "hatchery":  #  technically also breeder?
-            approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
+            self.approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
 
-            self.num_sheds = math.ceil(self.size / approx_chickens_per_shed)
+            self.num_sheds = math.ceil(self.size / self.approx_chickens_per_shed)
             chickens_possible_week_ages = list(range(20, 78))  # laying chickens
             actual_chickens_per_shed = int(self.size / self.num_sheds)
 
@@ -859,3 +860,25 @@ class Premises(Property):
             self.eggs,
             self.eggs_fertilised,
         ]
+
+    def accepting_animals(self, time):
+        """
+        Function to check if this premises is ready to accept animals (birds), and return the shed number that is free, for movement
+
+        relevant for pullet farm, broiler farm and layers
+
+        :param self: Description
+        """
+
+        chickens_per_shed = {shed_i: 0 for shed_i in range(1, self.num_sheds + 1)}
+        for row in self.chickens:
+            chickens_per_shed[row[1]] += row[0]
+
+        empty_sheds = []
+        for shed, num_chickens in chickens_per_shed.items():
+            if num_chickens == 0:
+                empty_sheds.append(shed)
+
+                # TODO: add a check of when the shed was emptied / if it's still in the "cleaning" status or not, or something like that
+
+        return empty_sheds, self.approx_chickens_per_shed
