@@ -19,3 +19,7 @@ https://www.abs.gov.au/statistics/standards/australian-statistical-geography-sta
 
 
 Queensland intensive livestock https://qldspatial.information.qld.gov.au/catalogue/custom/detail.page?fid={3AE6FD7E-FE3D-43B3-A077-C18976261836}
+
+
+Wind
+https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels?tab=download
