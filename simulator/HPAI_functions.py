@@ -176,6 +176,13 @@ def animal_movement(
     movement_reduction_factor=0.2,
     all_movement_reduction_factor=1.0,
 ):
+    """Animal movements
+
+    TODO Would like to refactor this, at least a little
+    E.g. assigning/moving animals to empty sheds ; keeping track of sheds that should actually be empty because they're under cleaning!!
+
+
+    """
 
     date = premises.convert_time_to_date(day)
 

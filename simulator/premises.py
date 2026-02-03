@@ -40,6 +40,14 @@ def rounding_entities(val):
 geolocator = Nominatim(user_agent="http")
 
 
+def get_current_datetime(time, start_date=datetime.datetime(year=2026, month=1, day=1)):
+    if type(time) != int:
+        time = int(np.floor(time))
+        # TODO : here, I should allow for "morning" vs "afternoon" or some other time thing
+    current_date = start_date + datetime.timedelta(days=time)
+    return current_date
+
+
 def convert_time_to_date(time, start_date=datetime.datetime(year=2026, month=1, day=1), return_string="%d/%m/%Y"):
     """Converts outbreak days (0, 1, 2...) to fake dates, started at some specified date (day 0).
     Parameters
@@ -248,6 +256,7 @@ class Premises(Property):
                 chickens_possible_week_ages = list(range(4, 6 + 1))
             actual_chickens_per_shed = int(self.size / self.num_sheds)
 
+            total_chickens = 0
             for shed_i in range(1, self.num_sheds + 1):
                 week = np.random.choice(chickens_possible_week_ages)
                 self.chickens.append([actual_chickens_per_shed, shed_i, week * 7])

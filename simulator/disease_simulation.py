@@ -401,13 +401,13 @@ class DiseaseSimulation:
 
         return did_any_properties_report
 
-    def calculate_FOI_for_each_property(self, properties, outbreak_sim="LSD"):
+    def calculate_FOI_for_each_property(self, properties, outbreak_sim="LSD", time=0):
         """Calculates the force of infection for each property, to be run at the start of each day (before movement occurs)"""
         FOI = list(np.zeros(len(properties)))
         for i, property_i in enumerate(properties):
             if not property_i.culled_status:
                 FOI[i] = SEIR.calculate_force_of_infection(
-                    properties, i, self.vax_modifier, self.r_wind, self.beta_wind, self.beta_animal, outbreak_sim
+                    properties, i, self.vax_modifier, self.r_wind, self.beta_wind, self.beta_animal, outbreak_sim, time
                 )
         return FOI
 
@@ -464,7 +464,7 @@ class DiseaseSimulation:
                 # TODO : in the future, can add some natural deaths...
 
             # calculate FOI for each property
-            FOI = self.calculate_FOI_for_each_property(properties, outbreak_sim)
+            FOI = self.calculate_FOI_for_each_property(properties, outbreak_sim, self.time)
 
             # run infection model for each property
             properties = self.run_infection_model_for_each_property(properties, FOI)
@@ -721,7 +721,7 @@ class DiseaseSimulation:
             HPAI_functions.egg_production(properties)
             # TODO : in the future, can add some natural deaths...
 
-        FOI = self.calculate_FOI_for_each_property(properties, outbreak_sim)
+        FOI = self.calculate_FOI_for_each_property(properties, outbreak_sim, self.time)
 
         properties = self.run_infection_model_for_each_property(properties, FOI)
 
@@ -1734,7 +1734,7 @@ class DiseaseSimulation:
             HPAI_functions.egg_production(properties)
 
             # calculate FOI for each property
-            FOI = self.calculate_FOI_for_each_property(properties, outbreak_sim)
+            FOI = self.calculate_FOI_for_each_property(properties, outbreak_sim, self.time)
 
             # check if any property wants to report
             for i, facility in enumerate(properties):
