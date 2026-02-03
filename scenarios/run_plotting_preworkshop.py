@@ -144,8 +144,6 @@ for index, premise in enumerate(properties):
     elif premise.undergoing_testing == True:
         geometry_undergoing_testing.append(curr_farm)
 
-# TODO - change these markers potentially
-# TODO - add in the legend for the control and restricted areas (unless I use photoshop / powerpoint)
 for geometry, colour, marker, markerlabel, markersize, edgecolour in [
     [geometry_confirmed_infected, "black", "X", "infected premises", 120, "black"],
     [geometry_DCP, "#e72918", "v", "dangerous contact premises", 120, "#950000"],

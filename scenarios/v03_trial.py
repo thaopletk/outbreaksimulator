@@ -160,7 +160,7 @@ folder_path_undetected_spread = os.path.join(folder_path_main, unique_output)
 if not os.path.exists(folder_path_undetected_spread):
     os.makedirs(folder_path_undetected_spread)
 
-# TODO could change this so that it runs until there are X number of infected properties in each of the main states or territories
+# could change this so that it runs until there are X number of infected properties in each of the main states or territories
 stop_time = 21  # 28
 first_detection_day = stop_time + 1
 
@@ -276,7 +276,7 @@ else:
     with open(spread_diseaseoutbreak_filename, "rb") as file:
         diseaseoutbreak = pickle.load(file)
 
-# TODO - to actually get the first detection date, get the first/smaller number of file in the simulate-first-two-days folder...
+# note - to actually get the first detection date, get the first/smaller number of file in the simulate-first-two-days folder...
 
 
 # step 6
@@ -285,7 +285,7 @@ unique_output = "04_two_weeks"
 folder_path = os.path.join(folder_path_main, unique_output)
 days_to_run_for = 14
 
-management_parameters = [  # TODO - currently not used...could actually implement it...
+management_parameters = [  # note - currently not used...could actually implement it...
     {"type": "movement_restriction", "radius_km": 5, "convex": False},
     {"type": "conditional_movement", "radius_km": 80, "convex": False, "probability_reduction": 0.1},
     {"type": "ring_surveillance", "radius_km": 80, "convex": False},
@@ -295,7 +295,7 @@ management_parameters = [  # TODO - currently not used...could actually implemen
 #     "ClinicalObservation": [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130],
 #     "Cull": [10],
 #     "ContactTracing": [100],
-# }  # TODO - currently not used...could actually implement it...
+# }  # note - currently not used...could actually implement it...
 
 if not os.path.exists(folder_path):
     os.makedirs(folder_path)
@@ -321,7 +321,7 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
         unique_output=unique_output,
     )
 
-    # TODO not 100% satisfactorily complete
+    # not 100% satisfactorily complete
     properties, movement_records, time, total_culled_animals, job_manager = (
         diseaseoutbreak.simulate_outbreak_management(
             properties, management_parameters, days_to_run_for, resource_setting="default"

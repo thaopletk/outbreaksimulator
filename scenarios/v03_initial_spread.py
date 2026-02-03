@@ -164,7 +164,7 @@ folder_path_undetected_spread = os.path.join(folder_path_main, unique_output)
 if not os.path.exists(folder_path_undetected_spread):
     os.makedirs(folder_path_undetected_spread)
 
-# TODO could change this so that it runs until there are X number of infected properties in each of the main states or territories
+# could change this so that it runs until there are X number of infected properties in each of the main states or territories
 stop_time = 21  # 28
 first_detection_day = stop_time + 1
 

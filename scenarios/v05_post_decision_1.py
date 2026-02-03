@@ -50,7 +50,7 @@ decision_ver = sys.argv[1]
 # decision 1 = same (default) resourcing + standstill, i.e., no change
 # decision 2 - high resourcing, no standstill, restricted/control circles
 
-# TODO - set up capability for running array
+
 # local_ver = sys.argv[2]  # for running an array of simulations
 local_ver = 1
 random.seed(10 * int(local_ver))
