@@ -189,7 +189,7 @@ def animal_movement(
     # rows of day, converted date, moving from property index, to property index, WHAT was moved (chickens or eggs), number of animals/eggs moved, a narrative report (locations, number of animals moved),
     movement_record = []
 
-    indices_that_can_move = []
+    indices_that_can_move = []  # TODO: add in movement permit requests here????
     for premise_index in range(len(properties)):
         if not properties[premise_index].culled_status:
             if controlzone == None or not properties[premise_index].polygon.intersects(controlzone):

@@ -267,8 +267,6 @@ for resource_setting in ["high", "low"]:
     print(f"TPs_undergoing_testing: {len(TPs_undergoing_testing)}")
     print(f"TPs_false_result: {len(TPs_false_result)}")
 
-    # TODO - change these markers potentially
-    # TODO - add in the legend for the control and restricted areas (unless I use photoshop / powerpoint)
     for geometry, colour, marker, markerlabel, markersize, edgecolour, alpha in [
         [geometry_culled, "cornflowerblue", "P", "resolved premises", 110, "royalblue", 1],
         [geometry_confirmed_infected, "black", "X", "infected premises", 110, "black", 1],

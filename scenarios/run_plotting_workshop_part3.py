@@ -234,7 +234,7 @@ for two_weeks_resource_setting, resource_setting, final_vaccination, final_versi
 
     TPs = []
 
-    # TODO add in plotting of vaccinated properties?
+    # could add in plotting of vaccinated properties
 
     for index, premise in enumerate(properties):
         long, lat = premise.coordinates
@@ -432,7 +432,6 @@ for two_weeks_resource_setting, resource_setting, final_vaccination, final_versi
     #         alpha=0.5,
     #     )
 
-    # # TODO - add in the legend for the control and restricted areas (unless I use photoshop / powerpoint)
     # for geometry, colour, marker, markerlabel, markersize, edgecolour, alpha in [
     #     [TPs_undergoing_testing, "#ffa200", "o", "trace premises waiting to be tested", 50, "#ff6600", 1],
     #     # [TPs_false_result, "#ffa200", "o", "trace premises with negative result", 50, "#ff6600",1],

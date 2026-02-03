@@ -85,7 +85,6 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
         unique_output=unique_output,
     )
 
-    # TODO
     properties, movement_records, time, total_culled_animals, job_manager = (
         diseaseoutbreak.simulate_HPAI_outbreak_management(
             properties, property_jobs, property_based_zones, days_to_run_for
@@ -146,7 +145,6 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
         unique_output=unique_output,
     )
 
-    # TODO
     properties, movement_records, time, total_culled_animals, job_manager = (
         diseaseoutbreak.simulate_HPAI_outbreak_management(
             properties, property_jobs, property_based_zones, days_to_run_for

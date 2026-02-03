@@ -364,7 +364,7 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
         unique_output=unique_output,
     )
 
-    # TODO not 100% satisfactorily complete
+    # NOTE not 100% satisfactorily complete
     properties, movement_records, time, total_culled_animals, job_manager = (
         diseaseoutbreak.simulate_outbreak_management(
             properties, management_parameters, days_to_run_for, resource_setting="default"
