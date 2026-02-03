@@ -186,6 +186,7 @@ class Premises(Property):
         )  # setting up an empty dictionary to add in any custom info to be set live during the simulation
 
     def requesting_chickens(self):
+        """generally superceeded by accepting_animals() function"""
         current_chickens = self.get_num_chickens()
         if self.chicken_capacity < current_chickens or np.abs((self.chicken_capacity - current_chickens) / 100) < 0.01:
             return 0
@@ -861,7 +862,7 @@ class Premises(Property):
             self.eggs_fertilised,
         ]
 
-    def accepting_animals(self, time):
+    def accepting_animals(self, time=0):
         """
         Function to check if this premises is ready to accept animals (birds), and return the shed number that is free, for movement
 

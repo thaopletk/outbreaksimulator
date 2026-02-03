@@ -168,6 +168,82 @@ def create_movement_records_df():
     return pd.DataFrame(columns=movement_record_header)
 
 
+def move_chickens_onto_truck(properties, start_index, target_index):
+    start_facility = properties[start_index]
+    target_facility = properties[target_index]
+
+    num_chickens_to_move = 0
+    row_indices_to_move = []
+    for i in range(len(start_facility.chickens)):
+        row = start_facility.chickens[i]
+        chicken_age = row[2]
+        if chicken_age > start_facility.allowed_movement_details[target_facility.type]["age"]:
+            num_chickens_to_move += row[0]
+            row_indices_to_move.append(i)
+
+    chickens_to_move = []
+    for i in reversed(row_indices_to_move):
+        row = start_facility.chickens.pop(i)
+        del row[1]  # delete the shed number
+        chickens_to_move.append(row)
+
+    return num_chickens_to_move, chickens_to_move
+
+
+def get_eggs_to_move(properties, start_index, target_index):
+    start_facility = properties[start_index]
+    target_facility = properties[target_index]
+
+    num_eggs_to_move = 0
+    row_indices_to_move = []
+    egg_rows_to_move = []
+    for i in range(len(start_facility.eggs)):
+        row = start_facility.eggs[i]
+        egg_age = row[1]
+        if egg_age > start_facility.allowed_movement_details[target_facility.type]["age"]:
+            num_eggs_to_move += row[0]
+            row_indices_to_move.append(i)
+
+    for i in reversed(row_indices_to_move):  # pop from the end...
+        egg_rows_to_move.append(start_facility.eggs.pop(i))
+
+    return num_eggs_to_move, egg_rows_to_move
+
+
+def align_chicken_objects(properties, start_index, target_index, chickens_on_truck):
+    facility = properties[start_index]
+    new_facility = properties[target_index]
+    if facility.check_if_chicken_objects() == True and new_facility.check_if_chicken_objects() == False:
+        new_facility.init_animals(None)  # now both have chicken objects
+    elif facility.check_if_chicken_objects() == False and new_facility.check_if_chicken_objects() == True:
+        # need to convert new chickens into chicken objects before passing them on
+        new_chickens_on_truck = []
+        for row in chickens_on_truck:
+            new_row = row
+            chicken_animal_objs = [Animal(None) for _ in range(new_row[0])]
+            new_row.append(chicken_animal_objs)
+            new_chickens_on_truck.append(new_row)
+        chickens_on_truck = new_chickens_on_truck
+    else:
+        pass  # should already be aligned
+
+    return chickens_on_truck
+
+
+def move_chickens_to_abbatoir(properties, abbatoir_index, chickens_on_truck):
+    abbatoir = properties[abbatoir_index]
+    shed_num = 1
+    for row in chickens_on_truck:
+        row.insert(1, shed_num)
+        abbatoir.chickens.append(row)
+
+
+def move_eggs_to_processor(properties, processor_index, eggs_on_truck):
+    egg_processor = properties[processor_index]
+    for row in eggs_on_truck:
+        egg_processor.eggs.append(row)
+
+
 def animal_movement(
     properties,
     day,
@@ -212,9 +288,88 @@ def animal_movement(
             indices_that_can_move
         )
 
-        if (
-            "layers" in facility.type or facility.type == "broiler farm" or facility.type == "pullet farm"
-        ):  # these have the same procedure for chickens
+        if "layers" in facility.type or facility.type == "broiler farm":
+            # layer farms only have two movements possible: eggs to egg processing; old chickens to abbatoir
+            # broiler farm only has movement of chickens to abbatoir, everything is the same
+            possible_movement_targets = {"egg": [], "chicken": []}
+
+            for allowed_type in allowed_movement_neighbours:  # should only be egg processors and abbatoirs
+                entity_to_move = facility.allowed_movement_details[allowed_type]["entity"]
+                possible_movement_targets[entity_to_move].extend(allowed_movement_neighbours[allowed_type])
+
+            # for chickens:
+            if len(possible_movement_targets["chicken"]) > 0:
+                entity_to_move = "chicken"
+                # pick one place to move to (aka an abbatoir)
+                chicken_target_premise_index = random.choice(possible_movement_targets["chicken"])
+                new_facility = properties[chicken_target_premise_index]
+
+                if new_facility.type != "abbatoir":
+                    raise ValueError(f"Not expecting chicken movements from layer facility to {new_facility.type}")
+
+                num_chickens_to_move, chickens_to_move = move_chickens_onto_truck(
+                    properties, premise_index, chicken_target_premise_index
+                )
+                if num_chickens_to_move > 0:
+                    chickens_on_truck = align_chicken_objects(
+                        properties, premise_index, chicken_target_premise_index, chickens_to_move
+                    )
+                    move_chickens_to_abbatoir(properties, chicken_target_premise_index, chickens_on_truck)
+
+                    row = [
+                        day,
+                        f"{date}",
+                        premise_index,
+                        chicken_target_premise_index,
+                        "chicken",
+                        num_chickens_to_move,
+                        facility.type,
+                        new_facility.type,
+                        f"DAY {date} - moved {number_animals} {entity_to_move}(s) from {facility.type} ID {facility.id} ({facility.state}, {facility.region}) to {new_facility.type} ID {new_facility.id} ({new_facility.state}, {new_facility.region})",
+                    ]
+
+                    if len(row) != len(movement_record_header):
+                        raise ValueError("The length of movement record is not the same as the movement header")
+                        # added in case I decide to change the information recorded again
+
+                    movement_record.append(row)
+
+            # for eggs
+            if len(possible_movement_targets["egg"]) > 0:
+                entity_to_move = "egg"
+                # pick one place to move to
+                egg_target_premises_index = random.choice(possible_movement_targets["egg"])
+                new_facility = properties[egg_target_premises_index]
+
+                if new_facility.type != "egg processing":
+                    raise ValueError(f"Not expecting egg movements from layer facility to {new_facility.type}")
+
+                num_eggs_to_move, egg_rows_to_move = get_eggs_to_move(
+                    properties, premise_index, egg_target_premises_index
+                )
+
+                if num_eggs_to_move > 0:
+                    move_eggs_to_processor(properties, egg_target_premises_index, egg_rows_to_move)
+
+                    row = [
+                        day,
+                        f"{date}",
+                        premise_index,
+                        egg_target_premises_index,
+                        entity_to_move,
+                        number_eggs,
+                        facility.type,
+                        new_facility.type,
+                        f"DAY {date} - moved {number_eggs} {entity_to_move}(s) from {facility.type} ID {facility.id} ({facility.state}, {facility.region}) to {new_facility.type} ID {new_facility.id} ({new_facility.state}, {new_facility.region})",
+                    ]
+
+                    if len(row) != len(movement_record_header):
+                        raise ValueError("The length of movement record is not the same as the movement header")
+                        # added in case I decide to change the information recorded again
+
+                    movement_record.append(row)
+
+        elif facility.type == "pullet farm":  # these have the same procedure for chickens
             # movements possible: eggs to egg processing; old chickens to abbatoir
             for allowed_type in allowed_movement_neighbours:
                 if allowed_movement_neighbours[allowed_type] == []:
@@ -774,7 +929,6 @@ def save_approx_known_data(properties, folder_path, unique_output):
         writer.writerow(header)
 
         for facility in properties:
-            # TODO: need to fix this to NOT show clinical date, notification dates etc depending on situation....
             try:
                 self_report_date = facility.custom_info["self_report_date"]
             except:
