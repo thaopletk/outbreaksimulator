@@ -369,8 +369,14 @@ def animal_movement(
 
                     movement_record.append(row)
 
-        elif facility.type == "pullet farm":  # these have the same procedure for chickens
-            # movements possible: eggs to egg processing; old chickens to abbatoir
+        elif facility.type == "pullet farm":
+            # movements possible: chickens to various different places
+            # TODO need to get (1) the number of chickens that can be moved
+            # and then the properties that can accept chickens, their shed numbers, and the number of chickens they can accept
+            # and then do some movement appropriately
+            # cases to consider:
+            # since it's all in/all out style, there needs to be enough chickens to move from the pullet farm
+            # if the pullet farm has more animals than a single property can accept, then maybe there should be a way to get
             for allowed_type in allowed_movement_neighbours:
                 if allowed_movement_neighbours[allowed_type] == []:
                     continue
