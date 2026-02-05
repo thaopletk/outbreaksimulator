@@ -292,6 +292,8 @@ class Premises(Property):
             self.num_sheds = 1
             self.chickens = [[self.size, self.num_sheds, 6 * 7]]  # assuming all broiler chickens
             # no eggs at premises
+            self.approx_chickens_per_shed = 14000  # TODO - assuming this is their daily capacity...
+
         elif self.type == "hatchery":  #  technically also breeder?
             self.approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
 
@@ -862,7 +864,7 @@ class Premises(Property):
         """
         Function to check if this premises is ready to accept animals (birds), and return the shed number that is free, for movement
 
-        relevant for pullet farm, broiler farm and layers
+        relevant for pullet farm, broiler farm and layers, and abbatoirs
 
         :param self: Description
         """
@@ -879,3 +881,43 @@ class Premises(Property):
                 # TODO: add a check of when the shed was emptied / if it's still in the "cleaning" status or not, or something like that
 
         return empty_sheds, self.approx_chickens_per_shed
+
+    def want_to_move_chickens_hatchery(self):
+        num_chickens_to_move_abbatoir = 0
+        row_indices_to_move_abbatoir = []
+        for i in range(len(self.chickens)):
+            row = self.chickens[i]
+            chicken_age = row[2]
+            if chicken_age > 546:  # TODO - well, there should be something better about this
+                num_chickens_to_move_abbatoir += row[0]
+                row_indices_to_move_abbatoir.append(i)
+
+        property_types_to_move_to_abbatoir = [
+            "abbatoir"
+        ]  # TODO - need to refactor to avoid hard coding if possible OTL
+
+        pass  # TODO - hard!!! need to keep laying chickens!
+
+    def want_to_move_chickens_pullet_farm(self):
+        num_chickens_to_move = 0
+        row_indices_to_move = []
+        for i in range(len(self.chickens)):
+            row = self.chickens[i]
+            chicken_age = row[2]
+            if chicken_age > 119:  # TODO - well, there should be something better about this
+                num_chickens_to_move += row[0]
+                row_indices_to_move.append(i)
+
+        property_types_to_move_to = [
+            "layers free-range",
+            "layers caged",
+            "layers barn",
+        ]  # TODO - need to refactor to avoid hard coding if possible OTL
+
+        return num_chickens_to_move, row_indices_to_move, property_types_to_move_to
+
+    def want_to_move_animals(self):
+        pass
+
+    def want_to_move_eggs(self):
+        pass

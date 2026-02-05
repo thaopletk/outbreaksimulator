@@ -98,7 +98,9 @@ def advance_chicken_egg_ages(properties):
         for i in range(len(facility.eggs)):
             facility.eggs[i][1] += 1  # the second index is the age, by day
         for i in range(len(facility.eggs_fertilised)):
-            facility.eggs_fertilised[i][1] += 1  # the second index is the age, by day
+            facility.eggs_fertilised[i][
+                1
+            ] += 1  # the second index is the age, by day # TODO - this should be pulsed some how?
 
         # check if eggs are > 21 days, in which case they become chickens!
         rows_with_hatched_eggs = []
@@ -107,7 +109,7 @@ def advance_chicken_egg_ages(properties):
                 rows_with_hatched_eggs.append(i)
         for i in rows_with_hatched_eggs:
             hatched_row = facility.eggs_fertilised.pop(i)
-            shed = 1  # should do this properly...
+            shed = 1  # should do this properly... # TODO this really shouldn't be in shed 1
             if facility.check_if_chicken_objects() == False:
 
                 facility.chickens.append([hatched_row[0], shed, 0])  # adding new chickens of age zero
@@ -145,7 +147,7 @@ def egg_production(properties):
             facility.eggs_fertilised.append(
                 [int(total_laying_chickens / 2), 0]
             )  # assume half of the chickens lay eggs; age of eggs is zero
-            # NOTE I think the eggs should be hatched in pulses (.g. every 14 days) but for now, it'll be like this....
+            # TODO I think the eggs should be hatched in pulses (.g. every 14 days) but for now, it'll be like this....
         else:
             raise ValueError(f"egg_production: property type not expected: {facility.type}")
 
