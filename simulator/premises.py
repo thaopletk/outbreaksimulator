@@ -198,9 +198,8 @@ class Premises(Property):
         Could turn this into a new class that inherits the premises class in the future
         """
         # num chickens: in self.size
-        self.chickens = []
-        self.eggs = []
-        self.eggs_fertilised = []
+        self.sheds = {}
+        self.eggs = 0
 
         if "layers" in self.type:
             if self.type == "layers free-range":
@@ -228,7 +227,14 @@ class Premises(Property):
             total_laying_chickens = 0
             for shed_i in range(1, self.num_sheds + 1):
                 week = np.random.choice(chickens_possible_week_ages)
-                self.chickens.append([actual_chickens_per_shed, shed_i, week * 7])
+                self.sheds[shed_i] = {
+                    "chickens": [
+                        {"n": actual_chickens_per_shed, "age": week * 7}
+                    ],  # array format, to accept multiple-age chickens if necessary
+                    "cleaning": False,
+                    "cleaning_completion": None,
+                }
+
                 total_chickens += actual_chickens_per_shed
 
                 if week >= 20:
@@ -236,12 +242,11 @@ class Premises(Property):
 
             self.size = total_chickens  # updating the number in case the division is imperfect
 
-            # eggs: num eggs, age of eggs , no shed location right now
-            self.eggs = [
-                [int(total_laying_chickens / 5), 0],  # assuming that not all the chickens lay every day,
-                [int(total_laying_chickens / 5), 1],  # and that it takes a few days for eggs to be processed/removed
-                [int(total_laying_chickens / 5), 2],
-            ]
+            # eggs: num eggs
+            self.eggs = actual_chickens_per_shed * np.random.int(
+                0, self.num_sheds
+            )  # age actually doesn't matter if they're not in a shed (yet)
+            # and fertilised eggs can be moved into a shed
 
         elif self.type == "broiler farm":
             # broilers: 4-6 weeks of age https://kb.rspca.org.au/categories/farmed-animals/poultry/meat-chickens/how-are-meat-chickens-farmed-in-australia
@@ -250,15 +255,20 @@ class Premises(Property):
 
             # NEW CHICKEN ALLOCATION - more akin to "all in / all out", with chickens of the same age in each shed
             self.num_sheds = math.ceil(self.size / self.approx_chickens_per_shed)
-            chickens_possible_week_ages = list(range(1, 6 + 1))  # lower age limit - rearing pullets
+            chickens_possible_week_ages = list(
+                range(1, 6 + 1)
+            )  # lower age limit - all broiler farms to accept hatchlings directly
             self.accepts_hatchlings = True
             actual_chickens_per_shed = int(self.size / self.num_sheds)
 
             total_chickens = 0
             for shed_i in range(1, self.num_sheds + 1):
                 week = np.random.choice(chickens_possible_week_ages)
-                self.chickens.append([actual_chickens_per_shed, shed_i, week * 7])
-
+                self.sheds[shed_i] = {
+                    "chickens": [{"n": actual_chickens_per_shed, "age": week * 7}],
+                    "cleaning": False,
+                    "cleaning_completion": None,
+                }
                 total_chickens += actual_chickens_per_shed
 
             self.size = total_chickens  # updating the number in case the division is imperfect
@@ -277,7 +287,11 @@ class Premises(Property):
             total_chickens = 0
             for shed_i in range(1, self.num_sheds + 1):
                 week = np.random.choice(chickens_possible_week_ages)
-                self.chickens.append([actual_chickens_per_shed, shed_i, week * 7])
+                self.sheds[shed_i] = {
+                    "chickens": [{"n": actual_chickens_per_shed, "age": week * 7}],
+                    "cleaning": False,
+                    "cleaning_completion": None,
+                }
                 total_chickens += actual_chickens_per_shed
 
             self.size = total_chickens  # updating the number in case the division is imperfect
@@ -288,30 +302,61 @@ class Premises(Property):
             self.num_sheds = 1
             # no chickens at premises
             # assuming no eggs at premises on starting
-        elif self.type == "abbatoir":
-            self.num_sheds = 1
-            self.chickens = [[self.size, self.num_sheds, 6 * 7]]  # assuming all broiler chickens
-            # no eggs at premises
-            self.approx_chickens_per_shed = 14000  # TODO - assuming this is their daily capacity...
+            # assuming max capacity....
+            # TODO: add in some capacity eventually ya
 
-        elif self.type == "hatchery":  #  technically also breeder?
+        elif self.type == "abbatoir":
+            self.num_sheds = 1  # TODO - possibility to add more sheds?
+            self.approx_chickens_per_shed = 14000  # TODO - assuming this is their daily capacity...
+            self.sheds[1] = {
+                "chickens": [{"n": self.size, "age": 6 * 7}],  # broiler chickens ready for slaughter
+                "cleaning": False,
+                "cleaning_completion": None,
+            }
+
+            # no eggs at premises
+
+        elif self.type == "hatchery":
+            self.approx_chickens_per_shed = (
+                12000  # going by 12k-14k of chickens per shed - number of eggs -> hatchlings
+            )
+
+            self.num_sheds = math.ceil(self.size / self.approx_chickens_per_shed)
+            chickens_possible_week_ages = list(range(0, 4))  # actually fertilised egg ages.
+            actual_chickens_per_shed = int(self.size / self.num_sheds)
+
+            for shed_i in range(1, self.num_sheds + 1):
+                week = np.random.choice(chickens_possible_week_ages)
+                self.sheds[1] = {
+                    "eggs": [{"n": actual_chickens_per_shed, "age": week * 7}],
+                    "cleaning": False,
+                    "cleaning_completion": None,
+                }
+
+            self.size = 0  # all eggs at the moment
+
+        elif self.type == "breeder":
             self.approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
 
             self.num_sheds = math.ceil(self.size / self.approx_chickens_per_shed)
-            chickens_possible_week_ages = list(range(20, 78))  # laying chickens
             actual_chickens_per_shed = int(self.size / self.num_sheds)
 
+            chickens_possible_week_ages = list(range(20, 78))  # laying chickens
             total_chickens = 0
             for shed_i in range(1, self.num_sheds + 1):
                 week = np.random.choice(chickens_possible_week_ages)
-                self.chickens.append([actual_chickens_per_shed, shed_i, week * 7])
+                self.sheds[shed_i] = {
+                    "chickens": [{"n": actual_chickens_per_shed, "age": week * 7}],
+                    "cleaning": False,
+                    "cleaning_completion": None,
+                }
                 total_chickens += actual_chickens_per_shed
 
             self.size = total_chickens  # updating the number in case the division is imperfect
 
-            self.eggs_fertilised = [[self.size, day] for day in [0, 7, 14, 20]]  # eggs at various stages
-
-            # TODO actually need to calculate the number of chickens the hatchery has to support the other stuff ??
+            self.eggs = self.approx_chickens_per_shed * np.random.randint(
+                0, self.num_sheds
+            )  # assuming some backlog; all are fertilised eggs by default
         else:
             raise ValueError(f"property type not expected: {self.type}")
 

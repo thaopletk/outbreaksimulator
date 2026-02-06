@@ -369,6 +369,7 @@ def HPAI_NSW_setup_locations(
     output_filename,
     testing=False,
     data_file=os.path.join(os.path.dirname(__file__), "..", "data", "NSW_properties.xlsx"),
+    wind_radius=5,
 ):
     """
     Generates locations for poultry and egg premises in NSW, and creates "Premises" objects from them.
@@ -464,13 +465,14 @@ def HPAI_NSW_setup_locations(
             num_animals = int(
                 num_animals / 2
             )  # assuming some production cycle, animals will get replaced at least once...
-            if num_animals > 15000:
+            # plus will leave some animals for hatchery, breeder farms
+            if premises_type == "broiler farm":
                 num_animals = int(num_animals / 5)  # assuming even more of a production cycle???
             new_p = property_specific_initialisation_animals_no_neighbours(
                 coordinates,
                 p_polygon,
                 p_area,
-                wind_radius=5,
+                wind_radius=wind_radius,
                 animal_type=animal_type,
                 premises_type=premises_type,
                 num_animals=num_animals,
@@ -518,6 +520,10 @@ def HPAI_NSW_setup_locations(
             animal_type = "chicken"
             # num_animals = 1000  # TODO: actually need to calculate the number of chickens the hatchery has to support the other stuff
             num_animals = total_chickens_LGA[row["Region name"]] / 10  # hmmm how are these actually counted???
+        elif premises_type == "breeder":
+            chicken_egg_property_coordinates.extend(property_coordinates)
+            animal_type = "chicken"
+            num_animals = total_chickens_LGA[row["Region name"]] / 10  # hmmm how are these actually counted???
         else:
             raise ValueError(f"premises type not expected: {premises_type}")
 
@@ -526,7 +532,7 @@ def HPAI_NSW_setup_locations(
                 coordinates,
                 p_polygon,
                 p_area,
-                wind_radius=5,
+                wind_radius=wind_radius,
                 animal_type=animal_type,
                 premises_type=premises_type,
                 num_animals=num_animals,
