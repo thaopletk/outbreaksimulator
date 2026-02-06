@@ -367,16 +367,19 @@ class Premises(Property):
         if self.animal_type != "chicken":
             super().init_animals(params)  # call the OG init_animals function
         else:
-            # TODO
-            # plan is: either (1) create animals with an age or
-            # create animals and keep them in arrays based on their age and shed location.
-            # self.chickens.append([chickens_per_age_group, shed_num, week * 7])
-            for i in range(len(self.chickens)):
-                original_row = self.chickens[i]
-                num_chickens = original_row[0]
-                chicken_animal_objs = [Animal(params) for _ in range(num_chickens)]
-                original_row.append(chicken_animal_objs)
-                self.chickens[i] = original_row
+            for shed_i, shed_info in self.sheds.items():
+                if "chickens" in shed_info:
+                    for chicken_dict in self.sheds[shed_i]["chickens"]:
+                        chicken_animal_objs = [Animal(params) for _ in range(chicken_dict["n"])]
+                        chicken_dict["objs"] = chicken_animal_objs
+
+                    print(self.sheds[shed_i]["chickens"])
+                    # for i in range(len(self.sheds[shed_i]['chickens'])):
+                    #     original_dict = self.sheds[shed_i]['chickens'][i]
+                    #     chicken_animal_objs = [Animal(params) for _ in range(original_dict['n'])]
+                    #     original_dict['objs'] = chicken_animal_objs
+                    #     self.sheds[shed_i]['chickens'][i] = original_dict # doing this because I'm not sure if it's in place? TODO: check this
+
         return
 
     #

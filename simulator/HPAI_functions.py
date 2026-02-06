@@ -47,7 +47,7 @@ def seed_HPAI_infection(
             and coords[0] >= xrange_bounds[0]
             and coords[1] <= yrange_bounds[1]
             and coords[1] >= yrange_bounds[0]
-        ) and property.type not in ["egg processing", "abbatoir"]:
+        ) and property.type not in ["egg processing", "abbatoir", "hatchery"]:
             viable_properties.append(i)
 
     # seed this property
@@ -64,13 +64,14 @@ def seed_HPAI_infection(
         p.exposure_date = premises.convert_time_to_date(time - latent_period)
 
     num_infected = 10
-    # TODO: need to update some status/check the status update;
     p.init_animals(None)
-    infected_row = np.random.randint(0, len(p.chickens))  # this picks a random age
+    infected_shed = np.random.randint(1, p.num_sheds + 1)
     for seed_animal in range(num_infected):
-        p.chickens[infected_row][3][seed_animal].status = "infected"
+        p.sheds[infected_shed]["chickens"][0]["objs"][
+            seed_animal
+        ].status = "infected"  # picks chickens from the first row
 
-    p.prop_infectious = num_infected / p.size
+    p.prop_infectious = num_infected / p.get_num_chickens()
     p.cumulative_infections = num_infected
 
     output.plot_map(
