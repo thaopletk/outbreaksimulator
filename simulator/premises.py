@@ -226,7 +226,7 @@ class Premises(Property):
             total_chickens = 0
             total_laying_chickens = 0
             for shed_i in range(1, self.num_sheds + 1):
-                week = np.random.choice(chickens_possible_week_ages)
+                week = int(np.random.choice(chickens_possible_week_ages))
                 self.sheds[shed_i] = {
                     "chickens": [
                         {"n": actual_chickens_per_shed, "age": week * 7}
@@ -263,7 +263,7 @@ class Premises(Property):
 
             total_chickens = 0
             for shed_i in range(1, self.num_sheds + 1):
-                week = np.random.choice(chickens_possible_week_ages)
+                week = int(np.random.choice(chickens_possible_week_ages))
                 self.sheds[shed_i] = {
                     "chickens": [{"n": actual_chickens_per_shed, "age": week * 7}],
                     "cleaning": False,
@@ -286,7 +286,7 @@ class Premises(Property):
 
             total_chickens = 0
             for shed_i in range(1, self.num_sheds + 1):
-                week = np.random.choice(chickens_possible_week_ages)
+                week = int(np.random.choice(chickens_possible_week_ages))
                 self.sheds[shed_i] = {
                     "chickens": [{"n": actual_chickens_per_shed, "age": week * 7}],
                     "cleaning": False,
@@ -325,7 +325,7 @@ class Premises(Property):
             actual_chickens_per_shed = int(self.size / self.num_sheds)
 
             for shed_i in range(1, self.num_sheds + 1):
-                week = np.random.choice(chickens_possible_week_ages)
+                week = int(np.random.choice(chickens_possible_week_ages))
                 self.sheds[1] = {
                     "eggs": [{"n": actual_chickens_per_shed, "age": week * 7}],
                     "cleaning": False,
@@ -343,7 +343,7 @@ class Premises(Property):
             chickens_possible_week_ages = list(range(20, 78))  # laying chickens
             total_chickens = 0
             for shed_i in range(1, self.num_sheds + 1):
-                week = np.random.choice(chickens_possible_week_ages)
+                week = int(np.random.choice(chickens_possible_week_ages))
                 self.sheds[shed_i] = {
                     "chickens": [{"n": actual_chickens_per_shed, "age": week * 7}],
                     "cleaning": False,
@@ -371,14 +371,6 @@ class Premises(Property):
                     for chicken_dict in self.sheds[shed_i]["chickens"]:
                         chicken_animal_objs = [Animal(params) for _ in range(chicken_dict["n"])]
                         chicken_dict["objs"] = chicken_animal_objs
-
-                    print(self.sheds[shed_i]["chickens"])
-                    # for i in range(len(self.sheds[shed_i]['chickens'])):
-                    #     original_dict = self.sheds[shed_i]['chickens'][i]
-                    #     chicken_animal_objs = [Animal(params) for _ in range(original_dict['n'])]
-                    #     original_dict['objs'] = chicken_animal_objs
-                    #     self.sheds[shed_i]['chickens'][i] = original_dict # doing this because I'm not sure if it's in place? TODO: check this
-
         return
 
     #
