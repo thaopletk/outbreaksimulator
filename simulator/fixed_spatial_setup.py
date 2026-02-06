@@ -247,6 +247,7 @@ def plot_map_land_HPAI_2(
         "egg processing",
         "abbatoir",
         "hatchery",
+        "breeder",
     ],
 ):
     """Plot properties"""
@@ -462,11 +463,11 @@ def HPAI_NSW_setup_locations(
 
         for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
             num_animals = int(max(row["Estimate"] / row["Number of agricultural businesses"], 1))
-            num_animals = min(1, int(num_animals / 2))
+            num_animals = max(100, int(num_animals / 2))
             # assuming some production cycle, animals will get replaced at least once...
             # plus will leave some animals for hatchery, breeder farms
             if premises_type == "broiler farm":
-                num_animals = min(1, int(num_animals / 2))  # assuming even more of a production cycle???
+                num_animals = max(100, int(num_animals / 2))  # assuming even more of a production cycle???
             new_p = property_specific_initialisation_animals_no_neighbours(
                 coordinates,
                 p_polygon,
@@ -911,6 +912,18 @@ def HPAI_movement_network_setup(
 
         max_allowable_movement = max_movement_km
 
+        property_i.movement_neighbours = {
+            "layers free-range": [],
+            "layers caged": [],
+            "layers barn": [],
+            "broiler farm": [],
+            "pullet farm": [],
+            "egg processing": [],
+            "abbatoir": [],
+            "hatchery": [],
+            "breeder": [],
+        }
+
         if property_i.type in ["abbatoir", "egg processing"]:
             pass
         else:
@@ -929,8 +942,10 @@ def HPAI_movement_network_setup(
                             if property_i.type == "hatchery":
                                 if property_j.accepts_hatchlings:
                                     property_i.allowed_movement_details["chickens"]["properties"].append(j)
+                                    property_i.movement_neighbours[property_j.type].append(j)
                             else:
                                 property_i.allowed_movement_details["chickens"]["properties"].append(j)
+                                property_i.movement_neighbours[property_j.type].append(j)
                 if "eggs" in property_i.allowed_movement_details:
                     if property_j.type in property_i.allowed_movement_details["eggs"]["property_types"]:
                         distance = spatial_functions.quick_distance_haversine(
@@ -939,5 +954,6 @@ def HPAI_movement_network_setup(
                         )
                         if distance < max_allowable_movement:
                             property_i.allowed_movement_details["eggs"]["properties"].append(j)
+                            property_i.movement_neighbours[property_j.type].append(j)
 
     return all_properties

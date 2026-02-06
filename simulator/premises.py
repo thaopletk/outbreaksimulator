@@ -793,7 +793,7 @@ class Premises(Property):
 
     def check_if_chicken_objects(self):
         """Return False if it's still array; return true if there are chicken objects"""
-        for shed_i, shed_info in self.sheds:
+        for shed_i, shed_info in self.sheds.items():
             try:
                 for chickens_row in shed_info["chickens"]:
                     if "objs" in chickens_row:
@@ -805,7 +805,7 @@ class Premises(Property):
     def chicken_array(self):
         """Returns the chicken array for printing - needed in the case that it's actually full of chicken objects"""
         chick_array = []
-        for shed_i, shed_info in self.sheds:
+        for shed_i, shed_info in self.sheds.items():
             try:
                 for chickens_row in shed_info["chickens"]:
                     chick_array.append({"shed": shed_i, "n": chickens_row["n"], "age": chickens_row["age"]})
@@ -843,6 +843,7 @@ class Premises(Property):
                         num_eggs += eggs_row["n"]
                 except:
                     pass  # for the case that it doesn't have eggs
+            return num_eggs
         else:
             return 0
 
