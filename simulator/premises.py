@@ -243,7 +243,7 @@ class Premises(Property):
             self.size = total_chickens  # updating the number in case the division is imperfect
 
             # eggs: num eggs
-            self.eggs = actual_chickens_per_shed * np.random.int(
+            self.eggs = actual_chickens_per_shed * np.random.randint(
                 0, self.num_sheds
             )  # age actually doesn't matter if they're not in a shed (yet)
             # and fertilised eggs can be moved into a shed
@@ -800,34 +800,47 @@ class Premises(Property):
 
     def chicken_array(self):
         """Returns the chicken array for printing - needed in the case that it's actually full of chicken objects"""
-        if len(self.chickens) > 0:
-            if len(self.chickens[0]) == 3:
-                return self.chickens  # just a normal array
-            else:
-                array_only_setting = []
-                for row in self.chickens:
-                    array_only_setting.append(row[:-1])
-                return array_only_setting
+        chick_array = []
+        for shed_i, shed_info in self.sheds:
+            try:
+                for chickens_row in shed_info["chickens"]:
+                    chick_array.append({"shed": shed_i, "n": chickens_row["n"], "age": chickens_row["age"]})
+            except:
+                pass
 
-        return self.chickens
+        return chick_array
 
     def get_num_chickens(self):
         num_chickens = 0
-        for row in self.chickens:
-            num_chickens += row[0]
+        for shed_i, shed_info in self.sheds.items():
+            try:
+                for chickens_row in shed_info["chickens"]:
+                    num_chickens += chickens_row["n"]
+            except:
+                pass  # for the case that it doesn't have chickens
+
+        self.size = num_chickens
         return num_chickens
 
     def get_num_eggs(self):
-        num_eggs = 0
-        for row in self.eggs:
-            num_eggs += row[0]
-        return num_eggs
+        if self.type != "breeder" and self.type != "hatchery":
+            return self.eggs
+        else:
+            return 0
 
     def get_num_fertilised_eggs(self):
-        num_eggs = 0
-        for row in self.eggs_fertilised:
-            num_eggs += row[0]
-        return num_eggs
+        if self.type == "breeder":
+            return self.eggs
+        elif self.type == "hatchery":
+            num_eggs = 0
+            for shed_i, shed_info in self.sheds.items():
+                try:
+                    for eggs_row in shed_info["eggs"]:
+                        num_eggs += eggs_row["n"]
+                except:
+                    pass  # for the case that it doesn't have eggs
+        else:
+            return 0
 
     def update_counts(self):
         if self.animal_type != "chicken":
@@ -898,11 +911,11 @@ class Premises(Property):
             self.area,
             self.type,
             self.animal_type,
-            self.size,
+            self.get_num_chickens(),
             self.num_sheds,
             self.chicken_array(),  # self.chickens,
-            self.eggs,
-            self.eggs_fertilised,
+            self.get_num_eggs(),
+            self.get_num_fertilised_eggs(),
         ]
 
     def accepting_animals(self, time=0):
