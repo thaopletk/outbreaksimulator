@@ -462,12 +462,11 @@ def HPAI_NSW_setup_locations(
 
         for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
             num_animals = int(max(row["Estimate"] / row["Number of agricultural businesses"], 1))
-            num_animals = int(
-                num_animals / 2
-            )  # assuming some production cycle, animals will get replaced at least once...
+            num_animals = min(1, int(num_animals / 2))
+            # assuming some production cycle, animals will get replaced at least once...
             # plus will leave some animals for hatchery, breeder farms
             if premises_type == "broiler farm":
-                num_animals = int(num_animals / 5)  # assuming even more of a production cycle???
+                num_animals = min(1, int(num_animals / 2))  # assuming even more of a production cycle???
             new_p = property_specific_initialisation_animals_no_neighbours(
                 coordinates,
                 p_polygon,

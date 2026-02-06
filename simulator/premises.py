@@ -317,9 +317,8 @@ class Premises(Property):
             # no eggs at premises
 
         elif self.type == "hatchery":
-            self.approx_chickens_per_shed = (
-                12000  # going by 12k-14k of chickens per shed - number of eggs -> hatchlings
-            )
+            self.approx_chickens_per_shed = 12000
+            # going by 12k-14k of chickens per shed - number of eggs -> hatchlings
 
             self.num_sheds = math.ceil(self.size / self.approx_chickens_per_shed)
             chickens_possible_week_ages = list(range(0, 4))  # actually fertilised egg ages.
