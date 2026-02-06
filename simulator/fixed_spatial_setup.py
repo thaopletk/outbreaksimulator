@@ -850,62 +850,95 @@ def HPAI_movement_network_setup(
         all_properties[p1].total_neighbours = len(p1_neighbourhood)
 
     # now construct and assign movement neighbours
-    data_allowed_movements = pd.read_excel(data_file, sheet_name="PoultryMovement")
+    # data_allowed_movements = pd.read_excel(data_file, sheet_name="PoultryMovement")
 
-    allowed_movement_setup = {}
-    allowed_movement_details = {}
-    for i, row in data_allowed_movements.iterrows():
-        if row["From"] in allowed_movement_setup:
-            allowed_movement_setup[row["From"]][row["To"]] = 1  # movement probability/allowance: 100%
-            allowed_movement_details[row["From"]][row["To"]] = {"entity": row["What"], "age": row["Age"]}
+    # allowed_movement_setup = {}
+    # allowed_movement_details = {}
+    # for i, row in data_allowed_movements.iterrows():
+    #     if row["From"] in allowed_movement_setup:
+    #         allowed_movement_setup[row["From"]][row["To"]] = 1  # movement probability/allowance: 100%
+    #         allowed_movement_details[row["From"]][row["To"]] = {"entity": row["What"], "age": row["Age"]}
+    #     else:
+    #         allowed_movement_setup[row["From"]] = {row["To"]: 1}
+    #         allowed_movement_details[row["From"]] = {row["To"]: {"entity": row["What"], "age": row["Age"]}}
+
+    # print(allowed_movement_setup)
+    # print(allowed_movement_details)
+
+    for i, property_i in enumerate(all_properties):  # TODO: refactor this to not be hard coded
+        property_i.allowed_movement = {}  # will ignore this original / old structure
+        if property_i.type == "breeder":
+            property_i.allowed_movement_details = {
+                "chickens": {"age": 546, "property_types": ["abbatoir"], "properties": []},
+                "eggs": {"property_types": ["hatchery"], "properties": []},
+            }
+        elif property_i.type == "hatchery":
+            property_i.allowed_movement_details = {
+                "chickens": {
+                    "age": 1,
+                    "property_types": [
+                        "pullet farm",
+                        "broiler farm",
+                        "layers free-range",
+                        "layers barn",
+                        "layers caged",
+                    ],
+                    "properties": [],
+                }
+            }
+        elif property_i.type == "pullet farm":
+            property_i.allowed_movement_details = {
+                "chickens": {
+                    "age": 119,
+                    "property_types": ["layers free-range", "layers barn", "layers caged", "breeder"],
+                    "properties": [],
+                }
+            }
+        elif "layers" in property_i.type:
+            property_i.allowed_movement_details = {
+                "chickens": {"age": 546, "property_types": ["abbatoir"], "properties": []},
+                "eggs": {"property_types": ["egg processing"], "properties": []},
+            }
+        elif property_i.type == "broiler farm":
+            property_i.allowed_movement_details = {
+                "chickens": {"age": 50, "property_types": ["abbatoir"], "properties": []}
+            }
+        elif property_i.type == "egg processing":
+            property_i.allowed_movement_details = {}
+        elif property_i.type == "abbatoir":
+            property_i.allowed_movement_details = {}
         else:
-            allowed_movement_setup[row["From"]] = {row["To"]: 1}
-            allowed_movement_details[row["From"]] = {row["To"]: {"entity": row["What"], "age": row["Age"]}}
-
-    print(allowed_movement_setup)
-    print(allowed_movement_details)
-
-    for i, property_i in enumerate(all_properties):
-        if property_i.type in allowed_movement_setup:
-            property_i.allowed_movement = allowed_movement_setup[property_i.type]
-            property_i.allowed_movement_details = allowed_movement_details[property_i.type]
-        else:
-            property_i.allowed_movement = {}
-            property_i.allowed_movement_details = {}  # case for abbatoirs and egg processing (which will be sinks)
+            raise ValueError(f"Property type not expected: {property_i.type}")
 
         max_allowable_movement = max_movement_km
-        property_i_neighbours = {}
-        for allowed_type in property_i.allowed_movement.keys():
-            property_i_neighbours[allowed_type] = []
 
         if property_i.type in ["abbatoir", "egg processing"]:
-            # abbatoirs/egg processors don't move animals to any other property (they move chickens/eggs to "sinks")
-            property_i.movement_neighbours = property_i_neighbours
+            pass
         else:
             for j, property_j in enumerate(all_properties):
                 if i == j:
                     continue
-                if property_j.type in property_i_neighbours and (
-                    (property_j.animal_type == property_i.animal_type)
-                    or (
-                        property_j.type == "abbatoir"
-                        and property_j.animal_type == "poultry"  # todo - probably adjust to ducks in the future
-                        and property_i.animal_type == "chicken"
-                    )
-                ):
-                    # poultry abbatoir can accept chickens and poultry as animal types
-                    distance = spatial_functions.quick_distance_haversine(
-                        property_i.coordinates,
-                        property_j.coordinates,
-                    )
-
-                    if distance < max_allowable_movement and random.uniform(0, 1) < 0.5:
-                        if property_i.type == "hatchery":
-                            if property_j.accepts_hatchlings:
-                                property_i_neighbours[property_j.type].append(j)
-                        else:
-                            property_i_neighbours[property_j.type].append(j)
-
-            property_i.movement_neighbours = property_i_neighbours
+                if "chickens" in property_i.allowed_movement_details:
+                    if (
+                        property_j.type in property_i.allowed_movement_details["chickens"]["property_types"]
+                    ):  # animal type checking (property_j.animal_type == property_i.animal_type) was removed - bring back when putting back ducks or something TODO
+                        distance = spatial_functions.quick_distance_haversine(
+                            property_i.coordinates,
+                            property_j.coordinates,
+                        )
+                        if distance < max_allowable_movement:
+                            if property_i.type == "hatchery":
+                                if property_j.accepts_hatchlings:
+                                    property_i.allowed_movement_details["chickens"]["properties"].append(j)
+                            else:
+                                property_i.allowed_movement_details["chickens"]["properties"].append(j)
+                if "eggs" in property_i.allowed_movement_details:
+                    if property_j.type in property_i.allowed_movement_details["eggs"]["property_types"]:
+                        distance = spatial_functions.quick_distance_haversine(
+                            property_i.coordinates,
+                            property_j.coordinates,
+                        )
+                        if distance < max_allowable_movement:
+                            property_i.allowed_movement_details["eggs"]["properties"].append(j)
 
     return all_properties
