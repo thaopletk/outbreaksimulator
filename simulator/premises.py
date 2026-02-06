@@ -602,29 +602,30 @@ class Premises(Property):
                 FOI,
             )
         else:
-            # infection model for each animals
-
-            for i in range(len(self.chickens)):
-                # if there are already animal objects...
-                if len(self.chickens[i]) > 3:
-                    for chicken in self.chickens[i][3]:
-                        animal_inf = chicken.infection_event(params, FOI)
-                        if animal_inf:
-                            self.cumulative_infections += 1
-                        chicken.check_transition(params)
-                        chicken.update_clock()
-                else:
-                    if FOI > 0:  # i.e., they can get infected
-                        # convert to animal objects
-                        self.init_animals(None)
-                        for chicken in self.chickens[i][3]:
-                            animal_inf = chicken.infection_event(params, FOI)
-                            if animal_inf:
-                                self.cumulative_infections += 1
-                            chicken.check_transition(params)
-                            chicken.update_clock()
-                    else:
-                        pass  # pass  - no infection risk
+            # infection model for each animals # TODO : there should be more infection risk within the same shed
+            for shed_i, shed_info in self.sheds.items():
+                if "chickens" in shed_info:
+                    for chicken_row in shed_info["chickens"]:
+                        # if there are already animal objects...
+                        if "objs" in chicken_row:
+                            for chicken in chicken_row["objs"]:
+                                animal_inf = chicken.infection_event(params, FOI)
+                                if animal_inf:
+                                    self.cumulative_infections += 1
+                                chicken.check_transition(params)
+                                chicken.update_clock()
+                        else:
+                            if FOI > 0:  # i.e., they can get infected
+                                # convert to animal objects
+                                self.init_animals(None)
+                                for chicken in chicken_row["objs"]:
+                                    animal_inf = chicken.infection_event(params, FOI)
+                                    if animal_inf:
+                                        self.cumulative_infections += 1
+                                    chicken.check_transition(params)
+                                    chicken.update_clock()
+                            else:
+                                pass  # pass  - no infection risk
 
         # TODO to be honest, not sure if this is correct, since infection staus and stuff don't update until later....
         if self.infection_status == 1 and self.exposure_date == "NA":
