@@ -806,6 +806,21 @@ class Premises(Property):
 
         return chick_array
 
+    def get_num_laying_chickens(self):
+        num_laying_chickens = 0
+
+        for shed_i, shed_info in self.sheds.items():
+            try:
+                for chickens_row in shed_info["chickens"]:
+                    if (
+                        chickens_row["age"] > 20 * 7 and chickens_row["age"] < 78 * 7
+                    ):  # i.e., if age is greater than 20 weeks
+                        num_laying_chickens += chickens_row["n"]
+            except:
+                pass  # for the case that it doesn't have chickens
+
+        return num_laying_chickens
+
     def get_num_chickens(self):
         num_chickens = 0
         for shed_i, shed_info in self.sheds.items():

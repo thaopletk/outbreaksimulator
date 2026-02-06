@@ -126,13 +126,8 @@ def egg_production(properties):
     """implements production of eggs..."""
     for facility in properties:
         if "layers" in facility.type:
-            total_laying_chickens = 0
-            for row in facility.chickens:
-                if row[2] > 20 * 7 and row[2] < 78 * 7:  # i.e., if age is greater than 20 weeks
-                    total_laying_chickens += row[0]  # the number of chickens
-            facility.eggs.append(
-                [int(total_laying_chickens / 2), 0]
-            )  # assume half of the chickens lay eggs; age of eggs is zero
+            total_laying_chickens = facility.get_num_laying_chickens()
+            facility.eggs += max(1, int(total_laying_chickens / 2))  # assumption... TODO fix this
         elif facility.type == "broiler farm":
             pass  # no egg production
         elif facility.type == "pullet farm":
@@ -142,14 +137,10 @@ def egg_production(properties):
         elif facility.type == "abbatoir":
             pass  # no egg production
         elif facility.type == "hatchery":
-            total_laying_chickens = 0
-            for row in facility.chickens:
-                if row[2] > 20 * 7 and row[2] < 78 * 7:  # i.e., if age is greater than 20 weeks and less than 78
-                    total_laying_chickens += row[0]  # the number of chickens
-            facility.eggs_fertilised.append(
-                [int(total_laying_chickens / 2), 0]
-            )  # assume half of the chickens lay eggs; age of eggs is zero
-            # TODO I think the eggs should be hatched in pulses (.g. every 14 days) but for now, it'll be like this....
+            pass  # no egg production
+        elif facility.type == "breeder":
+            total_laying_chickens = facility.get_num_laying_chickens()
+            facility.eggs += max(1, int(total_laying_chickens / 4))  # assumption... TODO fix this
         else:
             raise ValueError(f"egg_production: property type not expected: {facility.type}")
 
