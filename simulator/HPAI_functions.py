@@ -122,6 +122,14 @@ def advance_chicken_egg_ages(properties):
                         facility.sheds[shed_i]["chickens"] = [baby_chicks]
 
 
+def finish_cleaning_sheds(properties, time):
+    for facility in properties:
+        for shed_i, shed_info in facility.sheds.items():
+            if shed_info["cleaning"] == True:
+                if shed_info["cleaning_completion"] >= time:
+                    shed_info["cleaning"] = False  # cleaning complete
+
+
 def egg_production(properties):
     """implements production of eggs..."""
     for facility in properties:
@@ -257,8 +265,80 @@ def animal_movement(
 
     date = premises.convert_time_to_date(day)
 
-    # rows of day, converted date, moving from property index, to property index, WHAT was moved (chickens or eggs), number of animals/eggs moved, a narrative report (locations, number of animals moved),
+    # rows of day, converted date, moving from property index, to property index, WHAT was moved (chickens or eggs), number of animals/eggs moved, a narrative report (locations, number of animals moved)
+
     movement_record = []
+    movement_permit_requests = []
+    for premise_index, facility in enumerate(properties):
+        if not facility.culled_status:
+            num_chickens_to_move, chicken_properties_to_move_to = facility.want_to_move_animals()
+            num_eggs_to_move, egg_properties_to_move_to = facility.want_to_move_eggs()
+            if (
+                num_chickens_to_move > 0 or num_eggs_to_move > 0
+            ):  # if neither is >0, then there is no movement for this facility
+                in_control_zone = False
+                if controlzone != None and facility.polygon.intersects(controlzone):
+                    in_control_zone = True
+
+                # for chickens first
+                targets_unrestricted_zones = []
+                targets_in_control_zones = []
+                for property_index in chicken_properties_to_move_to:
+                    target_facility = properties[property_index]
+                    empty_sheds, num_chickens_per_shed_target = target_facility.accepting_chickens()
+                    # need to figure out....how many premises the movements need to be made to OTL
+                    if empty_sheds != [] and num_chickens_per_shed_target > 0:
+                        if controlzone != None and target_facility.polygon.intersects(controlzone):
+                            targets_in_control_zones.append([property_index, empty_sheds, num_chickens_per_shed_target])
+                        else:
+                            targets_unrestricted_zones.append(
+                                [property_index, empty_sheds, num_chickens_per_shed_target]
+                            )
+                random.shuffle(targets_unrestricted_zones)
+                random.shuffle(targets_in_control_zones)
+                if in_control_zone:
+                    raise ValueError("Movement requests not yet coded!")
+                    # permit request:  facility id[], type [], status [], requests to move [X animals] to [target facility]
+                else:  # move "num_chickens_to_move" chickens
+                    for property_index, empty_sheds, num_chickens_per_shed_target in targets_unrestricted_zones:
+                        for empty_shed in empty_sheds:
+                            if num_chickens_per_shed_target > num_chickens_to_move:
+                                pass  # do something
+                                # move all the remaining chickens to this shed
+                                # log movement
+                                # make num_chickens_to_move = 0
+                                # and break
+                            else:
+                                pass  # do something different
+                                # move "num_chickens_per_shed_target" into this shed,
+                                # reduce num_chickens_to_move -= num_chickens_per_shed_target
+                                # and move onto the next shed
+
+                    if num_chickens_to_move > 0:
+                        # need to make some kind of "hypothetical chicken movement" here... or just request the first one rather than multiple
+                        for property_index, empty_sheds, num_chickens_per_shed_target in targets_in_control_zones:
+                            for empty_shed in empty_sheds:
+                                if num_chickens_per_shed_target > num_chickens_to_move:
+                                    pass
+                            raise ValueError("Movement requests not yet coded!")
+                        # if there are still "num_chickens_to_move" >0, repeat for [targets_in_control_zones] - need to request movement permit
+                        pass
+
+                # for eggs next
+
+                # if eggs, for movement to hatcheries, need to  check chickens not check accepting eggs, and move eggs into sheds
+
+        # TODO
+        # if there are movement restrictions on the facility, raise a movement permit request
+        # if there are movement restrictions on the property-to-move-to, also raise a movement request
+        # otherwise, conduct the movement.
+        # for broilers, layers - if chickens are moved, initiate cleaning procedure
+        # check if it has any eggs it wants to move
+        # if yes: check if are any movement restrictions on it
+        # get the properties that can accept the eggs, and sort them - as having movement restrictions too, and not
+        # if there are movement restrictions on the facility, raise a movement permit request
+        # if there are movement restrictions on the property-to-move-to, also raise a movement request
+        # otherwise, conduct the movement.
 
     indices_that_can_move = []  # TODO: add in movement permit requests here????
     for premise_index in range(len(properties)):

@@ -281,7 +281,7 @@ else:
         diseaseoutbreak = pickle.load(file)
 
 HPAI_functions.save_approx_known_data(properties, folder_path_undetected_spread, unique_output)
-
+exit(0)
 ###################################################
 # ---- Trigger first report ----------------------#
 ###################################################

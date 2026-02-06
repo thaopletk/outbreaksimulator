@@ -931,64 +931,82 @@ class Premises(Property):
             self.get_num_fertilised_eggs(),
         ]
 
-    def accepting_animals(self, time=0):
+    def accepting_chickens(self):
         """
-        Function to check if this premises is ready to accept animals (birds), and return the shed number that is free, for movement
+        Function to check if this premises is ready to accept birds, and return the shed number that is free, for movement
 
         relevant for pullet farm, broiler farm and layers, and abbatoirs
 
         :param self: Description
         """
-
-        chickens_per_shed = {shed_i: 0 for shed_i in range(1, self.num_sheds + 1)}
-        for row in self.chickens:
-            chickens_per_shed[row[1]] += row[0]
-
         empty_sheds = []
-        for shed, num_chickens in chickens_per_shed.items():
-            if num_chickens == 0:
-                empty_sheds.append(shed)
+        for shed_i, shed_info in self.sheds.items():
+            if ("chicken" not in shed_info or shed_info["chickens"] == []) and (
+                "eggs" not in shed_info or shed_info["eggs"] == []
+            ):
+                if shed_info["cleaning"] == False:  # meaning that cleaning is complete
+                    empty_sheds.append(shed_i)  # has space for chickens and is read for them
 
-                # TODO: add a check of when the shed was emptied / if it's still in the "cleaning" status or not, or something like that
+        return empty_sheds, min(self.approx_chickens_per_shed, self.chicken_capacity)
 
-        return empty_sheds, self.approx_chickens_per_shed
+    # def want_to_move_chickens_hatchery(self):
+    #     num_chickens_to_move_abbatoir = 0
+    #     row_indices_to_move_abbatoir = []
+    #     for i in range(len(self.chickens)):
+    #         row = self.chickens[i]
+    #         chicken_age = row[2]
+    #         if chicken_age > 546:  # TODO - well, there should be something better about this
+    #             num_chickens_to_move_abbatoir += row[0]
+    #             row_indices_to_move_abbatoir.append(i)
 
-    def want_to_move_chickens_hatchery(self):
-        num_chickens_to_move_abbatoir = 0
-        row_indices_to_move_abbatoir = []
-        for i in range(len(self.chickens)):
-            row = self.chickens[i]
-            chicken_age = row[2]
-            if chicken_age > 546:  # TODO - well, there should be something better about this
-                num_chickens_to_move_abbatoir += row[0]
-                row_indices_to_move_abbatoir.append(i)
+    #     property_types_to_move_to_abbatoir = [
+    #         "abbatoir"
+    #     ]  # TODO - need to refactor to avoid hard coding if possible OTL
 
-        property_types_to_move_to_abbatoir = [
-            "abbatoir"
-        ]  # TODO - need to refactor to avoid hard coding if possible OTL
+    #     pass  # TODO - hard!!! need to keep laying chickens!
 
-        pass  # TODO - hard!!! need to keep laying chickens!
+    # def want_to_move_chickens_pullet_farm(self):
+    #     num_chickens_to_move = 0
+    #     row_indices_to_move = []
+    #     for i in range(len(self.chickens)):
+    #         row = self.chickens[i]
+    #         chicken_age = row[2]
+    #         if chicken_age > 119:  # TODO - well, there should be something better about this
+    #             num_chickens_to_move += row[0]
+    #             row_indices_to_move.append(i)
 
-    def want_to_move_chickens_pullet_farm(self):
-        num_chickens_to_move = 0
-        row_indices_to_move = []
-        for i in range(len(self.chickens)):
-            row = self.chickens[i]
-            chicken_age = row[2]
-            if chicken_age > 119:  # TODO - well, there should be something better about this
-                num_chickens_to_move += row[0]
-                row_indices_to_move.append(i)
+    #     property_types_to_move_to = [
+    #         "layers free-range",
+    #         "layers caged",
+    #         "layers barn",
+    #     ]  # TODO - need to refactor to avoid hard coding if possible OTL
 
-        property_types_to_move_to = [
-            "layers free-range",
-            "layers caged",
-            "layers barn",
-        ]  # TODO - need to refactor to avoid hard coding if possible OTL
-
-        return num_chickens_to_move, row_indices_to_move, property_types_to_move_to
+    #     return num_chickens_to_move, row_indices_to_move, property_types_to_move_to
 
     def want_to_move_animals(self):
-        pass
+        num_chickens_to_move = 0
+        properties_to_move_to = []
+        if "chickens" in self.allowed_movement_details:
+            properties_to_move_to = self.allowed_movement_details["chickens"]["properties"]
+            for shed_i, shed_info in self.sheds.items():
+                if "chickens" in shed_info:
+                    for chicken_row in shed_info["chickens"]:
+                        if chicken_row["age"] >= self.allowed_movement_details["chickens"]["age"]:
+                            num_chickens_to_move += chicken_row["n"]
+        return num_chickens_to_move, properties_to_move_to  # don't have checks at all to move
 
     def want_to_move_eggs(self):
-        pass
+        num_eggs_to_move = 0
+        properties_to_move_to = []
+        if "eggs" in self.allowed_movement_details:
+            properties_to_move_to = self.allowed_movement_details["eggs"]["properties"]
+            if (
+                self.num_sheds > 2 and self.eggs > 12000
+            ):  # only move if there are a lot of eggs, if it's a big property (i.e. with more than two sheds)
+                num_eggs_to_move = self.eggs
+            elif (
+                self.num_sheds == 1 and self.eggs > self.chicken_capacity
+            ):  # for smaller farms that started off with fewer birds
+                num_eggs_to_move = self.eggs
+            # else - no moving eggs yet.
+        return num_eggs_to_move, properties_to_move_to
