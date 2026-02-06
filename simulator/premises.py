@@ -793,11 +793,13 @@ class Premises(Property):
 
     def check_if_chicken_objects(self):
         """Return False if it's still array; return true if there are chicken objects"""
-        if len(self.chickens) > 0:
-            if len(self.chickens[0]) == 3:
-                return False
-            else:
-                return True
+        for shed_i, shed_info in self.sheds:
+            try:
+                for chickens_row in shed_info["chickens"]:
+                    if "objs" in chickens_row:
+                        return True
+            except:
+                pass
         return False
 
     def chicken_array(self):

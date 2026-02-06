@@ -92,33 +92,34 @@ def seed_HPAI_infection(
 
 
 def advance_chicken_egg_ages(properties):
-    """increases the age of all the chickens and eggs by one day"""
+    """increases the age of all the chickens and [fertilised] eggs by one day"""
     for facility in properties:
-        for i in range(len(facility.chickens)):
-            facility.chickens[i][2] += 1  # the third index is the age, by day
-        for i in range(len(facility.eggs)):
-            facility.eggs[i][1] += 1  # the second index is the age, by day
-        for i in range(len(facility.eggs_fertilised)):
-            facility.eggs_fertilised[i][
-                1
-            ] += 1  # the second index is the age, by day # TODO - this should be pulsed some how?
+        for shed_i, shed_info in facility.sheds.items():
+            if "chickens" in shed_info:
+                for i in range(len(facility.sheds[shed_i]["chickens"])):
+                    facility.sheds[shed_i]["chickens"][i]["age"] += 1
+            if "eggs" in shed_info:  # hatcheries only
+                eggs_rows_to_hatch = []
+                for i in range(len(facility.sheds[shed_i]["eggs"])):
+                    facility.sheds[shed_i]["eggs"][i]["age"] += 1
+                    if facility.sheds[shed_i]["eggs"][i]["age"] > 21:
+                        # hatch the eggs!
+                        eggs_rows_to_hatch.append(i)
+                for i in reversed(eggs_rows_to_hatch):
+                    hatched_row = facility.sheds[shed_i]["eggs"].pop(i)
+                    if facility.check_if_chicken_objects() == False:
+                        baby_chicks = {"n": hatched_row["n"], "age": 0}
+                    else:
+                        baby_chicks = {
+                            "n": hatched_row["n"],
+                            "age": 0,
+                            "objs": [Animal(None) for _ in range(hatched_row["n"])],
+                        }
 
-        # check if eggs are > 21 days, in which case they become chickens!
-        rows_with_hatched_eggs = []
-        for i in range(len(facility.eggs_fertilised)):
-            if facility.eggs_fertilised[i][1] > 21:
-                rows_with_hatched_eggs.append(i)
-        for i in rows_with_hatched_eggs:
-            hatched_row = facility.eggs_fertilised.pop(i)
-            shed = 1  # should do this properly... # TODO this really shouldn't be in shed 1
-            if facility.check_if_chicken_objects() == False:
-
-                facility.chickens.append([hatched_row[0], shed, 0])  # adding new chickens of age zero
-            else:
-                chicken_animal_objs = [Animal(None) for _ in range(hatched_row[0])]
-                facility.chickens.append(
-                    [hatched_row[0], shed, 0, chicken_animal_objs]
-                )  # adding new chickens of age zero
+                    if "chickens" in facility.sheds[shed_i]:
+                        facility.sheds[shed_i]["chickens"].append(baby_chicks)
+                    else:
+                        facility.sheds[shed_i]["chickens"] = [baby_chicks]
 
 
 def egg_production(properties):
