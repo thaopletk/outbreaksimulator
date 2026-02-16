@@ -171,6 +171,39 @@ def create_movement_records_df():
     return pd.DataFrame(columns=movement_record_header)
 
 
+def initiate_cleaning(properties, index, shed_i, time):
+    # NOTE: only call if chickens have been just moved
+
+    facility = properties[index]
+    shed_info = facility.sheds[shed_i]
+    # check if the shed is now empty
+    # if so, initiate cleaning
+    if shed_info["chickens"] == []:
+        shed_info["cleaning"] = True
+        shed_info["cleaning_completion"] = time + 7  # at least a week of cleaning
+
+
+def remove_chickens_from_property_ready_for_movement(properties, start_index, time):
+    start_facility = properties[start_index]
+    chickens_to_move = []
+    if "chickens" in start_facility.allowed_movement_details:
+        for shed_i, shed_info in start_facility.sheds.items():
+            shed_has_had_chickens_removed = False
+            if "chickens" in shed_info:
+                for chicken_row in shed_info["chickens"]:
+                    if chicken_row["age"] >= start_facility.allowed_movement_details["chickens"]["age"]:
+                        chickens_to_move.append(chicken_row)
+                        shed_has_had_chickens_removed = True
+
+                for chickens_removed in chickens_to_move:
+                    shed_info["chickens"].remove(chickens_removed)
+
+                if shed_has_had_chickens_removed:
+                    initiate_cleaning(properties, start_index, shed_i, time)
+
+    return chickens_to_move
+
+
 def move_chickens_onto_truck(properties, start_index, target_index):
     start_facility = properties[start_index]
     target_facility = properties[target_index]
@@ -220,13 +253,9 @@ def align_chicken_objects(properties, start_index, target_index, chickens_on_tru
         new_facility.init_animals(None)  # now both have chicken objects
     elif facility.check_if_chicken_objects() == False and new_facility.check_if_chicken_objects() == True:
         # need to convert new chickens into chicken objects before passing them on
-        new_chickens_on_truck = []
         for row in chickens_on_truck:
-            new_row = row
-            chicken_animal_objs = [Animal(None) for _ in range(new_row[0])]
-            new_row.append(chicken_animal_objs)
-            new_chickens_on_truck.append(new_row)
-        chickens_on_truck = new_chickens_on_truck
+            chicken_animal_objs = [Animal(None) for _ in range(row["n"])]
+            row["objs"] = chicken_animal_objs
     else:
         pass  # should already be aligned
 
@@ -279,10 +308,14 @@ def animal_movement(
                 in_control_zone = False
                 if controlzone != None and facility.polygon.intersects(controlzone):
                     in_control_zone = True
+                    # TODO: if True, use this to raise movement permit request
 
-                # for chickens first
+            if num_chickens_to_move > 0:
+                # get places to move to
                 targets_unrestricted_zones = []
                 targets_in_control_zones = []
+
+                # go through the properties we *could* move chickens to, to find which ones *can* have chickens moved to them
                 for property_index in chicken_properties_to_move_to:
                     target_facility = properties[property_index]
                     empty_sheds, num_chickens_per_shed_target = target_facility.accepting_chickens()
@@ -299,34 +332,125 @@ def animal_movement(
                 if in_control_zone:
                     raise ValueError("Movement requests not yet coded!")
                     # permit request:  facility id[], type [], status [], requests to move [X animals] to [target facility]
-                else:  # move "num_chickens_to_move" chickens
-                    for property_index, empty_sheds, num_chickens_per_shed_target in targets_unrestricted_zones:
-                        for empty_shed in empty_sheds:
-                            if num_chickens_per_shed_target > num_chickens_to_move:
-                                pass  # do something
-                                # move all the remaining chickens to this shed
-                                # log movement
-                                # make num_chickens_to_move = 0
-                                # and break
-                            else:
-                                pass  # do something different
-                                # move "num_chickens_per_shed_target" into this shed,
-                                # reduce num_chickens_to_move -= num_chickens_per_shed_target
-                                # and move onto the next shed
+                else:  # the source facility is not in a restricted zone; move "num_chickens_to_move" chickens
+                    chickens_left_to_move = num_chickens_to_move
+                    chickens_to_move = remove_chickens_from_property_ready_for_movement(properties, premise_index, time)
 
-                    if num_chickens_to_move > 0:
+                    for target_index, empty_sheds, num_chickens_per_shed_target in targets_unrestricted_zones:
+                        new_facility = properties[target_index]
+                        for empty_shed in empty_sheds:
+                            chickens_moved = 0
+                            if num_chickens_per_shed_target > chickens_left_to_move:
+                                while chickens_to_move != []:
+                                    chickens_on_truck = chickens_to_move.pop()
+                                    chickens_to_transfer = align_chicken_objects(
+                                        properties, premise_index, target_index, chickens_on_truck
+                                    )
+                                    chickens_left_to_move = chickens_left_to_move - chickens_on_truck["n"]
+                                    chickens_moved += chickens_on_truck["n"]
+                                    new_facility.sheds[empty_shed]["chickens"].append(chickens_to_transfer)
+
+                                if chickens_left_to_move != 0:
+                                    raise ValueError("There should be no more chickens left to move!")
+
+                                row = [
+                                    day,
+                                    f"{date}",
+                                    premise_index,
+                                    target_index,
+                                    "chicken",
+                                    chickens_moved,
+                                    facility.type,
+                                    new_facility.type,
+                                    f"DAY {date} - moved {number_animals} chicken(s) from {facility.type} ID {facility.id} ({facility.state}, {facility.region}) to {new_facility.type} ID {new_facility.id} ({new_facility.state}, {new_facility.region})",
+                                ]
+
+                                if len(row) != len(movement_record_header):
+                                    raise ValueError(
+                                        "The length of movement record is not the same as the movement header"
+                                    )
+                                    # added in case I decide to change the information recorded again
+
+                                movement_record.append(row)
+                            else:
+                                # num_chickens_per_shed_target < chickens_left_to_move:
+
+                                while chickens_moved < num_chickens_per_shed_target:
+                                    possible_chickens_on_truck = chickens_to_move.pop()
+                                    if num_chickens_per_shed_target < possible_chickens_on_truck["n"]:
+                                        # only transfer some of them
+                                        chickens_on_truck = {
+                                            "n": num_chickens_per_shed_target,
+                                            "age": possible_chickens_on_truck["age"],
+                                        }
+                                        chickens_left_over = {
+                                            "n": possible_chickens_on_truck["n"] - num_chickens_per_shed_target,
+                                            "age": possible_chickens_on_truck["age"],
+                                        }
+                                        if "objs" in possible_chickens_on_truck:
+                                            chickens_on_truck["objs"] = possible_chickens_on_truck["objs"][
+                                                :num_chickens_per_shed_target
+                                            ]
+                                            chickens_left_over["objs"] = possible_chickens_on_truck["objs"][
+                                                num_chickens_per_shed_target:
+                                            ]
+                                            chickens_to_move.append(chickens_left_over)
+                                    else:
+                                        chickens_on_truck = possible_chickens_on_truck  # transfer all of them
+
+                                    chickens_to_transfer = align_chicken_objects(
+                                        properties, premise_index, target_index, chickens_on_truck
+                                    )
+                                    chickens_left_to_move = chickens_left_to_move - chickens_on_truck["n"]
+                                    chickens_moved += chickens_on_truck["n"]
+                                    new_facility.sheds[empty_shed]["chickens"].append(chickens_to_transfer)
+
+                                row = [
+                                    day,
+                                    f"{date}",
+                                    premise_index,
+                                    target_index,
+                                    "chicken",
+                                    chickens_moved,
+                                    facility.type,
+                                    new_facility.type,
+                                    f"DAY {date} - moved {number_animals} chicken(s) from {facility.type} ID {facility.id} ({facility.state}, {facility.region}) to {new_facility.type} ID {new_facility.id} ({new_facility.state}, {new_facility.region})",
+                                ]
+
+                                if len(row) != len(movement_record_header):
+                                    raise ValueError(
+                                        "The length of movement record is not the same as the movement header"
+                                    )
+                                    # added in case I decide to change the information recorded again
+
+                                movement_record.append(row)
+
+                            if chickens_to_move == []:
+                                break
+
+                    if (
+                        chickens_left_to_move > 0
+                    ):  # which means there are still chickens to move, but target properties are all in movement restricted zones
                         # need to make some kind of "hypothetical chicken movement" here... or just request the first one rather than multiple
                         for property_index, empty_sheds, num_chickens_per_shed_target in targets_in_control_zones:
                             for empty_shed in empty_sheds:
                                 if num_chickens_per_shed_target > num_chickens_to_move:
                                     pass
                             raise ValueError("Movement requests not yet coded!")
+
+                    if chickens_left_to_move > 0:
+                        raise ValueError(
+                            "After everything, there are still chickens left...they should be put back into their original shed somehow lol"
+                        )
+
                         # if there are still "num_chickens_to_move" >0, repeat for [targets_in_control_zones] - need to request movement permit
                         pass
 
+            if num_eggs_to_move > 0:
+                pass
                 # for eggs next
 
-                # if eggs, for movement to hatcheries, need to  check chickens not check accepting eggs, and move eggs into sheds
+                # if eggs, for movement to hatcheries, need to check chickens not check accepting eggs, and move eggs into sheds
 
         # TODO
         # if there are movement restrictions on the facility, raise a movement permit request
