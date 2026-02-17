@@ -181,9 +181,7 @@ class Premises(Property):
         self.accepts_hatchlings = False  # whether they rear pullets or not
         self.approx_chickens_per_shed = None
 
-        self.custom_info = (
-            {}
-        )  # setting up an empty dictionary to add in any custom info to be set live during the simulation
+        self.custom_info = {}  # setting up an empty dictionary to add in any custom info to be set live during the simulation
 
     def requesting_chickens(self):
         """generally superceeded by accepting_animals() function"""
@@ -255,9 +253,7 @@ class Premises(Property):
 
             # NEW CHICKEN ALLOCATION - more akin to "all in / all out", with chickens of the same age in each shed
             self.num_sheds = math.ceil(self.size / self.approx_chickens_per_shed)
-            chickens_possible_week_ages = list(
-                range(1, 6 + 1)
-            )  # lower age limit - all broiler farms to accept hatchlings directly
+            chickens_possible_week_ages = list(range(1, 6 + 1))  # lower age limit - all broiler farms to accept hatchlings directly
             self.accepts_hatchlings = True
             actual_chickens_per_shed = int(self.size / self.num_sheds)
 
@@ -308,6 +304,7 @@ class Premises(Property):
         elif self.type == "abbatoir":
             self.num_sheds = 1  # TODO - possibility to add more sheds?
             self.approx_chickens_per_shed = 14000  # TODO - assuming this is their daily capacity...
+            self.chicken_capacity = 14000
             self.sheds[1] = {
                 "chickens": [{"n": self.size, "age": 6 * 7}],  # broiler chickens ready for slaughter
                 "cleaning": False,
@@ -530,9 +527,7 @@ class Premises(Property):
 
     def calculate_num_animals_to_move(self):
         """note, this assumes that movement WILL occur; the return value can be zero"""
-        property_size = len(
-            self.animals
-        )  # TODO need to update this, self.animals may not be accurate anymore with chickens in arrays
+        property_size = len(self.animals)  # TODO need to update this, self.animals may not be accurate anymore with chickens in arrays
         number_animals = int(np.floor(self.movement_prop_animals * property_size))
         if property_size > 1 and number_animals == 0:
             number_animals = 1  # keeping at least one animal in each property
@@ -554,9 +549,7 @@ class Premises(Property):
         else:
             weights = [i / sum(weights) for i in weights]
 
-        move_to_types_list = np.random.choice(
-            property_types_to_move_to, size=num_properties_to_move_to, replace=True, p=weights
-        )
+        move_to_types_list = np.random.choice(property_types_to_move_to, size=num_properties_to_move_to, replace=True, p=weights)
 
         return move_to_types_list
 
@@ -813,9 +806,7 @@ class Premises(Property):
         for shed_i, shed_info in self.sheds.items():
             try:
                 for chickens_row in shed_info["chickens"]:
-                    if (
-                        chickens_row["age"] > 20 * 7 and chickens_row["age"] < 78 * 7
-                    ):  # i.e., if age is greater than 20 weeks
+                    if chickens_row["age"] > 20 * 7 and chickens_row["age"] < 78 * 7:  # i.e., if age is greater than 20 weeks
                         num_laying_chickens += chickens_row["n"]
             except:
                 pass  # for the case that it doesn't have chickens
@@ -942,9 +933,7 @@ class Premises(Property):
         """
         empty_sheds = []
         for shed_i, shed_info in self.sheds.items():
-            if ("chickens" not in shed_info or shed_info["chickens"] == []) and (
-                "eggs" not in shed_info or shed_info["eggs"] == []
-            ):
+            if ("chickens" not in shed_info or shed_info["chickens"] == []) and ("eggs" not in shed_info or shed_info["eggs"] == []):
                 if shed_info["cleaning"] == False:  # meaning that cleaning is complete
                     empty_sheds.append(shed_i)  # has space for chickens and is read for them
 
@@ -1005,9 +994,7 @@ class Premises(Property):
                 self.num_sheds > 2 and self.eggs > 12000
             ):  # only move if there are a lot of eggs, if it's a big property (i.e. with more than two sheds)
                 num_eggs_to_move = self.eggs
-            elif (
-                self.num_sheds == 1 and self.eggs > self.chicken_capacity
-            ):  # for smaller farms that started off with fewer birds
+            elif self.num_sheds == 1 and self.eggs > self.chicken_capacity:  # for smaller farms that started off with fewer birds
                 num_eggs_to_move = self.eggs
             # else - no moving eggs yet.
         return num_eggs_to_move, properties_to_move_to
