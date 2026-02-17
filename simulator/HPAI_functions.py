@@ -224,7 +224,7 @@ def remove_chickens_from_property_ready_for_movement(properties, start_index, in
                                         chicken_row["objs"] = chicken_row["objs"][actually_only_moving:]
                                     chickens_to_move.append(new_row)
 
-                    for chickens_removed in chickens_to_move:
+                    for chickens_removed in chickens_to_move:  # TODO should refactor this with del like the above part
                         if chickens_removed in shed_info["chickens"]:
                             shed_info["chickens"].remove(chickens_removed)
                     if shed_has_had_chickens_removed:
@@ -484,12 +484,15 @@ def animal_movement(
 
                 # if eggs, for movement to hatcheries, need to check chickens not check accepting eggs, and move eggs into sheds
         if facility.type == "abbatoir":
+
             total_chickens_being_slaughtered = 0
             for shed_i, shed_info in facility.sheds.items():
                 for row in shed_info["chickens"]:
                     total_chickens_being_slaughtered += row["n"]
 
                 shed_info["chickens"] = []  # removing them from existence
+            if total_chickens_being_slaughtered > 0 and controlzone != None and facility.polygon.intersects(controlzone):
+                print(f"note that abbatoir ID {facility.id} is in the control zone (just a note, no impact on slaughtering)")
 
             if total_chickens_being_slaughtered > 0:
                 # create the movement record
@@ -510,6 +513,34 @@ def animal_movement(
                     # added in case I decide to change the information recorded again
 
                 movement_record.append(row)
+
+            if facility.type == "egg processing":
+                total_eggs_being_moved = facility.eggs
+                facility.eggs = 0  # reset to zero
+                if total_eggs_being_moved > 0:
+                    if controlzone != None and facility.polygon.intersects(controlzone):
+                        print(
+                            f"note that egg processor ID {facility.id} is in the control zone (just a note, no impact on processing/distribution)"
+                        )
+
+                    # create the movement record
+                    row = [
+                        day,
+                        f"{date}",
+                        premise_index,
+                        -1,
+                        "egg",
+                        total_eggs_being_moved,
+                        facility.type,
+                        "egg distributor",
+                        f"DAY {date} - moved {total_eggs_being_moved} egg(s) from {facility.type} ID {facility.id} ({facility.state}, {facility.region}) to egg distributor",
+                    ]
+
+                    if len(row) != len(movement_record_header):
+                        raise ValueError("The length of movement record is not the same as the movement header")
+                        # added in case I decide to change the information recorded again
+
+                    movement_record.append(row)
         # TODO
         # if there are movement restrictions on the facility, raise a movement permit request
         # if there are movement restrictions on the property-to-move-to, also raise a movement request
@@ -657,37 +688,7 @@ def animal_movement(
 
     #                     movement_record.append(row)
 
-    #     elif facility.type == "egg processing":
-    #         entity_to_move == "egg"
-    #         # movements possible - eggs removed from system, i.e., sent to distribution
-    #         total_eggs_being_moved = 0
-    #         for i in range(len(facility.eggs)):
-    #             row = facility.eggs[i]
-    #             total_eggs_being_moved += row[0]
-
-    #         if total_eggs_being_moved == 0:
-    #             continue
-
-    #         facility.eggs = []  # reset to zero
-
-    #         # create the movement record
-    #         row = [
-    #             day,
-    #             f"{date}",
-    #             premise_index,
-    #             -1,
-    #             entity_to_move,
-    #             total_eggs_being_moved,
-    #             facility.type,
-    #             "egg distributor",
-    #             f"DAY {date} - moved {total_eggs_being_moved} {entity_to_move}(s) from {facility.type} ID {facility.id} ({facility.state}, {facility.region}) to egg distributor",
-    #         ]
-
-    #         if len(row) != len(movement_record_header):
-    #             raise ValueError("The length of movement record is not the same as the movement header")
-    #             # added in case I decide to change the information recorded again
-
-    #         movement_record.append(row)
+    #
 
     print(f"movements for day {day} / {date} completed")
 

@@ -241,9 +241,8 @@ class Premises(Property):
             self.size = total_chickens  # updating the number in case the division is imperfect
 
             # eggs: num eggs
-            self.eggs = actual_chickens_per_shed * np.random.randint(
-                0, self.num_sheds
-            )  # age actually doesn't matter if they're not in a shed (yet)
+            self.eggs = actual_chickens_per_shed * np.random.randint(0, self.num_sheds)
+            # age actually doesn't matter if they're not in a shed (yet)
             # and fertilised eggs can be moved into a shed
 
         elif self.type == "broiler farm":
