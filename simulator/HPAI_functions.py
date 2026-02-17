@@ -67,9 +67,7 @@ def seed_HPAI_infection(
     p.init_animals(None)
     infected_shed = np.random.randint(1, p.num_sheds + 1)
     for seed_animal in range(num_infected):
-        p.sheds[infected_shed]["chickens"][0]["objs"][
-            seed_animal
-        ].status = "infected"  # picks chickens from the first row
+        p.sheds[infected_shed]["chickens"][0]["objs"][seed_animal].status = "infected"  # picks chickens from the first row
 
     p.prop_infectious = num_infected / p.get_num_chickens()
     p.cumulative_infections = num_infected
@@ -183,9 +181,7 @@ def initiate_cleaning(properties, index, shed_i, time):
         shed_info["cleaning_completion"] = time + 7  # at least a week of cleaning
 
 
-def remove_chickens_from_property_ready_for_movement(
-    properties, start_index, int_time, capacity_in_unrestricted_zones=None
-):
+def remove_chickens_from_property_ready_for_movement(properties, start_index, int_time, capacity_in_unrestricted_zones=None):
     start_facility = properties[start_index]
     chickens_to_move = []
     if capacity_in_unrestricted_zones == None:  # if we want to move everything that can be moved
@@ -211,9 +207,7 @@ def remove_chickens_from_property_ready_for_movement(
                 if "chickens" in shed_info:
                     for chicken_row in shed_info["chickens"]:
                         if chicken_row["age"] >= start_facility.allowed_movement_details["chickens"]["age"]:
-                            if (
-                                moved_so_far + chicken_row["n"] <= capacity_in_unrestricted_zones
-                            ):  # i.e., we can move everything
+                            if moved_so_far + chicken_row["n"] <= capacity_in_unrestricted_zones:  # i.e., we can move everything
                                 chickens_to_move.append(chicken_row)
                                 shed_has_had_chickens_removed = True
                                 moved_so_far += chicken_row["n"]
@@ -334,9 +328,7 @@ def animal_movement(
         if not facility.culled_status and facility.type != "abbatoir":
             num_chickens_to_move, chicken_properties_to_move_to = facility.want_to_move_animals()
             num_eggs_to_move, egg_properties_to_move_to = facility.want_to_move_eggs()
-            if (
-                num_chickens_to_move > 0 or num_eggs_to_move > 0
-            ):  # if neither is >0, then there is no movement for this facility
+            if num_chickens_to_move > 0 or num_eggs_to_move > 0:  # if neither is >0, then there is no movement for this facility
                 in_control_zone = False
                 if controlzone != None and facility.polygon.intersects(controlzone):
                     in_control_zone = True
@@ -357,13 +349,18 @@ def animal_movement(
                     # need to figure out....how many premises the movements need to be made to OTL
                     if empty_sheds != [] and num_chickens_per_shed_target > 0:
                         if controlzone != None and target_facility.polygon.intersects(controlzone):
-                            targets_in_control_zones.append([property_index, empty_sheds, num_chickens_per_shed_target])
-                            capacity_in_restricted_zones += len(empty_sheds) * num_chickens_per_shed_target
+                            if (
+                                random.uniform(0, 1) < movement_reduction_factor
+                            ):  # ILLEGAL MOVEMENT, aka with some probability, there will be movement without movement requests!
+                                targets_unrestricted_zones.append([property_index, empty_sheds, num_chickens_per_shed_target])
+                                capacity_in_unrestricted_zones += len(empty_sheds) * num_chickens_per_shed_target
+                            else:
+                                targets_in_control_zones.append([property_index, empty_sheds, num_chickens_per_shed_target])
+                                capacity_in_restricted_zones += len(empty_sheds) * num_chickens_per_shed_target
                         else:
-                            targets_unrestricted_zones.append(
-                                [property_index, empty_sheds, num_chickens_per_shed_target]
-                            )
-                            capacity_in_unrestricted_zones += len(empty_sheds) * num_chickens_per_shed_target
+                            if random.uniform(0, 1) < all_movement_reduction_factor:
+                                targets_unrestricted_zones.append([property_index, empty_sheds, num_chickens_per_shed_target])
+                                capacity_in_unrestricted_zones += len(empty_sheds) * num_chickens_per_shed_target
                 random.shuffle(targets_unrestricted_zones)
                 random.shuffle(targets_in_control_zones)
                 if targets_unrestricted_zones == [] and targets_unrestricted_zones == []:
@@ -382,9 +379,7 @@ def animal_movement(
                             )
                             chickens_left_to_move = capacity_in_unrestricted_zones
                         else:
-                            chickens_to_move = remove_chickens_from_property_ready_for_movement(
-                                properties, premise_index, day
-                            )
+                            chickens_to_move = remove_chickens_from_property_ready_for_movement(properties, premise_index, day)
                             chickens_left_to_move = num_chickens_to_move
 
                             # just a check to make sure it's the right number...
@@ -415,10 +410,7 @@ def animal_movement(
                                 else:  # num_chickens_per_shed_target < chickens_left_to_move:
                                     # which means that we can't move all the chickens into this shed
 
-                                    while (
-                                        local_chickens_moved_into_this_shed < num_chickens_per_shed_target
-                                        and chickens_to_move != []
-                                    ):
+                                    while local_chickens_moved_into_this_shed < num_chickens_per_shed_target and chickens_to_move != []:
                                         possible_chickens_on_truck = chickens_to_move.pop()
                                         chickens_left_to_move_into_this_shed = (
                                             num_chickens_per_shed_target - local_chickens_moved_into_this_shed
@@ -430,8 +422,7 @@ def animal_movement(
                                                 "age": possible_chickens_on_truck["age"],
                                             }
                                             chickens_left_over = {
-                                                "n": possible_chickens_on_truck["n"]
-                                                - chickens_left_to_move_into_this_shed,
+                                                "n": possible_chickens_on_truck["n"] - chickens_left_to_move_into_this_shed,
                                                 "age": possible_chickens_on_truck["age"],
                                             }
                                             if "objs" in possible_chickens_on_truck:
@@ -470,9 +461,7 @@ def animal_movement(
                                 ]
 
                                 if len(row) != len(movement_record_header):
-                                    raise ValueError(
-                                        "The length of movement record is not the same as the movement header"
-                                    )
+                                    raise ValueError("The length of movement record is not the same as the movement header")
                                     # added in case I decide to change the information recorded again
 
                                 movement_record.append(row)
@@ -506,7 +495,7 @@ def animal_movement(
                 for row in shed_info["chickens"]:
                     total_chickens_being_slaughtered += row["n"]
 
-                shed_info["chickens"] = []
+                shed_info["chickens"] = []  # removing them from existence
 
             if total_chickens_being_slaughtered > 0:
                 # create the movement record
@@ -531,7 +520,6 @@ def animal_movement(
         # if there are movement restrictions on the facility, raise a movement permit request
         # if there are movement restrictions on the property-to-move-to, also raise a movement request
         # otherwise, conduct the movement.
-        # for broilers, layers - if chickens are moved, initiate cleaning procedure
         # check if it has any eggs it wants to move
         # if yes: check if are any movement restrictions on it
         # get the properties that can accept the eggs, and sort them - as having movement restrictions too, and not
@@ -1283,11 +1271,7 @@ def update_status_based_on_zones(properties, restricted_area, control_area):
         elif facility.polygon.intersects(control_area):  # control area is the disease free buffer
             if facility.status not in higher_priority_statuses:
                 # if it contains chickens -> POR -> Premises of relevance
-                if (
-                    facility.get_num_chickens() > 0
-                    or facility.get_num_eggs() > 0
-                    or facility.get_num_fertilised_eggs() > 0
-                ):
+                if facility.get_num_chickens() > 0 or facility.get_num_eggs() > 0 or facility.get_num_fertilised_eggs() > 0:
                     facility.status = "POR"
                 else:
                     facility.status = "ZP"
