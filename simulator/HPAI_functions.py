@@ -464,7 +464,7 @@ def animal_movement(
 
                         if chickens_left_to_move > 0:
                             raise ValueError("After everything, there are still chickens left...this shouldn't happen!")
-        if "layer" in facility.type:
+        if "layers" in facility.type:
             # movement should be to egg processors only
             num_eggs_to_move, egg_properties_to_move_to = facility.want_to_move_eggs()
             if num_eggs_to_move > 0:
@@ -514,8 +514,79 @@ def animal_movement(
                             # added in case I decide to change the information recorded again
 
                         movement_record.append(row)
+        if facility.type == "breeder":
+            # egg movements for breeder properties
+            # if eggs, for movement to hatcheries, need to check chickens not check accepting eggs, and move eggs into sheds
+            num_eggs_to_move, egg_properties_to_move_to = facility.want_to_move_eggs()
+            if num_eggs_to_move > 0:
+                # get places to move to ; TODO add in restricted zone stuff if I actually implement movement permits
 
-                # if eggs, for movement to hatcheries, need to check chickens not check accepting eggs, and move eggs into sheds
+                targets_unrestricted_zones = []
+                capacity_in_unrestricted_zones = 0
+                for property_index in egg_properties_to_move_to:
+                    target_facility = properties[property_index]
+                    empty_sheds, num_chickens_per_shed_target = target_facility.accepting_chickens()
+                    if empty_sheds != [] and num_chickens_per_shed_target > 0:
+                        if controlzone != None and target_facility.polygon.intersects(controlzone):
+                            if random.uniform(0, 1) < movement_reduction_factor:
+                                # ILLEGAL MOVEMENT, aka with some probability, there will be movement without movement requests!
+                                targets_unrestricted_zones.append([property_index, empty_sheds, num_chickens_per_shed_target])
+                                capacity_in_unrestricted_zones += len(empty_sheds) * num_chickens_per_shed_target
+                        else:
+                            if random.uniform(0, 1) < all_movement_reduction_factor:
+                                targets_unrestricted_zones.append([property_index, empty_sheds, num_chickens_per_shed_target])
+                                capacity_in_unrestricted_zones += len(empty_sheds) * num_chickens_per_shed_target
+
+                random.shuffle(targets_unrestricted_zones)
+                if targets_unrestricted_zones == []:
+                    print(
+                        f"facility wants to move {num_eggs_to_move} fertilised eggs to {facility.allowed_movement_details['eggs']} but no suitable target!"
+                    )
+                else:
+                    if in_control_zone and (random.uniform(0, 1) > movement_reduction_factor):
+                        print(f"facility {facility.ID} would like to move some chickens")
+                    else:
+                        # ILLEGAL MOVEMENT, aka with some probability, there will be movement without movement requests!
+                        # or just normal movement with source facility not in a restricted zone
+                        if capacity_in_unrestricted_zones < num_eggs_to_move:
+                            eggs_left_to_move = capacity_in_unrestricted_zones
+                        else:
+                            eggs_left_to_move = num_eggs_to_move
+                        facility.eggs = facility.eggs - eggs_left_to_move
+
+                        for target_index, empty_sheds, num_chickens_per_shed_target in targets_unrestricted_zones:
+                            new_facility = properties[target_index]
+                            eggs_moved_into_sheds = 0
+                            for empty_shed in empty_sheds:
+                                if num_chickens_per_shed_target > eggs_left_to_move:
+
+                                    eggs_left_to_move = 0
+                                    eggs_moved_into_sheds += eggs_left_to_move
+                                    new_facility.sheds[empty_shed]["eggs"].append({"n": eggs_left_to_move, "age": 0})
+                                else:  # num_chickens_per_shed_target < eggs_left_to_move:
+                                    # which means that we can't move all the fertilised eggs into this shed
+                                    eggs_left_to_move = eggs_left_to_move - num_chickens_per_shed_target
+                                    eggs_moved_into_sheds += num_chickens_per_shed_target
+                                    new_facility.sheds[empty_shed]["eggs"].append({"n": num_chickens_per_shed_target, "age": 0})
+                            if eggs_moved_into_sheds > 0:
+                                row = [
+                                    day,
+                                    f"{date}",
+                                    premise_index,
+                                    target_index,
+                                    "egg",
+                                    num_eggs_to_move,
+                                    facility.type,
+                                    new_facility.type,
+                                    f"DAY {date} - moved {eggs_moved_into_sheds} egg(s) from {facility.type} ID {facility.id} ({facility.state}, {facility.region}) to {new_facility.type} ID {new_facility.id} ({new_facility.state}, {new_facility.region})",
+                                ]
+
+                                if len(row) != len(movement_record_header):
+                                    raise ValueError("The length of movement record is not the same as the movement header")
+                                    # added in case I decide to change the information recorded again
+
+                                movement_record.append(row)
+
         if facility.type == "abbatoir":
 
             total_chickens_being_slaughtered = 0
