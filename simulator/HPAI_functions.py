@@ -189,13 +189,15 @@ def remove_chickens_from_property_ready_for_movement(properties, start_index, in
             for shed_i, shed_info in start_facility.sheds.items():
                 shed_has_had_chickens_removed = False
                 if "chickens" in shed_info:
-                    for chicken_row in shed_info["chickens"]:
+                    i = 0
+                    while i < len(shed_info["chickens"]):
+                        chicken_row = shed_info["chickens"][i]
                         if chicken_row["age"] >= start_facility.allowed_movement_details["chickens"]["age"]:
                             chickens_to_move.append(chicken_row)
                             shed_has_had_chickens_removed = True
-
-                    for chickens_removed in chickens_to_move:
-                        shed_info["chickens"].remove(chickens_removed)
+                            del shed_info["chickens"][i]
+                        else:
+                            i += 1
 
                     if shed_has_had_chickens_removed:
                         initiate_cleaning(properties, start_index, shed_i, int_time)
@@ -349,9 +351,8 @@ def animal_movement(
                     # need to figure out....how many premises the movements need to be made to OTL
                     if empty_sheds != [] and num_chickens_per_shed_target > 0:
                         if controlzone != None and target_facility.polygon.intersects(controlzone):
-                            if (
-                                random.uniform(0, 1) < movement_reduction_factor
-                            ):  # ILLEGAL MOVEMENT, aka with some probability, there will be movement without movement requests!
+                            if random.uniform(0, 1) < movement_reduction_factor:
+                                # ILLEGAL MOVEMENT, aka with some probability, there will be movement without movement requests!
                                 targets_unrestricted_zones.append([property_index, empty_sheds, num_chickens_per_shed_target])
                                 capacity_in_unrestricted_zones += len(empty_sheds) * num_chickens_per_shed_target
                             else:
@@ -368,11 +369,12 @@ def animal_movement(
                         f"facility wants to move {num_chickens_to_move} chickens to {facility.allowed_movement_details['chickens']} but no suitable target!"
                     )
                 else:
-                    if in_control_zone:
-                        raise ValueError("Movement requests not yet coded!")
-                        # permit request:  facility id[], type [], status [], requests to move [X animals] to [target facility]
-                    else:  # the source facility is not in a restricted zone; move "num_chickens_to_move" chickens
-
+                    if in_control_zone and (random.uniform(0, 1) > movement_reduction_factor):
+                        print(f"facility {facility.ID} would like to move some chickens")
+                        # TODO permit request:  facility id[], type [], status [], requests to move [X animals] to [target facility]
+                    else:
+                        # ILLEGAL MOVEMENT, aka with some probability, there will be movement without movement requests!
+                        # or just normal movement with source facility not in a restricted zone
                         if capacity_in_unrestricted_zones < num_chickens_to_move:
                             chickens_to_move = remove_chickens_from_property_ready_for_movement(
                                 properties, premise_index, day, capacity_in_unrestricted_zones
@@ -393,7 +395,6 @@ def animal_movement(
                             new_facility = properties[target_index]
                             chickens_moved = 0
                             for empty_shed in empty_sheds:
-                                local_chickens_moved_into_this_shed = 0
                                 if num_chickens_per_shed_target > chickens_left_to_move:
                                     while chickens_to_move != []:
                                         chickens_on_truck = chickens_to_move.pop()
@@ -402,15 +403,14 @@ def animal_movement(
                                         )
                                         chickens_left_to_move = chickens_left_to_move - chickens_on_truck["n"]
                                         chickens_moved += chickens_on_truck["n"]
-                                        local_chickens_moved_into_this_shed += chickens_on_truck["n"]
                                         new_facility.sheds[empty_shed]["chickens"].append(chickens_to_transfer)
 
                                     if chickens_left_to_move != 0:
                                         raise ValueError("There should be no more chickens left to move!")
                                 else:  # num_chickens_per_shed_target < chickens_left_to_move:
                                     # which means that we can't move all the chickens into this shed
-
-                                    while local_chickens_moved_into_this_shed < num_chickens_per_shed_target and chickens_to_move != []:
+                                    local_chickens_moved_into_this_shed = 0
+                                    while local_chickens_moved_into_this_shed < num_chickens_per_shed_target:
                                         possible_chickens_on_truck = chickens_to_move.pop()
                                         chickens_left_to_move_into_this_shed = (
                                             num_chickens_per_shed_target - local_chickens_moved_into_this_shed
@@ -432,7 +432,7 @@ def animal_movement(
                                                 chickens_left_over["objs"] = possible_chickens_on_truck["objs"][
                                                     chickens_left_to_move_into_this_shed:
                                                 ]
-                                                chickens_to_move.append(chickens_left_over)
+                                            chickens_to_move.append(chickens_left_over)
                                         else:
                                             chickens_on_truck = possible_chickens_on_truck  # transfer all of them
 
@@ -466,15 +466,14 @@ def animal_movement(
 
                                 movement_record.append(row)
 
-                        if (
-                            chickens_left_to_move > 0
-                        ):  # which means there are still chickens to move, but target properties are all in movement restricted zones
-                            # need to make some kind of "hypothetical chicken movement" here... or just request the first one rather than multiple
-                            for property_index, empty_sheds, num_chickens_per_shed_target in targets_in_control_zones:
-                                for empty_shed in empty_sheds:
-                                    if num_chickens_per_shed_target > num_chickens_to_move:
-                                        pass
-                                raise ValueError("Movement requests not yet coded!")
+                        # if (chickens_left_to_move > 0):
+                        #     # which means there are still chickens to move, but target properties are all in movement restricted zones
+                        #     # need to make some kind of "hypothetical chicken movement" here... or just request the first one rather than multiple
+                        #     for property_index, empty_sheds, num_chickens_per_shed_target in targets_in_control_zones:
+                        #         for empty_shed in empty_sheds:
+                        #             if num_chickens_per_shed_target > num_chickens_to_move:
+                        #                 pass
+                        #         raise ValueError("Movement requests not yet coded!")
 
                         if chickens_left_to_move > 0:
                             raise ValueError("After everything, there are still chickens left...this shouldn't happen!")
