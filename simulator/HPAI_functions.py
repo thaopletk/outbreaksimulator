@@ -219,13 +219,14 @@ def remove_chickens_from_property_ready_for_movement(
                                 moved_so_far += chicken_row["n"]
                             else:
                                 actually_only_moving = capacity_in_unrestricted_zones - moved_so_far
-                                moved_so_far += actually_only_moving
-                                new_row = {"n": actually_only_moving, "age": chicken_row["age"]}
-                                chicken_row["n"] = chicken_row["n"] - actually_only_moving
-                                if "objs" in chicken_row:
-                                    new_row["objs"] = chicken_row["objs"][:actually_only_moving]
-                                    chicken_row["objs"] = chicken_row["objs"][actually_only_moving:]
-                                chickens_to_move.append(new_row)
+                                if actually_only_moving > 0:
+                                    moved_so_far += actually_only_moving
+                                    new_row = {"n": actually_only_moving, "age": chicken_row["age"]}
+                                    chicken_row["n"] = chicken_row["n"] - actually_only_moving
+                                    if "objs" in chicken_row:
+                                        new_row["objs"] = chicken_row["objs"][:actually_only_moving]
+                                        chicken_row["objs"] = chicken_row["objs"][actually_only_moving:]
+                                    chickens_to_move.append(new_row)
 
                     for chickens_removed in chickens_to_move:
                         if chickens_removed in shed_info["chickens"]:
@@ -386,10 +387,18 @@ def animal_movement(
                             )
                             chickens_left_to_move = num_chickens_to_move
 
+                            # just a check to make sure it's the right number...
+                            test = 0
+                            for row in chickens_to_move:
+                                test += row["n"]
+                            if test != num_chickens_to_move:
+                                raise ValueError("test is not the same as the num_chickens_to_move")
+
                         for target_index, empty_sheds, num_chickens_per_shed_target in targets_unrestricted_zones:
                             new_facility = properties[target_index]
                             chickens_moved = 0
                             for empty_shed in empty_sheds:
+                                local_chickens_moved_into_this_shed = 0
                                 if num_chickens_per_shed_target > chickens_left_to_move:
                                     while chickens_to_move != []:
                                         chickens_on_truck = chickens_to_move.pop()
@@ -398,6 +407,7 @@ def animal_movement(
                                         )
                                         chickens_left_to_move = chickens_left_to_move - chickens_on_truck["n"]
                                         chickens_moved += chickens_on_truck["n"]
+                                        local_chickens_moved_into_this_shed += chickens_on_truck["n"]
                                         new_facility.sheds[empty_shed]["chickens"].append(chickens_to_transfer)
 
                                     if chickens_left_to_move != 0:
@@ -405,24 +415,31 @@ def animal_movement(
                                 else:  # num_chickens_per_shed_target < chickens_left_to_move:
                                     # which means that we can't move all the chickens into this shed
 
-                                    while chickens_moved < num_chickens_per_shed_target and chickens_to_move != []:
+                                    while (
+                                        local_chickens_moved_into_this_shed < num_chickens_per_shed_target
+                                        and chickens_to_move != []
+                                    ):
                                         possible_chickens_on_truck = chickens_to_move.pop()
-                                        if num_chickens_per_shed_target < possible_chickens_on_truck["n"]:
+                                        chickens_left_to_move_into_this_shed = (
+                                            num_chickens_per_shed_target - local_chickens_moved_into_this_shed
+                                        )
+                                        if chickens_left_to_move_into_this_shed < possible_chickens_on_truck["n"]:
                                             # only transfer some of them
                                             chickens_on_truck = {
-                                                "n": num_chickens_per_shed_target,
+                                                "n": chickens_left_to_move_into_this_shed,
                                                 "age": possible_chickens_on_truck["age"],
                                             }
                                             chickens_left_over = {
-                                                "n": possible_chickens_on_truck["n"] - num_chickens_per_shed_target,
+                                                "n": possible_chickens_on_truck["n"]
+                                                - chickens_left_to_move_into_this_shed,
                                                 "age": possible_chickens_on_truck["age"],
                                             }
                                             if "objs" in possible_chickens_on_truck:
                                                 chickens_on_truck["objs"] = possible_chickens_on_truck["objs"][
-                                                    :num_chickens_per_shed_target
+                                                    :chickens_left_to_move_into_this_shed
                                                 ]
                                                 chickens_left_over["objs"] = possible_chickens_on_truck["objs"][
-                                                    num_chickens_per_shed_target:
+                                                    chickens_left_to_move_into_this_shed:
                                                 ]
                                                 chickens_to_move.append(chickens_left_over)
                                         else:
@@ -433,6 +450,7 @@ def animal_movement(
                                         )
                                         chickens_left_to_move = chickens_left_to_move - chickens_to_transfer["n"]
                                         chickens_moved += chickens_to_transfer["n"]
+                                        local_chickens_moved_into_this_shed += chickens_to_transfer["n"]
                                         new_facility.sheds[empty_shed]["chickens"].append(chickens_to_transfer)
 
                                 if chickens_to_move == []:
