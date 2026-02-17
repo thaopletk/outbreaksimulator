@@ -8,6 +8,7 @@ import json
 import pickle
 import random
 import numpy as np
+import shutil
 
 # import subprocess
 import pandas as pd
@@ -281,7 +282,20 @@ else:
         diseaseoutbreak = pickle.load(file)
 
 HPAI_functions.save_approx_known_data(properties, folder_path_undetected_spread, unique_output)
-exit(0)
+
+download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
+
+if not os.path.exists(download_folder_path):
+    os.makedirs(download_folder_path)
+
+# Loop through the files in the source directory and copy just the png or csv files
+for file in os.listdir(folder_path_undetected_spread):
+    if file.endswith(".png") or file.endswith(".csv"):
+        source_path = os.path.join(folder_path_undetected_spread, file)
+        destination_path = os.path.join(download_folder_path, file)
+        shutil.copy(source_path, destination_path)
+
+
 ###################################################
 # ---- Trigger first report ----------------------#
 ###################################################
@@ -327,3 +341,16 @@ else:
         diseaseoutbreak = pickle.load(file)
 
 HPAI_functions.save_approx_known_data(properties, folder_path_first_report, unique_output)
+
+
+download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
+
+if not os.path.exists(download_folder_path):
+    os.makedirs(download_folder_path)
+
+# Loop through the files in the source directory and copy just the png or csv files
+for file in os.listdir(folder_path_first_report):
+    if file.endswith(".png") or file.endswith(".csv"):
+        source_path = os.path.join(folder_path_first_report, file)
+        destination_path = os.path.join(download_folder_path, file)
+        shutil.copy(source_path, destination_path)

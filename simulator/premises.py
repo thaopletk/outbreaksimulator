@@ -871,18 +871,19 @@ class Premises(Property):
             else:
                 # potential infection, check chickens one by one
                 total_number_of_chickens = 0
-                for row in self.chickens:
-                    total_number_of_chickens += row[0]
-                    for chicken in row[3]:
-                        if chicken.infection_status == "exposed":
-                            number_infected += 1
-                        elif chicken.infection_status == "infectious":
-                            number_infected += 1
-                            number_infectious += 1
+                for shed_i, shed_info in self.sheds.items():
+                    for row in shed_info["chickens"]:
+                        total_number_of_chickens += row["n"]
+                        for chicken in row["objs"]:
+                            if chicken.infection_status == "exposed":
+                                number_infected += 1
+                            elif chicken.infection_status == "infectious":
+                                number_infected += 1
+                                number_infectious += 1
 
-                        # check how many animals are showing clinical symptoms (reporting)
-                        if chicken.clinical_status == "clinical":
-                            number_clinical += 1
+                            # check how many animals are showing clinical symptoms (reporting)
+                            if chicken.clinical_status == "clinical":
+                                number_clinical += 1
 
                 self.size = total_number_of_chickens
 
@@ -941,7 +942,7 @@ class Premises(Property):
         """
         empty_sheds = []
         for shed_i, shed_info in self.sheds.items():
-            if ("chicken" not in shed_info or shed_info["chickens"] == []) and (
+            if ("chickens" not in shed_info or shed_info["chickens"] == []) and (
                 "eggs" not in shed_info or shed_info["eggs"] == []
             ):
                 if shed_info["cleaning"] == False:  # meaning that cleaning is complete
