@@ -936,7 +936,7 @@ class Premises(Property):
                 if shed_info["cleaning"] == False:  # meaning that cleaning is complete
                     empty_sheds.append(shed_i)  # has space for chickens and is read for them
 
-        return empty_sheds, min(self.approx_chickens_per_shed, self.chicken_capacity)
+        return empty_sheds, int(min(self.approx_chickens_per_shed, self.chicken_capacity))
 
     # def want_to_move_chickens_hatchery(self):
     #     num_chickens_to_move_abbatoir = 0

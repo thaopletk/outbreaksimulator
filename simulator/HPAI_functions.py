@@ -313,16 +313,16 @@ def animal_movement(
     movement_record = []
     movement_permit_requests = []
     for premise_index, facility in enumerate(properties):
+        in_control_zone = False
+        if controlzone != None and facility.polygon.intersects(controlzone):
+            in_control_zone = True
+            # TODO: if True, use this to raise movement permit request
 
         # chickens movement only
         if not facility.culled_status and facility.type != "abbatoir" and facility.type != "egg processing":
             num_chickens_to_move, chicken_properties_to_move_to = facility.want_to_move_animals()
 
             if num_chickens_to_move > 0:  # if neither is >0, then there is no movement for this facility
-                in_control_zone = False
-                if controlzone != None and facility.polygon.intersects(controlzone):
-                    in_control_zone = True
-                    # TODO: if True, use this to raise movement permit request
 
                 # get places to move to
                 targets_unrestricted_zones = []
@@ -353,7 +353,7 @@ def animal_movement(
                 random.shuffle(targets_in_control_zones)
                 if targets_unrestricted_zones == [] and targets_in_control_zones == []:
                     print(
-                        f"facility wants to move {num_chickens_to_move} chickens to {facility.allowed_movement_details['chickens']} but no suitable target!"
+                        f"facility {facility.id} ({facility.type}) wants to move {num_chickens_to_move} chickens to {facility.allowed_movement_details['chickens']} but no suitable target!"
                     )
                 else:
                     if in_control_zone and (random.uniform(0, 1) > movement_reduction_factor):
@@ -483,7 +483,7 @@ def animal_movement(
                 random.shuffle(targets_unrestricted_zones)
                 if targets_unrestricted_zones == []:
                     print(
-                        f"facility wants to move {num_eggs_to_move} eggs to {facility.allowed_movement_details['eggs']} but no suitable target!"
+                        f"facility {facility.id} ({facility.type}) wants to move {num_eggs_to_move} eggs to {facility.allowed_movement_details['eggs']} but no suitable target!"
                     )
                 else:
                     if in_control_zone and (random.uniform(0, 1) > movement_reduction_factor):
@@ -540,7 +540,7 @@ def animal_movement(
                 random.shuffle(targets_unrestricted_zones)
                 if targets_unrestricted_zones == []:
                     print(
-                        f"facility wants to move {num_eggs_to_move} fertilised eggs to {facility.allowed_movement_details['eggs']} but no suitable target!"
+                        f"facility {facility.id} ({facility.type}) wants to move {num_eggs_to_move} fertilised eggs to {facility.allowed_movement_details['eggs']} but no suitable target!"
                     )
                 else:
                     if in_control_zone and (random.uniform(0, 1) > movement_reduction_factor):
@@ -605,7 +605,7 @@ def animal_movement(
                     f"{date}",
                     premise_index,
                     -2,
-                    "chickens",
+                    "chicken",
                     total_chickens_being_slaughtered,
                     facility.type,
                     "chicken meat distributor",

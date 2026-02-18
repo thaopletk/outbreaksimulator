@@ -518,11 +518,11 @@ def HPAI_NSW_setup_locations(
         elif premises_type == "hatchery":
             processing_chicken_egg_property_coordinates.extend(property_coordinates)
             animal_type = "chicken"
-            num_animals = total_chickens_LGA[row["Region name"]] / 10  # hmmm how are these actually counted???
+            num_animals = max(200, int(total_chickens_LGA[row["Region name"]] / 10))  # hmmm how are these actually counted???
         elif premises_type == "breeder":
             chicken_egg_property_coordinates.extend(property_coordinates)
             animal_type = "chicken"
-            num_animals = total_chickens_LGA[row["Region name"]] / 10  # hmmm how are these actually counted???
+            num_animals = max(200, int(total_chickens_LGA[row["Region name"]] / 10))  # hmmm how are these actually counted???
         else:
             raise ValueError(f"premises type not expected: {premises_type}")
 
@@ -611,9 +611,7 @@ def HPAI_QLD_setup_locations(
     output_filename,
     testing=False,
     data_file=os.path.join(os.path.dirname(__file__), "..", "data", "QLD_properties.xlsx"),
-    shp_file=os.path.join(
-        os.path.dirname(__file__), "..", "data", "QLD_intensive_livestock", "Intensive_livestock.shp"
-    ),
+    shp_file=os.path.join(os.path.dirname(__file__), "..", "data", "QLD_intensive_livestock", "Intensive_livestock.shp"),
 ):
     """
     Generates locations for poultry and egg premises in QLD, and creates "Premises" objects from them.
@@ -663,9 +661,7 @@ def HPAI_QLD_setup_locations(
             region_name = region_name.replace(" Council", "")
         print(region_name)
 
-        region_only = LGA_gdf.loc[
-            LGA_gdf["LGA_NAME24"] == region_name, :
-        ]  # checking if the region name is actually standard or not lol
+        region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == region_name, :]  # checking if the region name is actually standard or not lol
         if region_only.empty:
             raise ValueError(f"{region_name} doesn't exist")
 
@@ -765,11 +761,11 @@ def HPAI_QLD_setup_locations(
             processing_chicken_egg_property_coordinates.extend(property_coordinates)
             animal_type = "chicken"
             # num_animals = 1000
-            num_animals = total_chickens_LGA[row["Region name"]] / 10  # hmmm how are these actually counted???
+            num_animals = max(200, int(total_chickens_LGA[row["Region name"]] / 10))  # hmmm how are these actually counted???
         elif premises_type == "breeder":
             chicken_egg_property_coordinates.extend(property_coordinates)
             animal_type = "chicken"
-            num_animals = total_chickens_LGA[row["Region name"]] / 10  # hmmm how are these actually counted???
+            num_animals = max(200, int(total_chickens_LGA[row["Region name"]] / 10))  # hmmm how are these actually counted???
         else:
             raise ValueError(f"premises type not expected: {premises_type}")
 
@@ -900,9 +896,7 @@ def HPAI_movement_network_setup(
                 "eggs": {"property_types": ["egg processing"], "properties": []},
             }
         elif property_i.type == "broiler farm":
-            property_i.allowed_movement_details = {
-                "chickens": {"age": 50, "property_types": ["abbatoir"], "properties": []}
-            }
+            property_i.allowed_movement_details = {"chickens": {"age": 50, "property_types": ["abbatoir"], "properties": []}}
         elif property_i.type == "egg processing":
             property_i.allowed_movement_details = {}
         elif property_i.type == "abbatoir":
