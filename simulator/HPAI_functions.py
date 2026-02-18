@@ -705,7 +705,7 @@ def save_approx_known_data(properties, folder_path, unique_output):
         "type",
         "sheds",
         "total_chickens",
-        "total_eggs",
+        # "total_eggs",
         "last_surveillance_date",
         "animals_clinical",
         "last_PCR_date",
@@ -795,9 +795,9 @@ def save_approx_known_data(properties, folder_path, unique_output):
                 facility.type,
                 facility.num_sheds,
                 num_chickens if property_data_known else rounding_entities(num_chickens),
-                (
-                    num_eggs if property_data_known else rounding_entities(num_eggs)
-                ),  # TODO: technically, the numbers might change over time...so really it should be saving the info *at the time* of inspect....
+                # (
+                #     num_eggs if property_data_known else rounding_entities(num_eggs)
+                # ),  # TODO: technically, the numbers might change over time...so really it should be saving the info *at the time* of inspect....
                 last_surveillance_date,
                 animals_clinical,
                 last_PCR_date,
