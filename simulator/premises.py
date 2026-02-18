@@ -183,6 +183,13 @@ class Premises(Property):
 
         self.custom_info = {}  # setting up an empty dictionary to add in any custom info to be set live during the simulation
 
+        self.sim_id = None  # TODO: assign it as a scrambled number
+        self.case_id = None  # TODO: assigned as more SPs, TPs etc are found
+        self.data_source = None
+        self.known_sheds = None
+        self.known_birds = None
+        self.known_area = None
+
     def requesting_chickens(self):
         """generally superceeded by accepting_animals() function"""
         current_chickens = self.get_num_chickens()
@@ -237,6 +244,14 @@ class Premises(Property):
 
                 if week >= 20:
                     total_laying_chickens += actual_chickens_per_shed
+            if self.num_sheds > 1:
+                if np.random.uniform(0, 1) < 0.01:  # if there are a lot of sheds, then add the possibility of having an empty shed
+                    self.num_sheds += 1
+                    self.sheds[self.num_sheds] = {
+                        "chickens": [],
+                        "cleaning": False,
+                        "cleaning_completion": None,
+                    }
 
             self.size = total_chickens  # updating the number in case the division is imperfect
 
@@ -266,6 +281,15 @@ class Premises(Property):
                 }
                 total_chickens += actual_chickens_per_shed
 
+            if self.num_sheds > 1:
+                if np.random.uniform(0, 1) < 0.01:  # if there are a lot of sheds, then add the possibility of having an empty shed
+                    self.num_sheds += 1
+                    self.sheds[self.num_sheds] = {
+                        "chickens": [],
+                        "cleaning": False,
+                        "cleaning_completion": None,
+                    }
+
             self.size = total_chickens  # updating the number in case the division is imperfect
 
             # no eggs at premises
@@ -288,6 +312,15 @@ class Premises(Property):
                     "cleaning_completion": None,
                 }
                 total_chickens += actual_chickens_per_shed
+
+            if self.num_sheds > 1:
+                if np.random.uniform(0, 1) < 0.01:  # if there are a lot of sheds, then add the possibility of having an empty shed
+                    self.num_sheds += 1
+                    self.sheds[self.num_sheds] = {
+                        "chickens": [],
+                        "cleaning": False,
+                        "cleaning_completion": None,
+                    }
 
             self.size = total_chickens  # updating the number in case the division is imperfect
 
@@ -689,6 +722,8 @@ class Premises(Property):
 
         I.e., by "known", I mean that if an infected property hasn't notified yet, then there shouldn't be anything printed there regarding clinical dates
 
+        NOTE/TODO - not yet updated, generally superceeded by save_approx_known_data() in HPAI_functions!
+
         Returns
         -------
         list
@@ -720,7 +755,7 @@ class Premises(Property):
             return self.return_output_row(RTM)
         if self.culled_on_suspicion:  # if culled on suspicion, then exposure, clinical, notification dates should be NA
             return [
-                self.id,
+                self.sim_id,
                 self.status,
                 self.ip,
                 "NA",  # self.exposure_date,
@@ -734,14 +769,14 @@ class Premises(Property):
                 self.cluster,
                 self.coordinates[0],
                 self.coordinates[1],
-                self.area,
+                self.known_area,
                 self.type,
                 self.animal_type,
                 num_animals,
             ]
         elif RTM:
             return [
-                self.id,
+                self.sim_id,
                 self.status if self.status == "IP" else "NIL",
                 "NA",  # self.clinical_date,
                 self.notification_date,  # this should already be "NA"
@@ -750,13 +785,13 @@ class Premises(Property):
                 self.vacc_date,
                 self.coordinates[0],
                 self.coordinates[1],
-                self.area,
+                self.known_area,
                 num_animals,
             ]
 
         else:
             return [
-                self.id,
+                self.sim_id,
                 self.status,  # if self.status == "IP" else "NA",
                 self.ip,
                 "NA",  # self.exposure_date,
@@ -770,7 +805,7 @@ class Premises(Property):
                 self.cluster,
                 self.coordinates[0],
                 self.coordinates[1],
-                self.area,
+                self.known_area,
                 self.type,
                 self.animal_type,
                 num_animals,
@@ -899,6 +934,8 @@ class Premises(Property):
 
         return [
             self.id,
+            self.sim_id,
+            self.case_id,
             self.status,
             self.ip,
             self.exposure_date,

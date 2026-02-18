@@ -131,6 +131,8 @@ class DiseaseSimulation:
 
         self.first_detection_day = None
 
+        self.case_id_counter = 0
+
     def set_plotting_parameters(self, xlims, ylims, plotting=True, folder_path="", unique_output=""):
         """Sets the plotting parameters, especially important to update regularly if you want things to output to a different folder"""
         self.xlims = xlims
@@ -333,6 +335,9 @@ class DiseaseSimulation:
         """Saves text in the combined narrative that a property reported"""
         report = reported_property.report_suspicion(self.time)
         self.combined_narrative.append([self.time, converted_date, "report", property_index, report])
+        if reported_property.case_id == None:
+            self.case_id_counter += 1
+            reported_property.case_id = self.case_id_counter
 
         reported_property.custom_info["self_report_date"] = converted_date
 
@@ -356,9 +361,7 @@ class DiseaseSimulation:
 
     def add_lab_testing_after_observation_job(self, property_i, property_index, converted_date):
         """Schedules lab testing (with reduced testing delay), and adds this note into the combined narrative"""
-        report, scheduled_successful = self.job_manager.schedule_lab_testing_after_observation(
-            property_index, self.time
-        )
+        report, scheduled_successful = self.job_manager.schedule_lab_testing_after_observation(property_index, self.time)
 
         self.combined_narrative.append([self.time, converted_date, "test", property_index, report])
         if scheduled_successful:
@@ -476,20 +479,14 @@ class DiseaseSimulation:
             if outbreak_sim == "LSD":
                 if self.time % 2 == 0:
                     movement_record = animal_movement.extra_southward_movement(properties, day=self.time)
-                    self.movement_records = pd.concat(
-                        [self.movement_records, movement_record], axis=0, ignore_index=True
-                    )
+                    self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
                 else:
                     movement_record = animal_movement.animal_movement(
                         properties, day=self.time, controlzone=controlzone_movement_restrictions
                     )
-                    self.movement_records = pd.concat(
-                        [self.movement_records, movement_record], axis=0, ignore_index=True
-                    )
+                    self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
             elif outbreak_sim == "HPAI":
-                movement_record = HPAI_functions.animal_movement(
-                    properties, day=self.time, controlzone=controlzone_movement_restrictions
-                )
+                movement_record = HPAI_functions.animal_movement(properties, day=self.time, controlzone=controlzone_movement_restrictions)
                 self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
 
             # update counts of infected/clinical/etc animals on each farm
@@ -564,12 +561,7 @@ class DiseaseSimulation:
         for i, property_i in enumerate(properties):
             if property_i.clinical_date != "NA":
                 x, y = property_i.coordinates
-                if (
-                    x >= reportingregion_x[0]
-                    and x <= reportingregion_x[1]
-                    and y >= reportingregion_y[0]
-                    and y <= reportingregion_y[1]
-                ):
+                if x >= reportingregion_x[0] and x <= reportingregion_x[1] and y >= reportingregion_y[0] and y <= reportingregion_y[1]:
                     list_of_potential_reporting_properties.append(i)
         return list_of_potential_reporting_properties
 
@@ -593,9 +585,7 @@ class DiseaseSimulation:
 
         """
 
-        list_of_potential_reporting_properties = self.get_properties_in_reporting_region(
-            properties, reportingregion_x, reportingregion_y
-        )
+        list_of_potential_reporting_properties = self.get_properties_in_reporting_region(properties, reportingregion_x, reportingregion_y)
 
         if len(list_of_potential_reporting_properties) == 0:
             raise RuntimeError("No clinically infected properties found within the wanted reporting region")
@@ -667,9 +657,7 @@ class DiseaseSimulation:
                 index = dates_list.index(notif_date)
                 daily_notifs_by_state[property_i.state][index] += 1
         for state in daily_notifs_by_state.keys():
-            output.plot_daily_notifications_over_time(
-                dates_list, daily_notifs_by_state[state], self.folder_path, "daily_notifs_" + state
-            )
+            output.plot_daily_notifications_over_time(dates_list, daily_notifs_by_state[state], self.folder_path, "daily_notifs_" + state)
             output.plot_total_notifs_over_time(
                 dates_list, daily_notifs_by_state[state], self.folder_path, save_name="total_notifs_" + state
             )
@@ -798,16 +786,10 @@ class DiseaseSimulation:
         self.job_manager.jobs_queue[reported_property.id]["LabTesting"][str(self.time)] = ["complete", converted_date]
 
         # general movements of animals
-        controlzone_movement_restrictions = unary_union(
-            self.job_manager.local_movement_restrictions
-        )  # because it is definite not empty []
-        self.controlzone["movement restrictions"] = (
-            controlzone_movement_restrictions  # this is for plotting purposes later
-        )
+        controlzone_movement_restrictions = unary_union(self.job_manager.local_movement_restrictions)  # because it is definite not empty []
+        self.controlzone["movement restrictions"] = controlzone_movement_restrictions  # this is for plotting purposes later
 
-        movement_record = animal_movement.animal_movement(
-            properties, day=self.time, controlzone=controlzone_movement_restrictions
-        )
+        movement_record = animal_movement.animal_movement(properties, day=self.time, controlzone=controlzone_movement_restrictions)
         self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
 
         # update counts
@@ -827,9 +809,7 @@ class DiseaseSimulation:
         ]
         self.contacts_for_plotting[first_report_i] = traced_property_indices
         for t_i in traced_property_indices:
-            self.combined_narrative.append(
-                [self.time, converted_date, "tracing", t_i, "This property has been identified as a TP"]
-            )
+            self.combined_narrative.append([self.time, converted_date, "tracing", t_i, "This property has been identified as a TP"])
             self.add_local_movement_restriction(properties[t_i], converted_date)
 
         # Then close off this day
@@ -900,9 +880,7 @@ class DiseaseSimulation:
         )  # because it is definite not none [] ; and currently there are only local movement restrictions
         self.controlzone["movement restrictions"] = controlzone_movement_restrictions
 
-        movement_record = animal_movement.animal_movement(
-            properties, day=self.time, controlzone=controlzone_movement_restrictions
-        )
+        movement_record = animal_movement.animal_movement(properties, day=self.time, controlzone=controlzone_movement_restrictions)
         self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
 
         # update counts
@@ -1014,9 +992,7 @@ class DiseaseSimulation:
         if self.folder_path == "":
             raise Warning("Default folder path hasn't changed - recommend that set_plotting_parameters() be run first")
 
-        properties, first_report_i, traced_property_indices = self.simulate_first_day(
-            properties, reportingregion_x, reportingregion_y
-        )
+        properties, first_report_i, traced_property_indices = self.simulate_first_day(properties, reportingregion_x, reportingregion_y)
 
         properties = self.simulate_second_day(properties, first_report_i, traced_property_indices)
 
@@ -1101,9 +1077,7 @@ class DiseaseSimulation:
         controlzone_large_movement_restrictions = spatial_setup.Australia_shape()
         controlzone_movement_restrictions = controlzone_large_movement_restrictions
 
-        self.controlzone["movement restrictions"] = (
-            controlzone_movement_restrictions  # this is for plotting purposes later
-        )
+        self.controlzone["movement restrictions"] = controlzone_movement_restrictions  # this is for plotting purposes later
 
         time_list = []
         stop_time = self.time + days_to_run_for
@@ -1287,11 +1261,7 @@ class DiseaseSimulation:
             for i, premise in enumerate(properties):
                 # also need to add in DCPs. This could either be: (1) properties with positive clinical result (well, at least), or more broadly could be (2) any properties currently on the contact tracing list/undergoing testing
                 # to get the properties currently undergoing contact tracing or testing, I would need to go through the job queue, and find active jobs, and find the properties currently under active management
-                if (
-                    premise.reported_status == True
-                    or premise.clinical_report_outcome == True
-                    or premise.status == "DCP"
-                ):
+                if premise.reported_status == True or premise.clinical_report_outcome == True or premise.status == "DCP":
                     source_indices.append(i)
 
             # list_of_premises = self.job_manager.get_premises_under_active_jobs()
@@ -1523,9 +1493,7 @@ class DiseaseSimulation:
             )
             self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
 
-            self.controlzone["movement restrictions"] = (
-                controlzone_movement_restrictions  # this is for plotting purposes later
-            )
+            self.controlzone["movement restrictions"] = controlzone_movement_restrictions  # this is for plotting purposes later
             # update counts of infected/clinical/etc animals on each farm (important too if any animals have moved locations)
             for i, premise in enumerate(properties):
                 premise.update_counts()
@@ -1694,9 +1662,7 @@ class DiseaseSimulation:
                 index = dates_list.index(notif_date)
                 daily_notifs_by_state[property_i.state][index] += 1
         for state in daily_notifs_by_state.keys():
-            output.plot_daily_notifications_over_time(
-                dates_list, daily_notifs_by_state[state], self.folder_path, "daily_notifs_" + state
-            )
+            output.plot_daily_notifications_over_time(dates_list, daily_notifs_by_state[state], self.folder_path, "daily_notifs_" + state)
             output.plot_total_notifs_over_time(
                 dates_list, daily_notifs_by_state[state], self.folder_path, save_name="total_notifs_" + state
             )
@@ -1801,9 +1767,7 @@ class DiseaseSimulation:
                     property_index = row["ID"]
                     if job_type == "LabTesting":
                         # TODO ? add job to job manager anyway for print out purposes?
-                        testing_report, positive = self.job_manager.conduct_labtesting(
-                            properties, property_index, self.time
-                        )
+                        testing_report, positive = self.job_manager.conduct_labtesting(properties, property_index, self.time)
                         full_testing_report = [self.time, converted_date, "test", property_index, testing_report]
                         self.combined_narrative.append(full_testing_report)
 
@@ -1822,9 +1786,7 @@ class DiseaseSimulation:
 
                             # report property
                             premise_report = premise.report_only(self.time)
-                            self.combined_narrative.append(
-                                [self.time, converted_date, "report", property_index, premise_report]
-                            )
+                            self.combined_narrative.append([self.time, converted_date, "report", property_index, premise_report])
 
                             properties[property_index].custom_info["PCR_result"] = "positive"
                         else:
@@ -1838,21 +1800,25 @@ class DiseaseSimulation:
                                 self.daily_statistics[converted_date]["surveillance tested negative"] += 1
 
                             # updating status
-                            HPAI_functions.update_negative_status_based_on_zones(
-                                properties[property_index], restricted_area, control_area
-                            )
+                            HPAI_functions.update_negative_status_based_on_zones(properties[property_index], restricted_area, control_area)
 
                         extra_job_info = ""
 
                     elif job_type == "ClinicalObservation":
-                        testing_report, positive = self.job_manager.conduct_clinicalobservation(
-                            properties, property_index, self.time
-                        )
-                        self.combined_narrative.append(
-                            [self.time, converted_date, "test", property_index, testing_report]
-                        )
+                        if facility.case_id == None:
+                            self.case_id_counter += 1
+                            facility.case_id = self.case_id_counter
+
+                        testing_report, positive = self.job_manager.conduct_clinicalobservation(properties, property_index, self.time)
+                        self.combined_narrative.append([self.time, converted_date, "test", property_index, testing_report])
 
                         properties[property_index].custom_info["property_data_known"] = True
+                        properties[property_index].data_source = "farm inspection"
+                        properties[property_index].known_sheds = properties[property_index].num_sheds
+                        if not (properties[property_index].type in ["egg processing", "abbatoir"]):
+                            properties[property_index].known_area = properties[property_index].area
+                            properties[property_index].known_birds = properties[property_index].get_num_chickens()
+
                         properties[property_index].custom_info["last_surveillance_date"] = converted_date
 
                         if positive:
@@ -1874,10 +1840,7 @@ class DiseaseSimulation:
 
                         facility.removal_date = converted_date
 
-                        num_eggs = (
-                            properties[property_index].get_num_eggs()
-                            + properties[property_index].get_num_fertilised_eggs()
-                        )
+                        num_eggs = properties[property_index].get_num_eggs() + properties[property_index].get_num_fertilised_eggs()
                         if num_eggs > 0:
                             if "destroyed_eggs" in properties[property_index].custom_info:
                                 properties[property_index].custom_info["destroyed_eggs"] += num_eggs
@@ -1935,9 +1898,7 @@ class DiseaseSimulation:
                             facility.infection_status = 0
 
                         premise_report = f"DAY {converted_date} - IP {facility.ip} (ID {facility.id}), {round(facility.area,1)} ha property at location (x,y)=({round(facility.x,2)}, {round(facility.y,2)}), {facility.location}: \nA total of {newly_culled_animals} animal(s) have been culled and {num_eggs} egg(s) destroyed."
-                        self.combined_narrative.append(
-                            [self.time, converted_date, "cull", property_index, premise_report]
-                        )
+                        self.combined_narrative.append([self.time, converted_date, "cull", property_index, premise_report])
 
                         self.total_culled_animals += newly_culled_animals
                         self.daily_statistics[converted_date]["culled birds"] += newly_culled_animals
@@ -1951,9 +1912,7 @@ class DiseaseSimulation:
                         contact_tracing_report, traced_property_indices = management.contact_tracing(
                             properties, property_index, self.movement_records, self.time
                         )
-                        self.combined_narrative.append(
-                            [self.time, converted_date, "tracing", property_index, contact_tracing_report]
-                        )
+                        self.combined_narrative.append([self.time, converted_date, "tracing", property_index, contact_tracing_report])
 
                         contacts_for_plotting[property_index] = traced_property_indices
 
@@ -1961,6 +1920,9 @@ class DiseaseSimulation:
                             facility = properties[t_i]
                             if facility.status not in ["IP", "DCP", "TP", "SP", "DCPF", "RP"]:
                                 facility.status = "TP"
+                            if facility.case_id == None:
+                                self.case_id_counter += 1
+                                facility.case_id = self.case_id_counter
 
                         extra_job_info = ""
 
@@ -1994,9 +1956,7 @@ class DiseaseSimulation:
             )
             self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
 
-            self.controlzone["movement restrictions"] = (
-                controlzone_movement_restrictions  # this is for plotting purposes later
-            )
+            self.controlzone["movement restrictions"] = controlzone_movement_restrictions  # this is for plotting purposes later
 
             # update counts of infected/clinical/etc animals on each farm
             for i, premise in enumerate(properties):
@@ -2138,9 +2098,7 @@ class DiseaseSimulation:
                             difference = controlzone_ring_culling
 
                         for property_i in properties:
-                            if not (
-                                property_i.reported_status or property_i.culled_status
-                            ) and property_i.polygon.intersects(difference):
+                            if not (property_i.reported_status or property_i.culled_status) and property_i.polygon.intersects(difference):
                                 premise_report, culled_animals = property_i.cull_without_reporting(self.time)
                                 self.total_culled_animals += culled_animals
                                 self.other_reports += premise_report
@@ -2164,9 +2122,7 @@ class DiseaseSimulation:
                     #     difference = controlzone_ring_testing
 
                     for i, premise in enumerate(properties):
-                        if not (premise.reported_status or premise.culled_status) and premise.polygon.intersects(
-                            controlzone_ring_testing
-                        ):
+                        if not (premise.reported_status or premise.culled_status) and premise.polygon.intersects(controlzone_ring_testing):
                             if premise.day_of_last_lab_test == None or (
                                 self.time - premise.day_of_last_lab_test > 13
                             ):  # at least two weeks between testing
@@ -2177,9 +2133,7 @@ class DiseaseSimulation:
                                     "type": management.jobtype.ClinicalObservation,
                                     "property_i": i,
                                 }
-                                testing_report, positive = self.job_manager.conduct_clinicalobservation(
-                                    properties, job, self.time
-                                )
+                                testing_report, positive = self.job_manager.conduct_clinicalobservation(properties, job, self.time)
                                 self.testing_reports += testing_report
                                 self.combined_narrative += testing_report
 
@@ -2221,9 +2175,7 @@ class DiseaseSimulation:
                         difference = controlzone_ring_vaccination
 
                     for premise in properties:
-                        if not (premise.reported_status or premise.culled_status) and premise.polygon.intersects(
-                            difference
-                        ):
+                        if not (premise.reported_status or premise.culled_status) and premise.polygon.intersects(difference):
                             premise.vaccinate(self.time)
 
                     self.controlzone["ring vaccination"] = controlzone_ring_vaccination

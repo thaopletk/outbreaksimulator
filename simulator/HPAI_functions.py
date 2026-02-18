@@ -689,7 +689,8 @@ def save_approx_known_data(properties, folder_path, unique_output):
     """
 
     header = [
-        "id",
+        "sim_id",
+        "case_id",
         "status",
         "ip",
         "clinical_date",
@@ -702,9 +703,11 @@ def save_approx_known_data(properties, folder_path, unique_output):
         "xcoord",
         "ycoord",
         "area",
-        "type",
+        "enterprise",
+        "housing",
         "sheds",
         "total_chickens",
+        "data_source",
         # "total_eggs",
         "last_surveillance_date",
         "animals_clinical",
@@ -775,11 +778,30 @@ def save_approx_known_data(properties, folder_path, unique_output):
             except:
                 destroyed_eggs = "NA"
 
-            num_chickens = facility.get_num_chickens()
-            num_eggs = facility.get_num_eggs() + facility.get_num_fertilised_eggs()
+            if "layers" in facility.type:
+                if facility.chicken_capacity >= 100 or facility.data_source != "ALSR":
+                    enterprise_type = "layers"
+                else:
+                    enterprise_type = ""
+
+                if facility.data_source != "ALSR" or property_data_known:
+                    housing_type = facility.type[7:]
+                else:
+                    housing_type = ""
+            else:
+                if facility.chicken_capacity >= 100 or facility.data_source != "ALSR":
+                    enterprise_type = facility.type
+                else:
+                    enterprise_type = ""
+
+                housing_type = ""  # non-layers don't really have different housing types here... well, I guess there could be free range vs not for broilers...
+
+            # num_chickens = facility.get_num_chickens()
+            # num_eggs = facility.get_num_eggs() + facility.get_num_fertilised_eggs()
 
             row = [
-                facility.id,
+                facility.sim_id,
+                facility.case_id,
                 facility.status,
                 facility.ip,
                 facility.clinical_date if infection_data_known else "NA",
@@ -791,13 +813,12 @@ def save_approx_known_data(properties, folder_path, unique_output):
                 facility.region,
                 facility.coordinates[0],
                 facility.coordinates[1],
-                facility.area,
-                facility.type,
-                facility.num_sheds,
-                num_chickens if property_data_known else rounding_entities(num_chickens),
-                # (
-                #     num_eggs if property_data_known else rounding_entities(num_eggs)
-                # ),  # TODO: technically, the numbers might change over time...so really it should be saving the info *at the time* of inspect....
+                facility.known_area,
+                enterprise_type,
+                housing_type,
+                facility.known_sheds,
+                facility.known_birds,
+                facility.data_source,
                 last_surveillance_date,
                 animals_clinical,
                 last_PCR_date,

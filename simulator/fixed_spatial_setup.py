@@ -24,6 +24,38 @@ import pickle
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import pandas as pd
 import csv
+import math
+
+
+# copied from HPAIfunctions
+def rounding_entities(val):
+    if val < 10:
+        return val
+    if val < 100:
+        return math.floor(val / 5) * 5
+    if val < 500:
+        return math.floor(val / 50) * 50
+    if val < 1000:
+        return math.floor(val / 100) * 100
+    if val < 10000:
+        return math.floor(val / 1000) * 1000
+    if val < 100000:
+        return math.floor(val / 10000) * 10000
+    return math.floor(val / 100000) * 100000
+
+
+def less_rounding_entities(val):
+    if val < 500:
+        return val
+    if val < 1000:
+        return math.floor(val / 5) * 5
+    if val < 10000:
+        return math.floor(val / 10) * 10
+    if val < 100000:
+        return math.floor(val / 100) * 100
+    if val < 1000000:
+        return math.floor(val / 1000) * 1000
+    return math.floor(val / 10000) * 10000
 
 
 # def fixed_spatial_setup(xrange, yrange, folder_path_main, disease="FMD", AADIS=True):
@@ -571,6 +603,8 @@ def save_chicken_property_csv(properties, time, folder_path, unique_output):
     # print output: all
     header = [
         "id",
+        "sim_id",
+        "case_id",
         "status",
         "ip",
         "exposure_date",
@@ -822,6 +856,46 @@ def HPAI_movement_network_setup(
         # all_properties[p1].init_animals(
         #     None
         # )  # init with empty "params", as no parameters are actually used to initialise animals
+
+    # assigning random (scrambled) simids and data sources
+    random_ids = np.random.choice(range(1, 10 * len(all_properties)), size=len(all_properties), replace=False)
+    for p1 in range(0, len(all_properties)):
+        all_properties[p1].sim_id = random_ids[p1]
+
+        if all_properties[p1].get_num_chickens() > 100:
+            all_properties[p1].data_source = random.choice(
+                ["ALSR", "bio response app", "community survey", "farm records", "poultry licensing"]
+            )
+        else:
+            all_properties[p1].data_source = random.choice(["ALSR", "bio response app", "community survey", "farm records", ""])
+        if all_properties[p1].data_source == "ALSR":
+            all_properties[p1].known_sheds = ""
+            all_properties[p1].known_birds = rounding_entities(all_properties[p1].get_num_chickens())
+            # TODO - or maybe rather than rounding, it should be something else....
+        elif all_properties[p1].data_source == "bio response app":
+            all_properties[p1].known_sheds = ""
+            all_properties[p1].known_birds = less_rounding_entities(all_properties[p1].get_num_chickens())
+        elif all_properties[p1].data_source == "community survey":
+            all_properties[p1].known_sheds = all_properties[p1].num_sheds
+            all_properties[p1].known_birds = less_rounding_entities(all_properties[p1].get_num_chickens())
+        elif all_properties[p1].data_source == "farm records":
+            all_properties[p1].known_sheds = all_properties[p1].num_sheds
+            all_properties[p1].known_birds = all_properties[p1].get_num_chickens()
+        elif all_properties[p1].data_source == "poultry licensing":
+            all_properties[p1].known_sheds = ""
+            all_properties[p1].known_birds = ""
+        elif all_properties[p1].data_source == "":
+            all_properties[p1].known_sheds = ""
+            all_properties[p1].known_birds = ""
+
+        if all_properties[p1].type in ["egg processing", "abbatoir"]:
+            all_properties[p1].known_sheds = ""
+            all_properties[p1].known_area = ""
+        else:
+            if all_properties[p1].get_num_chickens() > 100:
+                all_properties[p1].known_area = all_properties[p1].area
+            else:
+                all_properties[p1].known_area = ""
 
     # assign wind neighbours and update self.total_neighbours
     for p1 in range(0, len(all_properties)):
