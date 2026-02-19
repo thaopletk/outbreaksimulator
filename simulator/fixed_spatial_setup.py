@@ -456,7 +456,7 @@ def HPAI_NSW_setup_locations(
         print(LGA)
 
         if LGA not in property_data_by_LGA:
-            property_data_by_LGA[LGA] = {"total_properties": 0, "animal_type": [], "premise_type": [], "num_animals": []}
+            property_data_by_LGA[LGA] = {"total_properties": 0, "animal_type": [], "premises_type": [], "num_animals": []}
 
         if LGA in total_chickens_LGA:
             total_chickens_LGA[LGA] += row["Estimate"]
@@ -505,6 +505,50 @@ def HPAI_NSW_setup_locations(
             property_data_by_LGA[LGA]["num_animals"].append(num_animals)
             # could add in minimun or maximum hectare size if I want
 
+    for i, row in data_poultryCustom.iterrows():
+        if testing:
+            if "A" in row["Region name"] or "B" in row["Region name"] or "C" in row["Region name"]:
+                pass
+            else:
+                continue  # temporary setup for testing - to limit how long it takes.
+        LGA = row["Region name"]
+        print(LGA)
+
+        property_data_by_LGA[LGA]["total_properties"] += int(row["Number of agricultural businesses"])
+
+        premises_type = row["Commodity description or property type"]
+
+        if premises_type == "egg processing":
+            animal_type = "chicken"
+            num_animals = 0  # no chickens, only eggs
+        elif premises_type == "abbatoir":
+            animal_type = "chicken"
+            num_animals = 1000  # assuming some initial live chickens
+        elif premises_type == "hatchery":
+            animal_type = "chicken"
+            num_animals = max(200, int(total_chickens_LGA[LGA] / 10))  # hmmm how are these actually counted???
+        elif premises_type == "breeder":
+            animal_type = "chicken"
+            num_animals = max(200, int(total_chickens_LGA[LGA] / 10))  # hmmm how are these actually counted???
+        else:
+            raise ValueError(f"premises type not expected: {premises_type}")
+
+        print(premises_type)
+
+        for _ in range(int(row["Number of agricultural businesses"])):
+            property_data_by_LGA[LGA]["animal_type"].append(animal_type)
+            property_data_by_LGA[LGA]["premises_type"].append(premises_type)
+            property_data_by_LGA[LGA]["num_animals"].append(num_animals)
+
+        # add a few random backyard properties
+        print("backyard")
+        num_backyard = random.randint(1, 3)
+        property_data_by_LGA[LGA]["total_properties"] += num_backyard
+        for _ in range(num_backyard):
+            property_data_by_LGA[LGA]["animal_type"].append("chicken")
+            property_data_by_LGA[LGA]["premises_type"].append("backyard")
+            property_data_by_LGA[LGA]["num_animals"].append(random.randint(3, 50))
+
     for LGA, LGA_properties_data in property_data_by_LGA.items():
         if LGA not in occupied_regions:
             occupied_regions[LGA] = []
@@ -512,12 +556,12 @@ def HPAI_NSW_setup_locations(
         region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == LGA, :]
         region_shape = list(region_only["geometry"])[0]
 
-        # # TODO: for now, assuming 5000 birds per hectare (of total farm) as an approximate
+        # # for now, assuming 5000 birds per hectare (of total farm) as an approximate
         # average_property_size = int(max(row["Estimate"] / row["Number of agricultural businesses"] / 5000, 1))
         average_property_size = 50  # a random estimate lol
 
         property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
-            LGA_properties_data["total"],
+            LGA_properties_data["total_properties"],
             region_shape,
             average_property_ha=average_property_size,
             excluded_regions=occupied_regions[LGA],
@@ -526,14 +570,15 @@ def HPAI_NSW_setup_locations(
         occupied_regions[LGA].extend(property_polygons)
 
         # sort by sizes
-        zipped = zip(property_areas, property_coordinates, property_polygons)
-        zipped.sort()  # sorting from small to large
-        property_areas, property_coordinates, property_polygons = zip(*zipped)
+        property_areas, property_coordinates, property_polygons = map(
+            list, zip(*sorted(zip(property_areas, property_coordinates, property_polygons)))
+        )
 
         # sort the property data by sizes too
         zipped = zip(property_data_by_LGA[LGA]["num_animals"], property_data_by_LGA[LGA]["animal_type"], property_data_by_LGA[LGA]["premises_type"])
-        zipped.sort()  # sorting from small to large
-        property_data_by_LGA[LGA]["num_animals"], property_data_by_LGA[LGA]["animal_type"], property_data_by_LGA[LGA]["premises_type"] = zip(*zipped)
+        property_data_by_LGA[LGA]["num_animals"], property_data_by_LGA[LGA]["animal_type"], property_data_by_LGA[LGA]["premises_type"] = map(
+            list, zip(*sorted(zipped))
+        )
 
         for i in range(len(property_data_by_LGA[LGA]["animal_type"])):
             animal_type = property_data_by_LGA[LGA]["animal_type"][i]
@@ -544,6 +589,14 @@ def HPAI_NSW_setup_locations(
             p_area = property_areas[i]
 
             if "layers" in premises_type or "pullet" in premises_type:
+                chicken_egg_property_coordinates.extend(property_coordinates)
+            if premises_type == "egg processing":
+                processing_chicken_egg_property_coordinates.extend(property_coordinates)
+            elif premises_type == "abbatoir":
+                processing_chicken_meat_property_coordinates.extend(property_coordinates)
+            elif premises_type == "hatchery":
+                processing_chicken_egg_property_coordinates.extend(property_coordinates)
+            elif premises_type == "breeder" or premises_type == "backyard":
                 chicken_egg_property_coordinates.extend(property_coordinates)
             else:
                 chicken_meat_property_coordinates.extend(property_coordinates)
@@ -556,88 +609,6 @@ def HPAI_NSW_setup_locations(
             ALL_premises_type.append(premises_type)
             ALL_num_animals.append(num_animals)
             ALL_LGAs.append(LGA)
-
-    for i, row in data_poultryCustom.iterrows():
-        if testing:
-            if "A" in row["Region name"] or "B" in row["Region name"] or "C" in row["Region name"]:
-                pass
-            else:
-                continue  # temporary setup for testing - to limit how long it takes.
-        print(row["Region name"])
-
-        LGA = row["Region name"]
-
-        if LGA not in occupied_regions:
-            occupied_regions[LGA] = []
-
-        region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == row["Region name"], :]
-        region_shape = list(region_only["geometry"])[0]
-
-        # TODO: random number chosen
-        average_property_size = 50
-
-        property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
-            int(row["Number of agricultural businesses"]),
-            region_shape,
-            average_property_ha=average_property_size,
-            excluded_regions=occupied_regions[LGA],
-        )
-
-        occupied_regions[LGA].extend(property_polygons)
-
-        premises_type = row["Commodity description or property type"]
-        print(premises_type)
-
-        if premises_type == "egg processing":
-            processing_chicken_egg_property_coordinates.extend(property_coordinates)
-            animal_type = "chicken"
-            num_animals = 0  # no chickens, only eggs
-        elif premises_type == "abbatoir":
-            processing_chicken_meat_property_coordinates.extend(property_coordinates)
-            animal_type = "chicken"
-            num_animals = 1000  # assuming some initial live chickens
-        elif premises_type == "hatchery":
-            processing_chicken_egg_property_coordinates.extend(property_coordinates)
-            animal_type = "chicken"
-            num_animals = max(200, int(total_chickens_LGA[row["Region name"]] / 10))  # hmmm how are these actually counted???
-        elif premises_type == "breeder":
-            chicken_egg_property_coordinates.extend(property_coordinates)
-            animal_type = "chicken"
-            num_animals = max(200, int(total_chickens_LGA[row["Region name"]] / 10))  # hmmm how are these actually counted???
-        else:
-            raise ValueError(f"premises type not expected: {premises_type}")
-
-        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
-
-            ALL_coordinates.append(coordinates)
-            ALL_p_polygon.append(p_polygon)
-            ALL_p_area.append(p_area)
-            ALL_wind_radius.append(wind_radius)
-            ALL_animal_type.append(animal_type)
-            ALL_premises_type.append(premises_type)
-            ALL_num_animals.append(num_animals)
-            ALL_LGAs.append(row["Region name"])
-
-        # while I'm here, add a few random backyard properties
-        num_backyard = random.randint(1, 5)
-        property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
-            num_backyard,
-            region_shape,
-            average_property_ha=1,
-            excluded_regions=occupied_regions[LGA],
-        )
-        occupied_regions[LGA].extend(property_polygons)
-
-        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
-
-            ALL_coordinates.append(coordinates)
-            ALL_p_polygon.append(p_polygon)
-            ALL_p_area.append(p_area)
-            ALL_wind_radius.append(wind_radius)
-            ALL_animal_type.append("chicken")
-            ALL_premises_type.append("backyard")
-            ALL_num_animals.append(random.randint(3, 50))
-            ALL_LGAs.append(row["Region name"])
 
     with open(output_filename, "wb") as file:
         pickle.dump(
