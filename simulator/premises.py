@@ -403,6 +403,9 @@ class Premises(Property):
                 "cleaning_completion": None,
             }
 
+            self.chicken_capacity = self.size
+            self.approx_chickens_per_shed = self.size
+
             self.eggs = np.random.randint(0, self.size)
 
         else:
