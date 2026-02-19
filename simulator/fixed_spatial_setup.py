@@ -1,6 +1,6 @@
-""" Fixed spatial setup
+"""Fixed spatial setup
 
-    This script generates random properties (i.e. farms) across the landscape, in latitude,longitude coordinates and areas in hectares and distances in kilometers (where relevant), based on input animal type, in known hard-coded regions, and with taking in AADIS data.
+This script generates random properties (i.e. farms) across the landscape, in latitude,longitude coordinates and areas in hectares and distances in kilometers (where relevant), based on input animal type, in known hard-coded regions, and with taking in AADIS data.
 
 """
 
@@ -767,9 +767,8 @@ def HPAI_QLD_setup_locations(
     Australia_shape = spatial_setup.Australia_shape()
     LGA_gdf = spatial_functions.get_LGA_gdf()
 
-    data_poultryCustom = pd.read_excel(
-        data_file, sheet_name="PoultryCustom"
-    )  # contains custom egg processing, hatchery, abbatoirs - format same as NSW
+    # contains custom egg processing, hatchery, abbatoirs - format same as NSW
+    data_poultryCustom = pd.read_excel(data_file, sheet_name="PoultryCustom")
 
     data_poultry = gpd.read_file(shp_file)
 
@@ -971,9 +970,7 @@ def HPAI_movement_network_setup(
         all_properties[p1].sim_id = random_ids[p1]
 
         if all_properties[p1].get_num_chickens() > 100:
-            all_properties[p1].data_source = random.choice(
-                ["ALSR", "bio response app", "community survey", "farm records", "poultry licensing"]
-            )
+            all_properties[p1].data_source = random.choice(["ALSR", "bio response app", "community survey", "farm records", "poultry licensing"])
         else:
             if all_properties[p1].type == "backyard":
                 all_properties[p1].data_source = random.choice(
