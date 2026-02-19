@@ -419,7 +419,7 @@ def HPAI_NSW_setup_locations(
     data_poultryCustom = pd.read_excel(data_file, sheet_name="PoultryCustom")
 
     occupied_regions = []
-    all_properties = []
+    # all_properties = []
 
     # these are for plotting purposes
     chicken_meat_property_coordinates = []
@@ -428,6 +428,15 @@ def HPAI_NSW_setup_locations(
     processing_chicken_egg_property_coordinates = []
 
     total_chickens_LGA = {}
+
+    ALL_coordinates = []
+    ALL_p_polygon = []
+    ALL_p_area = []
+    ALL_wind_radius = []
+    ALL_animal_type = []
+    ALL_premises_type = []
+    ALL_num_animals = []
+    ALL_LGAs = []
 
     for i, row in data_poultryAgTrack.iterrows():
 
@@ -501,18 +510,27 @@ def HPAI_NSW_setup_locations(
             # plus will leave some animals for hatchery, breeder farms
             if premises_type == "broiler farm":
                 num_animals = max(100, int(num_animals / 2))  # assuming even more of a production cycle???
-            new_p = property_specific_initialisation_animals_no_neighbours(
-                coordinates,
-                p_polygon,
-                p_area,
-                wind_radius=wind_radius,
-                animal_type=animal_type,
-                premises_type=premises_type,
-                num_animals=num_animals,
-                LGA=row["Region name"],
-            )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
+            # new_p = property_specific_initialisation_animals_no_neighbours(
+            #     coordinates,
+            #     p_polygon,
+            #     p_area,
+            #     wind_radius=wind_radius,
+            #     animal_type=animal_type,
+            #     premises_type=premises_type,
+            #     num_animals=num_animals,
+            #     LGA=row["Region name"],
+            # )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
 
-            all_properties.append(new_p)
+            # all_properties.append(new_p)
+
+            ALL_coordinates.append(coordinates)
+            ALL_p_polygon.append(p_polygon)
+            ALL_p_area.append(p_area)
+            ALL_wind_radius.append(wind_radius)
+            ALL_animal_type.append(animal_type)
+            ALL_premises_type.append(premises_type)
+            ALL_num_animals.append(num_animals)
+            ALL_LGAs.append(row["Region name"])
 
     for i, row in data_poultryCustom.iterrows():
         if testing:
@@ -560,18 +578,27 @@ def HPAI_NSW_setup_locations(
             raise ValueError(f"premises type not expected: {premises_type}")
 
         for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
-            new_p = property_specific_initialisation_animals_no_neighbours(
-                coordinates,
-                p_polygon,
-                p_area,
-                wind_radius=wind_radius,
-                animal_type=animal_type,
-                premises_type=premises_type,
-                num_animals=num_animals,
-                LGA=row["Region name"],
-            )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
+            # new_p = property_specific_initialisation_animals_no_neighbours(
+            #     coordinates,
+            #     p_polygon,
+            #     p_area,
+            #     wind_radius=wind_radius,
+            #     animal_type=animal_type,
+            #     premises_type=premises_type,
+            #     num_animals=num_animals,
+            #     LGA=row["Region name"],
+            # )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
 
-            all_properties.append(new_p)
+            # all_properties.append(new_p)
+
+            ALL_coordinates.append(coordinates)
+            ALL_p_polygon.append(p_polygon)
+            ALL_p_area.append(p_area)
+            ALL_wind_radius.append(wind_radius)
+            ALL_animal_type.append(animal_type)
+            ALL_premises_type.append(premises_type)
+            ALL_num_animals.append(num_animals)
+            ALL_LGAs.append(row["Region name"])
 
         # while I'm here, add a few random backyard properties
         num_backyard = random.randint(1, 5)
@@ -584,23 +611,39 @@ def HPAI_NSW_setup_locations(
         occupied_regions.extend(property_polygons)
 
         for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
-            new_p = property_specific_initialisation_animals_no_neighbours(
-                coordinates,
-                p_polygon,
-                p_area,
-                wind_radius=wind_radius,
-                animal_type="chicken",
-                premises_type="backyard",
-                num_animals=random.randint(3, 50),
-                LGA=row["Region name"],
-            )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
+            # new_p = property_specific_initialisation_animals_no_neighbours(
+            #     coordinates,
+            #     p_polygon,
+            #     p_area,
+            #     wind_radius=wind_radius,
+            #     animal_type="chicken",
+            #     premises_type="backyard",
+            #     num_animals=random.randint(3, 50),
+            #     LGA=row["Region name"],
+            # )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
 
-            all_properties.append(new_p)
+            # all_properties.append(new_p)
+
+            ALL_coordinates.append(coordinates)
+            ALL_p_polygon.append(p_polygon)
+            ALL_p_area.append(p_area)
+            ALL_wind_radius.append(wind_radius)
+            ALL_animal_type.append("chicken")
+            ALL_premises_type.append("backyard")
+            ALL_num_animals.append(random.randint(3, 50))
+            ALL_LGAs.append(row["Region name"])
 
     with open(output_filename, "wb") as file:
         pickle.dump(
             [
-                all_properties,
+                ALL_coordinates,
+                ALL_p_polygon,
+                ALL_p_area,
+                ALL_wind_radius,
+                ALL_animal_type,
+                ALL_premises_type,
+                ALL_num_animals,
+                ALL_LGAs,
                 chicken_meat_property_coordinates,
                 processing_chicken_meat_property_coordinates,
                 chicken_egg_property_coordinates,
@@ -610,12 +653,52 @@ def HPAI_NSW_setup_locations(
         )
 
     return (
-        all_properties,
+        ALL_coordinates,
+        ALL_p_polygon,
+        ALL_p_area,
+        ALL_wind_radius,
+        ALL_animal_type,
+        ALL_premises_type,
+        ALL_num_animals,
+        ALL_LGAs,
         chicken_meat_property_coordinates,
         processing_chicken_meat_property_coordinates,
         chicken_egg_property_coordinates,
         processing_chicken_egg_property_coordinates,
     )
+
+
+def initialise_all_properties(
+    ALL_coordinates,
+    ALL_p_polygon,
+    ALL_p_area,
+    ALL_wind_radius,
+    ALL_animal_type,
+    ALL_premises_type,
+    ALL_num_animals,
+    ALL_LGAs,
+    output_filename,
+):
+    all_properties = []
+    for coordinates, p_polygon, p_area, wind_radius, animal_type, premises_type, num_animals, LGA in zip(
+        ALL_coordinates, ALL_p_polygon, ALL_p_area, ALL_wind_radius, ALL_animal_type, ALL_premises_type, ALL_num_animals, ALL_LGAs
+    ):
+        new_p = property_specific_initialisation_animals_no_neighbours(
+            coordinates,
+            p_polygon,
+            p_area,
+            wind_radius=wind_radius,
+            animal_type=animal_type,
+            premises_type=premises_type,
+            num_animals=num_animals,
+            LGA=LGA,
+        )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
+        all_properties.append(new_p)
+
+    with open(output_filename, "wb") as file:
+        pickle.dump(all_properties, file)
+
+    return all_properties
 
 
 def save_chicken_property_csv(properties, time, folder_path, unique_output):

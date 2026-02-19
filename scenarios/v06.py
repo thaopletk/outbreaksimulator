@@ -9,6 +9,7 @@ import pickle
 import random
 import numpy as np
 import shutil
+import time
 
 # import subprocess
 import pandas as pd
@@ -62,32 +63,42 @@ if testing:
 # generates locations for properties, and makes them into property objects  (which contain information about what type of premises it is)
 output_filename = os.path.join(folder_path_main, f"HPAI_NSW_setup_locations{suffix}")
 if not os.path.exists(output_filename):
+    start_time = time.time()
     (
-        all_properties,
+        ALL_coordinates,
+        ALL_p_polygon,
+        ALL_p_area,
+        ALL_wind_radius,
+        ALL_animal_type,
+        ALL_premises_type,
+        ALL_num_animals,
+        ALL_LGAs,
         chicken_meat_property_coordinates,
         processing_chicken_meat_property_coordinates,
         chicken_egg_property_coordinates,
         processing_chicken_egg_property_coordinates,
     ) = fixed_spatial_setup.HPAI_NSW_setup_locations(output_filename, testing)
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print(f"Execution time of fixed_spatial_setup.HPAI_NSW_setup_locations(): {execution_time/60} minutes")
 else:
     with open(output_filename, "rb") as file:
         (
-            all_properties,
+            ALL_coordinates,
+            ALL_p_polygon,
+            ALL_p_area,
+            ALL_wind_radius,
+            ALL_animal_type,
+            ALL_premises_type,
+            ALL_num_animals,
+            ALL_LGAs,
             chicken_meat_property_coordinates,
             processing_chicken_meat_property_coordinates,
             chicken_egg_property_coordinates,
             processing_chicken_egg_property_coordinates,
         ) = pickle.load(file)
 
-print(f"total facilities started: {len(all_properties)}")
-
-# for p in all_properties:
-#     print(p)
-
-if not os.path.exists(os.path.join(folder_path_main, f"data_underlying_{suffix}.csv")):
-    fixed_spatial_setup.save_chicken_property_csv(all_properties, 0, folder_path_main, suffix)
-
-# plot that actually shows the locations of different facilities
+# plot that actually shows the locations of different facilities (aside from backyard ones at the moment TODO)
 if not os.path.exists(os.path.join(folder_path_main, f"property_locations_base_map{suffix}.png")):
     fixed_spatial_setup.plot_map_land_HPAI(
         chicken_meat_property_coordinates,
@@ -99,6 +110,34 @@ if not os.path.exists(os.path.join(folder_path_main, f"property_locations_base_m
         folder_path_main,
         plot_suffix=suffix,
     )
+
+output_filename = os.path.join(folder_path_main, f"HPAI_NSW_all_properties{suffix}")
+if not os.path.exists(output_filename):
+    start_time = time.time()
+    all_properties = fixed_spatial_setup.initialise_all_properties(
+        ALL_coordinates,
+        ALL_p_polygon,
+        ALL_p_area,
+        ALL_wind_radius,
+        ALL_animal_type,
+        ALL_premises_type,
+        ALL_num_animals,
+        ALL_LGAs,
+        output_filename,
+    )
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print(f"Execution time of fixed_spatial_setup.initialise_all_properties(): {execution_time/60} minutes")
+else:
+    with open(output_filename, "rb") as file:
+        all_properties = pickle.load(file)
+
+
+print(f"total facilities started: {len(all_properties)}")
+
+if not os.path.exists(os.path.join(folder_path_main, f"data_underlying_{suffix}.csv")):
+    fixed_spatial_setup.save_chicken_property_csv(all_properties, 0, folder_path_main, suffix)
+
 
 if not os.path.exists(os.path.join(folder_path_main, f"property_locations_base_map_types{suffix}.png")):
     fixed_spatial_setup.plot_map_land_HPAI_2(
@@ -115,10 +154,16 @@ if not os.path.exists(os.path.join(folder_path_main, f"approx_known_data_{suffix
 properties_filename = os.path.join(folder_path_main, f"HPAI_properties{suffix}")
 if not os.path.exists(properties_filename):
 
+    start_time = time.time()
+
     properties = fixed_spatial_setup.HPAI_movement_network_setup(
         all_properties,
         max_movement_km=200,  # 200km max movement
     )
+
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print(f"Execution time of fixed_spatial_setup.HPAI_movement_network_setup(): {execution_time/60} minutes")
 
     with open(properties_filename, "wb") as file:
         pickle.dump(properties, file)
