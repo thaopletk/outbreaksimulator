@@ -438,6 +438,8 @@ def HPAI_NSW_setup_locations(
     ALL_num_animals = []
     ALL_LGAs = []
 
+    property_data_by_LGA = {}
+
     for i, row in data_poultryAgTrack.iterrows():
 
         if "All other poultry" in row["Commodity description or property type"]:
@@ -449,32 +451,19 @@ def HPAI_NSW_setup_locations(
             else:
                 continue  # temporary setup for testing - to limit how long it takes. TODO: REMOVE
 
-        print(row["Region name"])
-
         LGA = row["Region name"]
 
-        if LGA not in occupied_regions:
-            occupied_regions[LGA] = []
+        print(LGA)
 
-        region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == row["Region name"], :]
-        region_shape = list(region_only["geometry"])[0]
+        if LGA not in property_data_by_LGA:
+            property_data_by_LGA[LGA] = {"total_properties": 0, "animal_type": [], "premise_type": [], "num_animals": []}
 
-        # TODO: for now, assuming 5000 birds per hectare (of total farm) as an approximate
-        average_property_size = int(max(row["Estimate"] / row["Number of agricultural businesses"] / 5000, 1))
-
-        if row["Region name"] in total_chickens_LGA:
-            total_chickens_LGA[row["Region name"]] += row["Estimate"]
+        if LGA in total_chickens_LGA:
+            total_chickens_LGA[LGA] += row["Estimate"]
         else:
-            total_chickens_LGA[row["Region name"]] = row["Estimate"]
+            total_chickens_LGA[LGA] = row["Estimate"]
 
-        property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
-            int(row["Number of agricultural businesses"]),
-            region_shape,
-            average_property_ha=average_property_size,
-            excluded_regions=occupied_regions[LGA],
-        )
-
-        occupied_regions[LGA].extend(property_polygons)
+        property_data_by_LGA[LGA]["total_properties"] += int(row["Number of agricultural businesses"])
 
         premises_type = ""
 
@@ -503,18 +492,61 @@ def HPAI_NSW_setup_locations(
 
         print(premises_type)
 
-        if "layers" in premises_type or "pullet" in premises_type:
-            chicken_egg_property_coordinates.extend(property_coordinates)
-        else:
-            chicken_meat_property_coordinates.extend(property_coordinates)
-
-        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+        for _ in range(int(row["Number of agricultural businesses"])):
             num_animals = int(max(row["Estimate"] / row["Number of agricultural businesses"], 1))
             num_animals = max(100, int(num_animals / 2))
             # assuming some production cycle, animals will get replaced at least once...
             # plus will leave some animals for hatchery, breeder farms
             if premises_type == "broiler farm":
                 num_animals = max(100, int(num_animals / 2))  # assuming even more of a production cycle???
+
+            property_data_by_LGA[LGA]["animal_type"].append(animal_type)
+            property_data_by_LGA[LGA]["premises_type"].append(premises_type)
+            property_data_by_LGA[LGA]["num_animals"].append(num_animals)
+            # could add in minimun or maximum hectare size if I want
+
+    for LGA, LGA_properties_data in property_data_by_LGA.items():
+        if LGA not in occupied_regions:
+            occupied_regions[LGA] = []
+
+        region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == LGA, :]
+        region_shape = list(region_only["geometry"])[0]
+
+        # # TODO: for now, assuming 5000 birds per hectare (of total farm) as an approximate
+        # average_property_size = int(max(row["Estimate"] / row["Number of agricultural businesses"] / 5000, 1))
+        average_property_size = 50  # a random estimate lol
+
+        property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
+            LGA_properties_data["total"],
+            region_shape,
+            average_property_ha=average_property_size,
+            excluded_regions=occupied_regions[LGA],
+        )
+
+        occupied_regions[LGA].extend(property_polygons)
+
+        # sort by sizes
+        zipped = zip(property_areas, property_coordinates, property_polygons)
+        zipped.sort()  # sorting from small to large
+        property_areas, property_coordinates, property_polygons = zip(*zipped)
+
+        # sort the property data by sizes too
+        zipped = zip(property_data_by_LGA[LGA]["num_animals"], property_data_by_LGA[LGA]["animal_type"], property_data_by_LGA[LGA]["premises_type"])
+        zipped.sort()  # sorting from small to large
+        property_data_by_LGA[LGA]["num_animals"], property_data_by_LGA[LGA]["animal_type"], property_data_by_LGA[LGA]["premises_type"] = zip(*zipped)
+
+        for i in range(len(property_data_by_LGA[LGA]["animal_type"])):
+            animal_type = property_data_by_LGA[LGA]["animal_type"][i]
+            premises_type = property_data_by_LGA[LGA]["premises_type"][i]
+            num_animals = property_data_by_LGA[LGA]["num_animals"][i]
+            coordinates = property_coordinates[i]
+            p_polygon = property_polygons[i]
+            p_area = property_areas[i]
+
+            if "layers" in premises_type or "pullet" in premises_type:
+                chicken_egg_property_coordinates.extend(property_coordinates)
+            else:
+                chicken_meat_property_coordinates.extend(property_coordinates)
 
             ALL_coordinates.append(coordinates)
             ALL_p_polygon.append(p_polygon)
@@ -523,7 +555,7 @@ def HPAI_NSW_setup_locations(
             ALL_animal_type.append(animal_type)
             ALL_premises_type.append(premises_type)
             ALL_num_animals.append(num_animals)
-            ALL_LGAs.append(row["Region name"])
+            ALL_LGAs.append(LGA)
 
     for i, row in data_poultryCustom.iterrows():
         if testing:
