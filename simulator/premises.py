@@ -1,8 +1,8 @@
-""" Premises class definition 
+"""Premises class definition
 
-    The premises class describes farms (or other properties), with attributes such as location and size
+The premises class describes farms (or other properties), with attributes such as location and size
 
-    Expands upon the Property class from FMD_Modelling
+Expands upon the Property class from FMD_Modelling
 
 """
 
@@ -233,9 +233,7 @@ class Premises(Property):
             for shed_i in range(1, self.num_sheds + 1):
                 week = int(np.random.choice(chickens_possible_week_ages))
                 self.sheds[shed_i] = {
-                    "chickens": [
-                        {"n": actual_chickens_per_shed, "age": week * 7}
-                    ],  # array format, to accept multiple-age chickens if necessary
+                    "chickens": [{"n": actual_chickens_per_shed, "age": week * 7}],  # array format, to accept multiple-age chickens if necessary
                     "cleaning": False,
                     "cleaning_completion": None,
                 }
@@ -360,6 +358,15 @@ class Premises(Property):
                     "cleaning": False,
                     "cleaning_completion": None,
                 }
+
+            if self.num_sheds > 1:
+                if np.random.uniform(0, 1) < 0.01:  # if there are a lot of sheds, then add the possibility of having an empty shed
+                    self.num_sheds += 1
+                    self.sheds[self.num_sheds] = {
+                        "eggs": [],
+                        "cleaning": False,
+                        "cleaning_completion": None,
+                    }
 
             self.size = 0  # all eggs at the moment
 
@@ -686,10 +693,13 @@ class Premises(Property):
         """
         if RTM:
             if self.animal_type == "chicken":
-                if self.status == "IP":  # meaning that some culling has occured
-                    num_animals = (
-                        self.get_num_chickens() + self.custom_info["culled_birds"]
-                    )  # get the total number of live chickens and culled birds
+                if self.status == "IP":
+                    if "culled_birds" in self.custom_info:  # meaning that some culling has occured
+                        num_animals = (
+                            self.get_num_chickens() + self.custom_info["culled_birds"]
+                        )  # get the total number of live chickens and culled birds
+                    else:
+                        num_animals = self.get_num_chickens()
                 else:
                     num_animals = self.get_num_chickens()
             else:
@@ -947,7 +957,6 @@ class Premises(Property):
 
         return [
             self.id,
-            self.sim_id,
             self.case_id,
             self.status,
             self.ip,

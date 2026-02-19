@@ -43,10 +43,7 @@ def seed_HPAI_infection(
     for i, property in enumerate(properties):
         coords = property.coordinates
         if (
-            coords[0] <= xrange_bounds[1]
-            and coords[0] >= xrange_bounds[0]
-            and coords[1] <= yrange_bounds[1]
-            and coords[1] >= yrange_bounds[0]
+            coords[0] <= xrange_bounds[1] and coords[0] >= xrange_bounds[0] and coords[1] <= yrange_bounds[1] and coords[1] >= yrange_bounds[0]
         ) and property.type not in ["egg processing", "abbatoir", "hatchery"]:
             viable_properties.append(i)
 
@@ -391,9 +388,7 @@ def animal_movement(
                                 if num_chickens_per_shed_target > chickens_left_to_move:
                                     while chickens_to_move != []:
                                         chickens_on_truck = chickens_to_move.pop()
-                                        chickens_to_transfer = align_chicken_objects(
-                                            properties, premise_index, target_index, chickens_on_truck
-                                        )
+                                        chickens_to_transfer = align_chicken_objects(properties, premise_index, target_index, chickens_on_truck)
                                         chickens_left_to_move = chickens_left_to_move - chickens_on_truck["n"]
                                         chickens_moved += chickens_on_truck["n"]
                                         new_facility.sheds[empty_shed]["chickens"].append(chickens_to_transfer)
@@ -405,9 +400,7 @@ def animal_movement(
                                     local_chickens_moved_into_this_shed = 0
                                     while local_chickens_moved_into_this_shed < num_chickens_per_shed_target:
                                         possible_chickens_on_truck = chickens_to_move.pop()
-                                        chickens_left_to_move_into_this_shed = (
-                                            num_chickens_per_shed_target - local_chickens_moved_into_this_shed
-                                        )
+                                        chickens_left_to_move_into_this_shed = num_chickens_per_shed_target - local_chickens_moved_into_this_shed
                                         if chickens_left_to_move_into_this_shed < possible_chickens_on_truck["n"]:
                                             # only transfer some of them
                                             chickens_on_truck = {
@@ -419,19 +412,13 @@ def animal_movement(
                                                 "age": possible_chickens_on_truck["age"],
                                             }
                                             if "objs" in possible_chickens_on_truck:
-                                                chickens_on_truck["objs"] = possible_chickens_on_truck["objs"][
-                                                    :chickens_left_to_move_into_this_shed
-                                                ]
-                                                chickens_left_over["objs"] = possible_chickens_on_truck["objs"][
-                                                    chickens_left_to_move_into_this_shed:
-                                                ]
+                                                chickens_on_truck["objs"] = possible_chickens_on_truck["objs"][:chickens_left_to_move_into_this_shed]
+                                                chickens_left_over["objs"] = possible_chickens_on_truck["objs"][chickens_left_to_move_into_this_shed:]
                                             chickens_to_move.append(chickens_left_over)
                                         else:
                                             chickens_on_truck = possible_chickens_on_truck  # transfer all of them
 
-                                        chickens_to_transfer = align_chicken_objects(
-                                            properties, premise_index, target_index, chickens_on_truck
-                                        )
+                                        chickens_to_transfer = align_chicken_objects(properties, premise_index, target_index, chickens_on_truck)
                                         chickens_left_to_move = chickens_left_to_move - chickens_to_transfer["n"]
                                         chickens_moved += chickens_to_transfer["n"]
                                         local_chickens_moved_into_this_shed += chickens_to_transfer["n"]
@@ -629,9 +616,7 @@ def animal_movement(
             facility.eggs = 0  # reset to zero
             if total_eggs_being_moved > 0:
                 if controlzone != None and facility.polygon.intersects(controlzone):
-                    print(
-                        f"note that egg processor ID {facility.id} is in the control zone (just a note, no impact on processing/distribution)"
-                    )
+                    print(f"note that egg processor ID {facility.id} is in the control zone (just a note, no impact on processing/distribution)")
 
                 # create the movement record
                 row = [
@@ -800,14 +785,16 @@ def save_approx_known_data(properties, folder_path, unique_output):
                 else:
                     enterprise_type = ""
 
-                housing_type = ""  # non-layers don't really have different housing types here... well, I guess there could be free range vs not for broilers...
+                housing_type = (
+                    ""  # non-layers don't really have different housing types here... well, I guess there could be free range vs not for broilers...
+                )
 
             # num_chickens = facility.get_num_chickens()
             # num_eggs = facility.get_num_eggs() + facility.get_num_fertilised_eggs()
 
             if facility.data_source != "":  # if something is actually known!
                 row = [
-                    facility.sim_id,
+                    facility.id,  # facility.sim_id, sim_id is too complicated ya...
                     facility.case_id,
                     facility.status,
                     facility.ip,

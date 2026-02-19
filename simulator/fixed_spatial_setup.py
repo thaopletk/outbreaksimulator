@@ -418,7 +418,7 @@ def HPAI_NSW_setup_locations(
     data_poultryAgTrack = pd.read_excel(data_file, sheet_name="PoultryAgTrack")
     data_poultryCustom = pd.read_excel(data_file, sheet_name="PoultryCustom")
 
-    occupied_regions = []
+    occupied_regions = {}
     # all_properties = []
 
     # these are for plotting purposes
@@ -451,6 +451,11 @@ def HPAI_NSW_setup_locations(
 
         print(row["Region name"])
 
+        LGA = row["Region name"]
+
+        if LGA not in occupied_regions:
+            occupied_regions[LGA] = []
+
         region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == row["Region name"], :]
         region_shape = list(region_only["geometry"])[0]
 
@@ -466,10 +471,10 @@ def HPAI_NSW_setup_locations(
             int(row["Number of agricultural businesses"]),
             region_shape,
             average_property_ha=average_property_size,
-            excluded_regions=occupied_regions,
+            excluded_regions=occupied_regions[LGA],
         )
 
-        occupied_regions.extend(property_polygons)
+        occupied_regions[LGA].extend(property_polygons)
 
         premises_type = ""
 
@@ -510,18 +515,6 @@ def HPAI_NSW_setup_locations(
             # plus will leave some animals for hatchery, breeder farms
             if premises_type == "broiler farm":
                 num_animals = max(100, int(num_animals / 2))  # assuming even more of a production cycle???
-            # new_p = property_specific_initialisation_animals_no_neighbours(
-            #     coordinates,
-            #     p_polygon,
-            #     p_area,
-            #     wind_radius=wind_radius,
-            #     animal_type=animal_type,
-            #     premises_type=premises_type,
-            #     num_animals=num_animals,
-            #     LGA=row["Region name"],
-            # )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
-
-            # all_properties.append(new_p)
 
             ALL_coordinates.append(coordinates)
             ALL_p_polygon.append(p_polygon)
@@ -540,6 +533,11 @@ def HPAI_NSW_setup_locations(
                 continue  # temporary setup for testing - to limit how long it takes.
         print(row["Region name"])
 
+        LGA = row["Region name"]
+
+        if LGA not in occupied_regions:
+            occupied_regions[LGA] = []
+
         region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == row["Region name"], :]
         region_shape = list(region_only["geometry"])[0]
 
@@ -550,10 +548,10 @@ def HPAI_NSW_setup_locations(
             int(row["Number of agricultural businesses"]),
             region_shape,
             average_property_ha=average_property_size,
-            excluded_regions=occupied_regions,
+            excluded_regions=occupied_regions[LGA],
         )
 
-        occupied_regions.extend(property_polygons)
+        occupied_regions[LGA].extend(property_polygons)
 
         premises_type = row["Commodity description or property type"]
         print(premises_type)
@@ -578,18 +576,6 @@ def HPAI_NSW_setup_locations(
             raise ValueError(f"premises type not expected: {premises_type}")
 
         for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
-            # new_p = property_specific_initialisation_animals_no_neighbours(
-            #     coordinates,
-            #     p_polygon,
-            #     p_area,
-            #     wind_radius=wind_radius,
-            #     animal_type=animal_type,
-            #     premises_type=premises_type,
-            #     num_animals=num_animals,
-            #     LGA=row["Region name"],
-            # )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
-
-            # all_properties.append(new_p)
 
             ALL_coordinates.append(coordinates)
             ALL_p_polygon.append(p_polygon)
@@ -606,23 +592,11 @@ def HPAI_NSW_setup_locations(
             num_backyard,
             region_shape,
             average_property_ha=1,
-            excluded_regions=occupied_regions,
+            excluded_regions=occupied_regions[LGA],
         )
-        occupied_regions.extend(property_polygons)
+        occupied_regions[LGA].extend(property_polygons)
 
         for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
-            # new_p = property_specific_initialisation_animals_no_neighbours(
-            #     coordinates,
-            #     p_polygon,
-            #     p_area,
-            #     wind_radius=wind_radius,
-            #     animal_type="chicken",
-            #     premises_type="backyard",
-            #     num_animals=random.randint(3, 50),
-            #     LGA=row["Region name"],
-            # )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
-
-            # all_properties.append(new_p)
 
             ALL_coordinates.append(coordinates)
             ALL_p_polygon.append(p_polygon)
@@ -710,7 +684,6 @@ def save_chicken_property_csv(properties, time, folder_path, unique_output):
 
     # print output: all
     header = [
-        "id",
         "sim_id",
         "case_id",
         "status",
@@ -745,8 +718,9 @@ def save_chicken_property_csv(properties, time, folder_path, unique_output):
         writer.writerow(header)
 
         for premise in properties:
-            row = premise.return_output_row_chickens()
-            writer.writerow(row)
+            if premise.data_source != "":
+                row = premise.return_output_row_chickens()
+                writer.writerow(row)
 
 
 def HPAI_QLD_setup_locations(
@@ -919,6 +893,30 @@ def HPAI_QLD_setup_locations(
                 animal_type=animal_type,
                 premises_type=premises_type,
                 num_animals=num_animals,
+                LGA=row["Region name"],
+            )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
+
+            all_properties.append(new_p)
+
+        # while I'm here, add a few random backyard properties
+        num_backyard = random.randint(1, 5)
+        property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
+            num_backyard,
+            region_shape,
+            average_property_ha=1,
+            excluded_regions=occupied_regions,
+        )
+        occupied_regions.extend(property_polygons)
+
+        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+            new_p = property_specific_initialisation_animals_no_neighbours(
+                coordinates,
+                p_polygon,
+                p_area,
+                wind_radius=5,
+                animal_type="chicken",
+                premises_type="backyard",
+                num_animals=random.randint(3, 50),
                 LGA=row["Region name"],
             )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
 
