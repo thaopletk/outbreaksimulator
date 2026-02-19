@@ -147,6 +147,12 @@ def egg_production(properties):
         elif facility.type == "breeder":
             total_laying_chickens = facility.get_num_laying_chickens()
             facility.eggs += max(1, int(total_laying_chickens / 4))  # assumption... TODO fix this
+        elif facility.type == "backyard":
+            if random.uniform(0, 1) < 0.5:
+                total_laying_chickens = facility.get_num_laying_chickens()
+                facility.eggs += max(1, int(total_laying_chickens / 2))  # assumption... TODO fix this
+            else:
+                facility.eggs = 0  # e.g. pretending that they just ate all the eggs or otherwise gave them away ....
         else:
             raise ValueError(f"egg_production: property type not expected: {facility.type}")
 
@@ -319,7 +325,7 @@ def animal_movement(
             # TODO: if True, use this to raise movement permit request
 
         # chickens movement only
-        if not facility.culled_status and facility.type != "abbatoir" and facility.type != "egg processing":
+        if not facility.culled_status and facility.type != "abbatoir" and facility.type != "egg processing" and facility.type != "backyard":
             num_chickens_to_move, chicken_properties_to_move_to = facility.want_to_move_animals()
 
             if num_chickens_to_move > 0:  # if neither is >0, then there is no movement for this facility
@@ -789,7 +795,7 @@ def save_approx_known_data(properties, folder_path, unique_output):
                 else:
                     housing_type = ""
             else:
-                if facility.chicken_capacity >= 100 or facility.data_source != "ALSR":
+                if facility.chicken_capacity >= 100 or facility.data_source != "ALSR" or property_data_known:
                     enterprise_type = facility.type
                 else:
                     enterprise_type = ""
@@ -799,36 +805,37 @@ def save_approx_known_data(properties, folder_path, unique_output):
             # num_chickens = facility.get_num_chickens()
             # num_eggs = facility.get_num_eggs() + facility.get_num_fertilised_eggs()
 
-            row = [
-                facility.sim_id,
-                facility.case_id,
-                facility.status,
-                facility.ip,
-                facility.clinical_date if infection_data_known else "NA",
-                self_report_date,
-                facility.notification_date,
-                facility.removal_date,
-                facility.recovery_date if infection_data_known else "NA",
-                facility.vacc_date,
-                facility.region,
-                facility.coordinates[0],
-                facility.coordinates[1],
-                facility.known_area,
-                enterprise_type,
-                housing_type,
-                facility.known_sheds,
-                facility.known_birds,
-                facility.data_source,
-                last_surveillance_date,
-                animals_clinical,
-                last_PCR_date,
-                PCR_result,
-                last_cull_date,
-                culled_birds,
-                destroyed_eggs,
-            ]
+            if facility.data_source != "":  # if something is actually known!
+                row = [
+                    facility.sim_id,
+                    facility.case_id,
+                    facility.status,
+                    facility.ip,
+                    facility.clinical_date if infection_data_known else "NA",
+                    self_report_date,
+                    facility.notification_date,
+                    facility.removal_date,
+                    facility.recovery_date if infection_data_known else "NA",
+                    facility.vacc_date,
+                    facility.region,
+                    facility.coordinates[0],
+                    facility.coordinates[1],
+                    facility.known_area,
+                    enterprise_type,
+                    housing_type,
+                    facility.known_sheds,
+                    facility.known_birds,
+                    facility.data_source,
+                    last_surveillance_date,
+                    animals_clinical,
+                    last_PCR_date,
+                    PCR_result,
+                    last_cull_date,
+                    culled_birds,
+                    destroyed_eggs,
+                ]
 
-            writer.writerow(row)
+                writer.writerow(row)
 
 
 def update_negative_status_based_on_zones(facility, restricted_area, control_area):

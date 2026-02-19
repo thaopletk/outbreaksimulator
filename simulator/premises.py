@@ -385,6 +385,19 @@ class Premises(Property):
             self.eggs = self.approx_chickens_per_shed * np.random.randint(
                 0, self.num_sheds
             )  # assuming some backlog; all are fertilised eggs by default
+        elif self.type == "backyard":
+            self.num_sheds = 1
+            chickens_possible_week_ages = list(range(1, 70 + 1))
+            self.accepts_hatchlings = True
+            week = int(np.random.choice(chickens_possible_week_ages))
+            self.sheds[1] = {
+                "chickens": [{"n": self.size, "age": week * 7}],
+                "cleaning": False,
+                "cleaning_completion": None,
+            }
+
+            self.eggs = np.random.randint(0, self.size)
+
         else:
             raise ValueError(f"property type not expected: {self.type}")
 

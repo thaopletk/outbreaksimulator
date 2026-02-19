@@ -1815,8 +1815,10 @@ class DiseaseSimulation:
                         properties[property_index].custom_info["property_data_known"] = True
                         properties[property_index].data_source = "farm inspection"
                         properties[property_index].known_sheds = properties[property_index].num_sheds
-                        if not (properties[property_index].type in ["egg processing", "abbatoir"]):
+                        if not (properties[property_index].type in ["egg processing", "abbatoir", "backyard"]):
                             properties[property_index].known_area = properties[property_index].area
+                            properties[property_index].known_birds = properties[property_index].get_num_chickens()
+                        if properties[property_index].type == "backyard":
                             properties[property_index].known_birds = properties[property_index].get_num_chickens()
 
                         properties[property_index].custom_info["last_surveillance_date"] = converted_date
@@ -1923,6 +1925,8 @@ class DiseaseSimulation:
                             if facility.case_id == None:
                                 self.case_id_counter += 1
                                 facility.case_id = self.case_id_counter
+                            if facility.data_source == "":
+                                facility.data_source = "tracing"  # for e.g. backyard premises
 
                         extra_job_info = ""
 

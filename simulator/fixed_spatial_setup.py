@@ -280,6 +280,7 @@ def plot_map_land_HPAI_2(
         "abbatoir",
         "hatchery",
         "breeder",
+        "backyard",
     ],
 ):
     """Plot properties"""
@@ -567,6 +568,30 @@ def HPAI_NSW_setup_locations(
                 animal_type=animal_type,
                 premises_type=premises_type,
                 num_animals=num_animals,
+                LGA=row["Region name"],
+            )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
+
+            all_properties.append(new_p)
+
+        # while I'm here, add a few random backyard properties
+        num_backyard = random.randint(1, 5)
+        property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
+            num_backyard,
+            region_shape,
+            average_property_ha=1,
+            excluded_regions=occupied_regions,
+        )
+        occupied_regions.extend(property_polygons)
+
+        for coordinates, p_polygon, p_area in zip(property_coordinates, property_polygons, property_areas):
+            new_p = property_specific_initialisation_animals_no_neighbours(
+                coordinates,
+                p_polygon,
+                p_area,
+                wind_radius=wind_radius,
+                animal_type="chicken",
+                premises_type="backyard",
+                num_animals=random.randint(3, 50),
                 LGA=row["Region name"],
             )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
 
@@ -867,7 +892,13 @@ def HPAI_movement_network_setup(
                 ["ALSR", "bio response app", "community survey", "farm records", "poultry licensing"]
             )
         else:
-            all_properties[p1].data_source = random.choice(["ALSR", "bio response app", "community survey", "farm records", ""])
+            if all_properties[p1].type == "backyard":
+                all_properties[p1].data_source = random.choice(
+                    ["bio response app", "community survey", "", "", "", "", "", "", "", ""]
+                )  # weighting them to be unknown altogether
+            else:
+                all_properties[p1].data_source = random.choice(["ALSR", "bio response app", "community survey", "farm records", "", ""])
+
         if all_properties[p1].data_source == "ALSR":
             all_properties[p1].known_sheds = ""
             all_properties[p1].known_birds = rounding_entities(all_properties[p1].get_num_chickens())
@@ -888,7 +919,7 @@ def HPAI_movement_network_setup(
             all_properties[p1].known_sheds = ""
             all_properties[p1].known_birds = ""
 
-        if all_properties[p1].type in ["egg processing", "abbatoir"]:
+        if all_properties[p1].type in ["egg processing", "abbatoir", "backyard"]:
             all_properties[p1].known_sheds = ""
             all_properties[p1].known_area = ""
         else:
@@ -952,6 +983,7 @@ def HPAI_movement_network_setup(
                         "layers free-range",
                         "layers barn",
                         "layers caged",
+                        "backyard",
                     ],
                     "properties": [],
                 }
@@ -960,7 +992,7 @@ def HPAI_movement_network_setup(
             property_i.allowed_movement_details = {
                 "chickens": {
                     "age": 119,
-                    "property_types": ["layers free-range", "layers barn", "layers caged", "breeder"],
+                    "property_types": ["layers free-range", "layers barn", "layers caged", "breeder", "backyard"],
                     "properties": [],
                 }
             }
@@ -974,6 +1006,8 @@ def HPAI_movement_network_setup(
         elif property_i.type == "egg processing":
             property_i.allowed_movement_details = {}
         elif property_i.type == "abbatoir":
+            property_i.allowed_movement_details = {}
+        elif property_i.type == "backyard":
             property_i.allowed_movement_details = {}
         else:
             raise ValueError(f"Property type not expected: {property_i.type}")
@@ -990,9 +1024,10 @@ def HPAI_movement_network_setup(
             "abbatoir": [],
             "hatchery": [],
             "breeder": [],
+            "backyard": [],
         }
 
-        if property_i.type in ["abbatoir", "egg processing"]:
+        if property_i.type in ["abbatoir", "egg processing", "backyard"]:
             pass
         else:
             for j, property_j in enumerate(all_properties):
