@@ -1,4 +1,4 @@
-""" Management
+"""Management
 
 This script contains several functions used to implement various control actions, including:
 
@@ -68,7 +68,7 @@ def contact_tracing(properties, property_index, movement_records, time):
 
     """
 
-    contact_tracing_report = f"DAY {convert_time_to_date(time)} - contact tracing report compiled for movements to/from {properties[property_index].status} (ID: {properties[property_index].id}, IP: {properties[property_index].ip}) in {properties[property_index].state}\n"
+    contact_tracing_report = f"DAY {convert_time_to_date(time)} - contact tracing report compiled for movements to/from {properties[property_index].type} (sim_id: {properties[property_index].id}, case_id: {properties[property_index].case_id} {properties[property_index].status}) in {properties[property_index].state}\n"
     traced_property_indices = []
 
     properties_found = False
@@ -107,24 +107,22 @@ def test_property(properties, property_index, time, test_sensitivity, test_type=
     positive = False
     premise = properties[property_index]
 
-    testing_report = f"DAY {convert_time_to_date(time)} - {test_type} report for property ID {property_index} ({premise.type} in {premise.region}): "
+    testing_report = f"DAY {convert_time_to_date(time)} - {test_type} report for {premise.type} (property sim_id {property_index}, case_id {premise.case_id} {premise.status}) ({premise.region}): "
 
     if premise.culled_status:
-        testing_report += f"No testing: property index {property_index} (IP {premise.ip}) has already been culled"
-    elif (
-        premise.infection_status and premise.prop_clinical > 0
-    ):  # i.e., for LSD, need to be clinical before tests work well
+        testing_report += (
+            f"No testing: property sim_id {property_index}, case_id {premise.case_id} {premise.status} (IP {premise.ip}) has already been culled"
+        )
+    elif premise.infection_status and premise.prop_clinical > 0:  # i.e., for LSD, need to be clinical before tests work well
         prob_successful = np.random.rand()
         if prob_successful < test_sensitivity:
             x, y = premise.coordinates
-            testing_report += (
-                f"Property index {property_index} at location (x,y)=({round(x,2)}, {round(y,2)}) report POSITIVE result"
-            )
+            testing_report += f"{premise.type} (sim_id {property_index}, case_id {premise.case_id} {premise.status}) at location (x,y)=({round(x,2)}, {round(y,2)}) report POSITIVE result"
             positive = True
         else:
-            testing_report += f"Property index {property_index} report negative result"
+            testing_report += f"{premise.type} (sim_id {property_index}, case_id {premise.case_id} {premise.status}) report negative result"
     else:
-        testing_report += f"Property index {property_index} report negative result"
+        testing_report += f"{premise.type} (sim_id {property_index}, case_id {premise.case_id} {premise.status}) report negative result"
     return testing_report, positive
 
 
@@ -388,9 +386,7 @@ class JobManager:
                         if job_type == "Cull":
                             culling_jobs_today.append([property_index, job_type, day, status])
                         else:
-                            if control_area != None and not shapely.contains(
-                                control_area, Point(properties[property_index])
-                            ):
+                            if control_area != None and not shapely.contains(control_area, Point(properties[property_index])):
                                 jobs_outside_control_area.append([property_index, job_type, day, status])
                             else:
                                 other_jobs_today.append([property_index, job_type, day, status])
@@ -425,9 +421,7 @@ class JobManager:
         elif resource_setting == "high":  # resource values increased randomly...
             # for now, just randomly halve / get a max of say 100 jobs a day / need to be scaled by the number of properties
             max_jobs_today = (
-                min(int(total_jobs * 0.8), int(len(properties) / 5), 1000)
-                + np.random.randint(int(len(properties) / 30))
-                + int((time - 28) * 10)
+                min(int(total_jobs * 0.8), int(len(properties) / 5), 1000) + np.random.randint(int(len(properties) / 30)) + int((time - 28) * 10)
             )
 
             if len(jobs_outside_control_area) <= max_jobs_today:
@@ -448,9 +442,7 @@ class JobManager:
                 extra_other_jobs_today = random.sample(other_jobs_today, extra_other_jobs)
         elif resource_setting == "low":  # reducing culling resources
 
-            max_jobs_today = min(int(total_jobs * 0.5), int(len(properties) / 20), 500) + np.random.randint(
-                int(len(properties) / 150)
-            )
+            max_jobs_today = min(int(total_jobs * 0.5), int(len(properties) / 20), 500) + np.random.randint(int(len(properties) / 150))
 
             if len(jobs_outside_control_area) <= max_jobs_today:
                 jobs_today = jobs_outside_control_area
@@ -495,12 +487,7 @@ class JobManager:
                             # this shouldn't happen, but just in case
                             other_jobs_today.append([property_index, job_type, day, status])
 
-        total_jobs = (
-            len(other_jobs_today)
-            + len(culling_jobs_today)
-            + len(surveillance_related_jobs_today)
-            + len(vaccination_jobs_today)
-        )
+        total_jobs = len(other_jobs_today) + len(culling_jobs_today) + len(surveillance_related_jobs_today) + len(vaccination_jobs_today)
 
         if resource_setting == "default":
             max_jobs_today = (
@@ -629,9 +616,7 @@ class JobManager:
             property_index, job_type, day, status = job
             if job_type == "LabTesting":
                 # run the lab test and subsequent actionns
-                temp_combined_narrative, labresult, DCP_status = self.run_lab_testing_now(
-                    properties, property_index, time, converted_date
-                )
+                temp_combined_narrative, labresult, DCP_status = self.run_lab_testing_now(properties, property_index, time, converted_date)
                 num_lab_tested += 1
                 if labresult:  # is positive
                     num_confirmed_infected += 1
@@ -686,9 +671,7 @@ class JobManager:
                 # TODO - should also remove ANY OTHER JOBS related to this property (hm, except for maybe contact tracing?)
 
             elif job_type == "ContactTracing":
-                contact_tracing_report, traced_property_indices = contact_tracing(
-                    properties, property_index, movement_records, time
-                )
+                contact_tracing_report, traced_property_indices = contact_tracing(properties, property_index, movement_records, time)
                 self.jobs_queue[property_index][job_type][day] = ["complete", converted_date]
 
                 new_combined_narrative.append([time, converted_date, "tracing", property_index, contact_tracing_report])

@@ -487,11 +487,11 @@ class Premises(Property):
 
         culled_animals = self.size
         if self.animal_type != "chicken":
-            report = f"DAY {self.notification_date} - IP {self.ip} (ID {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been found infected. A total of {culled_animals} animal(s) will be culled."
+            report = f"DAY {self.notification_date} - IP {self.ip} (sim {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been found infected. A total of {culled_animals} animal(s) will be culled."
         else:
             self.size = self.get_num_chickens()
             culled_animals = self.size
-            report = f"DAY {self.notification_date} - Property ID {self.id} has been designated IP {self.ip}, located at (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}. The property has a total of {culled_animals} chicken(s) and {self.get_num_eggs()+self.get_num_fertilised_eggs()} egg(s)."
+            report = f"DAY {self.notification_date} - {self.type} in {self.region} (sim_id {self.id}, case_id {self.case_id} {self.status}) is the {self.ip}(th) IP (located at (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}). The property has a total of {culled_animals} chicken(s) and {self.get_num_eggs()+self.get_num_fertilised_eggs()} egg(s)."
 
         return report
 
@@ -555,7 +555,7 @@ class Premises(Property):
             culled_animals = self.size
             report += self.report_only(time)
 
-            report = f"DAY {self.notification_date} - IP {self.ip} (ID {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been reported infected.\nA total of {culled_animals} animal(s) have been culled.\n"
+            report = f"DAY {self.notification_date} - IP {self.ip} (sim {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been reported infected.\nA total of {culled_animals} animal(s) have been culled.\n"
 
         return report, culled_animals
 
