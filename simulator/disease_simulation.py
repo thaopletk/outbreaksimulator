@@ -326,11 +326,33 @@ class DiseaseSimulation:
 
     def make_report(self, reported_property, converted_date, property_index):
         """Saves text in the combined narrative that a property reported"""
+        OG_status = reported_property.status
         report = reported_property.report_suspicion(self.time)
+        self.combined_narrative.append([self.time, converted_date, "report", property_index, report, ""])
         if reported_property.case_id == None:
             self.case_id_counter += 1
             reported_property.case_id = self.case_id_counter
-        self.combined_narrative.append([self.time, converted_date, "report", property_index, report, reported_property.case_id])
+            self.combined_narrative.append(
+                [
+                    self.time,
+                    converted_date,
+                    "report",
+                    property_index,
+                    f"{reported_property.type} (sim_id {reported_property.id}) has been assigned case id {reported_property.case_id} {reported_property.status}",
+                    reported_property.case_id,
+                ]
+            )
+        else:
+            self.combined_narrative.append(
+                [
+                    self.time,
+                    converted_date,
+                    "report",
+                    property_index,
+                    f"{reported_property.type} (sim_id {reported_property.id}) has updated status: {reported_property.case_id} {reported_property.status} (prior status: {OG_status})",
+                    reported_property.case_id,
+                ]
+            )
 
         reported_property.custom_info["self_report_date"] = converted_date
 
@@ -1650,6 +1672,34 @@ class DiseaseSimulation:
 
         return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
 
+    def update_negative_status_based_on_zones(facility, restricted_area, control_area):
+        if facility.polygon.intersects(restricted_area):
+            facility.status = "ARP"  # at risk premises
+        elif facility.polygon.intersects(control_area):
+            # if it contains chickens -> POR -> Premises of relevance
+            if facility.get_num_chickens() > 0 or facility.get_num_eggs() > 0 or facility.get_num_fertilised_eggs() > 0:
+                facility.status = "POR"
+            else:
+                facility.status = "ZP"
+        else:
+            facility.status = "NA"
+
+    def update_status_based_on_zones(properties, restricted_area, control_area):
+        # TODO could probably make this better (like everything else)
+        higher_priority_statuses = ["IP", "DCP", "TP", "SP", "DCPF", "RP"]
+
+        for facility in properties:
+            if facility.polygon.intersects(restricted_area):  # restricted area is the tighter one
+                if facility.status not in higher_priority_statuses:
+                    facility.status = "ARP"  # at risk premises
+            elif facility.polygon.intersects(control_area):  # control area is the disease free buffer
+                if facility.status not in higher_priority_statuses:
+                    # if it contains chickens -> POR -> Premises of relevance
+                    if facility.get_num_chickens() > 0 or facility.get_num_eggs() > 0 or facility.get_num_fertilised_eggs() > 0:
+                        facility.status = "POR"
+                    else:
+                        facility.status = "ZP"
+
     def simulate_HPAI_outbreak_management(self, properties, property_jobs, property_based_zones, days_to_run_for, outbreak_sim="HPAI", time=None):
 
         if time != None:
@@ -1732,7 +1782,7 @@ class DiseaseSimulation:
             self.controlzone["control area"] = control_area
 
             # update statuses based on the zones
-            HPAI_functions.update_status_based_on_zones(properties, restricted_area, control_area)
+            self.update_status_based_on_zones(properties, restricted_area, control_area)
             contacts_for_plotting = {}
 
             # TODO management actions
@@ -1779,14 +1829,14 @@ class DiseaseSimulation:
                                 self.daily_statistics[converted_date]["surveillance tested negative"] += 1
 
                             # updating status
-                            HPAI_functions.update_negative_status_based_on_zones(properties[property_index], restricted_area, control_area)
+                            self.update_negative_status_based_on_zones(properties[property_index], restricted_area, control_area)
 
                         extra_job_info = ""
 
                     elif job_type == "ClinicalObservation":
-                        if facility.case_id == None:
+                        if properties[property_index].case_id == None:
                             self.case_id_counter += 1
-                            facility.case_id = self.case_id_counter
+                            properties[property_index].case_id = self.case_id_counter
 
                         testing_report, positive = self.job_manager.conduct_clinicalobservation(properties, property_index, self.time)
                         self.combined_narrative.append([self.time, converted_date, "test", property_index, testing_report, facility.case_id])
@@ -1900,14 +1950,13 @@ class DiseaseSimulation:
                         contacts_for_plotting[property_index] = traced_property_indices
 
                         for t_i in traced_property_indices:
-                            facility = properties[t_i]
-                            if facility.status not in ["IP", "DCP", "TP", "SP", "DCPF", "RP"]:
-                                facility.status = "TP"
-                            if facility.case_id == None:
+                            if properties[t_i].status not in ["IP", "DCP", "TP", "SP", "DCPF", "RP"]:
+                                properties[t_i].status = "TP"
+                            if properties[t_i].case_id == None:
                                 self.case_id_counter += 1
-                                facility.case_id = self.case_id_counter
-                            if facility.data_source == "":
-                                facility.data_source = "tracing"  # for e.g. backyard premises
+                                properties[t_i].case_id = self.case_id_counter
+                            if properties[t_i].data_source == "":
+                                properties[t_i].data_source = "tracing"  # for e.g. backyard premises
 
                         extra_job_info = ""
 

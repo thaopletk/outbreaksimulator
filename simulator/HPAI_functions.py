@@ -360,7 +360,7 @@ def animal_movement(
                     )
                 else:
                     if in_control_zone and (random.uniform(0, 1) > movement_reduction_factor):
-                        print(f"facility {facility.ID} would like to move some chickens")
+                        print(f"{facility.type} (sim_id {facility.id}) would like to move some chickens but is inside control zone")
                         # TODO permit request:  facility id[], type [], status [], requests to move [X animals] to [target facility]
                     else:
                         # ILLEGAL MOVEMENT, aka with some probability, there will be movement without movement requests!
@@ -480,7 +480,7 @@ def animal_movement(
                     )
                 else:
                     if in_control_zone and (random.uniform(0, 1) > movement_reduction_factor):
-                        print(f"facility {facility.ID} would like to move some eggs")
+                        print(f"{facility.type} (sim_id {facility.id}) would like to move some eggs but is in the control zone")
                         # TODO permit request:  facility id[], type [], status [], requests to move [X animals] to [target facility]
                     else:
                         # ILLEGAL MOVEMENT, aka with some probability, there will be movement without movement requests!
@@ -537,7 +537,7 @@ def animal_movement(
                     )
                 else:
                     if in_control_zone and (random.uniform(0, 1) > movement_reduction_factor):
-                        print(f"facility {facility.ID} would like to move some chickens")
+                        print(f"{facility.type} (sim_id {facility.id}) would like to move some chickens but is in the control zone")
                     else:
                         # ILLEGAL MOVEMENT, aka with some probability, there will be movement without movement requests!
                         # or just normal movement with source facility not in a restricted zone
@@ -825,33 +825,3 @@ def save_approx_known_data(properties, folder_path, unique_output):
                 ]
 
                 writer.writerow(row)
-
-
-def update_negative_status_based_on_zones(facility, restricted_area, control_area):
-    if facility.polygon.intersects(restricted_area):
-        facility.status = "ARP"  # at risk premises
-    elif facility.polygon.intersects(control_area):
-        # if it contains chickens -> POR -> Premises of relevance
-        if facility.get_num_chickens() > 0 or facility.get_num_eggs() > 0 or facility.get_num_fertilised_eggs() > 0:
-            facility.status = "POR"
-        else:
-            facility.status = "ZP"
-    else:
-        facility.status = "NA"
-
-
-def update_status_based_on_zones(properties, restricted_area, control_area):
-    # TODO could probably make this better (like everything else)
-    higher_priority_statuses = ["IP", "DCP", "TP", "SP", "DCPF", "RP"]
-
-    for facility in properties:
-        if facility.polygon.intersects(restricted_area):  # restricted area is the tighter one
-            if facility.status not in higher_priority_statuses:
-                facility.status = "ARP"  # at risk premises
-        elif facility.polygon.intersects(control_area):  # control area is the disease free buffer
-            if facility.status not in higher_priority_statuses:
-                # if it contains chickens -> POR -> Premises of relevance
-                if facility.get_num_chickens() > 0 or facility.get_num_eggs() > 0 or facility.get_num_fertilised_eggs() > 0:
-                    facility.status = "POR"
-                else:
-                    facility.status = "ZP"
