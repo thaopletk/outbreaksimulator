@@ -1937,23 +1937,22 @@ class DiseaseSimulation:
 
                         if positive:
                             self.daily_statistics[converted_date]["num positive clinical"] += 1
+                            properties[property_index].custom_info["animals_clinical"] = True
+                            # no status change
+                        else:
+                            properties[property_index].custom_info["animals_clinical"] = False
                             OG_status = properties[property_index].status
                             properties[property_index].status = "DCP"
-                            properties[property_index].custom_info["animals_clinical"] = True
-
                             self.combined_narrative.append(
                                 [
                                     self.time,
                                     converted_date,
                                     "status_update",
                                     properties[property_index].id,
-                                    f"{properties[property_index].type} (sim_id {properties[property_index].id}) has updated status: {properties[property_index].status} (prior status: {OG_status})",
+                                    f"{properties[property_index].type} (sim_id {properties[property_index].id}) has updated status: {properties[property_index].status} due to negative clinical signs (prior status: {OG_status})",
                                     properties[property_index].case_id,
                                 ]
                             )
-
-                        else:
-                            properties[property_index].custom_info["animals_clinical"] = False
 
                         extra_job_info = ""
 
