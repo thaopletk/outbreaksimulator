@@ -446,7 +446,13 @@ def HPAI_NSW_setup_locations(
             continue  # skipping other poultry - remove this if we want to include, e.g., ducks
 
         if testing:
-            if "A" in row["Region name"] or "B" in row["Region name"] or "C" in row["Region name"]:
+            if (
+                "A" in row["Region name"]
+                or "B" in row["Region name"]
+                or "C" in row["Region name"]
+                or "D" in row["Region name"]
+                or "E" in row["Region name"]
+            ):
                 pass
             else:
                 continue  # temporary setup for testing - to limit how long it takes. TODO: REMOVE
@@ -507,7 +513,13 @@ def HPAI_NSW_setup_locations(
 
     for i, row in data_poultryCustom.iterrows():
         if testing:
-            if "A" in row["Region name"] or "B" in row["Region name"] or "C" in row["Region name"]:
+            if (
+                "A" in row["Region name"]
+                or "B" in row["Region name"]
+                or "C" in row["Region name"]
+                or "D" in row["Region name"]
+                or "E" in row["Region name"]
+            ):
                 pass
             else:
                 continue  # temporary setup for testing - to limit how long it takes.
@@ -970,8 +982,11 @@ def HPAI_movement_network_setup(
     for p1 in range(0, len(all_properties)):
         all_properties[p1].sim_id = random_ids[p1]
 
+        # TODO: this is so messy LOL
         if all_properties[p1].get_num_chickens() > 100:
-            all_properties[p1].data_source = random.choice(["ALSR", "bio response app", "community survey", "farm records", "poultry licensing"])
+            all_properties[p1].data_source = random.choice(
+                ["ALSR", "bio response app", "community survey", "farm records", "poultry licensing", "poultry licensing", "poultry licensing"]
+            )
         else:
             if all_properties[p1].type == "backyard":
                 all_properties[p1].data_source = random.choice(
@@ -982,6 +997,8 @@ def HPAI_movement_network_setup(
 
         if all_properties[p1].data_source == "ALSR":
             all_properties[p1].known_sheds = ""
+            if random.uniform(0, 1) < 0.5:
+                all_properties[p1].known_sheds = all_properties[p1].num_sheds
             all_properties[p1].known_birds = rounding_entities(all_properties[p1].get_num_chickens())
             # TODO - or maybe rather than rounding, it should be something else....
         elif all_properties[p1].data_source == "bio response app":
@@ -995,6 +1012,8 @@ def HPAI_movement_network_setup(
             all_properties[p1].known_birds = all_properties[p1].get_num_chickens()
         elif all_properties[p1].data_source == "poultry licensing":
             all_properties[p1].known_sheds = ""
+            if random.uniform(0, 1) < 0.5:
+                all_properties[p1].known_sheds = all_properties[p1].num_sheds
             all_properties[p1].known_birds = ""
         elif all_properties[p1].data_source == "":
             all_properties[p1].known_sheds = ""
