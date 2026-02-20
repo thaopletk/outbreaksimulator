@@ -213,6 +213,8 @@ class Premises(Property):
                 self.approx_chickens_per_shed = 14000  # going by 12k-14k of chickens per shed
             elif self.type == "layers barn":
                 self.approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
+            else:
+                raise ValueError(f"{self.type} not expected")
 
             # all in / all out style
             # https://www.poultryhub.org/production/chicken-egg-layer-industry/layer-farm-sequence
@@ -527,7 +529,7 @@ class Premises(Property):
 
             report = f"Property ID {self.id} ({self.type}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been reported possible infection."
         else:
-            report = f"Property ID {self.id} ({self.type}) at location ({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been reported possible infection."
+            report = f"{self.type} (sim_id {self.id}) at location ({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been reported possible infection."
             self.status = "SP"  # suspect premises
 
         return report

@@ -1,6 +1,4 @@
-""" v06 | Script for running simulations for HASTE NSW HPAI simulation
-
-"""
+"""v06 | Script for running simulations for HASTE NSW HPAI simulation"""
 
 import os
 import sys
@@ -273,6 +271,7 @@ if not os.path.exists(undetected_spread_properties_filename) or not os.path.exis
     # initiate various things that start from empty:
     diseaseoutbreak = disease_simulation.DiseaseSimulation(
         time=time,
+        movement_records=HPAI_functions.create_movement_records_df(),
         disease_parameters=disease_parameters,
         spatial_only_parameters=spatial_only_parameters,
         job_parameters=job_parameters,

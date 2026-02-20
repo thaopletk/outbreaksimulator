@@ -437,7 +437,7 @@ def animal_movement(
                                     chickens_moved,
                                     facility.type,
                                     new_facility.type,
-                                    f"DAY {date} - moved {chickens_moved} chicken(s) from {facility.type} ID {facility.id} ({facility.state}, {facility.region}) to {new_facility.type} ID {new_facility.id} ({new_facility.state}, {new_facility.region})",
+                                    f"DAY {date} - moved {chickens_moved} chicken(s) from {facility.type} (sim_id {facility.id}) ({facility.region},{facility.state}) to {new_facility.type} (sim_id {new_facility.id}) ( {new_facility.region}, {new_facility.state})",
                                 ]
 
                                 if len(row) != len(movement_record_header):
