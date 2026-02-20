@@ -417,6 +417,8 @@ if not os.path.exists(folder_path):
 spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
 spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
 
+random.seed(1235)
+np.random.seed(1116)
 if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
     # adjust the plotting parameters for this new scenario
     diseaseoutbreak.set_plotting_parameters(
@@ -471,7 +473,7 @@ for file in os.listdir(folder_path):
 # ---- Run second set of actions ------------------#
 ###################################################
 
-# # Step 1: generate a list of scheduled management actions
+# # generate a list of scheduled management actions
 # # actions, basic: date, property_id, action-to-take-on-date, extra deets for action if necessary (e.g., if culling, the number of animals culled on that day)
 
 actions_input = os.path.join(folder_path_main, f"actions_2.xlsx")
@@ -488,6 +490,8 @@ if not os.path.exists(folder_path):
 spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
 spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
 
+random.seed(215)
+np.random.seed(216)
 if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
     # adjust the plotting parameters for this new scenario
     diseaseoutbreak.set_plotting_parameters(

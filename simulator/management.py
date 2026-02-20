@@ -93,9 +93,10 @@ def contact_tracing(properties, property_index, movement_records, time):
     if not properties_found:
         contact_tracing_report += f" - no movements found in the last {timeframe_days} days\n"
     else:
-        for t_i in traced_property_indices:
-            if properties[t_i].status == "NA":
-                properties[t_i].status = "TP"
+        pass
+        # for t_i in traced_property_indices:
+        #     if properties[t_i].status == "NA":
+        #         properties[t_i].status = "TP"
 
     return contact_tracing_report, traced_property_indices
 

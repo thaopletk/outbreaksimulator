@@ -329,6 +329,16 @@ class DiseaseSimulation:
         OG_status = reported_property.status
         report = reported_property.report_suspicion(self.time)
         self.combined_narrative.append([self.time, converted_date, "report", property_index, report, ""])
+        self.combined_narrative.append(
+            [
+                self.time,
+                converted_date,
+                "status_update",
+                property_index,
+                f"{reported_property.type} (sim_id {reported_property.id}) has updated status: {reported_property.status} (prior status: {OG_status})",
+                reported_property.case_id,
+            ]
+        )
         if reported_property.case_id == None:
             self.case_id_counter += 1
             reported_property.case_id = self.case_id_counter
@@ -336,23 +346,14 @@ class DiseaseSimulation:
                 [
                     self.time,
                     converted_date,
-                    "report",
+                    "status_update",
                     property_index,
                     f"{reported_property.type} (sim_id {reported_property.id}) has been assigned case id {reported_property.case_id} {reported_property.status}",
                     reported_property.case_id,
                 ]
             )
-        else:
-            self.combined_narrative.append(
-                [
-                    self.time,
-                    converted_date,
-                    "report",
-                    property_index,
-                    f"{reported_property.type} (sim_id {reported_property.id}) has updated status: {reported_property.case_id} {reported_property.status} (prior status: {OG_status})",
-                    reported_property.case_id,
-                ]
-            )
+        if reported_property.data_source == "":
+            reported_property.data_source = "self-report"  # for e.g. backyard premises
 
         reported_property.custom_info["self_report_date"] = converted_date
 
@@ -1684,21 +1685,77 @@ class DiseaseSimulation:
         else:
             facility.status = "NA"
 
-    def update_status_based_on_zones(properties, restricted_area, control_area):
+    def update_status_based_on_zones(self, properties, restricted_area, control_area, converted_date):
         # TODO could probably make this better (like everything else)
         higher_priority_statuses = ["IP", "DCP", "TP", "SP", "DCPF", "RP"]
 
         for facility in properties:
             if facility.polygon.intersects(restricted_area):  # restricted area is the tighter one
                 if facility.status not in higher_priority_statuses:
+                    OG_status = facility.status
                     facility.status = "ARP"  # at risk premises
+                    if OG_status != facility.status:
+                        self.combined_narrative.append(
+                            [
+                                self.time,
+                                converted_date,
+                                "status_update",
+                                facility.id,
+                                f"{facility.type} (sim_id {facility.id}) has updated status: {facility.status} due to being in an RA and containing susceptible animal(s) (prior status: {OG_status})",
+                                facility.case_id,
+                            ]
+                        )
             elif facility.polygon.intersects(control_area):  # control area is the disease free buffer
                 if facility.status not in higher_priority_statuses:
                     # if it contains chickens -> POR -> Premises of relevance
-                    if facility.get_num_chickens() > 0 or facility.get_num_eggs() > 0 or facility.get_num_fertilised_eggs() > 0:
+                    if (
+                        (facility.known_birds != "" and facility.known_birds > 0)
+                        or facility.get_num_eggs() > 0
+                        or facility.get_num_fertilised_eggs() > 0
+                    ):
+                        OG_status = facility.status
                         facility.status = "POR"
-                    else:
+                        if OG_status != facility.status:
+                            self.combined_narrative.append(
+                                [
+                                    self.time,
+                                    converted_date,
+                                    "status_update",
+                                    facility.id,
+                                    f"{facility.type} (sim_id {facility.id}) has updated status: {facility.status} due to being in an CA and containing susceptible animal(s) (prior status: {OG_status})",
+                                    facility.case_id,
+                                ]
+                            )
+
+                    elif facility.known_birds != "" and facility.known_birds == 0:
+                        OG_status = facility.status
                         facility.status = "ZP"
+                        if OG_status != facility.status:
+                            self.combined_narrative.append(
+                                [
+                                    self.time,
+                                    converted_date,
+                                    "status_update",
+                                    facility.id,
+                                    f"{facility.type} (sim_id {facility.id}) has updated status: {facility.status} due to being in an CA with zero susceptible animals (prior status: {OG_status})",
+                                    facility.case_id,
+                                ]
+                            )
+                    elif facility.data_source != "":
+                        OG_status = facility.status
+                        facility.status = "UP"
+                        if OG_status != facility.status:
+                            self.combined_narrative.append(
+                                [
+                                    self.time,
+                                    converted_date,
+                                    "status_update",
+                                    facility.id,
+                                    f"{facility.type} (sim_id {facility.id}) has updated status: {facility.status} due to being in an CA with unknown animal status (prior status: {OG_status})",
+                                    facility.case_id,
+                                ]
+                            )
+                    # else - we don't know about it, so we can't assign it any particular status!
 
     def simulate_HPAI_outbreak_management(self, properties, property_jobs, property_based_zones, days_to_run_for, outbreak_sim="HPAI", time=None):
 
@@ -1738,7 +1795,7 @@ class DiseaseSimulation:
                 if (
                     not facility.culled_status
                     and not facility.reported_status
-                    and (facility.status not in ["SP", "DCP"])  # self reported status
+                    and (facility.status not in ["SP", "DCP", "IP"])  # self reported status
                     and facility.prob_of_reporting_only(
                         self.clinical_reporting_threshold, self.prob_report
                     )  # TODO: this is the place to add in false positives
@@ -1782,7 +1839,7 @@ class DiseaseSimulation:
             self.controlzone["control area"] = control_area
 
             # update statuses based on the zones
-            self.update_status_based_on_zones(properties, restricted_area, control_area)
+            self.update_status_based_on_zones(properties, restricted_area, control_area, converted_date)
             contacts_for_plotting = {}
 
             # TODO management actions
@@ -1812,10 +1869,21 @@ class DiseaseSimulation:
                         if positive:
                             self.daily_statistics[converted_date]["num confirmed infected"] += 1
                             properties[property_index].custom_info["infection_data_known"] = True
-
+                            OG_status = properties[property_index].status
                             # report property
-                            premise_report = premise.report_only(self.time)
+                            premise_report = premise.report_only(self.time)  # updates status to IP
                             self.combined_narrative.append([self.time, converted_date, "report", property_index, premise_report, premise.case_id])
+
+                            self.combined_narrative.append(
+                                [
+                                    self.time,
+                                    converted_date,
+                                    "status_update",
+                                    properties[property_index].id,
+                                    f"{properties[property_index].type} (sim_id {properties[property_index].id}) has updated status: {properties[property_index].status} (prior status: {OG_status})",
+                                    properties[property_index].case_id,
+                                ]
+                            )
 
                             properties[property_index].custom_info["PCR_result"] = "positive"
                         else:
@@ -1829,7 +1897,20 @@ class DiseaseSimulation:
                                 self.daily_statistics[converted_date]["surveillance tested negative"] += 1
 
                             # updating status
-                            self.update_negative_status_based_on_zones(properties[property_index], restricted_area, control_area)
+                            OG_status = properties[property_index].status
+                            properties[property_index].status = properties[property_index].status + "-AN"  # assessed negative
+                            self.combined_narrative.append(
+                                [
+                                    self.time,
+                                    converted_date,
+                                    "status_update",
+                                    properties[property_index].id,
+                                    f"{properties[property_index].type} (sim_id {properties[property_index].id}) has updated status: {properties[property_index].status} (prior status: {OG_status})",
+                                    properties[property_index].case_id,
+                                ]
+                            )
+
+                            # self.update_negative_status_based_on_zones(properties[property_index], restricted_area, control_area)
 
                         extra_job_info = ""
 
@@ -1839,7 +1920,9 @@ class DiseaseSimulation:
                             properties[property_index].case_id = self.case_id_counter
 
                         testing_report, positive = self.job_manager.conduct_clinicalobservation(properties, property_index, self.time)
-                        self.combined_narrative.append([self.time, converted_date, "test", property_index, testing_report, facility.case_id])
+                        self.combined_narrative.append(
+                            [self.time, converted_date, "test", property_index, testing_report, properties[property_index].case_id]
+                        )
 
                         properties[property_index].custom_info["property_data_known"] = True
                         properties[property_index].data_source = "farm inspection"
@@ -1854,8 +1937,21 @@ class DiseaseSimulation:
 
                         if positive:
                             self.daily_statistics[converted_date]["num positive clinical"] += 1
+                            OG_status = properties[property_index].status
                             properties[property_index].status = "DCP"
                             properties[property_index].custom_info["animals_clinical"] = True
+
+                            self.combined_narrative.append(
+                                [
+                                    self.time,
+                                    converted_date,
+                                    "status_update",
+                                    properties[property_index].id,
+                                    f"{properties[property_index].type} (sim_id {properties[property_index].id}) has updated status: {properties[property_index].status} (prior status: {OG_status})",
+                                    properties[property_index].case_id,
+                                ]
+                            )
+
                         else:
                             properties[property_index].custom_info["animals_clinical"] = False
 
@@ -1925,11 +2021,23 @@ class DiseaseSimulation:
 
                                     chickens_left_to_cull_today = 0
 
-                        if facility.get_num_chickens() == 0:
-                            facility.infection_status = 0
-
                         premise_report = f"DAY {converted_date} - {facility.type} (sim_id {facility.id}), case_id {facility.case_id} {facility.status}, IP {facility.ip}) at(x,y)=({round(facility.x,2)}, {round(facility.y,2)}), {facility.location}: \nA total of {newly_culled_animals} animal(s) have been culled and {num_eggs} egg(s) destroyed."
                         self.combined_narrative.append([self.time, converted_date, "cull", property_index, premise_report, facility.case_id])
+
+                        if facility.get_num_chickens() == 0:
+                            facility.infection_status = 0
+                            OG_status = facility.status
+                            facility.status = "RP"
+                            self.combined_narrative.append(
+                                [
+                                    self.time,
+                                    converted_date,
+                                    "status_update",
+                                    properties[property_index].id,
+                                    f"{properties[property_index].type} (sim_id {properties[property_index].id}) has updated status: {properties[property_index].status} (prior status: {OG_status})",
+                                    properties[property_index].case_id,
+                                ]
+                            )
 
                         self.total_culled_animals += newly_culled_animals
                         self.daily_statistics[converted_date]["culled birds"] += newly_culled_animals
@@ -1952,9 +2060,29 @@ class DiseaseSimulation:
                         for t_i in traced_property_indices:
                             if properties[t_i].status not in ["IP", "DCP", "TP", "SP", "DCPF", "RP"]:
                                 properties[t_i].status = "TP"
+                                self.combined_narrative.append(
+                                    [
+                                        self.time,
+                                        converted_date,
+                                        "status_update",
+                                        properties[t_i].id,
+                                        f"{properties[t_i].type} (sim_id {properties[t_i].id}) has updated status: {properties[t_i].status} (prior status: {OG_status})",
+                                        properties[t_i].case_id,
+                                    ]
+                                )
                             if properties[t_i].case_id == None:
                                 self.case_id_counter += 1
                                 properties[t_i].case_id = self.case_id_counter
+                                self.combined_narrative.append(
+                                    [
+                                        self.time,
+                                        converted_date,
+                                        "status_update",
+                                        property_index,
+                                        f"{properties[t_i].type} (sim_id {properties[t_i].id}) has been assigned case id {properties[t_i].case_id} {properties[t_i].status}",
+                                        properties[t_i].case_id,
+                                    ]
+                                )
                             if properties[t_i].data_source == "":
                                 properties[t_i].data_source = "tracing"  # for e.g. backyard premises
 
