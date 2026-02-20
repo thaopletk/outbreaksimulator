@@ -550,7 +550,7 @@ class DiseaseSimulation:
         # find properties with infected (clinical infected) animals within reportingregion_x, reportingregion_y
         list_of_potential_reporting_properties = []
         for i, property_i in enumerate(properties):
-            if property_i.clinical_date != "NA":
+            if property_i.clinical_date != "NA" and property_i.type != "backyard":
                 x, y = property_i.coordinates
                 if x >= reportingregion_x[0] and x <= reportingregion_x[1] and y >= reportingregion_y[0] and y <= reportingregion_y[1]:
                     list_of_potential_reporting_properties.append(i)

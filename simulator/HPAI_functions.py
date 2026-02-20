@@ -499,7 +499,7 @@ def animal_movement(
                             num_eggs_to_move,
                             facility.type,
                             new_facility.type,
-                            f"DAY {date} - moved {num_eggs_to_move} egg(s) from {facility.type} ID {facility.id} ({facility.state}, {facility.region}) to {new_facility.type} ID {new_facility.id} ({new_facility.state}, {new_facility.region})",
+                            f"DAY {date} - moved {num_eggs_to_move} egg(s) from {facility.type} (sim_id {facility.id}) ({facility.region}, {facility.state}) to {new_facility.type} (sim_id {new_facility.id}) ({new_facility.region}, {new_facility.state})",
                         ]
 
                         if len(row) != len(movement_record_header):
@@ -571,7 +571,7 @@ def animal_movement(
                                     num_eggs_to_move,
                                     facility.type,
                                     new_facility.type,
-                                    f"DAY {date} - moved {eggs_moved_into_sheds} egg(s) from {facility.type} ID {facility.id} ({facility.state}, {facility.region}) to {new_facility.type} ID {new_facility.id} ({new_facility.state}, {new_facility.region})",
+                                    f"DAY {date} - moved {eggs_moved_into_sheds} egg(s) from {facility.type} (sim_id {facility.id}) ({facility.region},{facility.state}) to {new_facility.type} (sim_id {new_facility.id}) ({new_facility.region},{new_facility.state})",
                                 ]
 
                                 if len(row) != len(movement_record_header):
@@ -589,7 +589,7 @@ def animal_movement(
 
                 shed_info["chickens"] = []  # removing them from existence
             if total_chickens_being_slaughtered > 0 and controlzone != None and facility.polygon.intersects(controlzone):
-                print(f"note that abbatoir ID {facility.id} is in the control zone (just a note, no impact on slaughtering)")
+                print(f"note that abbatoir (sim_{facility.id}) is in the control zone (just a note, no impact on slaughtering)")
 
             if total_chickens_being_slaughtered > 0:
                 # create the movement record
@@ -602,7 +602,7 @@ def animal_movement(
                     total_chickens_being_slaughtered,
                     facility.type,
                     "chicken meat distributor",
-                    f"DAY {date} - moved {total_chickens_being_slaughtered} chickens from {facility.type} ID {facility.id} ({facility.state}, {facility.region}) to chicken meat distributor",
+                    f"DAY {date} - moved {total_chickens_being_slaughtered} chickens from {facility.type} (sim_id {facility.id}) ({facility.region}, {facility.state}) to chicken meat distributor",
                 ]
 
                 if len(row) != len(movement_record_header):
@@ -616,7 +616,9 @@ def animal_movement(
             facility.eggs = 0  # reset to zero
             if total_eggs_being_moved > 0:
                 if controlzone != None and facility.polygon.intersects(controlzone):
-                    print(f"note that egg processor ID {facility.id} is in the control zone (just a note, no impact on processing/distribution)")
+                    print(
+                        f"note that egg processor (sim_id {facility.id}) is in the control zone (just a note, no impact on processing/distribution)"
+                    )
 
                 # create the movement record
                 row = [
@@ -628,7 +630,7 @@ def animal_movement(
                     total_eggs_being_moved,
                     facility.type,
                     "egg distributor",
-                    f"DAY {date} - moved {total_eggs_being_moved} egg(s) from {facility.type} ID {facility.id} ({facility.state}, {facility.region}) to egg distributor",
+                    f"DAY {date} - moved {total_eggs_being_moved} egg(s) from {facility.type} (sim_id {facility.id}) ({facility.region},{facility.state}) to egg distributor",
                 ]
 
                 if len(row) != len(movement_record_header):
