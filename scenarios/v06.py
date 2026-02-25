@@ -191,21 +191,101 @@ if not os.path.exists(os.path.join(folder_path_main, f"map_underlying0{suffix}_n
 #         properties, xlims, ylims, folder_path=folder_path_main, file_name=f"animal_density{suffix}.png"
 #     )
 
+
 ###################################################
-# ---- Seed the first infection ------------------#
+# ---- "Burn in" movement -------------------------#
 ###################################################
 
 time = 0
+
+random.seed(5)
+np.random.seed(5)
+minimum_spread_time = 7
+target_infected_properties = 0
+
+unique_output = f"0_burn_in_movement"
+folder_path_burn_in_movement = os.path.join(folder_path_main, unique_output)
+if not os.path.exists(folder_path_burn_in_movement):
+    os.makedirs(folder_path_burn_in_movement)
+
+initial_movement_properties_filename = os.path.join(folder_path_burn_in_movement, "properties_" + unique_output)
+initial_movement_diseaseoutbreak_filename = os.path.join(folder_path_burn_in_movement, "outbreakobject_" + unique_output)
+
+
+# parameters
+with open(os.path.join(folder_path_main, "disease_parameters.json"), "r") as file:
+    disease_parameters = json.load(file)
+with open(os.path.join(folder_path_main, f"spatial_only_parameters.json"), "r") as file:
+    spatial_only_parameters = json.load(file)
+with open(os.path.join(folder_path_main, "job_parameters.json"), "r") as file:
+    job_parameters = json.load(file)
+with open(os.path.join(folder_path_main, "scenario_parameters.json"), "r") as file:
+    scenario_parameters = json.load(file)
+
+
+spatial_only_parameters["n"] = len(properties)
+
+if not os.path.exists(initial_movement_properties_filename) or not os.path.exists(initial_movement_diseaseoutbreak_filename):
+
+    # initiate various things that start from empty:
+    diseaseoutbreak = disease_simulation.DiseaseSimulation(
+        time=time,
+        movement_records=HPAI_functions.create_movement_records_df(),
+        disease_parameters=disease_parameters,
+        spatial_only_parameters=spatial_only_parameters,
+        job_parameters=job_parameters,
+        scenario_parameters=scenario_parameters,
+    )
+
+    diseaseoutbreak.set_plotting_parameters(
+        xlims=xlims,
+        ylims=ylims,
+        plotting=True,
+        folder_path=folder_path_burn_in_movement,
+        unique_output=unique_output,
+    )
+
+    # print(diseaseoutbreak.job_manager.jobs_queue)
+
+    properties, movement_records, time = diseaseoutbreak.simulate_outbreak_spread_only(
+        properties=properties,
+        stop_time=minimum_spread_time,
+        reporting_region_check=[xrange, yrange],
+        min_infected_premises=target_infected_properties,
+        outbreak_sim="HPAI",
+        max_spread_time=minimum_spread_time,
+    )
+
+else:
+    with open(initial_movement_properties_filename, "rb") as file:
+        properties = pickle.load(file)
+    with open(initial_movement_diseaseoutbreak_filename, "rb") as file:
+        diseaseoutbreak = pickle.load(file)
+
+HPAI_functions.save_approx_known_data(properties, folder_path_burn_in_movement, unique_output)
+
+download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
+
+if not os.path.exists(download_folder_path):
+    os.makedirs(download_folder_path)
+
+# Loop through the files in the source directory and copy just the png or csv files
+for file in os.listdir(folder_path_burn_in_movement):
+    if file.endswith(".png") or file.endswith(".csv"):
+        source_path = os.path.join(folder_path_burn_in_movement, file)
+        destination_path = os.path.join(download_folder_path, file)
+        shutil.copy(source_path, destination_path)
+
+
+###################################################
+# ---- Seed the first infection ------------------#
+###################################################
 
 folder_path_seed = os.path.join(folder_path_main, "01_seed")
 if not os.path.exists(folder_path_seed):
     os.makedirs(folder_path_seed)
 
-# parameters
-with open(os.path.join(folder_path_main, "disease_parameters.json"), "r") as file:
-    disease_parameters = json.load(file)
-
-properties_seeded_filename = os.path.join(folder_path_seed, f"properties_0{suffix}")
+properties_seeded_filename = os.path.join(folder_path_seed, f"properties_seeded{suffix}")
 
 seedlocationx = xrange
 seedlocationy = yrange
@@ -219,7 +299,7 @@ if not os.path.exists(properties_seeded_filename):
         seedlocationx,
         seedlocationy,
         properties,
-        time,
+        diseaseoutbreak.time,
         xlims,
         ylims,
         folder_path_seed,
@@ -255,28 +335,9 @@ if not os.path.exists(folder_path_undetected_spread):
 undetected_spread_properties_filename = os.path.join(folder_path_undetected_spread, "properties_" + unique_output)
 undetected_spread_diseaseoutbreak_filename = os.path.join(folder_path_undetected_spread, "outbreakobject_" + unique_output)
 
-
-with open(os.path.join(folder_path_main, f"spatial_only_parameters.json"), "r") as file:
-    spatial_only_parameters = json.load(file)
-with open(os.path.join(folder_path_main, "job_parameters.json"), "r") as file:
-    job_parameters = json.load(file)
-with open(os.path.join(folder_path_main, "scenario_parameters.json"), "r") as file:
-    scenario_parameters = json.load(file)
-
-
 spatial_only_parameters["n"] = len(properties)
 
 if not os.path.exists(undetected_spread_properties_filename) or not os.path.exists(undetected_spread_diseaseoutbreak_filename):
-
-    # initiate various things that start from empty:
-    diseaseoutbreak = disease_simulation.DiseaseSimulation(
-        time=time,
-        movement_records=HPAI_functions.create_movement_records_df(),
-        disease_parameters=disease_parameters,
-        spatial_only_parameters=spatial_only_parameters,
-        job_parameters=job_parameters,
-        scenario_parameters=scenario_parameters,
-    )
 
     diseaseoutbreak.set_plotting_parameters(
         xlims=xlims,
@@ -290,15 +351,12 @@ if not os.path.exists(undetected_spread_properties_filename) or not os.path.exis
 
     properties, movement_records, time = diseaseoutbreak.simulate_outbreak_spread_only(
         properties=properties,
-        time=time,
         stop_time=minimum_spread_time,
         reporting_region_check=[reportingregion_x, reportingregion_y],
         min_infected_premises=target_infected_properties,
         outbreak_sim="HPAI",
         max_spread_time=30,
     )
-
-    first_detection_day = time + 1
 
     # and then resave the end state
     with open(undetected_spread_properties_filename, "wb") as file:
