@@ -319,7 +319,7 @@ else:
 
 random.seed(5)
 np.random.seed(5)
-minimum_spread_time = 7
+minimum_spread_time = 7 + 7
 target_infected_properties = 4
 
 # area for first report - anywhere for now
