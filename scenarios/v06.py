@@ -50,7 +50,7 @@ if not os.path.exists(folder_path_main):
     os.makedirs(folder_path_main)
 
 suffix = ""
-testing = True  # TODO: adjust this if running the true simulation / vs testing sims
+testing = False  # TODO: adjust this if running the true simulation / vs testing sims
 if testing:
     suffix = "_test"
 
