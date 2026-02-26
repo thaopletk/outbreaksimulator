@@ -927,16 +927,17 @@ class Premises(Property):
                 for shed_i, shed_info in self.sheds.items():
                     for row in shed_info["chickens"]:
                         total_number_of_chickens += row["n"]
-                        for chicken in row["objs"]:
-                            if chicken.infection_status == "exposed":
-                                number_infected += 1
-                            elif chicken.infection_status == "infectious":
-                                number_infected += 1
-                                number_infectious += 1
+                        if "objs" in row:
+                            for chicken in row["objs"]:
+                                if chicken.infection_status == "exposed":
+                                    number_infected += 1
+                                elif chicken.infection_status == "infectious":
+                                    number_infected += 1
+                                    number_infectious += 1
 
-                            # check how many animals are showing clinical symptoms (reporting)
-                            if chicken.clinical_status == "clinical":
-                                number_clinical += 1
+                                # check how many animals are showing clinical symptoms (reporting)
+                                if chicken.clinical_status == "clinical":
+                                    number_clinical += 1
 
                 self.size = total_number_of_chickens
 

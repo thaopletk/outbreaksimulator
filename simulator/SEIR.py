@@ -1,6 +1,6 @@
-""" SEIR (susceptible, exposed, infectious, recovered)
+"""SEIR (susceptible, exposed, infectious, recovered)
 
-    Adapted from FOI_calculation_fns.py in FMD_modelling
+Adapted from FOI_calculation_fns.py in FMD_modelling
 """
 
 import sys
@@ -33,8 +33,45 @@ def roundPartial(value, resolution):
 
 @functools.lru_cache(maxsize=None)
 def get_wind_direction_dict(time):
+    """Wind direction
+
+    Data downloaded from https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels?tab=download
+
+    """
     current_datetime = get_current_datetime(time)
-    if current_datetime >= datetime.datetime(year=2026, month=1, day=15):
+    if current_datetime >= datetime.datetime(year=2026, month=1, day=31):
+        dataset = "climatedatastore_wind_2026-01-31-0900.nc"
+    elif current_datetime >= datetime.datetime(year=2026, month=1, day=30):
+        dataset = "climatedatastore_wind_2026-01-28-1800.nc"
+    elif current_datetime >= datetime.datetime(year=2026, month=1, day=29):
+        dataset = "climatedatastore_wind_2026-01-29-0900.nc"
+    elif current_datetime >= datetime.datetime(year=2026, month=1, day=28):
+        dataset = "climatedatastore_wind_2026-01-28-1700.nc"
+    elif current_datetime >= datetime.datetime(year=2026, month=1, day=27):
+        dataset = "climatedatastore_wind_2026-01-22-2200.nc"
+    elif current_datetime >= datetime.datetime(year=2026, month=1, day=26):
+        dataset = "climatedatastore_wind_2026-01-26-1600.nc"
+    elif current_datetime >= datetime.datetime(year=2026, month=1, day=25):
+        dataset = "climatedatastore_wind_2026-01-25-1500.nc"
+    elif current_datetime >= datetime.datetime(year=2026, month=1, day=24):
+        dataset = "climatedatastore_wind_2026-01-24-1400.nc"
+    elif current_datetime >= datetime.datetime(year=2026, month=1, day=23):
+        dataset = "climatedatastore_wind_2026-01-23-1300.nc"
+    elif current_datetime >= datetime.datetime(year=2026, month=1, day=22):
+        dataset = "climatedatastore_wind_2026-01-22-2000.nc"
+    elif current_datetime >= datetime.datetime(year=2026, month=1, day=21):
+        dataset = "climatedatastore_wind_2026-01-21-1200.nc"
+    elif current_datetime >= datetime.datetime(year=2026, month=1, day=20):
+        dataset = "climatedatastore_wind_2026-01-20-1100.nc"
+    elif current_datetime >= datetime.datetime(year=2026, month=1, day=19):
+        dataset = "climatedatastore_wind_2026-01-19-1000.nc"
+    elif current_datetime >= datetime.datetime(year=2026, month=1, day=18):
+        dataset = "climatedatastore_wind_2026-01-18-0500.nc"
+    elif current_datetime >= datetime.datetime(year=2026, month=1, day=17):
+        dataset = "climatedatastore_wind_2026-01-17-0600.nc"
+    elif current_datetime >= datetime.datetime(year=2026, month=1, day=16):
+        dataset = "climatedatastore_wind_2026-01-16-1500.nc"
+    elif current_datetime >= datetime.datetime(year=2026, month=1, day=15):
         dataset = "climatedatastore_wind_2026-01-15-1100.nc"
     elif current_datetime >= datetime.datetime(year=2026, month=1, day=12):
         dataset = "climatedatastore_wind_2026-01-12-1600.nc"
@@ -45,9 +82,7 @@ def get_wind_direction_dict(time):
 
     ds = xr.open_dataset(os.path.join(os.path.dirname(__file__), "..", "data", "wind", dataset))
     df = ds.to_dataframe()
-    wind_direction_dict = (
-        df.groupby(["longitude", "latitude"]).apply(lambda x: x[["u10", "v10"]].to_dict(orient="records")).to_dict()
-    )
+    wind_direction_dict = df.groupby(["longitude", "latitude"]).apply(lambda x: x[["u10", "v10"]].to_dict(orient="records")).to_dict()
 
     return wind_direction_dict
 
@@ -65,9 +100,7 @@ def get_wind_direction(coordinates, time):
 
 @functools.lru_cache(maxsize=None)
 def get_ducks():
-    ducks_file = os.path.join(
-        os.path.dirname(__file__), "..", "data", "wildlife", "pabduc1_abundance_seasonal_year_round_mean_2023.tif"
-    )
+    ducks_file = os.path.join(os.path.dirname(__file__), "..", "data", "wildlife", "pabduc1_abundance_seasonal_year_round_mean_2023.tif")
     ducks_img = rasterio.open(ducks_file)
     return ducks_img, ducks_img.statistics(1).max  # around 100
 
@@ -75,18 +108,14 @@ def get_ducks():
 def vector_val_HPAI(premise_coordinates):
     ducks_img, max_val = get_ducks()
 
-    points = gpd.GeoSeries(
-        [Point(premise_coordinates[0], premise_coordinates[1])], crs=4326
-    )  # Geographic WGS 84 - degrees
+    points = gpd.GeoSeries([Point(premise_coordinates[0], premise_coordinates[1])], crs=4326)  # Geographic WGS 84 - degrees
     points = points.to_crs(8857)  # Projected WGS 84 - meters - format the tif file is in
     vector_val = ([x for x in ducks_img.sample([[points.x[0], points.y[0]]])][0][0]) / max_val * 10
 
     return vector_val
 
 
-def wind_dispersal_FOI(
-    properties, premise_index, r_wind, beta_wind, vector_mortality_rate=0.04, outbreak_sim="LSD", time=0
-):
+def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mortality_rate=0.04, outbreak_sim="LSD", time=0):
     """Adapted from FMD modelling code
 
     In order to change the definition of circle creation
@@ -176,33 +205,19 @@ def wind_dispersal_FOI(
                 vector_mortality_adjustment = 0.5  # assuming they do some just in case
         elif outbreak_sim == "HPAI":
             vector_val_neighbour = vector_val_HPAI(properties[index].coordinates)
-            vector_mortality_adjustment = (
-                1  # TODO | this basically assumes that the virus remains in the environment....
-            )
+            vector_mortality_adjustment = 1  # TODO | this basically assumes that the virus remains in the environment....
 
         # update FOI
         if isinstance(beta_wind, dict):
             animal_type_j = properties[index].animal_type
-            FOI += (
-                vector_mortality_adjustment
-                * vector_val_neighbour
-                * beta_wind[animal_type_j]
-                * C_j
-                * distance_modifier
-                * A_ijs
-                / A_js
-            )
+            FOI += vector_mortality_adjustment * vector_val_neighbour * beta_wind[animal_type_j] * C_j * distance_modifier * A_ijs / A_js
         else:
-            FOI += (
-                vector_mortality_adjustment * vector_val_neighbour * beta_wind * C_j * distance_modifier * A_ijs / A_js
-            )
+            FOI += vector_mortality_adjustment * vector_val_neighbour * beta_wind * C_j * distance_modifier * A_ijs / A_js
 
     return FOI
 
 
-def calculate_force_of_infection(
-    properties, premise_index, vax_modifier, r_wind, beta_wind, beta_animal, outbreak_sim="LSD", time=0
-):
+def calculate_force_of_infection(properties, premise_index, vax_modifier, r_wind, beta_wind, beta_animal, outbreak_sim="LSD", time=0):
     """Calculate the force of infection
     Adapted from the FOI calculations from the FMD modelling code
     Reason: due to the differing units...
@@ -212,9 +227,7 @@ def calculate_force_of_infection(
     FOI_wind = wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, outbreak_sim=outbreak_sim, time=time)
     if isinstance(beta_animal, dict):
         animal_type_i = properties[premise_index].animal_type
-        FOI_animal = FOI_calculation_fns.animal_FOI(
-            properties[premise_index], {"beta_animal": beta_animal[animal_type_i]}
-        )
+        FOI_animal = FOI_calculation_fns.animal_FOI(properties[premise_index], {"beta_animal": beta_animal[animal_type_i]})
     else:
         FOI_animal = FOI_calculation_fns.animal_FOI(properties[premise_index], {"beta_animal": beta_animal})
 
