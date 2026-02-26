@@ -582,15 +582,18 @@ def HPAI_NSW_setup_locations(
         occupied_regions[LGA].extend(property_polygons)
 
         # sort by sizes
-        property_areas, property_coordinates, property_polygons = map(
-            list, zip(*sorted(zip(property_areas, property_coordinates, property_polygons)))
-        )
+        if len(property_areas) > 1:
+            property_areas, property_coordinates, property_polygons = map(
+                list, zip(*sorted(zip(property_areas, property_coordinates, property_polygons)))
+            )
 
-        # sort the property data by sizes too
-        zipped = zip(property_data_by_LGA[LGA]["num_animals"], property_data_by_LGA[LGA]["animal_type"], property_data_by_LGA[LGA]["premises_type"])
-        property_data_by_LGA[LGA]["num_animals"], property_data_by_LGA[LGA]["animal_type"], property_data_by_LGA[LGA]["premises_type"] = map(
-            list, zip(*sorted(zipped))
-        )
+            # sort the property data by sizes too
+            zipped = zip(
+                property_data_by_LGA[LGA]["num_animals"], property_data_by_LGA[LGA]["animal_type"], property_data_by_LGA[LGA]["premises_type"]
+            )
+            property_data_by_LGA[LGA]["num_animals"], property_data_by_LGA[LGA]["animal_type"], property_data_by_LGA[LGA]["premises_type"] = map(
+                list, zip(*sorted(zipped))
+            )
 
         for i in range(len(property_data_by_LGA[LGA]["animal_type"])):
             animal_type = property_data_by_LGA[LGA]["animal_type"][i]
