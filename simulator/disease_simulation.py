@@ -1791,13 +1791,31 @@ class DiseaseSimulation:
             FOI = self.calculate_FOI_for_each_property(properties, outbreak_sim, self.time)
 
             # check if any property wants to report
+            EPS_df = property_based_zones[property_based_zones["zone_type"] == "EnhancedPassive"]
+            EPS_geo_list = []
+            for i, row in EPS_df.iterrows():
+
+                enhanced_passive_surveillance_area = management.define_control_zone_polygons(
+                    properties,
+                    [row["ID"]],
+                    row["radius_km"],
+                    convex=False,
+                )  # should be zero movement
+                EPS_geo_list.append(enhanced_passive_surveillance_area)
+            enhanced_passive_surveillance_area = unary_union(EPS_geo_list)
+
             for i, facility in enumerate(properties):
+                if facility.polygon.intersects(enhanced_passive_surveillance_area):
+                    increased_reporting_factor = 2
+                else:
+                    increased_reporting_factor = 1
+
                 if (
                     not facility.culled_status
                     and not facility.reported_status
                     and (facility.status not in ["SP", "DCP", "IP"])  # self reported status
                     and facility.prob_of_reporting_only(
-                        self.clinical_reporting_threshold, self.prob_report
+                        self.clinical_reporting_threshold, self.prob_report * increased_reporting_factor
                     )  # TODO: this is the place to add in false positives
                 ):
                     self.make_report(facility, converted_date, i)
@@ -1806,7 +1824,7 @@ class DiseaseSimulation:
             # run infection model for each property
             properties = self.run_infection_model_for_each_property(properties, FOI)
 
-            # get control zones
+            # get control zones - TODO - should move this out of the disease simulation component??? and just input in restricted area and control area directly
             RA_df = property_based_zones[property_based_zones["zone_type"] == "RA"]
             RA_geo_list = []
             for i, row in RA_df.iterrows():
@@ -1842,9 +1860,11 @@ class DiseaseSimulation:
             self.update_status_based_on_zones(properties, restricted_area, control_area, converted_date)
             contacts_for_plotting = {}
 
-            # TODO management actions
+            ################################################################################################################################
+            # MANAGEMENT ACTIONS
             print(converted_date)
             converted_date_dt = dt.strptime(converted_date, "%d/%m/%Y")
+            # Specific property actions
             for i, row in property_jobs.iterrows():
 
                 if row["date_scheduled"] == converted_date_dt:
@@ -1953,6 +1973,56 @@ class DiseaseSimulation:
                                     properties[property_index].case_id,
                                 ]
                             )
+
+                        extra_job_info = ""
+                    elif job_type == "Surveillance":
+                        testing_report, positive = management.test_property(
+                            properties, property_index, self.time, test_sensitivity=row["detection_prob"], test_type=row["specific_action"]
+                        )
+
+                        if positive:  #  and row["specific_action"] in ["Field Surveillance", "Phone Surveillance"]:
+                            properties[property_index].clinical_report_outcome = True
+
+                        if properties[property_index].case_id == None:
+                            self.case_id_counter += 1
+                            properties[property_index].case_id = self.case_id_counter
+
+                        self.combined_narrative.append(
+                            [self.time, converted_date, "surveillance", property_index, testing_report, properties[property_index].case_id]
+                        )
+
+                        properties[property_index].custom_info["property_data_known"] = True
+                        properties[property_index].data_source = row["specific_action"]
+                        properties[property_index].known_sheds = properties[property_index].num_sheds
+                        if not (properties[property_index].type in ["egg processing", "abbatoir", "backyard"]):
+                            properties[property_index].known_area = properties[property_index].area
+                            properties[property_index].known_birds = properties[property_index].get_num_chickens()
+                        if properties[property_index].type == "backyard":
+                            properties[property_index].known_birds = properties[property_index].get_num_chickens()
+
+                        properties[property_index].custom_info["last_surveillance_date"] = converted_date
+
+                        if positive:
+                            self.daily_statistics[converted_date]["num positive clinical"] += 1
+                            properties[property_index].custom_info["animals_clinical"] = True
+                            # no status change
+                        else:
+                            properties[property_index].custom_info["animals_clinical"] = False
+                            OG_status = properties[property_index].status
+                            if OG_status in ["SP", "TP"]:
+                                properties[property_index].status = "DCP"
+                                self.combined_narrative.append(
+                                    [
+                                        self.time,
+                                        converted_date,
+                                        "status_update",
+                                        properties[property_index].id,
+                                        f"{properties[property_index].type} (sim_id {properties[property_index].id}) has updated status: {properties[property_index].status} due to negative clinical signs (prior status: {OG_status})",
+                                        properties[property_index].case_id,
+                                    ]
+                                )
+                            else:
+                                print(f"OG status of a property in negative surveillance job: {OG_status}")
 
                         extra_job_info = ""
 
@@ -2102,6 +2172,87 @@ class DiseaseSimulation:
                     ]
 
             property_jobs = property_jobs.loc[property_jobs["date_scheduled"] != converted_date_dt]
+
+            ######## Zone-based actions
+            # Population-level surveillance: mortality sampling of known premises in the area
+            population_level_surveillance_df = property_based_zones[property_based_zones["zone_type"] == "PopSurveillance"]
+            for i, row in population_level_surveillance_df.iterrows():
+
+                population_level_surveillance = management.define_control_zone_polygons(
+                    properties,
+                    [row["ID"]],
+                    row["radius_km"],
+                    convex=False,
+                )  # should be zero movement
+                population_surveillance_ref = row["zone_name"]
+                total_num_infected_birds_in_zone = 0
+                total_num_birds_in_zone = 0
+                facility_indices_included = []
+                for i, facility in enumerate(properties):
+                    if (
+                        (not facility.culled_status)
+                        and (not facility.reported_status)
+                        and (facility.status not in ["SP", "IP"])
+                        and facility.data_source != ""
+                        and facility.polygon.intersects(population_level_surveillance)
+                    ):
+                        total_num_infected_birds_in_zone += facility.prop_infectious * facility.size
+                        total_num_birds_in_zone += facility.size
+                        facility_indices_included.append(i)
+
+                        # properties[i].custom_info["last_surveillance_date"] = converted_date # not sure about this
+                dead_birds_est = int(total_num_infected_birds_in_zone * 0.95)
+                est_infected_dead_birds = dead_birds_est / total_num_birds_in_zone
+                positive = False
+                if est_infected_dead_birds > 0:
+                    PCR_detection_probability = 0.9
+                    probability_of_detection = est_infected_dead_birds * PCR_detection_probability
+                    if np.random.rand() < probability_of_detection:
+                        positive = True
+
+                testing_report = f"DAY {converted_date} - Population-level Surveillance ({population_surveillance_ref}) report: "
+                if positive:
+                    testing_report += f"PCR testing of dead birds reports POSITIVE for HPAI - included sim_ids {facility_indices_included}"
+
+                    self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
+
+                    for i in facility_indices_included:
+                        if properties[i].case_id == None:
+                            self.case_id_counter += 1
+                            properties[i].case_id = self.case_id_counter
+
+                        # testing_report += f"\n {premise.type}, sim_id {property_index}, case_id {premise.case_id} {premise.status}"
+                        property_testing_report = f"DAY {converted_date} - POSITIVE detection for HPAI in population-level surveillance ({population_surveillance_ref}) PCR testing that included this property ({properties[i].type}, sim_id {i}, case_id {properties[i].case_id} {properties[i].status})"
+                        self.combined_narrative.append([self.time, converted_date, "surveillance", i, property_testing_report, properties[i].case_id])
+                        OG_status = properties[i].status
+                        if OG_status not in ["SP", "TP", "IP"]:
+                            properties[i].status = "DCP"
+                            self.combined_narrative.append(
+                                [
+                                    self.time,
+                                    converted_date,
+                                    "status_update",
+                                    properties[i].id,
+                                    f"{properties[i].type} (sim_id {properties[i].id}) has updated status: {properties[i].status} due to positive HPAI PCR in population-level surveillance testing (mortality sampling) (prior status: {OG_status})",
+                                    properties[i].case_id,
+                                ]
+                            )
+                        else:
+                            print(f"OG status of property after positive population level testing was {OG_status}")
+                else:
+                    testing_report += f"PCR testing of dead birds reports NEGATIVE for HPAI - included sim_ids {facility_indices_included}"
+                    self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
+
+                extra_job_info = f"Population-level Surveillance ({population_surveillance_ref})"
+
+                if "NA" not in self.job_manager.jobs_queue:
+                    self.job_manager.jobs_queue["NA"] = {"Surveillance": {}}
+                else:
+                    self.job_manager.jobs_queue["NA"]["Surveillance"][str(self.time)] = [
+                        "complete",
+                        converted_date,
+                        extra_job_info,
+                    ]
 
             self.contacts_for_plotting = contacts_for_plotting
 

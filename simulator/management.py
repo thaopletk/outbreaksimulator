@@ -25,7 +25,7 @@ import pandas as pd
 import random
 import shapely
 
-job_types = ["LabTesting", "ClinicalObservation", "Cull", "ContactTracing", "Vaccination"]
+job_types = ["LabTesting", "ClinicalObservation", "Cull", "ContactTracing", "Vaccination", "Surveillance"]
 
 
 # TODO should this be moved into the job manager class or into spatial functions?
