@@ -355,9 +355,10 @@ def animal_movement(
                 random.shuffle(targets_unrestricted_zones)
                 random.shuffle(targets_in_control_zones)
                 if targets_unrestricted_zones == [] and targets_in_control_zones == []:
-                    print(
-                        f"facility {facility.id} ({facility.type}) wants to move {num_chickens_to_move} chickens to {facility.allowed_movement_details['chickens']} but no suitable target!"
-                    )
+                    # print(
+                    #     f"facility {facility.id} ({facility.type}) wants to move {num_chickens_to_move} chickens to {facility.allowed_movement_details['chickens']} but no suitable target!"
+                    # )
+                    pass
                 else:
                     if in_control_zone and (random.uniform(0, 1) > movement_reduction_factor):
                         print(f"{facility.type} (sim_id {facility.id}) would like to move some chickens but is inside control zone")
@@ -475,9 +476,10 @@ def animal_movement(
                             targets_unrestricted_zones.append(property_index)
                 random.shuffle(targets_unrestricted_zones)
                 if targets_unrestricted_zones == []:
-                    print(
-                        f"facility {facility.id} ({facility.type}) wants to move {num_eggs_to_move} eggs to {facility.allowed_movement_details['eggs']} but no suitable target!"
-                    )
+                    # print(
+                    #     f"facility {facility.id} ({facility.type}) wants to move {num_eggs_to_move} eggs to {facility.allowed_movement_details['eggs']} but no suitable target!"
+                    # )
+                    pass
                 else:
                     if in_control_zone and (random.uniform(0, 1) > movement_reduction_factor):
                         print(f"{facility.type} (sim_id {facility.id}) would like to move some eggs but is in the control zone")
@@ -532,9 +534,10 @@ def animal_movement(
 
                 random.shuffle(targets_unrestricted_zones)
                 if targets_unrestricted_zones == []:
-                    print(
-                        f"facility {facility.id} ({facility.type}) wants to move {num_eggs_to_move} fertilised eggs to {facility.allowed_movement_details['eggs']} but no suitable target!"
-                    )
+                    # print(
+                    #     f"facility {facility.id} ({facility.type}) wants to move {num_eggs_to_move} fertilised eggs to {facility.allowed_movement_details['eggs']} but no suitable target!"
+                    # )
+                    pass
                 else:
                     if in_control_zone and (random.uniform(0, 1) > movement_reduction_factor):
                         print(f"{facility.type} (sim_id {facility.id}) would like to move some chickens but is in the control zone")
