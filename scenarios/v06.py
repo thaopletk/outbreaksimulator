@@ -290,8 +290,8 @@ properties_seeded_filename = os.path.join(folder_path_seed, f"properties_seeded{
 seedlocationx = xrange
 seedlocationy = yrange
 
-random.seed(52)
-np.random.seed(23)
+random.seed(3)
+np.random.seed(3)
 if not os.path.exists(properties_seeded_filename):
     # seed property
     unique_output = "day0"
@@ -317,8 +317,8 @@ else:
 ###################################################
 # spread and then detection after a fixed number of properties infected...
 
-random.seed(5)
-np.random.seed(5)
+random.seed(6)
+np.random.seed(6)
 minimum_spread_time = 7 + 7
 target_infected_properties = 4
 
