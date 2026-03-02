@@ -44,7 +44,7 @@ def seed_HPAI_infection(
         coords = property.coordinates
         if (
             coords[0] <= xrange_bounds[1] and coords[0] >= xrange_bounds[0] and coords[1] <= yrange_bounds[1] and coords[1] >= yrange_bounds[0]
-        ) and property.type not in ["egg processing", "abbatoir", "hatchery"]:
+        ) and property.type not in ["egg processing", "abbatoir", "hatchery", "backyard", "layers free-range", "layers caged", "layers barn"]:
             viable_properties.append(i)
 
     # seed this property

@@ -1803,10 +1803,13 @@ class DiseaseSimulation:
                     convex=False,
                 )  # should be zero movement
                 EPS_geo_list.append(enhanced_passive_surveillance_area)
-                if row["zone_factor"].isnull() and enhanced_reporting_factor == 1:
+                if isinstance(row["zone_factor"], float):
+                    enhanced_reporting_factor = row["zone_factor"]
+                elif row["zone_factor"].isnull() and enhanced_reporting_factor == 1:
                     enhanced_reporting_factor = 2
                 else:
-                    enhanced_reporting_factor = row["zone_factor"]
+                    pass
+
             enhanced_passive_surveillance_area = unary_union(EPS_geo_list)
 
             for i, facility in enumerate(properties):
@@ -2203,10 +2206,10 @@ class DiseaseSimulation:
                 )  # should be zero movement
                 population_surveillance_ref = row["zone_name"]
                 PCR_detection_probability = 0.9
-                if row["zone_factor"].isnull():
-                    detection_probability_factor = PCR_detection_probability
-                else:
+                if isinstance(row["zone_factor"], float) or isinstance(row["zone_factor"], int):
                     detection_probability_factor = row["zone_factor"]
+                else:
+                    detection_probability_factor = PCR_detection_probability
 
                 total_num_infected_birds_in_zone = 0
                 total_num_birds_in_zone = 0
@@ -2225,12 +2228,14 @@ class DiseaseSimulation:
 
                         # properties[i].custom_info["last_surveillance_date"] = converted_date # not sure about this
                 dead_birds_est = int(total_num_infected_birds_in_zone * 0.95)  # high mortality
-                est_infected_dead_birds = dead_birds_est / total_num_birds_in_zone
                 positive = False
-                if est_infected_dead_birds > 0:
-                    probability_of_detection = est_infected_dead_birds * detection_probability_factor
-                    if np.random.rand() < probability_of_detection:
-                        positive = True
+                if total_num_birds_in_zone != 0:
+                    est_infected_dead_birds = dead_birds_est / total_num_birds_in_zone
+
+                    if est_infected_dead_birds > 0:
+                        probability_of_detection = est_infected_dead_birds * detection_probability_factor
+                        if np.random.rand() < probability_of_detection:
+                            positive = True
 
                 testing_report = f"DAY {converted_date} - Population-level Surveillance ({population_surveillance_ref}) report: "
                 if positive:

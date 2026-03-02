@@ -198,9 +198,9 @@ if not os.path.exists(os.path.join(folder_path_main, f"map_underlying0{suffix}_n
 
 time = 0
 
-random.seed(1)
-np.random.seed(1)
-minimum_spread_time = 7
+random.seed(10)
+np.random.seed(10)
+minimum_spread_time = 10
 target_infected_properties = 0
 
 unique_output = f"0_burn_in_movement"
@@ -319,7 +319,7 @@ else:
 
 random.seed(3)
 np.random.seed(3)
-minimum_spread_time = 7 + 7
+minimum_spread_time = minimum_spread_time + 7
 target_infected_properties = 4
 
 # area for first report - anywhere for now
@@ -461,12 +461,12 @@ for file in os.listdir(folder_path_first_report):
 # # Step 1: generate a list of scheduled management actions
 # # actions, basic: date, property_id, action-to-take-on-date, extra deets for action if necessary (e.g., if culling, the number of animals culled on that day)
 
-actions_input = os.path.join(folder_path_main, f"actions_1.xlsx")
+actions_input = os.path.join(folder_path_main, f"new_actions_1.xlsx")
 property_jobs = pd.read_excel(actions_input, sheet_name="jobs")
 property_based_zones = pd.read_excel(actions_input, sheet_name="zones")  # could consider "expanding to SAL, LGA" or something like that
 days_to_run_for = 1
 
-unique_output = f"04_actioning_actions_1"
+unique_output = f"04_new_actions_1"
 folder_path = os.path.join(folder_path_main, unique_output)
 
 if not os.path.exists(folder_path):
