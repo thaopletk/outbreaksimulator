@@ -1793,6 +1793,7 @@ class DiseaseSimulation:
             # check if any property wants to report
             EPS_df = property_based_zones[property_based_zones["zone_type"] == "EnhancedPassive"]
             EPS_geo_list = []
+            enhanced_reporting_factor = 1
             for i, row in EPS_df.iterrows():
 
                 enhanced_passive_surveillance_area = management.define_control_zone_polygons(
@@ -1802,11 +1803,15 @@ class DiseaseSimulation:
                     convex=False,
                 )  # should be zero movement
                 EPS_geo_list.append(enhanced_passive_surveillance_area)
+                if row["zone_factor"].isnull() and enhanced_reporting_factor == 1:
+                    enhanced_reporting_factor = 2
+                else:
+                    enhanced_reporting_factor = row["zone_factor"]
             enhanced_passive_surveillance_area = unary_union(EPS_geo_list)
 
             for i, facility in enumerate(properties):
                 if facility.polygon.intersects(enhanced_passive_surveillance_area):
-                    increased_reporting_factor = 2
+                    increased_reporting_factor = enhanced_reporting_factor
                 else:
                     increased_reporting_factor = 1
 
@@ -1976,8 +1981,20 @@ class DiseaseSimulation:
 
                         extra_job_info = ""
                     elif job_type == "Surveillance":
+                        if row["detection_prob"].isnull():
+                            if row["specific_action"] == "Phone Surveillance":
+                                detection_prob = 0.2
+                            elif row["specific_action"] == "Field Surveillance":
+                                detection_prob = 0.5
+                            elif row["specific_action"] == "Self-reporting Surveillance":
+                                detection_prob = 0.2
+                            else:
+                                raise ValueError(f"{row['specific_action']} not expected")
+                        else:
+                            detection_prob = row["detection_prob"]
+
                         testing_report, positive = management.test_property(
-                            properties, property_index, self.time, test_sensitivity=row["detection_prob"], test_type=row["specific_action"]
+                            properties, property_index, self.time, test_sensitivity=detection_prob, test_type=row["specific_action"]
                         )
 
                         if positive:  #  and row["specific_action"] in ["Field Surveillance", "Phone Surveillance"]:
@@ -2175,7 +2192,7 @@ class DiseaseSimulation:
 
             ######## Zone-based actions
             # Population-level surveillance: mortality sampling of known premises in the area
-            population_level_surveillance_df = property_based_zones[property_based_zones["zone_type"] == "PopSurveillance"]
+            population_level_surveillance_df = property_based_zones[property_based_zones["zone_type"] == "PopulationSurveillance"]
             for i, row in population_level_surveillance_df.iterrows():
 
                 population_level_surveillance = management.define_control_zone_polygons(
@@ -2185,6 +2202,12 @@ class DiseaseSimulation:
                     convex=False,
                 )  # should be zero movement
                 population_surveillance_ref = row["zone_name"]
+                PCR_detection_probability = 0.9
+                if row["zone_factor"].isnull():
+                    detection_probability_factor = PCR_detection_probability
+                else:
+                    detection_probability_factor = row["zone_factor"]
+
                 total_num_infected_birds_in_zone = 0
                 total_num_birds_in_zone = 0
                 facility_indices_included = []
@@ -2201,12 +2224,11 @@ class DiseaseSimulation:
                         facility_indices_included.append(i)
 
                         # properties[i].custom_info["last_surveillance_date"] = converted_date # not sure about this
-                dead_birds_est = int(total_num_infected_birds_in_zone * 0.95)
+                dead_birds_est = int(total_num_infected_birds_in_zone * 0.95)  # high mortality
                 est_infected_dead_birds = dead_birds_est / total_num_birds_in_zone
                 positive = False
                 if est_infected_dead_birds > 0:
-                    PCR_detection_probability = 0.9
-                    probability_of_detection = est_infected_dead_birds * PCR_detection_probability
+                    probability_of_detection = est_infected_dead_birds * detection_probability_factor
                     if np.random.rand() < probability_of_detection:
                         positive = True
 
