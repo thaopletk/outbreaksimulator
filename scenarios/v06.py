@@ -461,12 +461,12 @@ for file in os.listdir(folder_path_first_report):
 # # Step 1: generate a list of scheduled management actions
 # # actions, basic: date, property_id, action-to-take-on-date, extra deets for action if necessary (e.g., if culling, the number of animals culled on that day)
 
-actions_input = os.path.join(folder_path_main, f"new_actions_1.xlsx")
+actions_input = os.path.join(folder_path_main, f"actions_1.xlsx")
 property_jobs = pd.read_excel(actions_input, sheet_name="jobs")
 property_based_zones = pd.read_excel(actions_input, sheet_name="zones")  # could consider "expanding to SAL, LGA" or something like that
 days_to_run_for = 1
 
-unique_output = f"04_new_actions_1"
+unique_output = f"04_actions_1"
 folder_path = os.path.join(folder_path_main, unique_output)
 
 if not os.path.exists(folder_path):

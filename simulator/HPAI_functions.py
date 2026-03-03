@@ -315,6 +315,7 @@ def animal_movement(
 
     movement_record = []
     movement_permit_requests = []
+    number_of_movement_requests = 0
     for premise_index, facility in enumerate(properties):
         in_control_zone = False
         if controlzone != None and facility.polygon.intersects(controlzone):
@@ -363,6 +364,9 @@ def animal_movement(
                     if in_control_zone and (random.uniform(0, 1) > movement_reduction_factor):
                         print(f"{facility.type} (sim_id {facility.id}) would like to move some chickens but is inside control zone")
                         # TODO permit request:  facility id[], type [], status [], requests to move [X animals] to [target facility]
+                        if targets_unrestricted_zones != [] or targets_in_control_zones != []:  # i.e., there is a place it could have moved stuff
+                            number_of_movement_requests += 1
+
                     else:
                         # ILLEGAL MOVEMENT, aka with some probability, there will be movement without movement requests!
                         # or just normal movement with source facility not in a restricted zone
@@ -465,12 +469,15 @@ def animal_movement(
                 # get places to move to ; TODO add in restricted zone stuff if I actually implement movement permits
 
                 targets_unrestricted_zones = []
+                targets_in_control_zones = []
                 for property_index in egg_properties_to_move_to:
                     target_facility = properties[property_index]
                     if controlzone != None and target_facility.polygon.intersects(controlzone):
                         if random.uniform(0, 1) < movement_reduction_factor:
                             # ILLEGAL MOVEMENT, aka with some probability, there will be movement without movement requests!
                             targets_unrestricted_zones.append(property_index)
+                        else:
+                            targets_in_control_zones.append([property_index, empty_sheds, num_chickens_per_shed_target])
                     else:
                         if random.uniform(0, 1) < all_movement_reduction_factor:
                             targets_unrestricted_zones.append(property_index)
@@ -484,6 +491,8 @@ def animal_movement(
                     if in_control_zone and (random.uniform(0, 1) > movement_reduction_factor):
                         print(f"{facility.type} (sim_id {facility.id}) would like to move some eggs but is in the control zone")
                         # TODO permit request:  facility id[], type [], status [], requests to move [X animals] to [target facility]
+                        if targets_unrestricted_zones != [] or targets_in_control_zones != []:  # i.e., there is a place it could have moved stuff
+                            number_of_movement_requests += 1
                     else:
                         # ILLEGAL MOVEMENT, aka with some probability, there will be movement without movement requests!
                         # or just normal movement with source facility not in a restricted zone
@@ -518,6 +527,7 @@ def animal_movement(
 
                 targets_unrestricted_zones = []
                 capacity_in_unrestricted_zones = 0
+                targets_in_control_zones = []
                 for property_index in egg_properties_to_move_to:
                     target_facility = properties[property_index]
                     empty_sheds, num_chickens_per_shed_target = target_facility.accepting_chickens()
@@ -527,6 +537,8 @@ def animal_movement(
                                 # ILLEGAL MOVEMENT, aka with some probability, there will be movement without movement requests!
                                 targets_unrestricted_zones.append([property_index, empty_sheds, num_chickens_per_shed_target])
                                 capacity_in_unrestricted_zones += len(empty_sheds) * num_chickens_per_shed_target
+                            else:
+                                targets_in_control_zones.append([property_index, empty_sheds, num_chickens_per_shed_target])
                         else:
                             if random.uniform(0, 1) < all_movement_reduction_factor:
                                 targets_unrestricted_zones.append([property_index, empty_sheds, num_chickens_per_shed_target])
@@ -541,6 +553,8 @@ def animal_movement(
                 else:
                     if in_control_zone and (random.uniform(0, 1) > movement_reduction_factor):
                         print(f"{facility.type} (sim_id {facility.id}) would like to move some chickens but is in the control zone")
+                        if targets_unrestricted_zones != [] or targets_in_control_zones != []:  # i.e., there is a place it could have moved stuff
+                            number_of_movement_requests += 1
                     else:
                         # ILLEGAL MOVEMENT, aka with some probability, there will be movement without movement requests!
                         # or just normal movement with source facility not in a restricted zone
@@ -656,7 +670,7 @@ def animal_movement(
 
     movement_record = pd.DataFrame(movement_record, columns=movement_record_header)
 
-    return movement_record
+    return movement_record, number_of_movement_requests
 
 
 def rounding_entities(val):

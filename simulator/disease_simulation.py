@@ -166,13 +166,16 @@ class DiseaseSimulation:
         DCPs_positive_clinical_test_pending = 0
         DCPs_negative_clinical_test_pending = 0
         for property_index in self.job_manager.jobs_queue.keys():
-            if properties[property_index].status == "DCP":
-                for day, status in self.job_manager.jobs_queue[property_index]["LabTesting"].items():
-                    if status == "in progress":
-                        if properties[property_index].clinical_report_outcome:
-                            DCPs_positive_clinical_test_pending += 1
-                        else:
-                            DCPs_negative_clinical_test_pending += 1
+            if property_index == "NA":  # zone based action
+                pass
+            else:
+                if properties[property_index].status == "DCP":
+                    for day, status in self.job_manager.jobs_queue[property_index]["LabTesting"].items():
+                        if status == "in progress":
+                            if properties[property_index].clinical_report_outcome:
+                                DCPs_positive_clinical_test_pending += 1
+                            else:
+                                DCPs_negative_clinical_test_pending += 1
 
         to_save_narrative = [x[:] for x in self.combined_narrative]
         # to_save_narrative.append(
@@ -185,6 +188,8 @@ class DiseaseSimulation:
         #     ]  # TODO: update this for chickens
         # )
         narrative_df = pd.DataFrame(to_save_narrative, columns=["day", "date", "type", "sim_id", "report", "case_id"])
+
+        narrative_df = narrative_df[["day", "date", "type", "sim_id", "case_id", "report"]]
 
         narrative_df.to_csv(os.path.join(self.folder_path, "combined_narrative.csv"), index=False)
 
@@ -500,7 +505,9 @@ class DiseaseSimulation:
                     movement_record = animal_movement.animal_movement(properties, day=self.time, controlzone=controlzone_movement_restrictions)
                     self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
             elif outbreak_sim == "HPAI":
-                movement_record = HPAI_functions.animal_movement(properties, day=self.time, controlzone=controlzone_movement_restrictions)
+                movement_record, number_of_movement_requests = HPAI_functions.animal_movement(
+                    properties, day=self.time, controlzone=controlzone_movement_restrictions
+                )
                 self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
 
             # update counts of infected/clinical/etc animals on each farm
@@ -1791,7 +1798,7 @@ class DiseaseSimulation:
             FOI = self.calculate_FOI_for_each_property(properties, outbreak_sim, self.time)
 
             # check if any property wants to report
-            EPS_df = property_based_zones[property_based_zones["zone_type"] == "EnhancedPassive"]
+            EPS_df = property_based_zones[property_based_zones["zone_type"] == "Enhanced Passive Surveillence"]
             EPS_geo_list = []
             enhanced_reporting_factor = 1
             for i, row in EPS_df.iterrows():
@@ -2148,17 +2155,19 @@ class DiseaseSimulation:
 
                         for t_i in traced_property_indices:
                             if properties[t_i].status not in ["IP", "DCP", "TP", "SP", "DCPF", "RP"]:
-                                properties[t_i].status = "TP"
-                                self.combined_narrative.append(
-                                    [
-                                        self.time,
-                                        converted_date,
-                                        "status_update",
-                                        properties[t_i].id,
-                                        f"{properties[t_i].type} (sim_id {properties[t_i].id}) has updated status: {properties[t_i].status} (prior status: {OG_status})",
-                                        properties[t_i].case_id,
-                                    ]
-                                )
+                                OG_status = properties[t_i].status
+                                if OG_status != "TP":
+                                    properties[t_i].status = "TP"
+                                    self.combined_narrative.append(
+                                        [
+                                            self.time,
+                                            converted_date,
+                                            "status_update",
+                                            properties[t_i].id,
+                                            f"{properties[t_i].type} (sim_id {properties[t_i].id}) has updated status: {properties[t_i].status} (prior status: {OG_status})",
+                                            properties[t_i].case_id,
+                                        ]
+                                    )
                             if properties[t_i].case_id == None:
                                 self.case_id_counter += 1
                                 properties[t_i].case_id = self.case_id_counter
@@ -2195,98 +2204,238 @@ class DiseaseSimulation:
 
             ######## Zone-based actions
             # Population-level surveillance: mortality sampling of known premises in the area
-            population_level_surveillance_df = property_based_zones[property_based_zones["zone_type"] == "PopulationSurveillance"]
+            population_level_surveillance_df = property_based_zones[property_based_zones["action"] == "Population-level Surveillance"]
             for i, row in population_level_surveillance_df.iterrows():
 
-                population_level_surveillance = management.define_control_zone_polygons(
-                    properties,
-                    [row["ID"]],
-                    row["radius_km"],
-                    convex=False,
-                )  # should be zero movement
-                population_surveillance_ref = row["zone_name"]
-                PCR_detection_probability = 0.9
-                if isinstance(row["zone_factor"], float) or isinstance(row["zone_factor"], int):
-                    detection_probability_factor = row["zone_factor"]
-                else:
-                    detection_probability_factor = PCR_detection_probability
+                if row["date_scheduled"] == converted_date_dt:
 
-                total_num_infected_birds_in_zone = 0
-                total_num_birds_in_zone = 0
-                facility_indices_included = []
-                for i, facility in enumerate(properties):
-                    if (
-                        (not facility.culled_status)
-                        and (not facility.reported_status)
-                        and (facility.status not in ["SP", "IP"])
-                        and facility.data_source != ""
-                        and facility.polygon.intersects(population_level_surveillance)
-                    ):
-                        total_num_infected_birds_in_zone += facility.prop_infectious * facility.size
-                        total_num_birds_in_zone += facility.size
-                        facility_indices_included.append(i)
+                    population_level_surveillance = management.define_control_zone_polygons(
+                        properties,
+                        [row["ID"]],
+                        row["radius_km"],
+                        convex=False,
+                    )  # should be zero movement
+                    population_surveillance_ref = row["zone_name"]
+                    PCR_detection_probability = 0.9
+                    if isinstance(row["zone_parameter"], float) or isinstance(row["zone_parameter"], int):
+                        detection_probability_factor = row["zone_parameter"]
+                    else:
+                        detection_probability_factor = PCR_detection_probability
 
-                        # properties[i].custom_info["last_surveillance_date"] = converted_date # not sure about this
-                dead_birds_est = int(total_num_infected_birds_in_zone * 0.95)  # high mortality
-                positive = False
-                if total_num_birds_in_zone != 0:
-                    est_infected_dead_birds = dead_birds_est / total_num_birds_in_zone
+                    total_num_infected_birds_in_zone = 0
+                    total_num_birds_in_zone = 0
+                    facility_indices_included = []
+                    for i, facility in enumerate(properties):
+                        if (
+                            (not facility.culled_status)
+                            and (not facility.reported_status)
+                            and (facility.status not in ["SP", "IP"])
+                            and facility.data_source != ""
+                            and facility.polygon.intersects(population_level_surveillance)
+                        ):
+                            total_num_infected_birds_in_zone += facility.prop_infectious * facility.size
+                            total_num_birds_in_zone += facility.size
+                            facility_indices_included.append(i)
 
-                    if est_infected_dead_birds > 0:
-                        probability_of_detection = est_infected_dead_birds * detection_probability_factor
-                        if np.random.rand() < probability_of_detection:
-                            positive = True
+                            # properties[i].custom_info["last_surveillance_date"] = converted_date # not sure about this
+                    dead_birds_est = int(total_num_infected_birds_in_zone * 0.95)  # high mortality
+                    positive = False
+                    if total_num_birds_in_zone != 0:
+                        est_infected_dead_birds = dead_birds_est / total_num_birds_in_zone
 
-                testing_report = f"DAY {converted_date} - Population-level Surveillance ({population_surveillance_ref}) report: "
-                if positive:
-                    testing_report += f"PCR testing of dead birds reports POSITIVE for HPAI - included sim_ids {facility_indices_included}"
+                        if est_infected_dead_birds > 0:
+                            probability_of_detection = est_infected_dead_birds * detection_probability_factor
+                            if np.random.rand() < probability_of_detection:
+                                positive = True
 
-                    self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
+                    testing_report = f"DAY {converted_date} - Population-level Surveillance ({population_surveillance_ref}) report: "
+                    if positive:
+                        testing_report += f"PCR testing of dead birds reports POSITIVE for HPAI - included sim_ids {facility_indices_included}"
 
-                    for i in facility_indices_included:
-                        if properties[i].case_id == None:
-                            self.case_id_counter += 1
-                            properties[i].case_id = self.case_id_counter
+                        self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
 
-                        # testing_report += f"\n {premise.type}, sim_id {property_index}, case_id {premise.case_id} {premise.status}"
-                        property_testing_report = f"DAY {converted_date} - POSITIVE detection for HPAI in population-level surveillance ({population_surveillance_ref}) PCR testing that included this property ({properties[i].type}, sim_id {i}, case_id {properties[i].case_id} {properties[i].status})"
-                        self.combined_narrative.append([self.time, converted_date, "surveillance", i, property_testing_report, properties[i].case_id])
-                        OG_status = properties[i].status
-                        if OG_status not in ["SP", "TP", "IP"]:
-                            properties[i].status = "DCP"
+                        for i in facility_indices_included:
+                            if properties[i].case_id == None:
+                                self.case_id_counter += 1
+                                properties[i].case_id = self.case_id_counter
+
+                            # testing_report += f"\n {premise.type}, sim_id {property_index}, case_id {premise.case_id} {premise.status}"
+                            property_testing_report = f"DAY {converted_date} - POSITIVE detection for HPAI in population-level surveillance ({population_surveillance_ref}) PCR testing that included this property ({properties[i].type}, sim_id {i}, case_id {properties[i].case_id} {properties[i].status})"
                             self.combined_narrative.append(
-                                [
-                                    self.time,
-                                    converted_date,
-                                    "status_update",
-                                    properties[i].id,
-                                    f"{properties[i].type} (sim_id {properties[i].id}) has updated status: {properties[i].status} due to positive HPAI PCR in population-level surveillance testing (mortality sampling) (prior status: {OG_status})",
-                                    properties[i].case_id,
-                                ]
+                                [self.time, converted_date, "surveillance", i, property_testing_report, properties[i].case_id]
                             )
-                        else:
-                            print(f"OG status of property after positive population level testing was {OG_status}")
-                else:
-                    testing_report += f"PCR testing of dead birds reports NEGATIVE for HPAI - included sim_ids {facility_indices_included}"
-                    self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
+                            OG_status = properties[i].status
+                            if OG_status not in ["SP", "TP", "IP"]:
+                                properties[i].status = "DCP"
+                                self.combined_narrative.append(
+                                    [
+                                        self.time,
+                                        converted_date,
+                                        "status_update",
+                                        properties[i].id,
+                                        f"{properties[i].type} (sim_id {properties[i].id}) has updated status: {properties[i].status} due to positive HPAI PCR in population-level surveillance testing (mortality sampling) (prior status: {OG_status})",
+                                        properties[i].case_id,
+                                    ]
+                                )
+                            else:
+                                print(f"OG status of property after positive population level testing was {OG_status}")
+                    else:
+                        testing_report += f"PCR testing of dead birds reports NEGATIVE for HPAI - included sim_ids {facility_indices_included}"
+                        self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
 
-                extra_job_info = f"Population-level Surveillance ({population_surveillance_ref})"
+                    extra_job_info = f"Population-level Surveillance ({population_surveillance_ref})"
 
-                if "NA" not in self.job_manager.jobs_queue:
-                    self.job_manager.jobs_queue["NA"] = {"Surveillance": {}}
-                else:
-                    self.job_manager.jobs_queue["NA"]["Surveillance"][str(self.time)] = [
-                        "complete",
-                        converted_date,
-                        extra_job_info,
-                    ]
+                    if "NA" not in self.job_manager.jobs_queue:
+                        self.job_manager.jobs_queue["NA"] = {"Surveillance": {}}
+                    else:
+                        self.job_manager.jobs_queue["NA"]["Surveillance"][str(self.time)] = [
+                            "complete",
+                            converted_date,
+                            extra_job_info,
+                        ]
+
+            # Wild-animal surveillance: mortality sampling of wild animals in the area
+            wild_animal_surveillance_df = property_based_zones[property_based_zones["action"] == "Wild Animal Surveillence"]
+            for i, row in wild_animal_surveillance_df.iterrows():
+
+                if row["date_scheduled"] == converted_date_dt:
+
+                    wild_animal_surveillance = management.define_control_zone_polygons(
+                        properties,
+                        [row["ID"]],
+                        row["radius_km"],
+                        convex=False,
+                    )
+                    surveillance_ref = row["zone_name"]
+
+                    # TODO - implement this "properly" with an FOI
+                    # PCR_detection_probability = 0.9
+                    if isinstance(row["zone_parameter"], float) or isinstance(row["zone_parameter"], int):
+                        detection_probability_factor = row["zone_parameter"]
+                    else:
+                        detection_probability_factor = 0.2  # PCR_detection_probability
+
+                    total_num_infected_birds_in_zone = 0
+                    total_num_birds_in_zone = 0
+                    facility_indices_included = []
+                    for i, facility in enumerate(properties):
+                        if (
+                            (not facility.culled_status)
+                            and (not facility.reported_status)
+                            and (facility.status not in ["SP", "IP"])
+                            and facility.data_source != ""
+                            and facility.polygon.intersects(wild_animal_surveillance)
+                        ):
+                            total_num_infected_birds_in_zone += facility.prop_infectious * facility.size
+                            total_num_birds_in_zone += facility.size
+                            facility_indices_included.append(i)
+
+                            # properties[i].custom_info["last_surveillance_date"] = converted_date # not sure about this
+                    dead_birds_est = int(total_num_infected_birds_in_zone * 0.95)  # high mortality
+                    positive = False
+                    if total_num_birds_in_zone != 0:
+                        est_infected_dead_birds = dead_birds_est / total_num_birds_in_zone
+
+                        if est_infected_dead_birds > 0:
+                            probability_of_detection = est_infected_dead_birds * detection_probability_factor
+                            if np.random.rand() < probability_of_detection:
+                                positive = True
+
+                    testing_report = f"DAY {converted_date} - Wild and free-roaming animal surveillance ({surveillance_ref}) report: "
+                    if positive:
+                        testing_report += f"PCR testing of dead/sick wild birds reports POSITIVE for HPAI"
+
+                        self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
+
+                    else:
+                        testing_report += f"PCR testing of dead/sick birds reports NEGATIVE for HPAI"
+                        self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
+
+                    extra_job_info = f"Wild and free-roaming animal surveillance ({surveillance_ref})"
+
+                    if "NA" not in self.job_manager.jobs_queue:
+                        self.job_manager.jobs_queue["NA"] = {"Surveillance": {}}
+                    else:
+                        self.job_manager.jobs_queue["NA"]["Surveillance"][str(self.time)] = [
+                            "complete",
+                            converted_date,
+                            extra_job_info,
+                        ]
+
+            # Environmental surveillance and eDNA
+            environmental_surveillance_df = property_based_zones[property_based_zones["action"] == "Environmental Surveillence"]
+            for i, row in environmental_surveillance_df.iterrows():
+
+                if row["date_scheduled"] == converted_date_dt:
+
+                    surveillance_zone = management.define_control_zone_polygons(
+                        properties,
+                        [row["ID"]],
+                        row["radius_km"],
+                        convex=False,
+                    )
+                    surveillance_ref = row["zone_name"]
+
+                    # TODO - implement this "properly" with an FOI
+                    # PCR_detection_probability = 0.9
+                    if isinstance(row["zone_parameter"], float) or isinstance(row["zone_parameter"], int):
+                        detection_probability_factor = row["zone_parameter"]
+                    else:
+                        detection_probability_factor = 0.1  # PCR_detection_probability
+
+                    total_num_infected_birds_in_zone = 0
+                    total_num_birds_in_zone = 0
+                    facility_indices_included = []
+                    for i, facility in enumerate(properties):
+                        if (
+                            (not facility.culled_status)
+                            and (not facility.reported_status)
+                            and (facility.status not in ["SP", "IP"])
+                            and facility.data_source != ""
+                            and facility.polygon.intersects(surveillance_zone)
+                        ):
+                            total_num_infected_birds_in_zone += facility.prop_infectious * facility.size
+                            total_num_birds_in_zone += facility.size
+                            facility_indices_included.append(i)
+
+                            # properties[i].custom_info["last_surveillance_date"] = converted_date # not sure about this
+                    dead_birds_est = int(total_num_infected_birds_in_zone * 0.95)  # high mortality
+                    positive = False
+                    if total_num_birds_in_zone != 0:
+                        est_infected_dead_birds = dead_birds_est / total_num_birds_in_zone
+
+                        if est_infected_dead_birds > 0:
+                            probability_of_detection = est_infected_dead_birds * detection_probability_factor
+                            if np.random.rand() < probability_of_detection:
+                                positive = True
+
+                    testing_report = f"DAY {converted_date} - Environmental surveillance and eDNA ({surveillance_ref}) report: "
+                    if positive:
+                        testing_report += f"Environmental surveillance and eDNA reports POSITIVE for HPAI"
+
+                        self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
+
+                    else:
+                        testing_report += f"Environmental surveillance and eDNA reports NEGATIVE for HPAI"
+                        self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
+
+                    extra_job_info = f"Environmental surveillance and eDNA ({surveillance_ref})"
+
+                    if "NA" not in self.job_manager.jobs_queue:
+                        self.job_manager.jobs_queue["NA"] = {"Surveillance": {}}
+                    else:
+                        self.job_manager.jobs_queue["NA"]["Surveillance"][str(self.time)] = [
+                            "complete",
+                            converted_date,
+                            extra_job_info,
+                        ]
 
             self.contacts_for_plotting = contacts_for_plotting
 
             controlzone_movement_restrictions = restricted_area
             movement_reduction_factor = 0.2  # 80% reduction / 20% chance of movement
 
-            movement_record = HPAI_functions.animal_movement(
+            movement_record, number_of_movement_requests = HPAI_functions.animal_movement(
                 properties,
                 day=self.time,
                 controlzone=controlzone_movement_restrictions,  # TODO : to separate restricted zones and control zones
@@ -2294,6 +2443,16 @@ class DiseaseSimulation:
                 all_movement_reduction_factor=0.8,  # reducing probability of overall movement
             )
             self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
+            self.combined_narrative.append(
+                [
+                    self.time,
+                    converted_date,
+                    "movement",
+                    "",
+                    f"There are {number_of_movement_requests} movement permit requests from premises within the control area",
+                    "",
+                ]
+            )
 
             self.controlzone["movement restrictions"] = controlzone_movement_restrictions  # this is for plotting purposes later
 
