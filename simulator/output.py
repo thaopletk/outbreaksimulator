@@ -917,6 +917,15 @@ def plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path, sa
 
     ax.set_xticks(x_points[::day_spacing])
     ax.set_xticklabels([x[:-5] for x in dates_list[::day_spacing]], fontsize=14)  # remove the "/2024"
+
+    # code grabbed from plot_column_figures.py by martin
+    max_y_ticks = 5
+    y_scale = max(daily_notifs)
+    if y_scale <= 5:
+        y_spacing = 1
+    else:
+        y_spacing = int(5 * np.ceil((y_scale / max_y_ticks) / 5))
+    ax.set_yticks(np.arange(0, max(ax.get_yticks()) + y_spacing, step=y_spacing))
     ax.set_yticklabels(ax.get_yticklabels(), fontsize=14)
 
     file_name = os.path.join(folder_path, f"{save_name}.png")
@@ -952,6 +961,15 @@ def plot_total_notifs_over_time(dates_list, daily_notifs, folder_path, save_name
 
     ax.set_xticks(x_points[::day_spacing])
     ax.set_xticklabels([x[:-5] for x in dates_list[::day_spacing]], fontsize=14)  # remove the "/2024"
+
+    # code grabbed from plot_column_figures.py by martin
+    max_y_ticks = 5
+    y_scale = max(daily_notifs)
+    if y_scale <= 5:
+        y_spacing = 1
+    else:
+        y_spacing = int(5 * np.ceil((y_scale / max_y_ticks) / 5))
+    ax.set_yticks(np.arange(0, max(ax.get_yticks()) + y_spacing, step=y_spacing))
     ax.set_yticklabels(ax.get_yticklabels(), fontsize=14)
 
     file_name = os.path.join(folder_path, f"{save_name}.png")
@@ -1110,7 +1128,7 @@ def plot_infection_pressure(
 
 
 def plot_HPAI_outbreak_apparent(properties, restricted_area, control_area, enhanced_passive_surveillance, xlims, ylims, folder_path, time):
-    fig, ax = plt.subplots(1, 1, figsize=(20, 15))  # ,figsize=(10,12)
+    fig, ax = plt.subplots(1, 1, figsize=(30, 25))  # ,figsize=(10,12)
 
     control_zones = {"restricted area": restricted_area, "control area": control_area, "Enhanced Passive Surveillance": enhanced_passive_surveillance}
 
@@ -1120,19 +1138,33 @@ def plot_HPAI_outbreak_apparent(properties, restricted_area, control_area, enhan
         "Enhanced Passive Surveillance": {"face": "#7fe8f0", "edge": "#3d3d5c"},
     }
 
-    for control_type in ["additional movement restrictions", "control area", "restricted area"]:
+    for control_type in ["Enhanced Passive Surveillance", "control area", "restricted area"]:
         zone = control_zones[control_type]
 
-        for subpoly in zone.geoms:
-            plot_polygon(
-                ax,
-                subpoly,
-                facecolor=colour_dictionary[control_type]["face"],
-                edgecolor=colour_dictionary[control_type]["edge"],
-                alpha=1,
-                label=control_type,
-            )
-    for control_type in ["restricted area", "control area", "additional movement restrictions"]:
+        if zone != None:
+            try:
+
+                for subpoly in zone.geoms:
+                    plot_polygon(
+                        ax,
+                        subpoly,
+                        facecolor=colour_dictionary[control_type]["face"],
+                        edgecolor=colour_dictionary[control_type]["edge"],
+                        alpha=1,
+                        label=control_type,
+                    )
+            except:
+
+                plot_polygon(
+                    ax,
+                    zone,
+                    facecolor=colour_dictionary[control_type]["face"],
+                    edgecolor=colour_dictionary[control_type]["edge"],
+                    alpha=1,
+                    label=control_type,
+                )
+
+    for control_type in ["restricted area", "control area", "Enhanced Passive Surveillance"]:
         verts = [
             (-1, -0.5),  # left, bottom
             (-1, 0.5),  # left, top
@@ -1179,6 +1211,11 @@ def plot_HPAI_outbreak_apparent(properties, restricted_area, control_area, enhan
     geometry_NA = []
     geometry_other = []
 
+    max_x = 140
+    min_x = 154
+    min_y = -28
+    max_y = -38
+
     for index, premise in enumerate(properties):
         long, lat = premise.coordinates
         curr_farm = Point(long, lat)
@@ -1206,17 +1243,27 @@ def plot_HPAI_outbreak_apparent(properties, restricted_area, control_area, enhan
             print(f"status wasn't expected: {premise.status}")
             geometry_other.append(curr_farm)
 
+        if premise.status != "NA":
+            if long > max_x:
+                max_x = long
+            if long < min_x:
+                min_x = long
+            if lat > max_y:
+                max_y = lat
+            if lat < min_y:
+                min_y = lat
+
     for geometry, colour, marker, markerlabel, markersize, edgecolour, alpha in [
         [geometry_culled, "cornflowerblue", "P", "resolved premises", 110, "royalblue", 1],
         [geometry_IP, "black", "X", "infected premises", 110, "black", 1],
         [geometry_DCP, "#e72918", "v", "dangerous contact premises", 110, "#950000", 1],
-        [geometry_SP, "#ffa200", "o", "SP", 5, "#ff6600", 0.3],
-        [geomtry_TP, "#fffb00ef", "o", "TP", 50, "#cfa32a", 1],
-        [geometry_DCP_AN, "#d38484ee", "v", "DCP-assessed negative", 50, "#df2929", 1],
-        [geometry_ARP, "#dc68ffed", "s", "ARP", 25, "#383838", 1],
-        [geometry_POR, "#fc1e4eeb", "s", "POR", 25, "#383838", 1],
-        [geometry_UP, "#1eddf7ec", "$?$", "UP", 25, "#00A2FF", 1],
-        [geometry_NA, "#5871ffec", "o", "NA", 25, "#67A9FF", 0.5],
+        [geometry_DCP_AN, "#d38484ee", "v", "DCP-assessed negative", 100, "#df2929", 1],
+        [geometry_SP, "#ffa200", "v", "SP", 100, "#ff6600", 0.3],
+        [geomtry_TP, "#fffb00ef", "o", "TP", 70, "#cfa32a", 1],
+        [geometry_ARP, "#dc68ffed", "s", "ARP", 40, "#383838", 1],
+        [geometry_POR, "#fc1e4eeb", "s", "POR", 40, "#383838", 1],
+        [geometry_UP, "#1eddf7ec", "$?$", "UP", 50, "#00A2FF", 1],
+        [geometry_NA, "#444444eb", ".", "NA", 25, "#3D3D3D", 0.2],
         # geometry_other = []
     ]:
         geo_df = gpd.GeoDataFrame(geometry=geometry)
@@ -1266,6 +1313,12 @@ def plot_HPAI_outbreak_apparent(properties, restricted_area, control_area, enhan
     file_name_ending = f"{time}.png"
 
     file_name = os.path.join(folder_path, "nice_map_" + file_name_ending)
+    plt.savefig(file_name, bbox_inches="tight")
+
+    ax.set_xlim([min_x - 0.1, max_x + 0.1])  # making a more zoomed in version
+    ax.set_ylim([min_y - 0.05, max_y + 0.05])
+
+    file_name = os.path.join(folder_path, "nice_map_zoomed_in" + file_name_ending)
     plt.savefig(file_name, bbox_inches="tight")
 
     plt.close()
