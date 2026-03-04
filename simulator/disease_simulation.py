@@ -1764,7 +1764,9 @@ class DiseaseSimulation:
                             )
                     # else - we don't know about it, so we can't assign it any particular status!
 
-    def simulate_HPAI_outbreak_management(self, properties, property_jobs, property_based_zones, days_to_run_for, outbreak_sim="HPAI", time=None):
+    def simulate_HPAI_outbreak_management(
+        self, properties, property_jobs, zones_based_jobs, property_based_zones, days_to_run_for, outbreak_sim="HPAI", time=None
+    ):
 
         if time != None:
             self.time = time
@@ -1798,7 +1800,7 @@ class DiseaseSimulation:
             FOI = self.calculate_FOI_for_each_property(properties, outbreak_sim, self.time)
 
             # check if any property wants to report
-            EPS_df = property_based_zones[property_based_zones["zone_type"] == "Enhanced Passive Surveillence"]
+            EPS_df = property_based_zones[property_based_zones["zone_type"] == "Enhanced Passive Surveillance"]
             EPS_geo_list = []
             enhanced_reporting_factor = 1
             for i, row in EPS_df.iterrows():
@@ -1810,9 +1812,9 @@ class DiseaseSimulation:
                     convex=False,
                 )  # should be zero movement
                 EPS_geo_list.append(enhanced_passive_surveillance_area)
-                if isinstance(row["zone_factor"], float):
-                    enhanced_reporting_factor = row["zone_factor"]
-                elif row["zone_factor"].isnull() and enhanced_reporting_factor == 1:
+                if isinstance(row["zone_parameter"], float):
+                    enhanced_reporting_factor = row["zone_parameter"]
+                elif row["zone_parameter"].isnull() and enhanced_reporting_factor == 1:
                     enhanced_reporting_factor = 2
                 else:
                     pass
@@ -1991,7 +1993,9 @@ class DiseaseSimulation:
 
                         extra_job_info = ""
                     elif job_type == "Surveillance":
-                        if row["detection_prob"].isnull():
+                        if isinstance(row["detection_prob"], float):
+                            detection_prob = row["detection_prob"]
+                        else:
                             if row["specific_action"] == "Phone Surveillance":
                                 detection_prob = 0.2
                             elif row["specific_action"] == "Field Surveillance":
@@ -2000,8 +2004,6 @@ class DiseaseSimulation:
                                 detection_prob = 0.2
                             else:
                                 raise ValueError(f"{row['specific_action']} not expected")
-                        else:
-                            detection_prob = row["detection_prob"]
 
                         testing_report, positive = management.test_property(
                             properties, property_index, self.time, test_sensitivity=detection_prob, test_type=row["specific_action"]
@@ -2036,6 +2038,7 @@ class DiseaseSimulation:
                         else:
                             properties[property_index].custom_info["animals_clinical"] = False
                             OG_status = properties[property_index].status
+                            self.daily_statistics[converted_date]["surveillance tested negative"] += 1
                             if OG_status in ["SP", "TP"]:
                                 properties[property_index].status = "DCP"
                                 self.combined_narrative.append(
@@ -2052,6 +2055,7 @@ class DiseaseSimulation:
                                 print(f"OG status of a property in negative surveillance job: {OG_status}")
 
                         extra_job_info = ""
+                        job_type = row["specific_action"]
 
                     elif job_type == "Cull":
                         num_animals_to_cull = int(row["num"])
@@ -2194,6 +2198,8 @@ class DiseaseSimulation:
 
                         extra_job_info = ""
 
+                    if job_type not in self.job_manager.jobs_queue[property_index]:
+                        self.job_manager.jobs_queue[property_index][job_type] = {}
                     self.job_manager.jobs_queue[property_index][job_type][str(self.time)] = [
                         "complete",
                         converted_date,
@@ -2204,7 +2210,7 @@ class DiseaseSimulation:
 
             ######## Zone-based actions
             # Population-level surveillance: mortality sampling of known premises in the area
-            population_level_surveillance_df = property_based_zones[property_based_zones["action"] == "Population-level Surveillance"]
+            population_level_surveillance_df = zones_based_jobs[zones_based_jobs["action"] == "Population-level Surveillance"]
             for i, row in population_level_surveillance_df.iterrows():
 
                 if row["date_scheduled"] == converted_date_dt:
@@ -2286,16 +2292,18 @@ class DiseaseSimulation:
                     extra_job_info = f"Population-level Surveillance ({population_surveillance_ref})"
 
                     if "NA" not in self.job_manager.jobs_queue:
-                        self.job_manager.jobs_queue["NA"] = {"Surveillance": {}}
-                    else:
-                        self.job_manager.jobs_queue["NA"]["Surveillance"][str(self.time)] = [
-                            "complete",
-                            converted_date,
-                            extra_job_info,
-                        ]
+                        self.job_manager.jobs_queue["NA"] = {}
+                    if row["action"] not in self.job_manager.jobs_queue["NA"]:
+                        self.job_manager.jobs_queue["NA"][row["action"]] = {}
+
+                    self.job_manager.jobs_queue["NA"][row["action"]][str(self.time)] = [
+                        "complete",
+                        converted_date,
+                        extra_job_info,
+                    ]
 
             # Wild-animal surveillance: mortality sampling of wild animals in the area
-            wild_animal_surveillance_df = property_based_zones[property_based_zones["action"] == "Wild Animal Surveillence"]
+            wild_animal_surveillance_df = zones_based_jobs[zones_based_jobs["action"] == "Wild Animal Surveillance"]
             for i, row in wild_animal_surveillance_df.iterrows():
 
                 if row["date_scheduled"] == converted_date_dt:
@@ -2354,16 +2362,18 @@ class DiseaseSimulation:
                     extra_job_info = f"Wild and free-roaming animal surveillance ({surveillance_ref})"
 
                     if "NA" not in self.job_manager.jobs_queue:
-                        self.job_manager.jobs_queue["NA"] = {"Surveillance": {}}
-                    else:
-                        self.job_manager.jobs_queue["NA"]["Surveillance"][str(self.time)] = [
-                            "complete",
-                            converted_date,
-                            extra_job_info,
-                        ]
+                        self.job_manager.jobs_queue["NA"] = {}
+                    if row["action"] not in self.job_manager.jobs_queue["NA"]:
+                        self.job_manager.jobs_queue["NA"][row["action"]] = {}
+
+                    self.job_manager.jobs_queue["NA"][row["action"]][str(self.time)] = [
+                        "complete",
+                        converted_date,
+                        extra_job_info,
+                    ]
 
             # Environmental surveillance and eDNA
-            environmental_surveillance_df = property_based_zones[property_based_zones["action"] == "Environmental Surveillence"]
+            environmental_surveillance_df = zones_based_jobs[zones_based_jobs["action"] == "Environmental Surveillance"]
             for i, row in environmental_surveillance_df.iterrows():
 
                 if row["date_scheduled"] == converted_date_dt:
@@ -2422,13 +2432,15 @@ class DiseaseSimulation:
                     extra_job_info = f"Environmental surveillance and eDNA ({surveillance_ref})"
 
                     if "NA" not in self.job_manager.jobs_queue:
-                        self.job_manager.jobs_queue["NA"] = {"Surveillance": {}}
-                    else:
-                        self.job_manager.jobs_queue["NA"]["Surveillance"][str(self.time)] = [
-                            "complete",
-                            converted_date,
-                            extra_job_info,
-                        ]
+                        self.job_manager.jobs_queue["NA"] = {}
+                    if row["action"] not in self.job_manager.jobs_queue["NA"]:
+                        self.job_manager.jobs_queue["NA"][row["action"]] = {}
+
+                    self.job_manager.jobs_queue["NA"][row["action"]][str(self.time)] = [
+                        "complete",
+                        converted_date,
+                        extra_job_info,
+                    ]
 
             self.contacts_for_plotting = contacts_for_plotting
 

@@ -747,34 +747,50 @@ class JobManager:
     def calculate_resources_used(self, folder_path):
         # there's probably a dataframes way to do this
 
-        header = ["completion_date", "LabTesting", "ClinicalObservation", "Cull", "ContactTracing", "Vaccination"]
+        job_types = [
+            "LabTesting",
+            "ClinicalObservation",
+            "Cull",
+            "ContactTracing",
+            "Vaccination",
+            "Field Surveillance",
+            "Phone Surveillance",
+            "Self-reporting Surveillance",
+            "Population-level Surveillance",
+            "Wild Animal Surveillance",
+            "Environmental Surveillance",
+        ]
         resources = {}
         for property_index in self.jobs_queue.keys():
             for job_type in self.jobs_queue[property_index].keys():
+                if job_type not in job_types:
+                    job_types.append(job_type)
+
                 for day, status in self.jobs_queue[property_index][job_type].items():
                     if status[0] == "complete":
-                        try:
-                            resources[status[1]][job_type] += 1
-                        except:
+                        if status[1] not in resources:
                             resources[status[1]] = {j: 0 for j in job_types}
-                            resources[status[1]][job_type] += 1
+                        if job_type not in resources[status[1]]:
+                            resources[status[1]][job_type] = 0
+
+                        resources[status[1]][job_type] += 1
         jobs = []
 
         for key, value in resources.items():
-            jobs.append(
-                [
-                    key,
-                    value["LabTesting"],
-                    value["ClinicalObservation"],
-                    value["Cull"],
-                    value["ContactTracing"],
-                    value["Vaccination"],
-                ]
-            )
+            row = [key]
+            for j in job_types:
+                if j in value:
+                    row.append(value[j])
+                else:
+                    row.append(0)
+
+            jobs.append(row)
         # order by the date
         jobs.sort(key=lambda x: x[0])
         # convert to dataframe
         # save the dataframe
+        header = ["completion_date"]
+        header.extend(job_types)
         jobs_df = pd.DataFrame(jobs, columns=header)
 
         jobs_df.to_csv(os.path.join(folder_path, "resources_used.csv"), index=False)

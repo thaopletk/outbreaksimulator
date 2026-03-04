@@ -463,6 +463,7 @@ for file in os.listdir(folder_path_first_report):
 
 actions_input = os.path.join(folder_path_main, f"actions_1.xlsx")
 property_jobs = pd.read_excel(actions_input, sheet_name="jobs")
+zones_based_jobs = pd.read_excel(actions_input, sheet_name="zone_jobs")  # could consider "expanding to SAL, LGA" or something like that
 property_based_zones = pd.read_excel(actions_input, sheet_name="zones")  # could consider "expanding to SAL, LGA" or something like that
 days_to_run_for = 1
 
@@ -488,7 +489,7 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
     )
 
     properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_HPAI_outbreak_management(
-        properties, property_jobs, property_based_zones, days_to_run_for
+        properties, property_jobs, zones_based_jobs, property_based_zones, days_to_run_for
     )
 
     # and then resave the end state
@@ -536,6 +537,7 @@ for file in os.listdir(folder_path):
 
 actions_input = os.path.join(folder_path_main, f"actions_2.xlsx")
 property_jobs = pd.read_excel(actions_input, sheet_name="jobs")
+zones_based_jobs = pd.read_excel(actions_input, sheet_name="zone_jobs")
 property_based_zones = pd.read_excel(actions_input, sheet_name="zones")  # could consider "expanding to SAL, LGA" or something like that
 days_to_run_for = 2
 
@@ -561,7 +563,7 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
     )
 
     properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_HPAI_outbreak_management(
-        properties, property_jobs, property_based_zones, days_to_run_for
+        properties, property_jobs, zones_based_jobs, property_based_zones, days_to_run_for
     )
 
     # and then resave the end state
