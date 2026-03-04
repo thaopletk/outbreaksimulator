@@ -2529,6 +2529,10 @@ class DiseaseSimulation:
 
         output.plot_total_notifs_over_time(dates_list, daily_notifs, self.folder_path, save_name="total_notifs")
 
+        output.plot_HPAI_outbreak_apparent(
+            properties, restricted_area, control_area, enhanced_passive_surveillance_area, self.xlims, self.ylims, self.folder_path, self.time
+        )
+
         return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
 
     # TODO delete this once the above one is written

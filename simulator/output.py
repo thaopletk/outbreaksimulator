@@ -1,8 +1,8 @@
-""" Data visualisation and pickle outputs
+"""Data visualisation and pickle outputs
 
-    Based on FMD_modelling plotting_code.py, but adapted for "real locations" (i.e. spatially located).
+Based on FMD_modelling plotting_code.py, but adapted for "real locations" (i.e. spatially located).
 
-    This script produces output plots (static, gifs and mp4 animations) of the outbreak.
+This script produces output plots (static, gifs and mp4 animations) of the outbreak.
 
 """
 
@@ -410,9 +410,7 @@ def plot_map(
         [geometry_culled, "black", "X", "culled", 120],
     ]:
         if geometry == []:
-            if (
-                markerlabel == "infected" or markerlabel == "culled on suspicion, actually infected"
-            ):  # only for the real situation case plotting
+            if markerlabel == "infected" or markerlabel == "culled on suspicion, actually infected":  # only for the real situation case plotting
                 if real_situation == True:
                     geometry = [Point(xlims[0] - 0.1, ylims[0] - 0.1)]  # putting the point outside the limits
             else:
@@ -577,9 +575,7 @@ def plot_animals(
         property_polygon = premise.polygon
         lat = premise.y  # y
         lon = premise.x  # x
-        puff_p1 = geodesic_polygon_buffer(
-            lat, lon, property_polygon, 50
-        )  # mild expansion 10 km to make it look more full
+        puff_p1 = geodesic_polygon_buffer(lat, lon, property_polygon, 50)  # mild expansion 10 km to make it look more full
 
         num_animals = max(int(len(premise.animals) / 50), 2)
         # Generates random points inside polygon
@@ -903,7 +899,7 @@ def plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path, sa
 
     x_points = list(range(len(dates_list)))
 
-    ax.plot(x_points, daily_notifs, marker="o", markersize=15)
+    ax.bar(x_points, daily_notifs, color="#16ACA4")
     # ax.set_xlabel('date', fontsize =14)
     # ax.set_ylabel('cases',fontsize= 14)
     ax.set_title("Daily confirmed infected premises", fontsize=16)
@@ -938,7 +934,7 @@ def plot_total_notifs_over_time(dates_list, daily_notifs, folder_path, save_name
     x_points = list(range(len(dates_list)))
     cumulative = np.cumsum(daily_notifs)
 
-    ax.plot(x_points, cumulative, marker="o", markersize=15)
+    ax.bar(x_points, cumulative, color="#16ACA4")
     # ax.set_xlabel('date', fontsize =14)
     # ax.set_ylabel('cases',fontsize= 14)
     ax.set_title("Total confirmed infected premises over time", fontsize=16)
@@ -1111,3 +1107,165 @@ def plot_infection_pressure(
     plt.close()
 
     return
+
+
+def plot_HPAI_outbreak_apparent(properties, restricted_area, control_area, enhanced_passive_surveillance, xlims, ylims, folder_path, time):
+    fig, ax = plt.subplots(1, 1, figsize=(20, 15))  # ,figsize=(10,12)
+
+    control_zones = {"restricted area": restricted_area, "control area": control_area, "Enhanced Passive Surveillance": enhanced_passive_surveillance}
+
+    colour_dictionary = {
+        "restricted area": {"face": "#e07b7b", "edge": "#660000"},
+        "control area": {"face": "#fce27b", "edge": "#cc6600"},
+        "Enhanced Passive Surveillance": {"face": "#7fe8f0", "edge": "#3d3d5c"},
+    }
+
+    for control_type in ["additional movement restrictions", "control area", "restricted area"]:
+        zone = control_zones[control_type]
+
+        for subpoly in zone.geoms:
+            plot_polygon(
+                ax,
+                subpoly,
+                facecolor=colour_dictionary[control_type]["face"],
+                edgecolor=colour_dictionary[control_type]["edge"],
+                alpha=1,
+                label=control_type,
+            )
+    for control_type in ["restricted area", "control area", "additional movement restrictions"]:
+        verts = [
+            (-1, -0.5),  # left, bottom
+            (-1, 0.5),  # left, top
+            (1.0, 0.5),  # right, top
+            (1.0, -0.5),  # right, bottom
+            (-1.0, -0.5),  # back to left, bottom
+        ]
+
+        codes = [
+            Path.MOVETO,  # begin drawing
+            Path.LINETO,  # straight line
+            Path.LINETO,
+            Path.LINETO,
+            Path.CLOSEPOLY,  # close shape. This is not required for this shape but is "good form"
+        ]
+
+        path = Path(verts, codes)
+
+        geometry = [Point(xlims[0] - 0.2, ylims[0] - 0.2)]  # putting the point outside the limits
+        # add a fake point to ensure the legend is there
+        geo_df = gpd.GeoDataFrame(geometry=geometry)
+        geo_df.crs = {"init": "epsg:4326"}
+        ax = geo_df.plot(
+            ax=ax,
+            markersize=400,
+            color=colour_dictionary[control_type]["face"],
+            marker=path,
+            label=control_type,
+            edgecolor=colour_dictionary[control_type]["edge"],
+            aspect=1,
+            alpha=1,
+        )
+
+    # will only have these points
+    geometry_culled = []
+    geometry_IP = []
+    geometry_DCP = []
+    geometry_DCP_AN = []
+    geometry_SP = []
+    geomtry_TP = []
+    geometry_ARP = []
+    geometry_POR = []
+    geometry_UP = []
+    geometry_NA = []
+    geometry_other = []
+
+    for index, premise in enumerate(properties):
+        long, lat = premise.coordinates
+        curr_farm = Point(long, lat)
+        if premise.culled_status == True:
+            geometry_culled.append(curr_farm)
+        elif premise.status == "IP":
+            geometry_IP.append(curr_farm)
+        elif premise.status == "DCP":
+            geometry_DCP.append(curr_farm)
+        elif premise.status == "DCP-AN":
+            geometry_DCP_AN.append(curr_farm)
+        elif premise.status == "SP":
+            geometry_SP.append(curr_farm)
+        elif premise.status == "TP":
+            geomtry_TP.append(curr_farm)
+        elif premise.status == "ARP":
+            geometry_ARP.append(curr_farm)
+        elif premise.status == "POR":
+            geometry_POR.append(curr_farm)
+        elif premise.status == "UP":
+            geometry_UP.append(curr_farm)
+        elif premise.status == "NA":
+            geometry_NA.append(curr_farm)
+        else:
+            print(f"status wasn't expected: {premise.status}")
+            geometry_other.append(curr_farm)
+
+    for geometry, colour, marker, markerlabel, markersize, edgecolour, alpha in [
+        [geometry_culled, "cornflowerblue", "P", "resolved premises", 110, "royalblue", 1],
+        [geometry_IP, "black", "X", "infected premises", 110, "black", 1],
+        [geometry_DCP, "#e72918", "v", "dangerous contact premises", 110, "#950000", 1],
+        [geometry_SP, "#ffa200", "o", "SP", 5, "#ff6600", 0.3],
+        [geomtry_TP, "#fffb00ef", "o", "TP", 50, "#cfa32a", 1],
+        [geometry_DCP_AN, "#d38484ee", "v", "DCP-assessed negative", 50, "#df2929", 1],
+        [geometry_ARP, "#dc68ffed", "s", "ARP", 25, "#383838", 1],
+        [geometry_POR, "#fc1e4eeb", "s", "POR", 25, "#383838", 1],
+        [geometry_UP, "#1eddf7ec", "$?$", "UP", 25, "#00A2FF", 1],
+        [geometry_NA, "#5871ffec", "o", "NA", 25, "#67A9FF", 0.5],
+        # geometry_other = []
+    ]:
+        geo_df = gpd.GeoDataFrame(geometry=geometry)
+        geo_df.crs = {"init": "epsg:4326"}
+        # plot the marker
+        ax = geo_df.plot(
+            ax=ax,
+            markersize=markersize,
+            color=colour,
+            marker=marker,
+            label=markerlabel,
+            aspect=1,
+            edgecolor=edgecolour,
+            alpha=alpha,
+        )
+
+    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)  # source=ctx.providers.OpenStreetMap.Mapnik
+
+    # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
+    points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
+    points = points.to_crs(32619)  # Projected WGS 84 - meters
+    distance_meters = points[0].distance(points[1])
+    ax.add_artist(
+        ScaleBar(
+            distance_meters,
+            box_alpha=0.1,
+            location="lower right",
+        )
+    )
+
+    # ax.axis("off")
+
+    ax.set_xlim(xlims)
+    ax.set_ylim(ylims)
+
+    # ax.legend(
+    #     loc="upper center",
+    #     bbox_to_anchor=(0.5, 0.0),
+    #     fancybox=True,
+    #     shadow=True,
+    #     ncol=2,
+    #     fontsize=18,
+    # )
+
+    ax.legend(fontsize=18)
+
+    file_name_ending = f"{time}.png"
+
+    file_name = os.path.join(folder_path, "nice_map_" + file_name_ending)
+    plt.savefig(file_name, bbox_inches="tight")
+
+    plt.close()
