@@ -1242,6 +1242,7 @@ def plot_HPAI_outbreak_apparent(properties, restricted_area, control_area, enhan
         else:
             print(f"status wasn't expected: {premise.status}")
             geometry_other.append(curr_farm)
+            geometry_NA.append(curr_farm)
 
         if premise.status != "NA":
             if long > max_x:
@@ -1263,7 +1264,7 @@ def plot_HPAI_outbreak_apparent(properties, restricted_area, control_area, enhan
         [geometry_ARP, "#dc68ffed", "s", "ARP", 40, "#383838", 1],
         [geometry_POR, "#fc1e4eeb", "s", "POR", 40, "#383838", 1],
         [geometry_UP, "#1eddf7ec", "$?$", "UP", 50, "#00A2FF", 1],
-        [geometry_NA, "#444444eb", ".", "NA", 25, "#3D3D3D", 0.2],
+        [geometry_NA, "#444444eb", ".", "NA, ZP", 25, "#3D3D3D", 0.2],
         # geometry_other = []
     ]:
         geo_df = gpd.GeoDataFrame(geometry=geometry)

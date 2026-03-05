@@ -942,8 +942,12 @@ class Premises(Property):
                 self.size = total_number_of_chickens
 
                 # record proportion of animals infectious and clinical for other calculations
-                self.prop_infectious = number_infectious / total_number_of_chickens
-                self.prop_clinical = number_clinical / total_number_of_chickens
+                if total_number_of_chickens > 0:
+                    self.prop_infectious = number_infectious / total_number_of_chickens
+                    self.prop_clinical = number_clinical / total_number_of_chickens
+                else:
+                    self.prop_infectious = 0
+                    self.prop_clinical = 0
 
                 # if there's any infection, property is labelled infected
                 self.number_infected = number_infected

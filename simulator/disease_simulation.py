@@ -2092,6 +2092,7 @@ class DiseaseSimulation:
                                 properties[property_index].custom_info["culled_birds"] = num_chickens_left
 
                             newly_culled_animals = num_chickens_left
+                            properties[property_index].known_birds = properties[property_index].known_birds - num_chickens_left
                         else:
                             # there are more chickens than capacity to cull
                             chickens_left_to_cull_today = num_animals_to_cull
@@ -2102,8 +2103,10 @@ class DiseaseSimulation:
                             else:
                                 properties[property_index].custom_info["culled_birds"] = num_animals_to_cull
 
-                                # calling this function actually "pops" out the chickens for us
+                            # calling this function actually "pops" out the chickens for us
                             chickens_to_cull = HPAI_functions.chickens_to_cull(properties, property_index, self.time, chickens_left_to_cull_today)
+
+                            properties[property_index].known_birds = properties[property_index].get_num_chickens()
 
                         premise_report = f"DAY {converted_date} - {facility.type} (sim_id {facility.id}), case_id {facility.case_id} {facility.status}, IP {facility.ip}) at(x,y)=({round(facility.x,2)}, {round(facility.y,2)}), {facility.location}: \nA total of {newly_culled_animals} animal(s) have been culled and {num_eggs} egg(s) destroyed."
                         self.combined_narrative.append([self.time, converted_date, "cull", property_index, premise_report, facility.case_id])
@@ -2164,7 +2167,7 @@ class DiseaseSimulation:
                                         self.time,
                                         converted_date,
                                         "status_update",
-                                        property_index,
+                                        properties[t_i].id,
                                         f"{properties[t_i].type} (sim_id {properties[t_i].id}) has been assigned case id {properties[t_i].case_id} {properties[t_i].status}",
                                         properties[t_i].case_id,
                                     ]
@@ -2231,7 +2234,8 @@ class DiseaseSimulation:
                     dead_birds_est = int(total_num_infected_birds_in_zone * 0.95)  # high mortality
                     positive = False
                     if total_num_birds_in_zone != 0:
-                        est_infected_dead_birds = dead_birds_est / total_num_birds_in_zone
+                        estimated_normal_dead_birds = total_num_birds_in_zone * 0.1
+                        est_infected_dead_birds = dead_birds_est / (dead_birds_est + estimated_normal_dead_birds)
 
                         if est_infected_dead_birds > 0:
                             probability_of_detection = est_infected_dead_birds * detection_probability_factor
@@ -2326,7 +2330,7 @@ class DiseaseSimulation:
                     dead_birds_est = int(total_num_infected_birds_in_zone * 0.95)  # high mortality
                     positive = False
                     if total_num_birds_in_zone != 0:
-                        est_infected_dead_birds = dead_birds_est / total_num_birds_in_zone
+                        est_infected_dead_birds = dead_birds_est / (dead_birds_est + total_num_birds_in_zone * 0.1)
 
                         if est_infected_dead_birds > 0:
                             probability_of_detection = est_infected_dead_birds * detection_probability_factor
@@ -2396,7 +2400,7 @@ class DiseaseSimulation:
                     dead_birds_est = int(total_num_infected_birds_in_zone * 0.95)  # high mortality
                     positive = False
                     if total_num_birds_in_zone != 0:
-                        est_infected_dead_birds = dead_birds_est / total_num_birds_in_zone
+                        est_infected_dead_birds = dead_birds_est / (dead_birds_est + total_num_birds_in_zone * 0.1)
 
                         if est_infected_dead_birds > 0:
                             probability_of_detection = est_infected_dead_birds * detection_probability_factor
