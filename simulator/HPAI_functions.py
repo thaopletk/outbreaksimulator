@@ -236,6 +236,39 @@ def remove_chickens_from_property_ready_for_movement(properties, start_index, in
     return chickens_to_move
 
 
+def chickens_to_cull(properties, start_index, int_time, num_to_cull):
+    start_facility = properties[start_index]
+    chickens_to_move = []
+
+    moved_so_far = 0
+    for shed_i, shed_info in start_facility.sheds.items():
+        shed_has_had_chickens_removed = False
+        if "chickens" in shed_info:
+            for chicken_row in shed_info["chickens"]:
+                if moved_so_far + chicken_row["n"] <= num_to_cull:  # i.e., we can move everything
+                    chickens_to_move.append(chicken_row)
+                    shed_has_had_chickens_removed = True
+                    moved_so_far += chicken_row["n"]
+                else:
+                    actually_only_moving = num_to_cull - moved_so_far
+                    if actually_only_moving > 0:
+                        moved_so_far += actually_only_moving
+                        new_row = {"n": actually_only_moving, "age": chicken_row["age"]}
+                        chicken_row["n"] = chicken_row["n"] - actually_only_moving
+                        if "objs" in chicken_row:
+                            new_row["objs"] = chicken_row["objs"][:actually_only_moving]
+                            chicken_row["objs"] = chicken_row["objs"][actually_only_moving:]
+                        chickens_to_move.append(new_row)
+
+            for chickens_removed in chickens_to_move:  # TODO should refactor this with del like the above part
+                if chickens_removed in shed_info["chickens"]:
+                    shed_info["chickens"].remove(chickens_removed)
+            if shed_has_had_chickens_removed:
+                initiate_cleaning(properties, start_index, shed_i, int_time)
+
+    return chickens_to_move
+
+
 def move_chickens_onto_truck(properties, start_index, target_index):
     start_facility = properties[start_index]
     target_facility = properties[target_index]

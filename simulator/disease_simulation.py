@@ -2073,13 +2073,19 @@ class DiseaseSimulation:
                                 properties[property_index].custom_info["destroyed_eggs"] += num_eggs
                             else:
                                 properties[property_index].custom_info["destroyed_eggs"] = num_eggs
-                            properties[property_index].eggs = []
-                            properties[property_index].fertilised_eggs = []
+                            properties[property_index].eggs = 0
+                            for shed_i, shed_info in facility.sheds.items():
+                                if "eggs" in shed_info:
+                                    shed_info["eggs"] = []  # removing fertlised eggs from existence
 
                         num_chickens_left = properties[property_index].get_num_chickens()
                         if num_chickens_left <= num_animals_to_cull:
                             # cull everything
-                            properties[property_index].chickens = []
+                            for shed_i, shed_info in facility.sheds.items():
+                                if "chickens" in shed_info:
+                                    shed_info["chickens"] = []  # removing them from existence
+                                    # TODO: technically could set the sheds to "clean"
+
                             if "culled_birds" in properties[property_index].custom_info:
                                 properties[property_index].custom_info["culled_birds"] += num_chickens_left
                             else:
@@ -2096,30 +2102,8 @@ class DiseaseSimulation:
                             else:
                                 properties[property_index].custom_info["culled_birds"] = num_animals_to_cull
 
-                            while chickens_left_to_cull_today > 0:
-                                chickens_row = properties[property_index].chickens.pop(0)
-                                if chickens_row[0] < chickens_left_to_cull_today:
-                                    chickens_left_to_cull_today -= chickens_row[0]  # removing entire row
-                                else:
-                                    # can't actually cull all the animals in this row
-                                    if properties[property_index].check_if_chicken_objects():
-                                        num_chickens_left_in_row = chickens_row[0] - chickens_left_to_cull_today
-                                        new_row = [
-                                            num_chickens_left_in_row,
-                                            chickens_row[1],
-                                            chickens_row[2],
-                                            chickens_row[3][:num_chickens_left_in_row],
-                                        ]
-                                    else:
-                                        new_row = [
-                                            chickens_row[0] - chickens_left_to_cull_today,
-                                            chickens_row[1],
-                                            chickens_row[2],
-                                        ]
-
-                                    properties[property_index].chickens.append(new_row)
-
-                                    chickens_left_to_cull_today = 0
+                                # calling this function actually "pops" out the chickens for us
+                            chickens_to_cull = HPAI_functions.chickens_to_cull(properties, property_index, self.time, chickens_left_to_cull_today)
 
                         premise_report = f"DAY {converted_date} - {facility.type} (sim_id {facility.id}), case_id {facility.case_id} {facility.status}, IP {facility.ip}) at(x,y)=({round(facility.x,2)}, {round(facility.y,2)}), {facility.location}: \nA total of {newly_culled_animals} animal(s) have been culled and {num_eggs} egg(s) destroyed."
                         self.combined_narrative.append([self.time, converted_date, "cull", property_index, premise_report, facility.case_id])

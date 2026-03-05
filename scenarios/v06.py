@@ -146,7 +146,7 @@ if not os.path.exists(os.path.join(folder_path_main, f"property_locations_base_m
         plot_suffix=suffix,
     )
 
-if not os.path.exists(os.path.join(folder_path_main, f"approx_known_data_{suffix}.png")):
+if not os.path.exists(os.path.join(folder_path_main, f"approx_known_data_{suffix}.csv")):
     HPAI_functions.save_approx_known_data(all_properties, folder_path_main, suffix)
 
 properties_filename = os.path.join(folder_path_main, f"HPAI_properties{suffix}")
@@ -613,7 +613,7 @@ actions_input = os.path.join(folder_path_main, f"actions_3.xlsx")
 property_jobs = pd.read_excel(actions_input, sheet_name="jobs")
 zones_based_jobs = pd.read_excel(actions_input, sheet_name="zone_jobs")
 property_based_zones = pd.read_excel(actions_input, sheet_name="zones")  # could consider "expanding to SAL, LGA" or something like that
-days_to_run_for = 2
+days_to_run_for = 6
 
 unique_output = f"06_actioning_actions_3"
 folder_path = os.path.join(folder_path_main, unique_output)

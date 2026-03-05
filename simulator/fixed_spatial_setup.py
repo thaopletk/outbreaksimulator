@@ -736,9 +736,9 @@ def save_chicken_property_csv(properties, time, folder_path, unique_output):
         writer.writerow(header)
 
         for premise in properties:
-            if premise.data_source != "":
-                row = premise.return_output_row_chickens()
-                writer.writerow(row)
+            # if premise.data_source != "":
+            row = premise.return_output_row_chickens()
+            writer.writerow(row)
 
 
 def HPAI_QLD_setup_locations(
