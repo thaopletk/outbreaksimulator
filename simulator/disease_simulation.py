@@ -1997,11 +1997,11 @@ class DiseaseSimulation:
                             detection_prob = row["detection_prob"]
                         else:
                             if row["specific_action"] == "Phone Surveillance":
-                                detection_prob = 0.2
+                                detection_prob = 0.4
                             elif row["specific_action"] == "Field Surveillance":
-                                detection_prob = 0.5
+                                detection_prob = 0.99
                             elif row["specific_action"] == "Self-reporting Surveillance":
-                                detection_prob = 0.2
+                                detection_prob = 0.5
                             else:
                                 raise ValueError(f"{row['specific_action']} not expected")
 
@@ -2209,7 +2209,7 @@ class DiseaseSimulation:
                         convex=False,
                     )  # should be zero movement
                     population_surveillance_ref = row["zone_name"]
-                    PCR_detection_probability = 0.9
+                    PCR_detection_probability = 0.98
                     if isinstance(row["zone_parameter"], float) or isinstance(row["zone_parameter"], int):
                         detection_probability_factor = row["zone_parameter"]
                     else:
