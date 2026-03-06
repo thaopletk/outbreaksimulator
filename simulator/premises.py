@@ -94,7 +94,7 @@ class Premises(Property):
     """
 
     id_iter = itertools.count()
-    notified_iter = itertools.count(start=1)  # IP (infected properties) should start from 1
+    notified_iter = itertools.count(start=1)  # IP (infected properties) should start from 1 # TODO - there seems to be some issue with this
     # geolocator = Nominatim(user_agent="http")
 
     # area in hectares
@@ -478,11 +478,14 @@ class Premises(Property):
 
         return report, self.size
 
-    def report_only(self, time):
+    def report_only(self, time, IP_num=None):
         report = ""
         self.notification_date = convert_time_to_date(time)
         self.status = "IP"
-        self.ip = next(Premises.notified_iter)
+        if IP_num == None:
+            self.ip = next(Premises.notified_iter)
+        else:
+            self.ip = IP_num
         self.reported_status = True
 
         culled_animals = self.size

@@ -13,6 +13,7 @@ import sys
 import os
 import random
 import pandas as pd
+import itertools
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import numpy as np
@@ -131,6 +132,7 @@ class DiseaseSimulation:
         self.first_detection_day = None
 
         self.case_id_counter = 0
+        self.notified_iter = itertools.count(start=1)
 
     def set_plotting_parameters(self, xlims, ylims, plotting=True, folder_path="", unique_output=""):
         """Sets the plotting parameters, especially important to update regularly if you want things to output to a different folder"""
@@ -1701,6 +1703,10 @@ class DiseaseSimulation:
                 if facility.status not in higher_priority_statuses:
                     OG_status = facility.status
                     facility.status = "ARP"  # at risk premises
+                    if facility.case_id == None:
+                        self.case_id_counter += 1
+                        facility.case_id = self.case_id_counter
+
                     if OG_status != facility.status:
                         self.combined_narrative.append(
                             [
@@ -1721,6 +1727,11 @@ class DiseaseSimulation:
                         or facility.get_num_fertilised_eggs() > 0
                     ):
                         OG_status = facility.status
+
+                        if facility.case_id == None:
+                            self.case_id_counter += 1
+                            facility.case_id = self.case_id_counter
+
                         facility.status = "POR"
                         if OG_status != facility.status:
                             self.combined_narrative.append(
@@ -1736,6 +1747,9 @@ class DiseaseSimulation:
 
                     elif facility.known_birds != "" and facility.known_birds == 0:
                         OG_status = facility.status
+                        if facility.case_id == None:
+                            self.case_id_counter += 1
+                            facility.case_id = self.case_id_counter
                         facility.status = "ZP"
                         if OG_status != facility.status:
                             self.combined_narrative.append(
@@ -1751,6 +1765,9 @@ class DiseaseSimulation:
                     elif facility.data_source != "":
                         OG_status = facility.status
                         facility.status = "UP"
+                        if facility.case_id == None:
+                            self.case_id_counter += 1
+                            facility.case_id = self.case_id_counter
                         if OG_status != facility.status:
                             self.combined_narrative.append(
                                 [
@@ -1908,7 +1925,7 @@ class DiseaseSimulation:
                             properties[property_index].custom_info["infection_data_known"] = True
                             OG_status = properties[property_index].status
                             # report property
-                            premise_report = premise.report_only(self.time)  # updates status to IP
+                            premise_report = premise.report_only(self.time, next(self.notified_iter))  # updates status to IP
                             self.combined_narrative.append([self.time, converted_date, "report", property_index, premise_report, premise.case_id])
 
                             self.combined_narrative.append(
