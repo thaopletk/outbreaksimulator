@@ -1782,7 +1782,16 @@ class DiseaseSimulation:
                     # else - we don't know about it, so we can't assign it any particular status!
 
     def simulate_HPAI_outbreak_management(
-        self, properties, property_jobs, zones_based_jobs, property_based_zones, days_to_run_for, outbreak_sim="HPAI", time=None
+        self,
+        properties,
+        property_jobs,
+        zones_based_jobs,
+        property_based_zones,
+        days_to_run_for,
+        outbreak_sim="HPAI",
+        time=None,
+        restricted_emergency_zone=None,
+        control_emergency_zone=None,
     ):
 
         if time != None:
@@ -1870,6 +1879,8 @@ class DiseaseSimulation:
                     convex=False,
                 )  # should be zero movement
                 RA_geo_list.append(restricted_area)
+            if restricted_emergency_zone != None:
+                RA_geo_list.append(restricted_emergency_zone)
 
             restricted_area = unary_union(RA_geo_list)
 
@@ -1884,6 +1895,8 @@ class DiseaseSimulation:
                     convex=False,
                 )  # should be zero movement
                 CA_geo_list.append(control_area)
+            if control_emergency_zone != None:
+                CA_geo_list.append(control_emergency_zone)
 
             control_area = unary_union(CA_geo_list)
 

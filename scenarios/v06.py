@@ -8,6 +8,7 @@ import random
 import numpy as np
 import shutil
 import time
+import geopandas as gpd
 
 # import subprocess
 import pandas as pd
@@ -548,7 +549,15 @@ zones_based_jobs = pd.read_excel(actions_input, sheet_name="zone_jobs")
 property_based_zones = pd.read_excel(actions_input, sheet_name="zones")  # could consider "expanding to SAL, LGA" or something like that
 days_to_run_for = 2
 
-unique_output = f"05_actioning_actions_2"
+shp_zones = gpd.read_file(os.path.join(folder_path_main, "HPAIExerciseZones", "HPAIExerciseZone.shp"))
+shp_zones_RA = shp_zones.loc[shp_zones["EMZ"] == "REZ", :]
+RA_shape = list(shp_zones_RA["geometry"])[0]
+
+shp_zones_CA = shp_zones.loc[shp_zones["EMZ"] == "CEZ", :]
+CA_shape = list(shp_zones_CA["geometry"])[0]
+
+
+unique_output = f"05_actions_2"
 folder_path = os.path.join(folder_path_main, unique_output)
 
 if not os.path.exists(folder_path):
@@ -570,7 +579,13 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
     )
 
     properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_HPAI_outbreak_management(
-        properties, property_jobs, zones_based_jobs, property_based_zones, days_to_run_for
+        properties,
+        property_jobs,
+        zones_based_jobs,
+        property_based_zones,
+        days_to_run_for,
+        restricted_emergency_zone=RA_shape,
+        control_emergency_zone=CA_shape,
     )
 
     # and then resave the end state
@@ -608,226 +623,7 @@ if not os.path.exists(download_folder_path):
             destination_path = os.path.join(download_folder_path, file)
             shutil.copy(source_path, destination_path)
 
-###################################################
-# ---- Run third set of actions ------------------#
-###################################################
-
-# # generate a list of scheduled management actions
-# # actions, basic: date, property_id, action-to-take-on-date, extra deets for action if necessary (e.g., if culling, the number of animals culled on that day)
-
-actions_input = os.path.join(folder_path_main, f"actions_3.xlsx")
-property_jobs = pd.read_excel(actions_input, sheet_name="jobs")
-zones_based_jobs = pd.read_excel(actions_input, sheet_name="zone_jobs")
-property_based_zones = pd.read_excel(actions_input, sheet_name="zones")  # could consider "expanding to SAL, LGA" or something like that
-days_to_run_for = 3
-
-unique_output = f"06_actioning_actions_3"
-folder_path = os.path.join(folder_path_main, unique_output)
-
-if not os.path.exists(folder_path):
-    os.makedirs(folder_path)
-
-spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
-spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
-
-random.seed(215)
-np.random.seed(216)
-if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
-    # adjust the plotting parameters for this new scenario
-    diseaseoutbreak.set_plotting_parameters(
-        xlims=xlims,
-        ylims=ylims,
-        plotting=True,
-        folder_path=folder_path,
-        unique_output=unique_output,
-    )
-
-    properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_HPAI_outbreak_management(
-        properties, property_jobs, zones_based_jobs, property_based_zones, days_to_run_for
-    )
-
-    # and then resave the end state
-    with open(spread_properties_filename, "wb") as file:
-        pickle.dump(properties, file)
-
-    # and save the diseaseoutbreak object
-    with open(spread_diseaseoutbreak_filename, "wb") as file:
-        pickle.dump(diseaseoutbreak, file)
-
-    total_infected = 0
-    for property_i in properties:
-        if property_i.exposure_date != "NA":
-            total_infected += 1
-
-    print(f"Total number of infected premises: {total_infected}")
-else:
-    with open(spread_properties_filename, "rb") as file:
-        properties = pickle.load(file)
-    with open(spread_diseaseoutbreak_filename, "rb") as file:
-        diseaseoutbreak = pickle.load(file)
-
-
-HPAI_functions.save_approx_known_data(properties, folder_path, unique_output)
-
-download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
-
-if not os.path.exists(download_folder_path):
-    os.makedirs(download_folder_path)
-
-    # Loop through the files in the source directory and copy just the png or csv files
-    for file in os.listdir(folder_path):
-        if file.endswith(".png") or file.endswith(".csv"):
-            source_path = os.path.join(folder_path, file)
-            destination_path = os.path.join(download_folder_path, file)
-            shutil.copy(source_path, destination_path)
-
-###################################################
-# ---- Run fourth set of actions ------------------#
-###################################################
-
-# # generate a list of scheduled management actions
-# # actions, basic: date, property_id, action-to-take-on-date, extra deets for action if necessary (e.g., if culling, the number of animals culled on that day)
-
-actions_input = os.path.join(folder_path_main, f"actions_4.xlsx")
-property_jobs = pd.read_excel(actions_input, sheet_name="jobs")
-zones_based_jobs = pd.read_excel(actions_input, sheet_name="zone_jobs")
-property_based_zones = pd.read_excel(actions_input, sheet_name="zones")  # could consider "expanding to SAL, LGA" or something like that
-days_to_run_for = 3
-
-unique_output = f"07_actioning_actions_4"
-folder_path = os.path.join(folder_path_main, unique_output)
-
-if not os.path.exists(folder_path):
-    os.makedirs(folder_path)
-
-spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
-spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
-
-random.seed(215)
-np.random.seed(216)
-if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
-    # adjust the plotting parameters for this new scenario
-    diseaseoutbreak.set_plotting_parameters(
-        xlims=xlims,
-        ylims=ylims,
-        plotting=True,
-        folder_path=folder_path,
-        unique_output=unique_output,
-    )
-
-    properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_HPAI_outbreak_management(
-        properties, property_jobs, zones_based_jobs, property_based_zones, days_to_run_for
-    )
-
-    # and then resave the end state
-    with open(spread_properties_filename, "wb") as file:
-        pickle.dump(properties, file)
-
-    # and save the diseaseoutbreak object
-    with open(spread_diseaseoutbreak_filename, "wb") as file:
-        pickle.dump(diseaseoutbreak, file)
-
-    total_infected = 0
-    for property_i in properties:
-        if property_i.exposure_date != "NA":
-            total_infected += 1
-
-    print(f"Total number of infected premises: {total_infected}")
-else:
-    with open(spread_properties_filename, "rb") as file:
-        properties = pickle.load(file)
-    with open(spread_diseaseoutbreak_filename, "rb") as file:
-        diseaseoutbreak = pickle.load(file)
-
-
-HPAI_functions.save_approx_known_data(properties, folder_path, unique_output)
-
-download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
-
-if not os.path.exists(download_folder_path):
-    os.makedirs(download_folder_path)
-
-    # Loop through the files in the source directory and copy just the png or csv files
-    for file in os.listdir(folder_path):
-        if file.endswith(".png") or file.endswith(".csv"):
-            source_path = os.path.join(folder_path, file)
-            destination_path = os.path.join(download_folder_path, file)
-            shutil.copy(source_path, destination_path)
-
-
-###################################################
-# ---- Run fifth set of actions ------------------#
-###################################################
-
-# # generate a list of scheduled management actions
-# # actions, basic: date, property_id, action-to-take-on-date, extra deets for action if necessary (e.g., if culling, the number of animals culled on that day)
-
-actions_input = os.path.join(folder_path_main, f"actions_5.xlsx")
-property_jobs = pd.read_excel(actions_input, sheet_name="jobs")
-zones_based_jobs = pd.read_excel(actions_input, sheet_name="zone_jobs")
-property_based_zones = pd.read_excel(actions_input, sheet_name="zones")  # could consider "expanding to SAL, LGA" or something like that
-days_to_run_for = 5
-
-unique_output = f"08_actioning_actions_5"
-folder_path = os.path.join(folder_path_main, unique_output)
-
-if not os.path.exists(folder_path):
-    os.makedirs(folder_path)
-
-spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
-spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
-
-random.seed(215)
-np.random.seed(216)
-if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
-    # adjust the plotting parameters for this new scenario
-    diseaseoutbreak.set_plotting_parameters(
-        xlims=xlims,
-        ylims=ylims,
-        plotting=True,
-        folder_path=folder_path,
-        unique_output=unique_output,
-    )
-
-    properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_HPAI_outbreak_management(
-        properties, property_jobs, zones_based_jobs, property_based_zones, days_to_run_for
-    )
-
-    # and then resave the end state
-    with open(spread_properties_filename, "wb") as file:
-        pickle.dump(properties, file)
-
-    # and save the diseaseoutbreak object
-    with open(spread_diseaseoutbreak_filename, "wb") as file:
-        pickle.dump(diseaseoutbreak, file)
-
-    total_infected = 0
-    for property_i in properties:
-        if property_i.exposure_date != "NA":
-            total_infected += 1
-
-    print(f"Total number of infected premises: {total_infected}")
-else:
-    with open(spread_properties_filename, "rb") as file:
-        properties = pickle.load(file)
-    with open(spread_diseaseoutbreak_filename, "rb") as file:
-        diseaseoutbreak = pickle.load(file)
-
-
-HPAI_functions.save_approx_known_data(properties, folder_path, unique_output)
-
-download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
-
-if not os.path.exists(download_folder_path):
-    os.makedirs(download_folder_path)
-
-    # Loop through the files in the source directory and copy just the png or csv files
-    for file in os.listdir(folder_path):
-        if file.endswith(".png") or file.endswith(".csv"):
-            source_path = os.path.join(folder_path, file)
-            destination_path = os.path.join(download_folder_path, file)
-            shutil.copy(source_path, destination_path)
-
+exit(1)
 
 ###################################################
 # ---- Running further actions ------------------#
@@ -836,8 +632,9 @@ if not os.path.exists(download_folder_path):
 # # generate a list of scheduled management actions
 # # actions, basic: date, property_id, action-to-take-on-date, extra deets for action if necessary (e.g., if culling, the number of animals culled on that day)
 
+# this should just break if the actions_[next_run].xslx file is missing
 max_runs = 10
-next_run = 6
+next_run = 3
 while next_run <= max_runs:
 
     actions_input = os.path.join(folder_path_main, f"actions_{next_run}.xlsx")
