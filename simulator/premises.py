@@ -162,11 +162,14 @@ class Premises(Property):
 
         self.x, self.y = self.coordinates
 
-        self.location = geolocator.reverse(f"{self.y},{self.x}")
-        self.address = self.location.raw["address"]
-        self.state = self.address.get("state", "")
-        if self.state == "":
-            self.state = self.address.get("territory", "")
+        self.location = None
+        self.address = None
+        self.state = None
+        # self.location = geolocator.reverse(f"{self.y},{self.x}")
+        # self.address = self.location.raw["address"]
+        # self.state = self.address.get("state", "")
+        # if self.state == "":
+        #     self.state = self.address.get("territory", "")
 
         self.undergoing_testing = False
         self.day_of_last_lab_test = None
@@ -189,6 +192,28 @@ class Premises(Property):
         self.known_sheds = None
         self.known_birds = None
         self.known_area = None
+
+    def find_location(self):
+        self.location = geolocator.reverse(f"{self.y},{self.x}")
+        self.address = self.location.raw["address"]
+        self.state = self.address.get("state", "")
+        if self.state == "":
+            self.state = self.address.get("territory", "")
+
+    def get_location(self):
+        if self.location == None:
+            self.find_location()
+        return self.location
+
+    def get_address(self):
+        if self.address == None:
+            self.find_location()
+        return self.address
+
+    def get_state(self):
+        if self.state == None:
+            self.find_location()
+        return self.state
 
     def requesting_chickens(self):
         """generally superceeded by accepting_animals() function"""
@@ -474,7 +499,7 @@ class Premises(Property):
         # self.reported_status = False # no change
         self.culled_on_suspicion = True
 
-        report = f"DAY {self.removal_date} - Property ID {self.id}, {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, is within the ring culling zone.\nA total of {self.size} animal(s) have been culled.\n"
+        report = f"DAY {self.removal_date} - Property ID {self.id}, {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.get_location()}, is within the ring culling zone.\nA total of {self.size} animal(s) have been culled.\n"
 
         return report, self.size
 
@@ -490,11 +515,11 @@ class Premises(Property):
 
         culled_animals = self.size
         if self.animal_type != "chicken":
-            report = f"DAY {self.notification_date} - IP {self.ip} (sim {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been found infected. A total of {culled_animals} animal(s) will be culled."
+            report = f"DAY {self.notification_date} - IP {self.ip} (sim {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.get_location()}, has been found infected. A total of {culled_animals} animal(s) will be culled."
         else:
             self.size = self.get_num_chickens()
             culled_animals = self.size
-            report = f"DAY {self.notification_date} - {self.type} in {self.region} (sim_id {self.id}, case_id {self.case_id} {self.status}) is the {self.ip}(th) IP (located at (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}). The property has a total of {culled_animals} chicken(s) and {self.get_num_eggs()+self.get_num_fertilised_eggs()} egg(s)."
+            report = f"DAY {self.notification_date} - {self.type} in {self.region} (sim_id {self.id}, case_id {self.case_id} {self.status}) is the {self.ip}(th) IP (located at (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.get_location()}). The property has a total of {culled_animals} chicken(s) and {self.get_num_eggs()+self.get_num_fertilised_eggs()} egg(s)."
 
         return report
 
@@ -509,7 +534,7 @@ class Premises(Property):
         report = ""
         culled_animals = self.size
 
-        report = f"DAY {convert_time_to_date(time)} - IP {self.ip} (ID {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been depopulated.\nA total of {culled_animals} animal(s) have been culled."
+        report = f"DAY {convert_time_to_date(time)} - IP {self.ip} (ID {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.get_location()}, has been depopulated.\nA total of {culled_animals} animal(s) have been culled."
 
         return report, culled_animals
 
@@ -530,9 +555,9 @@ class Premises(Property):
 
         if self.animal_type != "chicken":
 
-            report = f"Property ID {self.id} ({self.type}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been reported possible infection."
+            report = f"Property ID {self.id} ({self.type}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.get_location()}, has been reported possible infection."
         else:
-            report = f"{self.type} (sim_id {self.id}) at location ({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been reported possible infection."
+            report = f"{self.type} (sim_id {self.id}) at location ({round(self.x,2)}, {round(self.y,2)}), {self.get_location()}, has been reported possible infection."
             self.status = "SP"  # suspect premises
 
         return report
@@ -558,7 +583,7 @@ class Premises(Property):
             culled_animals = self.size
             report += self.report_only(time)
 
-            report = f"DAY {self.notification_date} - IP {self.ip} (sim {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been reported infected.\nA total of {culled_animals} animal(s) have been culled.\n"
+            report = f"DAY {self.notification_date} - IP {self.ip} (sim {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.get_location()}, has been reported infected.\nA total of {culled_animals} animal(s) have been culled.\n"
 
         return report, culled_animals
 

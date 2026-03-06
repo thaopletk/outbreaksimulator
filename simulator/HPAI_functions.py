@@ -481,7 +481,7 @@ def animal_movement(
                                     chickens_moved,
                                     facility.type,
                                     new_facility.type,
-                                    f"DAY {date} - moved {chickens_moved} chicken(s) from {facility.type} (sim_id {facility.id}) ({facility.region},{facility.state}) to {new_facility.type} (sim_id {new_facility.id}) ( {new_facility.region}, {new_facility.state})",
+                                    f"DAY {date} - moved {chickens_moved} chicken(s) from {facility.type} (sim_id {facility.id}) ({facility.region},{facility.get_state()}) to {new_facility.type} (sim_id {new_facility.id}) ( {new_facility.region}, {new_facility.get_state()})",
                                 ]
 
                                 if len(row) != len(movement_record_header):
@@ -549,7 +549,7 @@ def animal_movement(
                             num_eggs_to_move,
                             facility.type,
                             new_facility.type,
-                            f"DAY {date} - moved {num_eggs_to_move} egg(s) from {facility.type} (sim_id {facility.id}) ({facility.region}, {facility.state}) to {new_facility.type} (sim_id {new_facility.id}) ({new_facility.region}, {new_facility.state})",
+                            f"DAY {date} - moved {num_eggs_to_move} egg(s) from {facility.type} (sim_id {facility.id}) ({facility.region}, {facility.get_state()}) to {new_facility.type} (sim_id {new_facility.id}) ({new_facility.region}, {new_facility.get_state()})",
                         ]
 
                         if len(row) != len(movement_record_header):
@@ -627,7 +627,7 @@ def animal_movement(
                                     num_eggs_to_move,
                                     facility.type,
                                     new_facility.type,
-                                    f"DAY {date} - moved {eggs_moved_into_sheds} egg(s) from {facility.type} (sim_id {facility.id}) ({facility.region},{facility.state}) to {new_facility.type} (sim_id {new_facility.id}) ({new_facility.region},{new_facility.state})",
+                                    f"DAY {date} - moved {eggs_moved_into_sheds} egg(s) from {facility.type} (sim_id {facility.id}) ({facility.region},{facility.get_state()}) to {new_facility.type} (sim_id {new_facility.id}) ({new_facility.region},{new_facility.get_state()})",
                                 ]
 
                                 if len(row) != len(movement_record_header):
@@ -658,7 +658,7 @@ def animal_movement(
                     total_chickens_being_slaughtered,
                     facility.type,
                     "chicken meat distributor",
-                    f"DAY {date} - moved {total_chickens_being_slaughtered} chickens from {facility.type} (sim_id {facility.id}) ({facility.region}, {facility.state}) to chicken meat distributor",
+                    f"DAY {date} - moved {total_chickens_being_slaughtered} chickens from {facility.type} (sim_id {facility.id}) ({facility.region}, {facility.get_state()}) to chicken meat distributor",
                 ]
 
                 if len(row) != len(movement_record_header):
@@ -686,7 +686,7 @@ def animal_movement(
                     total_eggs_being_moved,
                     facility.type,
                     "egg distributor",
-                    f"DAY {date} - moved {total_eggs_being_moved} egg(s) from {facility.type} (sim_id {facility.id}) ({facility.region},{facility.state}) to egg distributor",
+                    f"DAY {date} - moved {total_eggs_being_moved} egg(s) from {facility.type} (sim_id {facility.id}) ({facility.region},{facility.get_state()}) to egg distributor",
                 ]
 
                 if len(row) != len(movement_record_header):

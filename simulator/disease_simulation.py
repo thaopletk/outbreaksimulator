@@ -2125,7 +2125,7 @@ class DiseaseSimulation:
 
                             properties[property_index].known_birds = properties[property_index].get_num_chickens()
 
-                        premise_report = f"DAY {converted_date} - {facility.type} (sim_id {facility.id}), case_id {facility.case_id} {facility.status}, IP {facility.ip}) at(x,y)=({round(facility.x,2)}, {round(facility.y,2)}), {facility.location}: \nA total of {newly_culled_animals} animal(s) have been culled and {num_eggs} egg(s) destroyed."
+                        premise_report = f"DAY {converted_date} - {facility.type} (sim_id {facility.id}), case_id {facility.case_id} {facility.status}, IP {facility.ip}) at(x,y)=({round(facility.x,2)}, {round(facility.y,2)}), {facility.get_location()}: \nA total of {newly_culled_animals} animal(s) have been culled and {num_eggs} egg(s) destroyed."
                         self.combined_narrative.append([self.time, converted_date, "cull", property_index, premise_report, facility.case_id])
 
                         if facility.get_num_chickens() == 0:

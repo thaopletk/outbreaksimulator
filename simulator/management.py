@@ -68,7 +68,7 @@ def contact_tracing(properties, property_index, movement_records, time):
 
     """
 
-    contact_tracing_report = f"DAY {convert_time_to_date(time)} - contact tracing report compiled for movements to/from {properties[property_index].type} (sim_id: {properties[property_index].id}, case_id: {properties[property_index].case_id} {properties[property_index].status}) in {properties[property_index].state}\n"
+    contact_tracing_report = f"DAY {convert_time_to_date(time)} - contact tracing report compiled for movements to/from {properties[property_index].type} (sim_id: {properties[property_index].id}, case_id: {properties[property_index].case_id} {properties[property_index].status}) in {properties[property_index].get_state()}\n"
     traced_property_indices = []
 
     properties_found = False
