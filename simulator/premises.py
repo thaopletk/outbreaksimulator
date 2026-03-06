@@ -17,7 +17,7 @@ from FMD_modelling.class_definitions import Property, Animal
 import datetime
 import itertools
 from simulator.spatial_functions import calculate_area
-
+import time
 import math
 
 
@@ -194,11 +194,16 @@ class Premises(Property):
         self.known_area = None
 
     def find_location(self):
-        self.location = geolocator.reverse(f"{self.y},{self.x}")
-        self.address = self.location.raw["address"]
-        self.state = self.address.get("state", "")
-        if self.state == "":
-            self.state = self.address.get("territory", "")
+        try:
+            self.location = geolocator.reverse(f"{self.y},{self.x}")
+            self.address = self.location.raw["address"]
+            self.state = self.address.get("state", "")
+            if self.state == "":
+                self.state = self.address.get("territory", "")
+            print("successful address found")
+            time.sleep(1.0)
+        except Exception as e:
+            print(e)
 
     def get_location(self):
         if self.location == None:
