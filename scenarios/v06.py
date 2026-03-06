@@ -256,6 +256,14 @@ if not os.path.exists(initial_movement_properties_filename) or not os.path.exist
         max_spread_time=minimum_spread_time,
     )
 
+    # and then resave the end state
+    with open(initial_movement_properties_filename, "wb") as file:
+        pickle.dump(properties, file)
+
+    # and save the diseaseoutbreak object
+    with open(initial_movement_diseaseoutbreak_filename, "wb") as file:
+        pickle.dump(diseaseoutbreak, file)
+
 else:
     with open(initial_movement_properties_filename, "rb") as file:
         properties = pickle.load(file)
@@ -613,7 +621,7 @@ actions_input = os.path.join(folder_path_main, f"actions_3.xlsx")
 property_jobs = pd.read_excel(actions_input, sheet_name="jobs")
 zones_based_jobs = pd.read_excel(actions_input, sheet_name="zone_jobs")
 property_based_zones = pd.read_excel(actions_input, sheet_name="zones")  # could consider "expanding to SAL, LGA" or something like that
-days_to_run_for = 6
+days_to_run_for = 3
 
 unique_output = f"06_actioning_actions_3"
 folder_path = os.path.join(folder_path_main, unique_output)
@@ -675,6 +683,7 @@ for file in os.listdir(folder_path):
         destination_path = os.path.join(download_folder_path, file)
         shutil.copy(source_path, destination_path)
 
+exit(0)
 
 ###################################################
 # ---- Run fourth set of actions ------------------#
