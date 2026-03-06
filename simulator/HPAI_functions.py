@@ -356,7 +356,13 @@ def animal_movement(
             # TODO: if True, use this to raise movement permit request
 
         # chickens movement only
-        if not facility.culled_status and facility.type != "abbatoir" and facility.type != "egg processing" and facility.type != "backyard":
+        if (
+            not facility.culled_status
+            and facility.type != "abbatoir"
+            and facility.type != "egg processing"
+            and facility.type != "backyard"
+            and facility.status != "IP"
+        ):
             num_chickens_to_move, chicken_properties_to_move_to = facility.want_to_move_animals()
 
             if num_chickens_to_move > 0:  # if neither is >0, then there is no movement for this facility
@@ -495,7 +501,7 @@ def animal_movement(
 
                         if chickens_left_to_move > 0:
                             raise ValueError("After everything, there are still chickens left...this shouldn't happen!")
-        if "layers" in facility.type:
+        if "layers" in facility.type and facility.status != "IP":
             # movement should be to egg processors only
             num_eggs_to_move, egg_properties_to_move_to = facility.want_to_move_eggs()
             if num_eggs_to_move > 0:
@@ -551,7 +557,7 @@ def animal_movement(
                             # added in case I decide to change the information recorded again
 
                         movement_record.append(row)
-        if facility.type == "breeder":
+        if facility.type == "breeder" and facility.status != "IP":
             # egg movements for breeder properties
             # if eggs, for movement to hatcheries, need to check chickens not check accepting eggs, and move eggs into sheds
             num_eggs_to_move, egg_properties_to_move_to = facility.want_to_move_eggs()
@@ -630,7 +636,7 @@ def animal_movement(
 
                                 movement_record.append(row)
 
-        if facility.type == "abbatoir":
+        if facility.type == "abbatoir" and facility.status != "IP":
 
             total_chickens_being_slaughtered = 0
             for shed_i, shed_info in facility.sheds.items():
@@ -661,7 +667,7 @@ def animal_movement(
 
                 movement_record.append(row)
 
-        if facility.type == "egg processing":
+        if facility.type == "egg processing" and facility.status != "IP":
             total_eggs_being_moved = facility.eggs
             facility.eggs = 0  # reset to zero
             if total_eggs_being_moved > 0:
