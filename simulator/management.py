@@ -744,7 +744,7 @@ class JobManager:
             stats,
         )
 
-    def calculate_resources_used(self, folder_path):
+    def calculate_resources_used(self, folder_path, output_suffix=""):
         # there's probably a dataframes way to do this
 
         job_types = [
@@ -793,7 +793,7 @@ class JobManager:
         header.extend(job_types)
         jobs_df = pd.DataFrame(jobs, columns=header)
 
-        jobs_df.to_csv(os.path.join(folder_path, "resources_used.csv"), index=False)
+        jobs_df.to_csv(os.path.join(folder_path, f"resources_used{output_suffix}.csv"), index=False)
 
     def get_premises_under_active_jobs(self):
         list_of_premises = []

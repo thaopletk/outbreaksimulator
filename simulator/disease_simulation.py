@@ -145,7 +145,7 @@ class DiseaseSimulation:
     def set_vax_modifier(self, vax_modifier):
         self.vax_modifier = vax_modifier
 
-    def save_reports(self, properties, restricted_area=None, control_area=None):
+    def save_reports(self, properties, restricted_area=None, control_area=None, output_suffix=""):
         """Saves the text report (narrative) which includes all the actions and reports"""
         total_culled = 0
         total_vaccinated = 0
@@ -193,9 +193,9 @@ class DiseaseSimulation:
 
         narrative_df = narrative_df[["day", "date", "type", "sim_id", "case_id", "report"]]
 
-        narrative_df.to_csv(os.path.join(self.folder_path, "combined_narrative.csv"), index=False)
+        narrative_df.to_csv(os.path.join(self.folder_path, f"combined_narrative{output_suffix}.csv"), index=False)
 
-    def save_daily_statistics(self):
+    def save_daily_statistics(self, output_suffix=""):
         header = [
             "date",
             "num self-reported",
@@ -233,7 +233,7 @@ class DiseaseSimulation:
         # save the dataframe
         data_df = pd.DataFrame(data, columns=header)
 
-        data_df.to_csv(os.path.join(self.folder_path, "daily_statistics.csv"), index=False)
+        data_df.to_csv(os.path.join(self.folder_path, f"daily_statistics{output_suffix}.csv"), index=False)
 
     def save_preprocessed_plotting_information(self, properties):
 
@@ -618,7 +618,7 @@ class DiseaseSimulation:
 
         return first_report_i
 
-    def force_sim_pause_after_report(self, properties, restricted_area, control_area):
+    def force_sim_pause_after_report(self, properties, restricted_area, control_area, output_suffix=""):
         simulator.plot_current_state(
             properties,
             self.time,
@@ -648,12 +648,12 @@ class DiseaseSimulation:
         )
 
         animal_movement.save_movement_record(self.folder_path, self.movement_records)
-        self.save_reports(properties, restricted_area, control_area)
+        self.save_reports(properties, restricted_area, control_area, output_suffix=output_suffix)
         self.job_manager.save_jobs_queue(self.folder_path)
-        self.save_daily_statistics()
+        self.save_daily_statistics(output_suffix)
 
         # TODO: add in a "total" column? or add in relative costs/estimated costs and a total estimated cost...
-        self.job_manager.calculate_resources_used(self.folder_path)
+        self.job_manager.calculate_resources_used(self.folder_path, output_suffix)
 
         dates_list = [premises.convert_time_to_date(t) for t in range(self.first_detection_day, self.time + 1)]
         # print(dates_list)
@@ -685,7 +685,7 @@ class DiseaseSimulation:
 
         return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
 
-    def simulate_first_report(self, properties, reportingregion_x, reportingregion_y, outbreak_sim="LSD"):
+    def simulate_first_report(self, properties, reportingregion_x, reportingregion_y, outbreak_sim="LSD", output_suffix=""):
         """Simulates the first day of reporting and subsequent actions on that first day
 
         Parameters
@@ -741,7 +741,7 @@ class DiseaseSimulation:
         self.make_report(reported_property, converted_date, first_report_i)
         self.daily_statistics[converted_date]["num self-reported"] += 1
 
-        return self.force_sim_pause_after_report(properties, restricted_area=None, control_area=None)
+        return self.force_sim_pause_after_report(properties, restricted_area=None, control_area=None, output_suffix=output_suffix)
 
     def simulate_first_day(self, properties, reportingregion_x, reportingregion_y):
         """Simulates the first day of reporting and subsequent actions on that first day
@@ -1792,6 +1792,7 @@ class DiseaseSimulation:
         time=None,
         restricted_emergency_zone=None,
         control_emergency_zone=None,
+        output_suffix="",
     ):
 
         if time != None:
@@ -2526,11 +2527,11 @@ class DiseaseSimulation:
         fixed_spatial_setup.save_chicken_property_csv(properties, self.time, self.folder_path, self.unique_output)
 
         animal_movement.save_movement_record(self.folder_path, self.movement_records)
-        self.save_reports(properties, restricted_area, control_area)
-        self.job_manager.save_jobs_HPAI(self.folder_path, "completed_jobs.csv")
-        self.save_daily_statistics()
+        self.save_reports(properties, restricted_area, control_area, output_suffix=output_suffix)
+        self.job_manager.save_jobs_HPAI(self.folder_path, f"completed_jobs{output_suffix}.csv")
+        self.save_daily_statistics(output_suffix=output_suffix)
 
-        self.job_manager.calculate_resources_used(self.folder_path)
+        self.job_manager.calculate_resources_used(self.folder_path, output_suffix)
 
         dates_list = [premises.convert_time_to_date(t) for t in range(self.first_detection_day, self.time + 1)]
         # print(dates_list)

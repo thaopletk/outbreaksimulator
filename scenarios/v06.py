@@ -417,6 +417,8 @@ if not os.path.exists(folder_path_first_report):
 spread_properties_filename = os.path.join(folder_path_first_report, "properties_" + unique_output)
 spread_diseaseoutbreak_filename = os.path.join(folder_path_first_report, "outbreakobject_" + unique_output)
 
+output_suffix = "_01"
+
 random.seed(15)
 np.random.seed(16)
 if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
@@ -431,7 +433,7 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
     )
 
     properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_first_report(
-        properties, reportingregion_x, reportingregion_y
+        properties, reportingregion_x, reportingregion_y, output_suffix=output_suffix
     )
 
     # and then resave the end state
@@ -447,7 +449,7 @@ else:
     with open(spread_diseaseoutbreak_filename, "rb") as file:
         diseaseoutbreak = pickle.load(file)
 
-HPAI_functions.save_approx_known_data(properties, folder_path_first_report, unique_output)
+HPAI_functions.save_approx_known_data(properties, folder_path_first_report, unique_output="", output_suffix=output_suffix)
 
 
 download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
@@ -477,6 +479,8 @@ property_based_zones = pd.read_excel(actions_input, sheet_name="zones")  # could
 days_to_run_for = 1
 
 unique_output = f"04_actions_1"
+output_suffix = "_02"
+
 folder_path = os.path.join(folder_path_main, unique_output)
 
 if not os.path.exists(folder_path):
@@ -498,7 +502,7 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
     )
 
     properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_HPAI_outbreak_management(
-        properties, property_jobs, zones_based_jobs, property_based_zones, days_to_run_for
+        properties, property_jobs, zones_based_jobs, property_based_zones, days_to_run_for, output_suffix=output_suffix
     )
 
     # and then resave the end state
@@ -522,7 +526,7 @@ else:
         diseaseoutbreak = pickle.load(file)
 
 
-HPAI_functions.save_approx_known_data(properties, folder_path, unique_output)
+HPAI_functions.save_approx_known_data(properties, folder_path, unique_output="", output_suffix=output_suffix)
 
 download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
 
@@ -544,6 +548,7 @@ if not os.path.exists(download_folder_path):
 # # actions, basic: date, property_id, action-to-take-on-date, extra deets for action if necessary (e.g., if culling, the number of animals culled on that day)
 
 actions_input = os.path.join(folder_path_main, f"actions_2.xlsx")
+output_suffix = "_03"
 property_jobs = pd.read_excel(actions_input, sheet_name="jobs")
 zones_based_jobs = pd.read_excel(actions_input, sheet_name="zone_jobs")
 property_based_zones = pd.read_excel(actions_input, sheet_name="zones")  # could consider "expanding to SAL, LGA" or something like that
@@ -586,6 +591,7 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
         days_to_run_for,
         restricted_emergency_zone=RA_shape,
         control_emergency_zone=CA_shape,
+        output_suffix=output_suffix,
     )
 
     # and then resave the end state
@@ -609,7 +615,7 @@ else:
         diseaseoutbreak = pickle.load(file)
 
 
-HPAI_functions.save_approx_known_data(properties, folder_path, unique_output)
+HPAI_functions.save_approx_known_data(properties, folder_path, unique_output="", output_suffix=output_suffix)
 
 download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
 
@@ -638,6 +644,8 @@ next_run = 3
 while next_run <= max_runs:
 
     actions_input = os.path.join(folder_path_main, f"actions_{next_run}.xlsx")
+    number = next_run + 1
+    output_suffix = f"_{number:02d}"
     property_jobs = pd.read_excel(actions_input, sheet_name="jobs")
     zones_based_jobs = pd.read_excel(actions_input, sheet_name="zone_jobs")
     property_based_zones = pd.read_excel(actions_input, sheet_name="zones")  # could consider "expanding to SAL, LGA" or something like that
@@ -666,7 +674,7 @@ while next_run <= max_runs:
         )
 
         properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_HPAI_outbreak_management(
-            properties, property_jobs, zones_based_jobs, property_based_zones, days_to_run_for
+            properties, property_jobs, zones_based_jobs, property_based_zones, days_to_run_for, output_suffix=output_suffix
         )
 
         # and then resave the end state
@@ -689,7 +697,7 @@ while next_run <= max_runs:
         with open(spread_diseaseoutbreak_filename, "rb") as file:
             diseaseoutbreak = pickle.load(file)
 
-    HPAI_functions.save_approx_known_data(properties, folder_path, unique_output)
+    HPAI_functions.save_approx_known_data(properties, folder_path, unique_output="", output_suffix=output_suffix)
 
     download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
 

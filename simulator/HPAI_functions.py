@@ -362,6 +362,7 @@ def animal_movement(
             and facility.type != "egg processing"
             and facility.type != "backyard"
             and facility.status != "IP"
+            and facility.status != "RP"
         ):
             num_chickens_to_move, chicken_properties_to_move_to = facility.want_to_move_animals()
 
@@ -377,6 +378,8 @@ def animal_movement(
                 # go through the properties we *could* move chickens to, to find which ones *can* have chickens moved to them
                 for property_index in chicken_properties_to_move_to:
                     target_facility = properties[property_index]
+                    if target_facility == "IP" or target_facility == "RP":
+                        continue  # skip it
                     empty_sheds, num_chickens_per_shed_target = target_facility.accepting_chickens()
                     # need to figure out....how many premises the movements need to be made to OTL
                     if empty_sheds != [] and num_chickens_per_shed_target > 0:
@@ -501,7 +504,7 @@ def animal_movement(
 
                         if chickens_left_to_move > 0:
                             raise ValueError("After everything, there are still chickens left...this shouldn't happen!")
-        if "layers" in facility.type and facility.status != "IP":
+        if "layers" in facility.type and facility.status not in ["IP", "RP"]:
             # movement should be to egg processors only
             num_eggs_to_move, egg_properties_to_move_to = facility.want_to_move_eggs()
             if num_eggs_to_move > 0:
@@ -511,6 +514,8 @@ def animal_movement(
                 targets_in_control_zones = []
                 for property_index in egg_properties_to_move_to:
                     target_facility = properties[property_index]
+                    if target_facility == "IP" or target_facility == "RP":
+                        continue  # skip it
                     if controlzone != None and target_facility.polygon.intersects(controlzone):
                         if random.uniform(0, 1) < movement_reduction_factor:
                             # ILLEGAL MOVEMENT, aka with some probability, there will be movement without movement requests!
@@ -557,7 +562,7 @@ def animal_movement(
                             # added in case I decide to change the information recorded again
 
                         movement_record.append(row)
-        if facility.type == "breeder" and facility.status != "IP":
+        if facility.type == "breeder" and facility.status not in ["IP", "RP"]:
             # egg movements for breeder properties
             # if eggs, for movement to hatcheries, need to check chickens not check accepting eggs, and move eggs into sheds
             num_eggs_to_move, egg_properties_to_move_to = facility.want_to_move_eggs()
@@ -569,6 +574,8 @@ def animal_movement(
                 targets_in_control_zones = []
                 for property_index in egg_properties_to_move_to:
                     target_facility = properties[property_index]
+                    if target_facility == "IP" or target_facility == "RP":
+                        continue  # skip it
                     empty_sheds, num_chickens_per_shed_target = target_facility.accepting_chickens()
                     if empty_sheds != [] and num_chickens_per_shed_target > 0:
                         if controlzone != None and target_facility.polygon.intersects(controlzone):
@@ -636,7 +643,7 @@ def animal_movement(
 
                                 movement_record.append(row)
 
-        if facility.type == "abbatoir" and facility.status != "IP":
+        if facility.type == "abbatoir" and facility.status not in ["IP", "RP"]:
 
             total_chickens_being_slaughtered = 0
             for shed_i, shed_info in facility.sheds.items():
@@ -667,7 +674,7 @@ def animal_movement(
 
                 movement_record.append(row)
 
-        if facility.type == "egg processing" and facility.status != "IP":
+        if facility.type == "egg processing" and facility.status not in ["IP", "RP"]:
             total_eggs_being_moved = facility.eggs
             facility.eggs = 0  # reset to zero
             if total_eggs_being_moved > 0:
@@ -728,7 +735,7 @@ def rounding_entities(val):
     return math.floor(val / 100000) * 100000
 
 
-def save_approx_known_data(properties, folder_path, unique_output):
+def save_approx_known_data(properties, folder_path, unique_output="", output_suffix=""):
     """Outputs a csv with the approximately known data on properties and premises
 
     Returns
@@ -766,8 +773,10 @@ def save_approx_known_data(properties, folder_path, unique_output):
         "culled_birds",
         "destroyed_eggs",
     ]
-
-    file = os.path.join(folder_path, f"approx_known_data_{unique_output}.csv")
+    if output_suffix == "":
+        file = os.path.join(folder_path, f"approx_known_data_{unique_output}.csv")
+    else:
+        file = os.path.join(folder_path, f"approx_known_data{output_suffix}.csv")
     with open(file, "w", newline="") as f:
 
         # create the csv writer
