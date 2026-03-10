@@ -103,6 +103,8 @@ class DiseaseSimulation:
 
         self.clinical_reporting_threshold = scenario_parameters["clinical_reporting_threshold"]
         self.prob_report = scenario_parameters["prob_report"]
+        self.prob_report_commercial = scenario_parameters["prob_report_commercial"]
+        self.prob_report_backyard = scenario_parameters["prob_report_backyard"]
 
         self.vax_modifier = 0.6
 
@@ -1854,12 +1856,17 @@ class DiseaseSimulation:
                 else:
                     increased_reporting_factor = 1
 
+                if facility.type == "backyard":
+                    reporting_probability = self.prob_report_backyard
+                else:
+                    reporting_probability = self.prob_report_commercial
+
                 if (
                     not facility.culled_status
                     and not facility.reported_status
                     and (facility.status not in ["SP", "DCP", "IP"])  # self reported status
                     and facility.prob_of_reporting_only(
-                        self.clinical_reporting_threshold, self.prob_report * increased_reporting_factor
+                        self.clinical_reporting_threshold, reporting_probability * increased_reporting_factor
                     )  # TODO: this is the place to add in false positives
                 ):
                     self.make_report(facility, converted_date, i)
