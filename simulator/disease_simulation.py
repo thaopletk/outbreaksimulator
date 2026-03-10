@@ -2173,6 +2173,8 @@ class DiseaseSimulation:
                             [self.time, converted_date, "tracing", property_index, contact_tracing_report, properties[property_index].case_id]
                         )
 
+                        properties[property_index].custom_info["last_conducted_contact_tracing"] = converted_date
+
                         contacts_for_plotting[property_index] = traced_property_indices
 
                         for t_i in traced_property_indices:
@@ -2449,6 +2451,51 @@ class DiseaseSimulation:
                         self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
 
                     extra_job_info = f"Environmental surveillance and eDNA ({surveillance_ref})"
+
+                    if "NA" not in self.job_manager.jobs_queue:
+                        self.job_manager.jobs_queue["NA"] = {}
+                    if row["action"] not in self.job_manager.jobs_queue["NA"]:
+                        self.job_manager.jobs_queue["NA"][row["action"]] = {}
+
+                    self.job_manager.jobs_queue["NA"][row["action"]][str(self.time)] = [
+                        "complete",
+                        converted_date,
+                        extra_job_info,
+                    ]
+
+            # Missing Properties Survey
+            survey_df = zones_based_jobs[zones_based_jobs["action"] == "Missing Properties Survey"]
+            for i, row in survey_df.iterrows():
+
+                if row["date_scheduled"] == converted_date_dt:
+
+                    surveillance_zone = management.define_control_zone_polygons(
+                        properties,
+                        [row["ID"]],
+                        row["radius_km"],
+                        convex=False,
+                    )
+                    surveillance_ref = row["zone_name"]
+
+                    if isinstance(row["zone_parameter"], float) or isinstance(row["zone_parameter"], int):
+                        detection_probability_factor = row["zone_parameter"]
+                    else:
+                        detection_probability_factor = 1.0  # assuming that we find all properties
+
+                    total_properties_in_zone = 0
+                    total_unknown_properties_in_zone = 0
+                    for i, facility in enumerate(properties):
+                        if facility.polygon.intersects(surveillance_zone):
+                            total_properties_in_zone += 1
+                            if facility.data_source == "":
+                                total_unknown_properties_in_zone += 1
+                                facility.data_source = "Missing Properties Survey"
+
+                    testing_report = f"DAY {converted_date} - Missing Properties Survey ({surveillance_ref}) report: {total_properties_in_zone} properties found in zone, with {total_properties_in_zone} properties previously unrecorded"
+
+                    self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
+
+                    extra_job_info = f"Missing Properties Survey ({surveillance_ref})"
 
                     if "NA" not in self.job_manager.jobs_queue:
                         self.job_manager.jobs_queue["NA"] = {}

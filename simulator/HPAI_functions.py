@@ -772,6 +772,7 @@ def save_approx_known_data(properties, folder_path, unique_output="", output_suf
         "last_cull_date",
         "culled_birds",
         "destroyed_eggs",
+        "last_conducted_contact_tracing",
     ]
     if output_suffix == "":
         file = os.path.join(folder_path, f"approx_known_data_{unique_output}.csv")
@@ -836,6 +837,11 @@ def save_approx_known_data(properties, folder_path, unique_output="", output_suf
             except:
                 destroyed_eggs = "NA"
 
+            try:
+                last_conducted_contact_tracing_date = facility.custom_info["last_conducted_contact_tracing"]
+            except:
+                last_conducted_contact_tracing_date = "NA"
+
             if "layers" in facility.type:
                 if facility.chicken_capacity >= 100 or facility.data_source != "ALSR":
                     enterprise_type = "layers"
@@ -887,6 +893,7 @@ def save_approx_known_data(properties, folder_path, unique_output="", output_suf
                     last_cull_date,
                     culled_birds,
                     destroyed_eggs,
+                    last_conducted_contact_tracing_date,
                 ]
 
                 writer.writerow(row)
