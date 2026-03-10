@@ -2035,13 +2035,23 @@ class DiseaseSimulation:
                             detection_prob = row["detection_prob"]
                         else:
                             if row["specific_action"] == "Phone Surveillance":
-                                detection_prob = 0.4
+                                if properties[property_index].type == "backyard":
+                                    detection_prob = 0.95 * 0.5
+                                else:
+                                    detection_prob = 0.95 * 0.95
                             elif row["specific_action"] == "Field Surveillance":
-                                detection_prob = 0.99
+                                detection_prob = 0.95
                             elif row["specific_action"] == "Self-reporting Surveillance":
-                                detection_prob = 0.5
+                                if properties[property_index].type == "backyard":
+                                    detection_prob = 0.95 * 0.45
+                                else:
+                                    detection_prob = 0.95 * 0.90
                             else:
                                 raise ValueError(f"{row['specific_action']} not expected")
+
+                        # TODO : something complicated here about being able to select sick birds and identifying that visually
+                        number_infected_on_property = properties[property_index].number_infected
+                        prop_clinical = properties[property_index].prop_clinical
 
                         testing_report, positive = management.test_property(
                             properties, property_index, self.time, test_sensitivity=detection_prob, test_type=row["specific_action"]
@@ -2349,7 +2359,7 @@ class DiseaseSimulation:
                     if isinstance(row["zone_parameter"], float) or isinstance(row["zone_parameter"], int):
                         detection_probability_factor = row["zone_parameter"]
                     else:
-                        detection_probability_factor = 0.2  # PCR_detection_probability
+                        detection_probability_factor = 0.3  # PCR_detection_probability
 
                     total_num_infected_birds_in_zone = 0
                     total_num_birds_in_zone = 0
@@ -2419,7 +2429,7 @@ class DiseaseSimulation:
                     if isinstance(row["zone_parameter"], float) or isinstance(row["zone_parameter"], int):
                         detection_probability_factor = row["zone_parameter"]
                     else:
-                        detection_probability_factor = 0.1  # PCR_detection_probability
+                        detection_probability_factor = 0.1  # feels like eDNA should be less than PCR
 
                     total_num_infected_birds_in_zone = 0
                     total_num_birds_in_zone = 0
