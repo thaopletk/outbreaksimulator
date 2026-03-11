@@ -1922,7 +1922,7 @@ class DiseaseSimulation:
             # Specific property actions
             for i, row in property_jobs.iterrows():
 
-                if row["date_scheduled"] == converted_date_dt:
+                if row["date_scheduled"] == converted_date or row["data_scheduled"] == converted_date_dt:
                     print(row)
                     job_type = row["action"]
                     property_index = row["ID"]
@@ -2250,7 +2250,7 @@ class DiseaseSimulation:
             population_level_surveillance_df = zones_based_jobs[zones_based_jobs["action"] == "Population-level Surveillance"]
             for i, row in population_level_surveillance_df.iterrows():
 
-                if row["date_scheduled"] == converted_date_dt:
+                if row["date_scheduled"] == converted_date_dt or row["date_scheduled"] == converted_date:
 
                     population_level_surveillance = management.define_control_zone_polygons(
                         properties,
@@ -2344,7 +2344,7 @@ class DiseaseSimulation:
             wild_animal_surveillance_df = zones_based_jobs[zones_based_jobs["action"] == "Wild Animal Surveillance"]
             for i, row in wild_animal_surveillance_df.iterrows():
 
-                if row["date_scheduled"] == converted_date_dt:
+                if row["date_scheduled"] == converted_date_dt or row["date_scheduled"] == converted_date:
 
                     wild_animal_surveillance = management.define_control_zone_polygons(
                         properties,
@@ -2414,7 +2414,7 @@ class DiseaseSimulation:
             environmental_surveillance_df = zones_based_jobs[zones_based_jobs["action"] == "Environmental Surveillance"]
             for i, row in environmental_surveillance_df.iterrows():
 
-                if row["date_scheduled"] == converted_date_dt:
+                if row["date_scheduled"] == converted_date_dt or row["date_scheduled"] == converted_date:
 
                     surveillance_zone = management.define_control_zone_polygons(
                         properties,
@@ -2484,7 +2484,7 @@ class DiseaseSimulation:
             survey_df = zones_based_jobs[zones_based_jobs["action"] == "Missing Properties Survey"]
             for i, row in survey_df.iterrows():
 
-                if row["date_scheduled"] == converted_date_dt:
+                if row["date_scheduled"] == converted_date_dt or row["date_scheduled"] == converted_date:
 
                     surveillance_zone = management.define_control_zone_polygons(
                         properties,
