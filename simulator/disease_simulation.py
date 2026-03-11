@@ -2013,7 +2013,19 @@ class DiseaseSimulation:
                         if positive:
                             self.daily_statistics[converted_date]["num positive clinical"] += 1
                             properties[property_index].custom_info["animals_clinical"] = True
-                            # no status change
+                            OG_status = properties[property_index].status
+                            if OG_status not in ["IP", "SP", "RP"]:
+                                properties[property_index].status = "SP"
+                                self.combined_narrative.append(
+                                    [
+                                        self.time,
+                                        converted_date,
+                                        "status_update",
+                                        properties[property_index].id,
+                                        f"{properties[property_index].type} (sim_id {properties[property_index].id}) has updated status: {properties[property_index].status} due to positive clinical signs (prior status: {OG_status})",
+                                        properties[property_index].case_id,
+                                    ]
+                                )
                         else:
                             properties[property_index].custom_info["animals_clinical"] = False
                             OG_status = properties[property_index].status
@@ -2082,7 +2094,19 @@ class DiseaseSimulation:
                         if positive:
                             self.daily_statistics[converted_date]["num positive clinical"] += 1
                             properties[property_index].custom_info["animals_clinical"] = True
-                            # no status change
+                            OG_status = properties[property_index].status
+                            if OG_status not in ["IP", "SP", "RP"]:
+                                properties[property_index].status = "SP"
+                                self.combined_narrative.append(
+                                    [
+                                        self.time,
+                                        converted_date,
+                                        "status_update",
+                                        properties[property_index].id,
+                                        f"{properties[property_index].type} (sim_id {properties[property_index].id}) has updated status: {properties[property_index].status} due to positive clinical signs (prior status: {OG_status})",
+                                        properties[property_index].case_id,
+                                    ]
+                                )
                         else:
                             properties[property_index].custom_info["animals_clinical"] = False
                             OG_status = properties[property_index].status
@@ -2195,20 +2219,19 @@ class DiseaseSimulation:
                         contacts_for_plotting[property_index] = traced_property_indices
 
                         for t_i in traced_property_indices:
-                            if properties[t_i].status not in ["IP", "DCP", "TP", "SP", "DCPF", "RP"]:
-                                OG_status = properties[t_i].status
-                                if OG_status != "TP":
-                                    properties[t_i].status = "TP"
-                                    self.combined_narrative.append(
-                                        [
-                                            self.time,
-                                            converted_date,
-                                            "status_update",
-                                            properties[t_i].id,
-                                            f"{properties[t_i].type} (sim_id {properties[t_i].id}) has updated status: {properties[t_i].status} (prior status: {OG_status})",
-                                            properties[t_i].case_id,
-                                        ]
-                                    )
+                            OG_status = properties[t_i].status
+                            if OG_status not in ["IP", "DCP", "TP", "SP", "DCPF", "RP"]:
+                                properties[t_i].status = "TP"
+                                self.combined_narrative.append(
+                                    [
+                                        self.time,
+                                        converted_date,
+                                        "status_update",
+                                        properties[t_i].id,
+                                        f"{properties[t_i].type} (sim_id {properties[t_i].id}) has updated status: {properties[t_i].status} (prior status: {OG_status})",
+                                        properties[t_i].case_id,
+                                    ]
+                                )
                             if properties[t_i].case_id == None:
                                 self.case_id_counter += 1
                                 properties[t_i].case_id = self.case_id_counter
