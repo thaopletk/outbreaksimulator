@@ -472,113 +472,40 @@ if not os.path.exists(download_folder_path):
 ###################################################
 
 previous_folder = folder_path_first_report
+previous_output_suffix = "_01"
 
-approx_data_csv = os.path.join(previous_folder, "approx_known_data_01.csv")
-
-action_number = 1
-unique_output = f"04_actions_{action_number}"
-output_suffix = "_02"
-folder_path = os.path.join(folder_path_main, unique_output)
-if not os.path.exists(folder_path):
-    os.makedirs(folder_path)
-
-scheduled_date = premises.convert_time_to_date(diseaseoutbreak.time + 1)
-
-auto_job_mode.generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, max_resource_units=100)
-
-property_jobs = pd.read_csv(os.path.join(folder_path, f"jobs_{action_number}.csv"))
-zones_based_jobs = pd.read_csv(os.path.join(folder_path, f"zone_jobs_{action_number}.csv"))
-property_based_zones = pd.read_csv(os.path.join(folder_path, f"zones_{action_number}.csv"))
+max_runs = 6
 days_to_run_for = 1
 
-spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
-spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
+action_number = 1
+while action_number <= max_runs:
+    approx_data_csv = os.path.join(previous_folder, f"approx_known_data{previous_output_suffix}.csv")
 
-random.seed(1235)
-np.random.seed(1116)
-if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
-    # adjust the plotting parameters for this new scenario
-    diseaseoutbreak.set_plotting_parameters(
-        xlims=xlims,
-        ylims=ylims,
-        plotting=True,
-        folder_path=folder_path,
-        unique_output=unique_output,
-    )
+    outputnumber = action_number + 1
+    output_suffix = f"_{outputnumber:02d}"
 
-    properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_HPAI_outbreak_management(
-        properties, property_jobs, zones_based_jobs, property_based_zones, days_to_run_for, output_suffix=output_suffix
-    )
-
-    # and then resave the end state
-    with open(spread_properties_filename, "wb") as file:
-        pickle.dump(properties, file)
-
-    # and save the diseaseoutbreak object
-    with open(spread_diseaseoutbreak_filename, "wb") as file:
-        pickle.dump(diseaseoutbreak, file)
-
-    total_infected = 0
-    for property_i in properties:
-        if property_i.exposure_date != "NA":
-            total_infected += 1
-
-    print(f"Total number of infected premises: {total_infected}")
-else:
-    with open(spread_properties_filename, "rb") as file:
-        properties = pickle.load(file)
-    with open(spread_diseaseoutbreak_filename, "rb") as file:
-        diseaseoutbreak = pickle.load(file)
-
-
-HPAI_functions.save_approx_known_data(properties, folder_path, unique_output="", output_suffix=output_suffix)
-
-download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
-
-if not os.path.exists(download_folder_path):
-    os.makedirs(download_folder_path)
-
-    # Loop through the files in the source directory and copy just the png or csv files
-    for file in os.listdir(folder_path):
-        if file.endswith(".png") or file.endswith(".csv"):
-            source_path = os.path.join(folder_path, file)
-            destination_path = os.path.join(download_folder_path, file)
-            shutil.copy(source_path, destination_path)
-
-exit(1)
-
-###################################################
-# ---- Running further actions ------------------#
-###################################################
-
-# # generate a list of scheduled management actions
-# # actions, basic: date, property_id, action-to-take-on-date, extra deets for action if necessary (e.g., if culling, the number of animals culled on that day)
-
-# this should just break if the actions_[next_run].xslx file is missing
-max_runs = 10
-next_run = 3
-while next_run <= max_runs:
-
-    actions_input = os.path.join(folder_path_main, f"actions_{next_run}.xlsx")
-    number = next_run + 1
-    output_suffix = f"_{number:02d}"
-    property_jobs = pd.read_excel(actions_input, sheet_name="jobs")
-    zones_based_jobs = pd.read_excel(actions_input, sheet_name="zone_jobs")
-    property_based_zones = pd.read_excel(actions_input, sheet_name="zones")  # could consider "expanding to SAL, LGA" or something like that
-    days_to_run_for = 3  # running for three days feels better
-
-    number = next_run + 3
-    unique_output = f"{number:02d}_actions_{next_run}"
+    unique_outputnumber = action_number + 3
+    unique_output = f"{unique_outputnumber:02d}_actions_{action_number}"
     folder_path = os.path.join(folder_path_main, unique_output)
+
+    print(folder_path)
 
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
 
+    scheduled_date = premises.convert_time_to_date(diseaseoutbreak.time + 1)
+
+    auto_job_mode.generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, max_resource_units=100)
+
+    property_jobs = pd.read_csv(os.path.join(folder_path, f"jobs_{action_number}.csv"))
+    zones_based_jobs = pd.read_csv(os.path.join(folder_path, f"zone_jobs_{action_number}.csv"))
+    property_based_zones = pd.read_csv(os.path.join(folder_path, f"zones_{action_number}.csv"))
+
     spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
     spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
 
-    random.seed(215)
-    np.random.seed(216)
+    random.seed(1235)
+    np.random.seed(1116)
     if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
         # adjust the plotting parameters for this new scenario
         diseaseoutbreak.set_plotting_parameters(
@@ -627,4 +554,6 @@ while next_run <= max_runs:
                 destination_path = os.path.join(download_folder_path, file)
                 shutil.copy(source_path, destination_path)
 
-    next_run += 1
+    action_number += 1
+    previous_folder = folder_path
+    previous_output_suffix = output_suffix
