@@ -60,13 +60,12 @@ def generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, m
             jobs_rows.append(job_row)
             resources_used += resource_cost["Cull"]
 
+        # contact tracing if not yet done
         if pd.isna(row["last_conducted_contact_tracing"]):
             if dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + min_delays["ContactTracing"] <= scheduled_date_object:
                 job_row = [row["sim_id"], scheduled_date, "ContactTracing", "", "", "", "IP"]
                 jobs_rows.append(job_row)
                 resources_used += resource_cost["ContactTracing"]
-
-        # TODO: contact tracing if not yet done
 
     SPs = approx_data[approx_data["status"] == "SP"]  # suspect properties; all self-reported
     SPs = SPs.sort_values("case_id")

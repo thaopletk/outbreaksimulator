@@ -258,7 +258,7 @@ def plot_map(
     geometry_vaccinated = []
     geometry_susceptible = []
     geometry_selfreport = []
-    # geometry_culled_on_suspicion = [] # TODO/NOTE: currently removed because we don't expect ring culling to actually be implemented
+    # geometry_culled_on_suspicion = [] # NOTE: currently removed because we don't expect ring culling to actually be implemented
     # geomtry_culled_on_suspicion_actually_infected = []
     geometry_undergoing_testing = []
 
@@ -343,7 +343,7 @@ def plot_map(
                     alpha=0.2,
                     label="infection polygon",
                 )
-            # TODO should consider the case of when it's smaller...
+            # NOTE should consider the case of when it's smaller...
 
     else:  # Apparent situation
 
@@ -393,7 +393,7 @@ def plot_map(
             "o",
             "susceptible",
             20,
-        ],  # TODO: can take out susceptible plotting to make it clearer to see what's happening
+        ],  # NOTE: can take out susceptible plotting to make it clearer to see what's happening
         [geometry_selfreport, "grey", "s", "self-reported", 70],
         [geometry_vaccinated, "#7852a4", "P", "vaccinated", 70],
         [geometry_undergoing_testing, "#ffa200", "d", "TP/testing", 100],
@@ -1083,7 +1083,7 @@ def plot_infection_pressure(
 
         geo_df = gpd.GeoDataFrame(geometry=geometry)
         geo_df.crs = {"init": "epsg:4326"}
-        # TODO well if I want to do this, then this needs to be done properly
+        # NOTE well if I want to do this, then this needs to be done properly
         ax = geo_df.plot(
             ax=ax,
             markersize=markersize,
