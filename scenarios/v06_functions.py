@@ -591,9 +591,113 @@ def run_actions_excel_shapefile(
 def run_auto_actions(
     state,
     previous_unique_output,
-    days_to_run_for=1,
-    unique_output="04_actions_1",
-    output_suffix="_02",
+    previous_output_suffix_int=1,
+    total_days_to_run_for=7,
+    start_action_number_int=1,
+    unique_output_starting_int=4,
     create_download_folder=False,
+    max_resource_units=100,
 ):
-    pass
+    folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}")
+    xrange, yrange, xlims, ylims = x_y_ranges(state)
+
+    previous_folder = os.path.join(folder_path_main, previous_unique_output)
+    previous_output_suffix = f"_{previous_output_suffix_int:02d}"
+
+    previous_spread_properties_filename = os.path.join(folder_path_main, previous_unique_output, "properties_" + previous_unique_output)
+    previous_spread_diseaseoutbreak_filename = os.path.join(folder_path_main, previous_unique_output, "outbreakobject_" + previous_unique_output)
+
+    with open(previous_spread_properties_filename, "rb") as file:
+        properties = pickle.load(file)
+    with open(previous_spread_diseaseoutbreak_filename, "rb") as file:
+        diseaseoutbreak = pickle.load(file)
+
+    days_to_run_for = 1
+
+    action_number = start_action_number_int
+    while action_number <= total_days_to_run_for:
+        approx_data_csv = os.path.join(previous_folder, f"approx_known_data{previous_output_suffix}.csv")
+
+        outputnumber = action_number + 1
+        output_suffix = f"_{outputnumber:02d}"
+
+        unique_outputnumber = unique_output_starting_int
+        unique_output = f"{unique_outputnumber:02d}_actions_{action_number}"
+        folder_path = os.path.join(folder_path_main, unique_output)
+
+        print(folder_path)
+
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+
+        scheduled_date = premises.convert_time_to_date(diseaseoutbreak.time + 1)
+
+        if (
+            not os.path.exists(os.path.join(folder_path, f"jobs_{action_number}.csv"))
+            or not os.path.exists(os.path.join(folder_path, f"zone_jobs_{action_number}.csv"))
+            or not os.path.exists(os.path.join(folder_path, f"zones_{action_number}.csv"))
+        ):
+            auto_job_mode.generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, max_resource_units)
+
+        property_jobs = pd.read_csv(os.path.join(folder_path, f"jobs_{action_number}.csv"))
+        zones_based_jobs = pd.read_csv(os.path.join(folder_path, f"zone_jobs_{action_number}.csv"))
+        property_based_zones = pd.read_csv(os.path.join(folder_path, f"zones_{action_number}.csv"))
+
+        spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
+        spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
+
+        random.seed(1235)
+        np.random.seed(1116)
+        if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
+            # adjust the plotting parameters for this new scenario
+            diseaseoutbreak.set_plotting_parameters(
+                xlims=xlims,
+                ylims=ylims,
+                plotting=True,
+                folder_path=folder_path,
+                unique_output=unique_output,
+            )
+
+            properties, movement_records, current_time, total_culled_animals, job_manager = diseaseoutbreak.simulate_HPAI_outbreak_management(
+                properties, property_jobs, zones_based_jobs, property_based_zones, days_to_run_for, output_suffix=output_suffix
+            )
+
+            # and then resave the end state
+            with open(spread_properties_filename, "wb") as file:
+                pickle.dump(properties, file)
+
+            # and save the diseaseoutbreak object
+            with open(spread_diseaseoutbreak_filename, "wb") as file:
+                pickle.dump(diseaseoutbreak, file)
+
+            total_infected = 0
+            for property_i in properties:
+                if property_i.exposure_date != "NA":
+                    total_infected += 1
+
+            print(f"Total number of infected premises: {total_infected}")
+        else:
+            with open(spread_properties_filename, "rb") as file:
+                properties = pickle.load(file)
+            with open(spread_diseaseoutbreak_filename, "rb") as file:
+                diseaseoutbreak = pickle.load(file)
+
+        HPAI_functions.save_approx_known_data(properties, folder_path, unique_output="", output_suffix=output_suffix)
+
+        if create_download_folder:
+            download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
+
+            if not os.path.exists(download_folder_path):
+                os.makedirs(download_folder_path)
+
+                # Loop through the files in the source directory and copy just the png or csv files
+                for file in os.listdir(folder_path):
+                    if file.endswith(".png") or file.endswith(".csv"):
+                        source_path = os.path.join(folder_path, file)
+                        destination_path = os.path.join(download_folder_path, file)
+                        shutil.copy(source_path, destination_path)
+
+        action_number += 1
+        previous_folder = folder_path
+        previous_output_suffix = output_suffix
+        unique_output_starting_int += 1
