@@ -495,7 +495,12 @@ while action_number <= max_runs:
 
     scheduled_date = premises.convert_time_to_date(diseaseoutbreak.time + 1)
 
-    auto_job_mode.generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, max_resource_units=100)
+    if (
+        not os.path.exists(os.path.join(folder_path, f"jobs_{action_number}.csv"))
+        or not os.path.exists(os.path.join(folder_path, f"zone_jobs_{action_number}.csv"))
+        or not os.path.exists(os.path.join(folder_path, f"zones_{action_number}.csv"))
+    ):
+        auto_job_mode.generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, max_resource_units=100)
 
     property_jobs = pd.read_csv(os.path.join(folder_path, f"jobs_{action_number}.csv"))
     zones_based_jobs = pd.read_csv(os.path.join(folder_path, f"zone_jobs_{action_number}.csv"))
