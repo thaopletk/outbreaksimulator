@@ -53,9 +53,13 @@ if not os.path.exists(folder_path_main):
     os.makedirs(folder_path_main)
 
 suffix = ""
-testing = False  # TODO: adjust this if running the true simulation / vs testing sims
+
+# adjust this if running the true simulation / vs testing sims - if true, then fewer properties are generated
+testing = False
 if testing:
     suffix = "_test"
+
+create_download_folder = False
 
 ###################################################
 # ---- Set up properties and locations -----------#
@@ -99,7 +103,7 @@ else:
             processing_chicken_egg_property_coordinates,
         ) = pickle.load(file)
 
-# plot that actually shows the locations of different facilities (aside from backyard ones at the moment TODO)
+# plot that actually shows the locations of different facilities (aside from backyard ones at the moment)
 if not os.path.exists(os.path.join(folder_path_main, f"property_locations_base_map{suffix}.png")):
     fixed_spatial_setup.plot_map_land_HPAI(
         chicken_meat_property_coordinates,
@@ -275,17 +279,18 @@ else:
 
 HPAI_functions.save_approx_known_data(properties, folder_path_burn_in_movement, unique_output)
 
-download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
+if create_download_folder:
+    download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
 
-if not os.path.exists(download_folder_path):
-    os.makedirs(download_folder_path)
+    if not os.path.exists(download_folder_path):
+        os.makedirs(download_folder_path)
 
-    # Loop through the files in the source directory and copy just the png or csv files
-    for file in os.listdir(folder_path_burn_in_movement):
-        if file.endswith(".png") or file.endswith(".csv"):
-            source_path = os.path.join(folder_path_burn_in_movement, file)
-            destination_path = os.path.join(download_folder_path, file)
-            shutil.copy(source_path, destination_path)
+        # Loop through the files in the source directory and copy just the png or csv files
+        for file in os.listdir(folder_path_burn_in_movement):
+            if file.endswith(".png") or file.endswith(".csv"):
+                source_path = os.path.join(folder_path_burn_in_movement, file)
+                destination_path = os.path.join(download_folder_path, file)
+                shutil.copy(source_path, destination_path)
 
 
 ###################################################
@@ -392,17 +397,18 @@ else:
 
 HPAI_functions.save_approx_known_data(properties, folder_path_undetected_spread, unique_output)
 
-download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
+if create_download_folder:
+    download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
 
-if not os.path.exists(download_folder_path):
-    os.makedirs(download_folder_path)
+    if not os.path.exists(download_folder_path):
+        os.makedirs(download_folder_path)
 
-    # Loop through the files in the source directory and copy just the png or csv files
-    for file in os.listdir(folder_path_undetected_spread):
-        if file.endswith(".png") or file.endswith(".csv"):
-            source_path = os.path.join(folder_path_undetected_spread, file)
-            destination_path = os.path.join(download_folder_path, file)
-            shutil.copy(source_path, destination_path)
+        # Loop through the files in the source directory and copy just the png or csv files
+        for file in os.listdir(folder_path_undetected_spread):
+            if file.endswith(".png") or file.endswith(".csv"):
+                source_path = os.path.join(folder_path_undetected_spread, file)
+                destination_path = os.path.join(download_folder_path, file)
+                shutil.copy(source_path, destination_path)
 
 
 ###################################################
@@ -453,18 +459,18 @@ else:
 
 HPAI_functions.save_approx_known_data(properties, folder_path_first_report, unique_output="", output_suffix=output_suffix)
 
+if create_download_folder:
+    download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
 
-download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
+    if not os.path.exists(download_folder_path):
+        os.makedirs(download_folder_path)
 
-if not os.path.exists(download_folder_path):
-    os.makedirs(download_folder_path)
-
-    # Loop through the files in the source directory and copy just the png or csv files
-    for file in os.listdir(folder_path_first_report):
-        if file.endswith(".png") or file.endswith(".csv"):
-            source_path = os.path.join(folder_path_first_report, file)
-            destination_path = os.path.join(download_folder_path, file)
-            shutil.copy(source_path, destination_path)
+        # Loop through the files in the source directory and copy just the png or csv files
+        for file in os.listdir(folder_path_first_report):
+            if file.endswith(".png") or file.endswith(".csv"):
+                source_path = os.path.join(folder_path_first_report, file)
+                destination_path = os.path.join(download_folder_path, file)
+                shutil.copy(source_path, destination_path)
 
 
 ###################################################
@@ -474,7 +480,7 @@ if not os.path.exists(download_folder_path):
 previous_folder = folder_path_first_report
 previous_output_suffix = "_01"
 
-max_runs = 6
+max_runs = 1
 days_to_run_for = 1
 
 action_number = 1
@@ -547,17 +553,18 @@ while action_number <= max_runs:
 
     HPAI_functions.save_approx_known_data(properties, folder_path, unique_output="", output_suffix=output_suffix)
 
-    download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
+    if create_download_folder:
+        download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
 
-    if not os.path.exists(download_folder_path):
-        os.makedirs(download_folder_path)
+        if not os.path.exists(download_folder_path):
+            os.makedirs(download_folder_path)
 
-        # Loop through the files in the source directory and copy just the png or csv files
-        for file in os.listdir(folder_path):
-            if file.endswith(".png") or file.endswith(".csv"):
-                source_path = os.path.join(folder_path, file)
-                destination_path = os.path.join(download_folder_path, file)
-                shutil.copy(source_path, destination_path)
+            # Loop through the files in the source directory and copy just the png or csv files
+            for file in os.listdir(folder_path):
+                if file.endswith(".png") or file.endswith(".csv"):
+                    source_path = os.path.join(folder_path, file)
+                    destination_path = os.path.join(download_folder_path, file)
+                    shutil.copy(source_path, destination_path)
 
     action_number += 1
     previous_folder = folder_path
