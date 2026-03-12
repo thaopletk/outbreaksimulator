@@ -149,6 +149,14 @@ class Premises(Property):
         self.county = "NA"
         self.cluster = "NA"
         self.type = property_type
+        self.housing_type = ""
+        if "layers" in self.type:
+            self.housing_type = self.type[7:]
+        elif "broiler" in self.type:
+            if np.random.rand() < 0.15:
+                self.housing_type = "free-range"
+            else:
+                self.housing_type = "barn"
 
         # for movement
         self.movement_probability = movement_probability
