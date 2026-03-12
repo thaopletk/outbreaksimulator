@@ -2135,10 +2135,6 @@ class DiseaseSimulation:
                         facility = properties[property_index]
                         facility.custom_info["last_cull_date"] = converted_date
 
-                        facility.culled_status = 1
-
-                        facility.removal_date = converted_date
-
                         num_eggs = properties[property_index].get_num_eggs() + properties[property_index].get_num_fertilised_eggs()
                         if num_eggs > 0:
                             if "destroyed_eggs" in properties[property_index].custom_info:
@@ -2184,6 +2180,8 @@ class DiseaseSimulation:
                         self.combined_narrative.append([self.time, converted_date, "cull", property_index, premise_report, facility.case_id])
 
                         if facility.get_num_chickens() == 0:
+                            facility.culled_status = 1
+                            facility.removal_date = converted_date
                             facility.infection_status = 0
                             OG_status = facility.status
                             facility.status = "RP"
