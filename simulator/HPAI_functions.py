@@ -535,13 +535,13 @@ def animal_movement(
                             # ILLEGAL MOVEMENT, aka with some probability, there will be movement without movement requests!
                             targets_unrestricted_zones.append(property_index)
                         else:
-                            targets_in_control_zones.append([property_index, empty_sheds, num_chickens_per_shed_target])
+                            targets_in_control_zones.append(property_index)
                     else:
                         if reduced_movement_zone != None and target_facility.polygon.intersects(reduced_movement_zone):
                             if random.uniform(0, 1) < all_movement_reduction_factor:
                                 targets_unrestricted_zones.append(property_index)
                             else:
-                                targets_in_control_zones.append([property_index, empty_sheds, num_chickens_per_shed_target])
+                                targets_in_control_zones.append(property_index)
                         else:
                             targets_unrestricted_zones.append(property_index)
                 random.shuffle(targets_unrestricted_zones)

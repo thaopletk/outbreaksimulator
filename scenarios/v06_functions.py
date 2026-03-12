@@ -451,10 +451,6 @@ def setup_to_outbreak_detection(state="NSW", testing=False, create_download_fold
     approx_data_filename = os.path.join(folder_path_first_report, "approx_known_data_01.csv")
 
     return (
-        xrange,
-        yrange,
-        xlims,
-        ylims,
         folder_path_main,
         folder_path_first_report,
         spread_properties_filename,
@@ -463,27 +459,29 @@ def setup_to_outbreak_detection(state="NSW", testing=False, create_download_fold
     )
 
 
-def run_action(
+def run_actions_excel(
     state,
-    previous_folder_path,
     previous_unique_output,
     actions_filename_excel,
     days_to_run_for=1,
     unique_output="04_actions_1",
     output_suffix="_02",
     create_download_folder=False,
+    RA_shape=None,
+    CA_shape=None,
 ):
+
+    folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}")
+
     xrange, yrange, xlims, ylims = x_y_ranges(state)
 
-    previous_spread_properties_filename = os.path.join(previous_folder_path, "properties_" + previous_unique_output)
-    previous_spread_diseaseoutbreak_filename = os.path.join(previous_folder_path, "outbreakobject_" + previous_unique_output)
+    previous_spread_properties_filename = os.path.join(folder_path_main, previous_unique_output, "properties_" + previous_unique_output)
+    previous_spread_diseaseoutbreak_filename = os.path.join(folder_path_main, previous_unique_output, "outbreakobject_" + previous_unique_output)
 
     with open(previous_spread_properties_filename, "rb") as file:
         properties = pickle.load(file)
     with open(previous_spread_diseaseoutbreak_filename, "rb") as file:
         diseaseoutbreak = pickle.load(file)
-
-    folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}")
 
     actions_input = os.path.join(folder_path_main, actions_filename_excel)
     property_jobs = pd.read_excel(actions_input, sheet_name="jobs")
@@ -510,8 +508,15 @@ def run_action(
             unique_output=unique_output,
         )
 
-        properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_HPAI_outbreak_management(
-            properties, property_jobs, zones_based_jobs, property_based_zones, days_to_run_for, output_suffix=output_suffix
+        properties, movement_records, current_time, total_culled_animals, job_manager = diseaseoutbreak.simulate_HPAI_outbreak_management(
+            properties,
+            property_jobs,
+            zones_based_jobs,
+            property_based_zones,
+            days_to_run_for,
+            restricted_emergency_zone=RA_shape,
+            control_emergency_zone=CA_shape,
+            output_suffix=output_suffix,
         )
 
         # and then resave the end state
@@ -538,3 +543,57 @@ def run_action(
 
     if create_download_folder:
         create_separate_download_folder(folder_path, folder_path_main, unique_output)
+
+    approx_data_filename = os.path.join(folder_path, f"approx_known_data{output_suffix}.csv")
+
+    return (
+        folder_path_main,
+        folder_path,
+        spread_properties_filename,
+        spread_diseaseoutbreak_filename,
+        approx_data_filename,
+    )
+
+
+def run_actions_excel_shapefile(
+    state,
+    previous_unique_output,
+    actions_filename_excel,
+    shapefile_path,
+    days_to_run_for=1,
+    unique_output="04_actions_1",
+    output_suffix="_02",
+    create_download_folder=False,
+):
+
+    folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}")
+
+    shp_zones = gpd.read_file(os.path.join(folder_path_main, shapefile_path))
+    shp_zones_RA = shp_zones.loc[shp_zones["EMZ"] == "REZ", :]
+    RA_shape = list(shp_zones_RA["geometry"])[0]
+
+    shp_zones_CA = shp_zones.loc[shp_zones["EMZ"] == "CEZ", :]
+    CA_shape = list(shp_zones_CA["geometry"])[0]
+
+    return run_actions_excel(
+        state,
+        previous_unique_output,
+        actions_filename_excel,
+        days_to_run_for=days_to_run_for,
+        unique_output=unique_output,
+        output_suffix=output_suffix,
+        create_download_folder=create_download_folder,
+        RA_shape=RA_shape,
+        CA_shape=CA_shape,
+    )
+
+
+def run_auto_actions(
+    state,
+    previous_unique_output,
+    days_to_run_for=1,
+    unique_output="04_actions_1",
+    output_suffix="_02",
+    create_download_folder=False,
+):
+    pass

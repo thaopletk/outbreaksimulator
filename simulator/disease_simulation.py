@@ -1922,7 +1922,7 @@ class DiseaseSimulation:
             # Specific property actions
             for i, row in property_jobs.iterrows():
 
-                if row["date_scheduled"] == converted_date or row["data_scheduled"] == converted_date_dt:
+                if row["date_scheduled"] == converted_date or row["date_scheduled"] == converted_date_dt:
                     print(row)
                     job_type = row["action"]
                     property_index = row["ID"]
