@@ -2253,10 +2253,43 @@ class DiseaseSimulation:
                     elif job_type == "Vaccination":
                         # TODO
                         num_animals_to_vaccinate = row["num"]
+                        total_animals = properties[property_index].get_num_chickens()
+                        facility.custom_info["last_vaccination_date"] = converted_date
 
-                        self.daily_statistics[converted_date]["vaccinated birds"] = 0
+                        # do this if there is a parameter input
+                        if isinstance(row["detection_prob"], float):
+                            self.set_vax_modifier(row["detection_prob"])
 
-                        extra_job_info = ""
+                        if num_animals_to_vaccinate >= total_animals:
+                            properties[property_index].vaccinate(self.time)
+                            if "vaccinated_birds" in properties[property_index].custom_info:
+                                properties[property_index].custom_info["vaccinated_birds"] += total_animals
+                            else:
+                                properties[property_index].custom_info["vaccinated_birds"] = total_animals
+
+                            self.daily_statistics[converted_date]["vaccinated birds"] += total_animals
+
+                            num_animals_to_vaccinate = total_animals
+                        else:
+                            proportion_vaccinated = num_animals_to_vaccinate / total_animals
+                            properties[property_index].vaccination_status = properties[property_index].vaccination_status + proportion_vaccinated
+
+                            if "vaccinated_birds" in properties[property_index].custom_info:
+                                properties[property_index].custom_info["vaccinated_birds"] += num_animals_to_vaccinate
+                            else:
+                                properties[property_index].custom_info["vaccinated_birds"] = num_animals_to_vaccinate
+
+                            if properties[property_index].vaccination_status >= 1.0:
+                                properties[property_index].vacc_date = converted_date
+
+                            self.daily_statistics[converted_date]["vaccinated birds"] += num_animals_to_vaccinate
+
+                        premise_report = f"DAY {converted_date} - {facility.type} (sim_id {facility.id}), case_id {facility.case_id} {facility.status}, IP {facility.ip}) at(x,y)=({round(facility.x,2)}, {round(facility.y,2)}), {facility.get_location()}: \nA total of {num_animals_to_vaccinate} birds have been vaccinated."
+                        self.combined_narrative.append([self.time, converted_date, "vaccination", property_index, premise_report, facility.case_id])
+
+                        extra_job_info = f"{num_animals_to_vaccinate} chickens vaccinated"
+                        if properties[property_index].vaccination_status >= 1.0:
+                            extra_job_info += "; vaccination on property complete"
 
                     if job_type not in self.job_manager.jobs_queue[property_index]:
                         self.job_manager.jobs_queue[property_index][job_type] = {}
