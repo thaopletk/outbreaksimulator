@@ -848,25 +848,23 @@ def save_approx_known_data(properties, folder_path, unique_output="", output_suf
             else:
                 vaccinated_birds = "NA"
 
+            # default known housing/enterprise type is nothing
+            housing_type = ""
+            enterprise_type = ""
             if "layers" in facility.type:
                 if facility.chicken_capacity >= 100 or facility.data_source != "ALSR":
                     enterprise_type = "layers"
-                else:
-                    enterprise_type = ""
-
                 if facility.data_source != "ALSR" or property_data_known:
                     housing_type = facility.type[7:]
-                else:
-                    housing_type = ""
+            elif "broiler" in facility.type:
+                if facility.chicken_capacity >= 100 or facility.data_source != "ALSR" or property_data_known:
+                    enterprise_type = facility.type
+
+                if facility.data_source != "ALSR" or property_data_known:
+                    housing_type = facility.housing_type
             else:
                 if facility.chicken_capacity >= 100 or facility.data_source != "ALSR" or property_data_known:
                     enterprise_type = facility.type
-                else:
-                    enterprise_type = ""
-
-                housing_type = (
-                    ""  # non-layers don't really have different housing types here... well, I guess there could be free range vs not for broilers...
-                )
 
             # num_chickens = facility.get_num_chickens()
             # num_eggs = facility.get_num_eggs() + facility.get_num_fertilised_eggs()

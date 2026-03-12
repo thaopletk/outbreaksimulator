@@ -245,7 +245,7 @@ def calculate_force_of_infection(properties, premise_index, vax_modifier, r_wind
     indoor_modifier = 1
     outdoor_modifier = 1
     if outbreak_sim == "HPAI":
-        if "free-range" in properties[premise_index].type:
+        if "free-range" in properties[premise_index].type or properties[premise_index].housing_type == "free-range":
             indoor_modifier = 0.9
             outdoor_modifier = 1.1
         else:
