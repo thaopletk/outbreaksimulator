@@ -1087,6 +1087,7 @@ def HPAI_movement_network_setup(
                         "layers barn",
                         "layers caged",
                         "backyard",
+                        "breeder",
                     ],
                     "properties": [],
                 }
