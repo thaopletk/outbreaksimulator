@@ -2249,7 +2249,6 @@ class DiseaseSimulation:
                         extra_job_info = ""
 
                     elif job_type == "Vaccination":
-                        # TODO
                         num_animals_to_vaccinate = int(row["num"])
                         total_animals = properties[property_index].get_num_chickens()
                         properties[property_index].custom_info["last_vaccination_date"] = converted_date
@@ -2615,7 +2614,8 @@ class DiseaseSimulation:
             movement_record, number_of_movement_requests = HPAI_functions.animal_movement(
                 properties,
                 day=self.time,
-                controlzone=controlzone_movement_restrictions,  # TODO : to separate restricted zones and control zones
+                controlzone=controlzone_movement_restrictions,
+                reduced_movement_zone=control_area,
                 movement_reduction_factor=movement_reduction_factor,
                 all_movement_reduction_factor=0.8,  # reducing probability of overall movement
             )
