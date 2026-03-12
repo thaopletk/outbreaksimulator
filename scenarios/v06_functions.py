@@ -54,6 +54,7 @@ def setup_to_outbreak_detection(state="NSW", testing=False, create_download_fold
 
     folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}")
 
+    suffix = ""
     if testing:
         suffix = "_test"
 
@@ -194,7 +195,7 @@ def setup_to_outbreak_detection(state="NSW", testing=False, create_download_fold
     # ---- "Burn in" movement -------------------------#
     ###################################################
 
-    time = 0
+    start_time = 0
 
     random.seed(10)
     np.random.seed(10)
@@ -225,7 +226,7 @@ def setup_to_outbreak_detection(state="NSW", testing=False, create_download_fold
 
         # initiate various things that start from empty:
         diseaseoutbreak = disease_simulation.DiseaseSimulation(
-            time=time,
+            time=start_time,
             movement_records=HPAI_functions.create_movement_records_df(),
             disease_parameters=disease_parameters,
             spatial_only_parameters=spatial_only_parameters,
@@ -243,7 +244,7 @@ def setup_to_outbreak_detection(state="NSW", testing=False, create_download_fold
 
         # print(diseaseoutbreak.job_manager.jobs_queue)
 
-        properties, movement_records, time = diseaseoutbreak.simulate_outbreak_spread_only(
+        properties, movement_records, current_time = diseaseoutbreak.simulate_outbreak_spread_only(
             properties=properties,
             stop_time=minimum_spread_time,
             reporting_region_check=[xrange, yrange],
@@ -351,7 +352,7 @@ def setup_to_outbreak_detection(state="NSW", testing=False, create_download_fold
 
         # print(diseaseoutbreak.job_manager.jobs_queue)
 
-        properties, movement_records, time = diseaseoutbreak.simulate_outbreak_spread_only(
+        properties, movement_records, current_time = diseaseoutbreak.simulate_outbreak_spread_only(
             properties=properties,
             stop_time=minimum_spread_time,
             reporting_region_check=[reportingregion_x, reportingregion_y],
@@ -425,7 +426,7 @@ def setup_to_outbreak_detection(state="NSW", testing=False, create_download_fold
             unique_output=unique_output,
         )
 
-        properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_first_report(
+        properties, movement_records, current_time, total_culled_animals, job_manager = diseaseoutbreak.simulate_first_report(
             properties, reportingregion_x, reportingregion_y, output_suffix=output_suffix
         )
 
