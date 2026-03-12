@@ -242,6 +242,16 @@ def calculate_force_of_infection(properties, premise_index, vax_modifier, r_wind
     """
     vax_status = (vax_modifier - 1) * properties[premise_index].vaccination_status + 1
 
+    indoor_modifier = 1
+    outdoor_modifier = 1
+    if outbreak_sim == "HPAI":
+        if "free-range" in properties[premise_index].type:
+            indoor_modifier = 0.9
+            outdoor_modifier = 1.1
+        else:
+            indoor_modifier = 1.1
+            outdoor_modifier = 0.8
+
     FOI_wind = wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, outbreak_sim=outbreak_sim, time=time)
     if isinstance(beta_animal, dict):
         animal_type_i = properties[premise_index].animal_type
@@ -249,7 +259,7 @@ def calculate_force_of_infection(properties, premise_index, vax_modifier, r_wind
     else:
         FOI_animal = FOI_calculation_fns.animal_FOI(properties[premise_index], {"beta_animal": beta_animal})
 
-    FOI = vax_status * (FOI_animal + FOI_wind)
+    FOI = vax_status * (FOI_animal * indoor_modifier + FOI_wind * outdoor_modifier)
 
     return FOI
 
