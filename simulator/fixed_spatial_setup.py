@@ -362,7 +362,7 @@ def property_specific_initialisation_animals_no_neighbours(
             movement_freq=movement_freq,
             coordinates=property_coordinates,
             area_ha=property_polygon_area,
-            neighbourhood=[],  # TODO - code to get neighbours once all properties are determined; and update self.total_neighbours
+            neighbourhood=[],
             property_polygon=property_polygon,
             property_polygon_puffed=puff_p1,
             property_type=premises_type,
@@ -455,7 +455,7 @@ def HPAI_NSW_setup_locations(
             ):
                 pass
             else:
-                continue  # temporary setup for testing - to limit how long it takes. TODO: REMOVE
+                continue  # temporary setup for testing - to limit how long it takes.
 
         LGA = row["Region name"]
 

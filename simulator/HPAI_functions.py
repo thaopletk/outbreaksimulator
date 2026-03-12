@@ -522,8 +522,8 @@ def animal_movement(
             # movement should be to egg processors only
             num_eggs_to_move, egg_properties_to_move_to = facility.want_to_move_eggs()
             if num_eggs_to_move > 0:
-                # get places to move to ; TODO add in restricted zone stuff if I actually implement movement permits
 
+                # get places to move to
                 targets_unrestricted_zones = []
                 targets_in_control_zones = []
                 for property_index in egg_properties_to_move_to:
@@ -590,8 +590,8 @@ def animal_movement(
             # if eggs, for movement to hatcheries, need to check chickens not check accepting eggs, and move eggs into sheds
             num_eggs_to_move, egg_properties_to_move_to = facility.want_to_move_eggs()
             if num_eggs_to_move > 0:
-                # get places to move to ; TODO add in restricted zone stuff if I actually implement movement permits
 
+                # get places to move to
                 targets_unrestricted_zones = []
                 capacity_in_unrestricted_zones = 0
                 targets_in_control_zones = []
