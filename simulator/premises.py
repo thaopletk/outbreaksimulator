@@ -194,8 +194,8 @@ class Premises(Property):
 
         self.custom_info = {}  # setting up an empty dictionary to add in any custom info to be set live during the simulation
 
-        self.sim_id = None  # TODO: assign it as a scrambled number
-        self.case_id = None  # TODO: assigned as more SPs, TPs etc are found
+        self.sim_id = None  # assigned as a scrambled number in fixed_spatial_setup
+        self.case_id = None  # assigned as more SPs, TPs etc are found - in disease simulator
         self.data_source = None
         self.known_sheds = None
         self.known_birds = None
@@ -263,7 +263,6 @@ class Premises(Property):
             if self.num_sheds > 5:
                 chickens_possible_week_ages = list(range(1, 78))  # lower age limit - rearing pullets
                 self.accepts_hatchlings = True
-                # TODO meaning they shouldn't accept birds from pullet farms, only hatched chicks?
             else:
                 chickens_possible_week_ages = list(range(20, 78))
 
@@ -563,7 +562,7 @@ class Premises(Property):
 
     def report_suspicion(self, time):
         # report = f"DAY {convert_time_to_date(time)} - Property ID {self.id} ({self.type}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been reported possible infection.\n"
-        # TODO ! there should be some kind of status change here...
+
         self.clinical_report_outcome = True
 
         if self.animal_type != "chicken":
@@ -624,8 +623,12 @@ class Premises(Property):
         return allowed_movement_neighbours, total_num_allowed
 
     def calculate_num_animals_to_move(self):
-        """note, this assumes that movement WILL occur; the return value can be zero"""
-        property_size = len(self.animals)  # TODO need to update this, self.animals may not be accurate anymore with chickens in arrays
+        """note, this assumes that movement WILL occur; the return value can be zero
+
+        NOTE: DO NOT USE if have chickens - use the accepting_chickens() function instead.
+
+        """
+        property_size = len(self.animals)
         number_animals = int(np.floor(self.movement_prop_animals * property_size))
         if property_size > 1 and number_animals == 0:
             number_animals = 1  # keeping at least one animal in each property
@@ -718,14 +721,12 @@ class Premises(Property):
                             else:
                                 pass  # pass  - no infection risk
 
-        # TODO to be honest, not sure if this is correct, since infection staus and stuff don't update until later....
         if self.infection_status == 1 and self.exposure_date == "NA":
             self.exposure_date = convert_time_to_date(time)
 
         if self.prop_clinical > 0 and self.clinical_date == "NA":
-            self.clinical_date = convert_time_to_date(
-                time
-            )  # might need to change this, but for now, it should be the earliest date with clinical symptoms # TODO : however, what does this mean if infected animals were all moved off the property?
+            self.clinical_date = convert_time_to_date(time)
+            # might need to change this, but for now, it should be the earliest date with clinical symptoms # TODO : however, what does this mean if infected animals were all moved off the property?
 
     def return_output_row(self, RTM=False):
         """Returns a row with information for outputing (required downstream for forecasting)
@@ -1047,40 +1048,6 @@ class Premises(Property):
                     empty_sheds.append(shed_i)  # has space for chickens and is read for them
 
         return empty_sheds, int(min(self.approx_chickens_per_shed, self.chicken_capacity))
-
-    # def want_to_move_chickens_hatchery(self):
-    #     num_chickens_to_move_abbatoir = 0
-    #     row_indices_to_move_abbatoir = []
-    #     for i in range(len(self.chickens)):
-    #         row = self.chickens[i]
-    #         chicken_age = row[2]
-    #         if chicken_age > 546:  # TODO - well, there should be something better about this
-    #             num_chickens_to_move_abbatoir += row[0]
-    #             row_indices_to_move_abbatoir.append(i)
-
-    #     property_types_to_move_to_abbatoir = [
-    #         "abbatoir"
-    #     ]  # TODO - need to refactor to avoid hard coding if possible OTL
-
-    #     pass  # TODO - hard!!! need to keep laying chickens!
-
-    # def want_to_move_chickens_pullet_farm(self):
-    #     num_chickens_to_move = 0
-    #     row_indices_to_move = []
-    #     for i in range(len(self.chickens)):
-    #         row = self.chickens[i]
-    #         chicken_age = row[2]
-    #         if chicken_age > 119:  # TODO - well, there should be something better about this
-    #             num_chickens_to_move += row[0]
-    #             row_indices_to_move.append(i)
-
-    #     property_types_to_move_to = [
-    #         "layers free-range",
-    #         "layers caged",
-    #         "layers barn",
-    #     ]  # TODO - need to refactor to avoid hard coding if possible OTL
-
-    #     return num_chickens_to_move, row_indices_to_move, property_types_to_move_to
 
     def want_to_move_animals(self):
         num_chickens_to_move = 0

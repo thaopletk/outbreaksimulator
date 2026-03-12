@@ -1,4 +1,4 @@
-""" Management
+"""Management
 
 This script contains several functions that involve spatial stuff
 
@@ -23,9 +23,7 @@ def geodesic_point_buffer(lat, lon, km):
 
     """
 
-    proj_wgs84 = pyproj.Proj(
-        init="epsg:4326"
-    )  # in fact, I could change to the Australian projection Albers? which might have better quality?
+    proj_wgs84 = pyproj.Proj(init="epsg:4326")  # in fact, I could change to the Australian projection Albers? which might have better quality?
 
     aeqd_proj = "+proj=aeqd +lat_0={lat} +lon_0={lon} +x_0=0 +y_0=0"
     project = partial(pyproj.transform, pyproj.Proj(aeqd_proj.format(lat=lat, lon=lon)), proj_wgs84)
@@ -174,14 +172,12 @@ def define_control_zone_circles(coordinates, radius_km):
 
 @functools.lru_cache(maxsize=None)
 def get_LGA_gdf():
-    LGA_gdf = gpd.read_file(
-        os.path.join(os.path.dirname(__file__), "..", "data", "LGA_2024_AUST_GDA2020", "LGA_2024_AUST_GDA2020.shp")
-    )
+    LGA_gdf = gpd.read_file(os.path.join(os.path.dirname(__file__), "..", "data", "LGA_2024_AUST_GDA2020", "LGA_2024_AUST_GDA2020.shp"))
 
     return LGA_gdf
 
 
-# TODO: rather than using a cache like this (memoisation), I could just initiate it as an object/variable inside disease simulation and just grab it from there lol...
+# NOTE: rather than using a cache like this (memoisation), I could just initiate it as an object/variable inside disease simulation and just grab it from there
 @functools.lru_cache(maxsize=None)
 def get_LGAs():
     """Local Government Areas"""
@@ -198,9 +194,7 @@ def get_LGAs():
 def get_SALs_gdf():
     """Suburbs and localities"""
 
-    AustraliaSALs_gdf = gpd.read_file(
-        os.path.join(os.path.dirname(__file__), "..", "data", "SAL_2021_AUST_GDA2020_SHP", "SAL_2021_AUST_GDA2020.shp")
-    )
+    AustraliaSALs_gdf = gpd.read_file(os.path.join(os.path.dirname(__file__), "..", "data", "SAL_2021_AUST_GDA2020_SHP", "SAL_2021_AUST_GDA2020.shp"))
 
     print(AustraliaSALs_gdf)
 
@@ -226,9 +220,7 @@ def get_SA2_gdf():
 
     """
 
-    SA2_gdf = gpd.read_file(
-        os.path.join(os.path.dirname(__file__), "..", "data", "SA2_2021_AUST_SHP_GDA2020", "SA2_2021_AUST_GDA2020.shp")
-    )
+    SA2_gdf = gpd.read_file(os.path.join(os.path.dirname(__file__), "..", "data", "SA2_2021_AUST_SHP_GDA2020", "SA2_2021_AUST_GDA2020.shp"))
 
     print(SA2_gdf)
 
@@ -243,9 +235,7 @@ def get_SA4_gdf():
 
     """
 
-    SA4_gdf = gpd.read_file(
-        os.path.join(os.path.dirname(__file__), "..", "data", "SA4_2021_AUST_SHP_GDA2020", "SA4_2021_AUST_GDA2020.shp")
-    )
+    SA4_gdf = gpd.read_file(os.path.join(os.path.dirname(__file__), "..", "data", "SA4_2021_AUST_SHP_GDA2020", "SA4_2021_AUST_GDA2020.shp"))
 
     print(SA4_gdf)
 
@@ -260,9 +250,7 @@ def get_UCL_gdf():
 
     """
 
-    UCL_gdf = gpd.read_file(
-        os.path.join(os.path.dirname(__file__), "..", "data", "UCL_2021_AUST_GDA2020_SHP", "UCL_2021_AUST_GDA2020.shp")
-    )
+    UCL_gdf = gpd.read_file(os.path.join(os.path.dirname(__file__), "..", "data", "UCL_2021_AUST_GDA2020_SHP", "UCL_2021_AUST_GDA2020.shp"))
 
     print(UCL_gdf)
 
@@ -277,9 +265,7 @@ def get_postcodes_gdf():
 
     """
 
-    postcodes_gdf = gpd.read_file(
-        os.path.join(os.path.dirname(__file__), "..", "data", "POA_2021_AUST_GDA94_SHP", "POA_2021_AUST_GDA94.shp")
-    )
+    postcodes_gdf = gpd.read_file(os.path.join(os.path.dirname(__file__), "..", "data", "POA_2021_AUST_GDA94_SHP", "POA_2021_AUST_GDA94.shp"))
 
     print(postcodes_gdf)
 

@@ -1,11 +1,11 @@
 """Simulator
 
-    Runs parts of the simulation. Adapted from FMD_modelling, abm_fn.py
-    Adjusted to have explicit parameter requirements rather than a dictionary with params
+Runs parts of the simulation. Adapted from FMD_modelling, abm_fn.py
+Adjusted to have explicit parameter requirements rather than a dictionary with params
 
-    Typical workflow involves calling:
-    * property_setup
-    * simulate_outbreak
+Typical workflow involves calling:
+* property_setup
+* simulate_outbreak
 
 """
 
@@ -45,9 +45,7 @@ def calculate_num_property_types(num, proportion_dict):
         if running_sum <= num:
             num_properties_per_type["farm"] = num - running_sum
         else:
-            raise ValueError(
-                "Total number of properties too is too high, and can't assign any farms. Recommend to lower proportions."
-            )
+            raise ValueError("Total number of properties too is too high, and can't assign any farms. Recommend to lower proportions.")
 
     else:
         raise ValueError("Proportion of different property types exceeds 1 (exceeds 100%)")
@@ -99,11 +97,7 @@ def property_specific_initialisation_animals(
                 try:
                     new_p = premises.Premises(
                         num_animals=max(
-                            int(
-                                animal_multiplier
-                                * property_areas[new_p_i]
-                                * properties_specific_parameters["average_animals_per_ha"]
-                            ),
+                            int(animal_multiplier * property_areas[new_p_i] * properties_specific_parameters["average_animals_per_ha"]),
                             animal_multiplier * 5,
                         ),  # at least five animals per property
                         movement_freq=properties_specific_parameters["movement_frequency"][property_type],
@@ -123,12 +117,8 @@ def property_specific_initialisation_animals(
                     time.sleep(1.0)  # pause for a second to try and avoid errors due to geocoder requests
 
                 properties[new_p_i] = new_p
-                properties[new_p_i].id = (
-                    new_p_i  # override the default assigned id, as the properties were added out of order (above)
-                )
-                properties[new_p_i].init_animals(
-                    None
-                )  # init with empty "params", as no parameters are actually used to initialise animals
+                properties[new_p_i].id = new_p_i  # override the default assigned id, as the properties were added out of order (above)
+                properties[new_p_i].init_animals(None)  # init with empty "params", as no parameters are actually used to initialise animals
 
     # construct their movement information
     for i, property_i in enumerate(properties):
@@ -249,7 +239,7 @@ def property_setup_v03(
         - changed the input format so that different property types are entered as a percentage rather than a hard-fixed number, and the code takes a minimum of 1 type of each property. (i.e., coming back to the older version property_setup(...) though with a slight modification of which proportions need to be included - farm type is now automatically calculated. )
 
 
-    TODO: complete this description
+    NOTE: description in-complete but function not being used anymore (12/03/2026)
 
     Parameters
     ----------
@@ -342,9 +332,7 @@ def property_setup_v03(
         if running_sum <= spatial_only_paramaters["n"]:
             num_properties_per_type["farm"] = spatial_only_paramaters["n"] - running_sum
         else:
-            raise ValueError(
-                "Total number of properties too is too high, and can't assign any farms. Recommend to lower proportions."
-            )
+            raise ValueError("Total number of properties too is too high, and can't assign any farms. Recommend to lower proportions.")
 
     else:
         raise ValueError("Proportion of different property types exceeds 1 (exceeds 100%)")
@@ -370,11 +358,7 @@ def property_setup_v03(
             try:
                 new_p = premises.Premises(
                     num_animals=max(
-                        int(
-                            animal_multiplier
-                            * property_areas[new_p_i]
-                            * properties_specific_parameters["average_animals_per_ha"]
-                        ),
+                        int(animal_multiplier * property_areas[new_p_i] * properties_specific_parameters["average_animals_per_ha"]),
                         animal_multiplier * 5,
                     ),  # at least five animals per property
                     movement_freq=properties_specific_parameters["movement_frequency"][property_type],
@@ -393,12 +377,8 @@ def property_setup_v03(
                 time.sleep(1.0)  # pause for a second to try and avoid errors due to geocoder requests
 
             properties[new_p_i] = new_p
-            properties[new_p_i].id = (
-                new_p_i  # override the default assigned id, as the properties were added out of order (above)
-            )
-            properties[new_p_i].init_animals(
-                None
-            )  # init with empty "params", as no parameters are actually used to initialise animals
+            properties[new_p_i].id = new_p_i  # override the default assigned id, as the properties were added out of order (above)
+            properties[new_p_i].init_animals(None)  # init with empty "params", as no parameters are actually used to initialise animals
 
     # construct their movement information
     for i, property_i in enumerate(properties):
@@ -532,9 +512,7 @@ def trial_simex_property_setup(
     # checks that the sum of n_property_types is equal to spatial_only_paramaters["n"]
     property_specific_sum = sum([value for key, value in properties_specific_parameters["n_property_types"].items()])
     if spatial_only_paramaters["n"] != property_specific_sum:
-        raise ValueError(
-            "The total number of properties in spatial_only_parameters doesn't match the number in properties_specific_parameters"
-        )
+        raise ValueError("The total number of properties in spatial_only_parameters doesn't match the number in properties_specific_parameters")
 
     # 1. Spatial-only, property-type-agnostic setup
     (
@@ -608,11 +586,7 @@ def trial_simex_property_setup(
 
             new_p = premises.Premises(
                 num_animals=max(
-                    int(
-                        animal_multiplier
-                        * property_areas[new_p_i]
-                        * properties_specific_parameters["average_animals_per_ha"]
-                    ),
+                    int(animal_multiplier * property_areas[new_p_i] * properties_specific_parameters["average_animals_per_ha"]),
                     animal_multiplier * 5,
                 ),  # at least five animals per property
                 movement_freq=properties_specific_parameters["movement_frequency"][property_type],
@@ -629,12 +603,8 @@ def trial_simex_property_setup(
             )
 
             properties[new_p_i] = new_p
-            properties[new_p_i].id = (
-                new_p_i  # override the default assigned id, as the properties were added out of order (above)
-            )
-            properties[new_p_i].init_animals(
-                None
-            )  # init with empty "params", as no parameters are actually used to initialise animals
+            properties[new_p_i].id = new_p_i  # override the default assigned id, as the properties were added out of order (above)
+            properties[new_p_i].init_animals(None)  # init with empty "params", as no parameters are actually used to initialise animals
 
     # construct their movement information
     for i, property_i in enumerate(properties):
@@ -813,9 +783,7 @@ def property_setup(
             )
 
             properties.append(new_p)
-            properties[i].init_animals(
-                None
-            )  # init with empty "params", as no parameters are actually used to initialise animals
+            properties[i].init_animals(None)  # init with empty "params", as no parameters are actually used to initialise animals
 
             i += 1
 
@@ -854,12 +822,7 @@ def seed_infection_within_bound(
     viable_properties = []
     for i, property in enumerate(properties):
         coords = property.coordinates
-        if (
-            coords[0] <= xrange_bounds[1]
-            and coords[0] >= xrange_bounds[0]
-            and coords[1] <= yrange_bounds[1]
-            and coords[1] >= yrange_bounds[0]
-        ):
+        if coords[0] <= xrange_bounds[1] and coords[0] >= xrange_bounds[0] and coords[1] <= yrange_bounds[1] and coords[1] >= yrange_bounds[0]:
             viable_properties.append(i)
 
     # seed this property
@@ -1000,9 +963,7 @@ def initialise_infection_vaccination(properties, n, xrange, yrange, init_vax_pro
 
     # initialise list of cumulative infections from each property - calculated for FOI every loop
     cumulative_infection_proportions = list(np.zeros(n))
-    cumulative_infection_proportions[seed_property] = (
-        properties[seed_property].cumulative_infections / properties[seed_property].size
-    )
+    cumulative_infection_proportions[seed_property] = properties[seed_property].cumulative_infections / properties[seed_property].size
 
     # set up some random initial vaccination
     for i, premise in enumerate(properties):
