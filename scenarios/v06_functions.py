@@ -27,10 +27,7 @@ import simulator.disease_simulation as disease_simulation
 import simulator.premises as premises
 
 
-def setup_to_outbreak_detection(state="NSW", testing=False, create_download_folder=False):
-    ###################################################
-    # ---- Code run set up ---------------------------#
-    ###################################################
+def x_y_ranges(state="NSW"):
     if state == "NSW":
         # Boundaries for NSW
         xrange = [140, 155]
@@ -51,6 +48,29 @@ def setup_to_outbreak_detection(state="NSW", testing=False, create_download_fold
         round(yrange[0], 1) - 0.05,
         round(yrange[1], 1) + 0.05,
     ]
+
+    return xrange, yrange, xlims, ylims
+
+
+def create_separate_download_folder(folder_path_of_run, folder_path_main, unique_output):
+    download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
+
+    if not os.path.exists(download_folder_path):
+        os.makedirs(download_folder_path)
+
+        # Loop through the files in the source directory and copy just the png or csv files
+        for file in os.listdir(folder_path_of_run):
+            if file.endswith(".png") or file.endswith(".csv"):
+                source_path = os.path.join(folder_path_of_run, file)
+                destination_path = os.path.join(download_folder_path, file)
+                shutil.copy(source_path, destination_path)
+
+
+def setup_to_outbreak_detection(state="NSW", testing=False, create_download_folder=False):
+    ###################################################
+    # ---- Code run set up ---------------------------#
+    ###################################################
+    xrange, yrange, xlims, ylims = x_y_ranges(state)
 
     folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}")
 
@@ -270,17 +290,7 @@ def setup_to_outbreak_detection(state="NSW", testing=False, create_download_fold
     HPAI_functions.save_approx_known_data(properties, folder_path_burn_in_movement, unique_output)
 
     if create_download_folder:
-        download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
-
-        if not os.path.exists(download_folder_path):
-            os.makedirs(download_folder_path)
-
-            # Loop through the files in the source directory and copy just the png or csv files
-            for file in os.listdir(folder_path_burn_in_movement):
-                if file.endswith(".png") or file.endswith(".csv"):
-                    source_path = os.path.join(folder_path_burn_in_movement, file)
-                    destination_path = os.path.join(download_folder_path, file)
-                    shutil.copy(source_path, destination_path)
+        create_separate_download_folder(folder_path_burn_in_movement, folder_path_main, unique_output)
 
     ###################################################
     # ---- Seed the first infection ------------------#
@@ -385,17 +395,7 @@ def setup_to_outbreak_detection(state="NSW", testing=False, create_download_fold
     HPAI_functions.save_approx_known_data(properties, folder_path_undetected_spread, unique_output)
 
     if create_download_folder:
-        download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
-
-        if not os.path.exists(download_folder_path):
-            os.makedirs(download_folder_path)
-
-            # Loop through the files in the source directory and copy just the png or csv files
-            for file in os.listdir(folder_path_undetected_spread):
-                if file.endswith(".png") or file.endswith(".csv"):
-                    source_path = os.path.join(folder_path_undetected_spread, file)
-                    destination_path = os.path.join(download_folder_path, file)
-                    shutil.copy(source_path, destination_path)
+        create_separate_download_folder(folder_path_undetected_spread, folder_path_main, unique_output)
 
     ###################################################
     # ---- Trigger first report ----------------------#
@@ -446,17 +446,7 @@ def setup_to_outbreak_detection(state="NSW", testing=False, create_download_fold
     HPAI_functions.save_approx_known_data(properties, folder_path_first_report, unique_output="", output_suffix=output_suffix)
 
     if create_download_folder:
-        download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
-
-        if not os.path.exists(download_folder_path):
-            os.makedirs(download_folder_path)
-
-            # Loop through the files in the source directory and copy just the png or csv files
-            for file in os.listdir(folder_path_first_report):
-                if file.endswith(".png") or file.endswith(".csv"):
-                    source_path = os.path.join(folder_path_first_report, file)
-                    destination_path = os.path.join(download_folder_path, file)
-                    shutil.copy(source_path, destination_path)
+        create_separate_download_folder(folder_path_first_report, folder_path_main, unique_output)
 
     approx_data_filename = os.path.join(folder_path_first_report, "approx_known_data_01.csv")
 
@@ -471,3 +461,80 @@ def setup_to_outbreak_detection(state="NSW", testing=False, create_download_fold
         spread_diseaseoutbreak_filename,
         approx_data_filename,
     )
+
+
+def run_action(
+    state,
+    previous_folder_path,
+    previous_unique_output,
+    actions_filename_excel,
+    days_to_run_for=1,
+    unique_output="04_actions_1",
+    output_suffix="_02",
+    create_download_folder=False,
+):
+    xrange, yrange, xlims, ylims = x_y_ranges(state)
+
+    previous_spread_properties_filename = os.path.join(previous_folder_path, "properties_" + previous_unique_output)
+    previous_spread_diseaseoutbreak_filename = os.path.join(previous_folder_path, "outbreakobject_" + previous_unique_output)
+
+    with open(previous_spread_properties_filename, "rb") as file:
+        properties = pickle.load(file)
+    with open(previous_spread_diseaseoutbreak_filename, "rb") as file:
+        diseaseoutbreak = pickle.load(file)
+
+    folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}")
+
+    actions_input = os.path.join(folder_path_main, actions_filename_excel)
+    property_jobs = pd.read_excel(actions_input, sheet_name="jobs")
+    zones_based_jobs = pd.read_excel(actions_input, sheet_name="zone_jobs")  # could consider "expanding to SAL, LGA" or something like that
+    property_based_zones = pd.read_excel(actions_input, sheet_name="zones")  # could consider "expanding to SAL, LGA" or something like that
+
+    folder_path = os.path.join(folder_path_main, unique_output)
+
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
+    spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
+
+    random.seed(1235)
+    np.random.seed(1116)
+    if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
+        # adjust the plotting parameters for this new scenario
+        diseaseoutbreak.set_plotting_parameters(
+            xlims=xlims,
+            ylims=ylims,
+            plotting=True,
+            folder_path=folder_path,
+            unique_output=unique_output,
+        )
+
+        properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_HPAI_outbreak_management(
+            properties, property_jobs, zones_based_jobs, property_based_zones, days_to_run_for, output_suffix=output_suffix
+        )
+
+        # and then resave the end state
+        with open(spread_properties_filename, "wb") as file:
+            pickle.dump(properties, file)
+
+        # and save the diseaseoutbreak object
+        with open(spread_diseaseoutbreak_filename, "wb") as file:
+            pickle.dump(diseaseoutbreak, file)
+
+        total_infected = 0
+        for property_i in properties:
+            if property_i.exposure_date != "NA":
+                total_infected += 1
+
+        print(f"Total number of infected premises: {total_infected}")
+    else:
+        with open(spread_properties_filename, "rb") as file:
+            properties = pickle.load(file)
+        with open(spread_diseaseoutbreak_filename, "rb") as file:
+            diseaseoutbreak = pickle.load(file)
+
+    HPAI_functions.save_approx_known_data(properties, folder_path, unique_output="", output_suffix=output_suffix)
+
+    if create_download_folder:
+        create_separate_download_folder(folder_path, folder_path_main, unique_output)
