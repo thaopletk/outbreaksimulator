@@ -130,7 +130,7 @@ def assign_property_locations_in_region(n, region, average_property_ha=100, excl
 
     i_random_recs = -1
     for i in range(n):
-        print(i + 1)
+        # print(i + 1)
         inside_region = False
         while not inside_region:
             i_random_recs += 1
