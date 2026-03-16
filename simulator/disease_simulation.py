@@ -1794,6 +1794,7 @@ class DiseaseSimulation:
         time=None,
         restricted_emergency_zone=None,
         control_emergency_zone=None,
+        enhanced_passive_surveillance_area=None,
         output_suffix="",
     ):
 
@@ -1829,27 +1830,6 @@ class DiseaseSimulation:
             FOI = self.calculate_FOI_for_each_property(properties, outbreak_sim, self.time)
 
             # check if any property wants to report
-            EPS_df = property_based_zones[property_based_zones["zone_type"] == "Enhanced Passive Surveillance"]
-            EPS_geo_list = []
-            enhanced_reporting_factor = 1
-            for i, row in EPS_df.iterrows():
-
-                enhanced_passive_surveillance_area = management.define_control_zone_polygons(
-                    properties,
-                    [row["ID"]],
-                    row["radius_km"],
-                    convex=False,
-                )  # should be zero movement
-                EPS_geo_list.append(enhanced_passive_surveillance_area)
-                if isinstance(row["zone_parameter"], float):
-                    enhanced_reporting_factor = row["zone_parameter"]
-                elif row["zone_parameter"].isnull() and enhanced_reporting_factor == 1:
-                    enhanced_reporting_factor = 2
-                else:
-                    pass
-
-            enhanced_passive_surveillance_area = unary_union(EPS_geo_list)
-
             for i, facility in enumerate(properties):
                 if facility.polygon.intersects(enhanced_passive_surveillance_area):
                     increased_reporting_factor = enhanced_reporting_factor

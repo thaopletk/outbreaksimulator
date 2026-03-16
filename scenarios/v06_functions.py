@@ -9,6 +9,7 @@ import numpy as np
 import shutil
 import time
 import geopandas as gpd
+from shapely.ops import unary_union
 
 # import subprocess
 import pandas as pd
@@ -22,6 +23,7 @@ import simulator.auto_job_mode as auto_job_mode
 
 # import simulator.simulator as simulator
 import simulator.disease_simulation as disease_simulation
+import simulator.management as management
 
 # import simulator.management as management
 import simulator.premises as premises
@@ -469,6 +471,31 @@ def setup_to_outbreak_detection(state="NSW", testing=False, create_download_fold
     )
 
 
+def get_enhanced_passive_surveillance_area(property_based_zones, properties):
+    EPS_df = property_based_zones[property_based_zones["zone_type"] == "Enhanced Passive Surveillance"]
+    EPS_geo_list = []
+    enhanced_reporting_factor = 1
+    for i, row in EPS_df.iterrows():
+
+        enhanced_passive_surveillance_area = management.define_control_zone_polygons(
+            properties,
+            [row["ID"]],
+            row["radius_km"],
+            convex=False,
+        )  # should be zero movement
+        EPS_geo_list.append(enhanced_passive_surveillance_area)
+        if isinstance(row["zone_parameter"], float):
+            enhanced_reporting_factor = row["zone_parameter"]
+        elif row["zone_parameter"].isnull() and enhanced_reporting_factor == 1:
+            enhanced_reporting_factor = 2
+        else:
+            pass
+
+    enhanced_passive_surveillance_area = unary_union(EPS_geo_list)
+
+    return enhanced_passive_surveillance_area
+
+
 def run_actions_excel(
     state,
     previous_unique_output,
@@ -485,8 +512,7 @@ def run_actions_excel(
 
     folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}")
 
-    xrange, yrange, xlims, ylims = x_y_ranges(state)
-
+    # read in previous state
     previous_spread_properties_filename = os.path.join(folder_path_main, previous_unique_output, "properties_" + previous_unique_output)
     previous_spread_diseaseoutbreak_filename = os.path.join(folder_path_main, previous_unique_output, "outbreakobject_" + previous_unique_output)
 
@@ -495,11 +521,7 @@ def run_actions_excel(
     with open(previous_spread_diseaseoutbreak_filename, "rb") as file:
         diseaseoutbreak = pickle.load(file)
 
-    actions_input = os.path.join(folder_path_main, actions_filename_excel)
-    property_jobs = pd.read_excel(actions_input, sheet_name="jobs")
-    zones_based_jobs = pd.read_excel(actions_input, sheet_name="zone_jobs")  # could consider "expanding to SAL, LGA" or something like that
-    property_based_zones = pd.read_excel(actions_input, sheet_name="zones")  # could consider "expanding to SAL, LGA" or something like that
-
+    # set up for new simulation portion
     folder_path = os.path.join(folder_path_main, unique_output)
 
     if not os.path.exists(folder_path):
@@ -507,6 +529,17 @@ def run_actions_excel(
 
     spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
     spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
+
+    xrange, yrange, xlims, ylims = x_y_ranges(state)
+
+    # read in jobs and zones
+    actions_input = os.path.join(folder_path_main, actions_filename_excel)
+    property_jobs = pd.read_excel(actions_input, sheet_name="jobs")
+    zones_based_jobs = pd.read_excel(actions_input, sheet_name="zone_jobs")  # could consider "expanding to SAL, LGA" or something like that
+    property_based_zones = pd.read_excel(actions_input, sheet_name="zones")  # could consider "expanding to SAL, LGA" or something like that
+
+    # construct zones
+    enhanced_passive_surveillance_area = get_enhanced_passive_surveillance_area(property_based_zones, properties)
 
     random.seed(1235)
     np.random.seed(1116)
@@ -528,6 +561,7 @@ def run_actions_excel(
             days_to_run_for,
             restricted_emergency_zone=RA_shape,
             control_emergency_zone=CA_shape,
+            enhanced_passive_surveillance_area=enhanced_passive_surveillance_area,
             output_suffix=output_suffix,
         )
 
@@ -594,6 +628,8 @@ def run_actions_excel_shapefile(
     shp_zones_CA = shp_zones.loc[shp_zones["EMZ"] == "CEZ", :]
     CA_shape = list(shp_zones_CA["geometry"])[0]
 
+    # could also read in enhanced surveillance area here
+
     return run_actions_excel(
         state,
         previous_unique_output,
@@ -639,8 +675,10 @@ def run_auto_actions(
 
     action_number = start_action_number_int
     while action_number <= total_days_to_run_for:
+        # get previous info
         approx_data_csv = os.path.join(previous_folder, f"approx_known_data{previous_output_suffix}.csv")
 
+        # set up new info
         outputnumber = action_number + 1
         output_suffix = f"_{outputnumber:02d}"
 
@@ -653,8 +691,11 @@ def run_auto_actions(
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
 
-        scheduled_date = premises.convert_time_to_date(diseaseoutbreak.time + 1)
+        spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
+        spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
 
+        # assign jobs
+        scheduled_date = premises.convert_time_to_date(diseaseoutbreak.time + 1)
         if (
             not os.path.exists(os.path.join(folder_path, f"jobs_{action_number}.csv"))
             or not os.path.exists(os.path.join(folder_path, f"zone_jobs_{action_number}.csv"))
@@ -666,8 +707,7 @@ def run_auto_actions(
         zones_based_jobs = pd.read_csv(os.path.join(folder_path, f"zone_jobs_{action_number}.csv"))
         property_based_zones = pd.read_csv(os.path.join(folder_path, f"zones_{action_number}.csv"))
 
-        spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
-        spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
+        enhanced_passive_surveillance_area = get_enhanced_passive_surveillance_area(property_based_zones, properties)
 
         random.seed(1235)
         np.random.seed(1116)
@@ -682,7 +722,13 @@ def run_auto_actions(
             )
 
             properties, movement_records, current_time, total_culled_animals, job_manager = diseaseoutbreak.simulate_HPAI_outbreak_management(
-                properties, property_jobs, zones_based_jobs, property_based_zones, days_to_run_for, output_suffix=output_suffix
+                properties,
+                property_jobs,
+                zones_based_jobs,
+                property_based_zones,
+                days_to_run_for,
+                enhanced_passive_surveillance_area=enhanced_passive_surveillance_area,
+                output_suffix=output_suffix,
             )
 
             # and then resave the end state
