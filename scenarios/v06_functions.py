@@ -52,8 +52,8 @@ def x_y_ranges(state="NSW"):
     return xrange, yrange, xlims, ylims
 
 
-def create_separate_download_folder(folder_path_of_run, folder_path_main, unique_output):
-    download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
+def create_separate_download_folder(folder_path_of_run, download_folder_path_main, download_folder_name):
+    download_folder_path = os.path.join(download_folder_path_main, download_folder_name)
 
     if not os.path.exists(download_folder_path):
         os.makedirs(download_folder_path)
@@ -61,12 +61,13 @@ def create_separate_download_folder(folder_path_of_run, folder_path_main, unique
         # Loop through the files in the source directory and copy just the png or csv files
         for file in os.listdir(folder_path_of_run):
             if file.endswith(".png") or file.endswith(".csv"):
-                source_path = os.path.join(folder_path_of_run, file)
-                destination_path = os.path.join(download_folder_path, file)
-                shutil.copy(source_path, destination_path)
+                if "underlying" not in file and "fake_data" not in file and "movement_records" not in file:
+                    source_path = os.path.join(folder_path_of_run, file)
+                    destination_path = os.path.join(download_folder_path, file)
+                    shutil.copy(source_path, destination_path)
 
 
-def setup_to_outbreak_detection(state="NSW", testing=False, create_download_folder=False):
+def setup_to_outbreak_detection(state="NSW", testing=False, create_download_folder=False, download_parent_folder=None):
     ###################################################
     # ---- Code run set up ---------------------------#
     ###################################################
@@ -290,7 +291,10 @@ def setup_to_outbreak_detection(state="NSW", testing=False, create_download_fold
     HPAI_functions.save_approx_known_data(properties, folder_path_burn_in_movement, unique_output)
 
     if create_download_folder:
-        create_separate_download_folder(folder_path_burn_in_movement, folder_path_main, unique_output)
+        if download_parent_folder != None:
+            create_separate_download_folder(folder_path_burn_in_movement, download_parent_folder, unique_output)
+        else:
+            create_separate_download_folder(folder_path_burn_in_movement, folder_path_main, "download_" + unique_output)
 
     ###################################################
     # ---- Seed the first infection ------------------#
@@ -395,7 +399,10 @@ def setup_to_outbreak_detection(state="NSW", testing=False, create_download_fold
     HPAI_functions.save_approx_known_data(properties, folder_path_undetected_spread, unique_output)
 
     if create_download_folder:
-        create_separate_download_folder(folder_path_undetected_spread, folder_path_main, unique_output)
+        if download_parent_folder != None:
+            create_separate_download_folder(folder_path_undetected_spread, download_parent_folder, unique_output)
+        else:
+            create_separate_download_folder(folder_path_undetected_spread, folder_path_main, "download_" + unique_output)
 
     ###################################################
     # ---- Trigger first report ----------------------#
@@ -446,7 +453,10 @@ def setup_to_outbreak_detection(state="NSW", testing=False, create_download_fold
     HPAI_functions.save_approx_known_data(properties, folder_path_first_report, unique_output="", output_suffix=output_suffix)
 
     if create_download_folder:
-        create_separate_download_folder(folder_path_first_report, folder_path_main, unique_output)
+        if download_parent_folder != None:
+            create_separate_download_folder(folder_path_first_report, download_parent_folder, unique_output)
+        else:
+            create_separate_download_folder(folder_path_first_report, folder_path_main, "download_" + unique_output)
 
     approx_data_filename = os.path.join(folder_path_first_report, "approx_known_data_01.csv")
 
@@ -469,6 +479,8 @@ def run_actions_excel(
     create_download_folder=False,
     RA_shape=None,
     CA_shape=None,
+    download_parent_folder=None,
+    download_folder_name=None,
 ):
 
     folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}")
@@ -542,7 +554,12 @@ def run_actions_excel(
     HPAI_functions.save_approx_known_data(properties, folder_path, unique_output="", output_suffix=output_suffix)
 
     if create_download_folder:
-        create_separate_download_folder(folder_path, folder_path_main, unique_output)
+        if download_parent_folder == None:
+            download_parent_folder = folder_path_main
+        if download_folder_name == None:
+            download_folder_name = "download_" + unique_output
+
+        create_separate_download_folder(folder_path, download_parent_folder, download_folder_name)
 
     approx_data_filename = os.path.join(folder_path, f"approx_known_data{output_suffix}.csv")
 
@@ -564,6 +581,8 @@ def run_actions_excel_shapefile(
     unique_output="04_actions_1",
     output_suffix="_02",
     create_download_folder=False,
+    download_parent_folder=None,
+    download_folder_name=None,
 ):
 
     folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}")
@@ -585,6 +604,8 @@ def run_actions_excel_shapefile(
         create_download_folder=create_download_folder,
         RA_shape=RA_shape,
         CA_shape=CA_shape,
+        download_parent_folder=download_parent_folder,
+        download_folder_name=download_folder_name,
     )
 
 
@@ -597,6 +618,8 @@ def run_auto_actions(
     unique_output_starting_int=4,
     create_download_folder=False,
     max_resource_units=100,
+    download_parent_folder=None,
+    download_folder_name=None,
 ):
     folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}")
     xrange, yrange, xlims, ylims = x_y_ranges(state)
@@ -685,17 +708,12 @@ def run_auto_actions(
         HPAI_functions.save_approx_known_data(properties, folder_path, unique_output="", output_suffix=output_suffix)
 
         if create_download_folder:
-            download_folder_path = os.path.join(folder_path_main, "download_" + unique_output)
+            if download_parent_folder == None:
+                download_parent_folder = folder_path_main
+            if download_folder_name == None:
+                download_folder_name = "download_" + unique_output
 
-            if not os.path.exists(download_folder_path):
-                os.makedirs(download_folder_path)
-
-                # Loop through the files in the source directory and copy just the png or csv files
-                for file in os.listdir(folder_path):
-                    if file.endswith(".png") or file.endswith(".csv"):
-                        source_path = os.path.join(folder_path, file)
-                        destination_path = os.path.join(download_folder_path, file)
-                        shutil.copy(source_path, destination_path)
+            create_separate_download_folder(folder_path, download_parent_folder, download_folder_name)
 
         action_number += 1
         previous_folder = folder_path

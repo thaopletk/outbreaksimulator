@@ -173,6 +173,7 @@ class Premises(Property):
         self.location = None
         self.address = None
         self.state = None
+        # self.find_location()
         # self.location = geolocator.reverse(f"{self.y},{self.x}")
         # self.address = self.location.raw["address"]
         # self.state = self.address.get("state", "")

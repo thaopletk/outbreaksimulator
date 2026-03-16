@@ -1202,13 +1202,14 @@ def plot_HPAI_outbreak_apparent(properties, restricted_area, control_area, enhan
     geometry_culled = []
     geometry_IP = []
     geometry_DCP = []
-    geometry_DCP_AN = []
+    # geometry_DCP_AN = []
     geometry_SP = []
     geomtry_TP = []
     geometry_ARP = []
     geometry_POR = []
     geometry_UP = []
     geometry_NA = []
+    geometry_ZP = []
     geometry_other = []
 
     max_x = 140
@@ -1225,8 +1226,8 @@ def plot_HPAI_outbreak_apparent(properties, restricted_area, control_area, enhan
             geometry_IP.append(curr_farm)
         elif premise.status == "DCP":
             geometry_DCP.append(curr_farm)
-        elif premise.status == "DCP-AN":
-            geometry_DCP_AN.append(curr_farm)
+        # elif premise.status == "DCP-AN":
+        #     geometry_DCP_AN.append(curr_farm)
         elif premise.status == "SP":
             geometry_SP.append(curr_farm)
         elif premise.status == "TP":
@@ -1239,6 +1240,8 @@ def plot_HPAI_outbreak_apparent(properties, restricted_area, control_area, enhan
             geometry_UP.append(curr_farm)
         elif premise.status == "NA":
             geometry_NA.append(curr_farm)
+        elif premise.status == "ZP":
+            geometry_ZP.append(curr_farm)
         else:
             print(f"status wasn't expected: {premise.status}")
             geometry_other.append(curr_farm)
@@ -1258,13 +1261,13 @@ def plot_HPAI_outbreak_apparent(properties, restricted_area, control_area, enhan
         [geometry_culled, "cornflowerblue", "P", "resolved premises", 110, "royalblue", 1],
         [geometry_IP, "black", "X", "infected premises", 110, "black", 1],
         [geometry_DCP, "#e72918", "v", "dangerous contact premises", 110, "#950000", 1],
-        [geometry_DCP_AN, "#d38484ee", "v", "DCP-assessed negative", 100, "#df2929", 1],
+        # [geometry_DCP_AN, "#d38484ee", "v", "DCP-assessed negative", 100, "#df2929", 1],
         [geometry_SP, "#ffa200", "v", "SP", 100, "#ff6600", 0.3],
         [geomtry_TP, "#fffb00ef", "o", "TP", 70, "#cfa32a", 1],
         [geometry_ARP, "#dc68ffed", "s", "ARP", 40, "#383838", 1],
         [geometry_POR, "#fc1e4eeb", "s", "POR", 40, "#383838", 1],
         [geometry_UP, "#1eddf7ec", "$?$", "UP", 50, "#00A2FF", 1],
-        [geometry_NA, "#444444eb", ".", "NA, ZP", 25, "#3D3D3D", 0.2],
+        [geometry_ZP, "#75778aeb", ".", "ZP", 40, "#3D3D3D", 0.5][geometry_NA, "#444444eb", ".", "NA", 25, "#3D3D3D", 0.2],
         # geometry_other = []
     ]:
         geo_df = gpd.GeoDataFrame(geometry=geometry)

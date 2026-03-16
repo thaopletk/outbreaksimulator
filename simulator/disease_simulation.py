@@ -1971,22 +1971,22 @@ class DiseaseSimulation:
                                 self.daily_statistics[converted_date]["surveillance tested negative"] += 1
 
                             # updating status
-                            OG_status = properties[property_index].status
-                            properties[property_index].status = properties[property_index].status + "-AN"  # assessed negative
-                            self.combined_narrative.append(
-                                [
-                                    self.time,
-                                    converted_date,
-                                    "status_update",
-                                    properties[property_index].id,
-                                    f"{properties[property_index].type} (sim_id {properties[property_index].id}) has updated status: {properties[property_index].status} (prior status: {OG_status})",
-                                    properties[property_index].case_id,
-                                ]
-                            )
+                            # OG_status = properties[property_index].status
+                            # properties[property_index].status = properties[property_index].status + "-AN"  # assessed negative
+                            # self.combined_narrative.append(
+                            #     [
+                            #         self.time,
+                            #         converted_date,
+                            #         "status_update",
+                            #         properties[property_index].id,
+                            #         f"{properties[property_index].type} (sim_id {properties[property_index].id}) has updated status: {properties[property_index].status} (prior status: {OG_status})",
+                            #         properties[property_index].case_id,
+                            #     ]
+                            # )
 
                             # self.update_negative_status_based_on_zones(properties[property_index], restricted_area, control_area)
 
-                        extra_job_info = ""
+                        extra_job_info = testing_report
 
                     elif job_type == "ClinicalObservation":
                         if properties[property_index].case_id == None:
@@ -2040,7 +2040,7 @@ class DiseaseSimulation:
                                 ]
                             )
 
-                        extra_job_info = ""
+                        extra_job_info = testing_report
                     elif job_type == "Surveillance":
                         if isinstance(row["detection_prob"], float):
                             detection_prob = row["detection_prob"]
@@ -2125,7 +2125,7 @@ class DiseaseSimulation:
                             else:
                                 print(f"OG status of a property in negative surveillance job: {OG_status}")
 
-                        extra_job_info = ""
+                        extra_job_info = testing_report
                         job_type = row["specific_action"]
 
                     elif job_type == "Cull":
@@ -2245,7 +2245,7 @@ class DiseaseSimulation:
                             if properties[t_i].data_source == "":
                                 properties[t_i].data_source = "tracing"  # for e.g. backyard premises
 
-                        extra_job_info = ""
+                        extra_job_info = contact_tracing_report
 
                     elif job_type == "Vaccination":
                         num_animals_to_vaccinate = int(row["num"])
@@ -2407,7 +2407,7 @@ class DiseaseSimulation:
                         testing_report += f"PCR testing of dead birds reports NEGATIVE for HPAI - included sim_ids {facility_indices_included}"
                         self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
 
-                    extra_job_info = f"Population-level Surveillance ({population_surveillance_ref})"
+                    extra_job_info = testing_report
 
                     if "NA" not in self.job_manager.jobs_queue:
                         self.job_manager.jobs_queue["NA"] = {}
@@ -2477,7 +2477,7 @@ class DiseaseSimulation:
                         testing_report += f"PCR testing of dead/sick birds reports NEGATIVE for HPAI"
                         self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
 
-                    extra_job_info = f"Wild and free-roaming animal surveillance ({surveillance_ref})"
+                    extra_job_info = testing_report
 
                     if "NA" not in self.job_manager.jobs_queue:
                         self.job_manager.jobs_queue["NA"] = {}
@@ -2547,7 +2547,7 @@ class DiseaseSimulation:
                         testing_report += f"Environmental surveillance and eDNA reports NEGATIVE for HPAI"
                         self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
 
-                    extra_job_info = f"Environmental surveillance and eDNA ({surveillance_ref})"
+                    extra_job_info = testing_report
 
                     if "NA" not in self.job_manager.jobs_queue:
                         self.job_manager.jobs_queue["NA"] = {}
@@ -2588,11 +2588,11 @@ class DiseaseSimulation:
                                 total_unknown_properties_in_zone += 1
                                 facility.data_source = "Missing Properties Survey"
 
-                    testing_report = f"DAY {converted_date} - Missing Properties Survey ({surveillance_ref}) report: {total_properties_in_zone} properties found in zone, with {total_properties_in_zone} properties previously unrecorded"
+                    testing_report = f"DAY {converted_date} - Missing Properties Survey ({surveillance_ref}) report: {total_properties_in_zone} properties found in zone, with {total_unknown_properties_in_zone} properties previously unrecorded"
 
                     self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
 
-                    extra_job_info = f"Missing Properties Survey ({surveillance_ref})"
+                    extra_job_info = testing_report
 
                     if "NA" not in self.job_manager.jobs_queue:
                         self.job_manager.jobs_queue["NA"] = {}

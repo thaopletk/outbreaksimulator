@@ -3,16 +3,19 @@ import os
 
 # v06_functions.setup_to_outbreak_detection(state="NSW", testing=False, create_download_folder=False)
 
+shared_folder = "W:\\OneDrive - The University of Melbourne\\01_ARDC-HASTE\\Work Package 5\\WP5_TRIAL"
 
-# v06_functions.run_actions_excel(
-#     state="NSW",
-#     previous_unique_output="03_outbreak_detection",
-#     actions_filename_excel="actions_1.xlsx",
-#     days_to_run_for=1,
-#     unique_output="04_actions_1",
-#     output_suffix="_02",
-#     create_download_folder=False,
-# )
+v06_functions.run_actions_excel(
+    state="NSW",
+    previous_unique_output="03_outbreak_detection",
+    actions_filename_excel=os.path.join(shared_folder, "actions_1.xlsx"),
+    days_to_run_for=1,
+    unique_output="04_actions_1",
+    output_suffix="_02",
+    create_download_folder=True,
+    download_parent_folder=shared_folder,
+    download_folder_name="actions_1_outputs",  # just taking the default name
+)
 
 # v06_functions.run_actions_excel(
 #     state="NSW",
@@ -34,15 +37,15 @@ import os
 #     create_download_folder=False,
 # )
 
-v06_functions.run_actions_excel(
-    state="NSW",
-    previous_unique_output="04_actions_3",
-    actions_filename_excel="actions_4.xlsx",
-    days_to_run_for=1,
-    unique_output="04_actions_4",
-    output_suffix="_05",
-    create_download_folder=False,
-)
+# v06_functions.run_actions_excel(
+#     state="NSW",
+#     previous_unique_output="04_actions_3",
+#     actions_filename_excel="actions_4.xlsx",
+#     days_to_run_for=1,
+#     unique_output="04_actions_4",
+#     output_suffix="_05",
+#     create_download_folder=False,
+# )
 
 # v06_functions.run_actions_excel_shapefile(
 #     state="NSW",

@@ -198,8 +198,8 @@ def generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, m
     RPs = RPs.sort_values("case_id")
     # do nothing
 
-    DCPANs = approx_data[approx_data["status"] == "DCP-AN"]
-    DCPANs = DCPANs.sort_values("case_id")
+    # DCPANs = approx_data[approx_data["status"] == "DCP-AN"]
+    # DCPANs = DCPANs.sort_values("case_id")
     # do nothing
 
     # zone jobs
