@@ -1783,6 +1783,83 @@ class DiseaseSimulation:
                             )
                     # else - we don't know about it, so we can't assign it any particular status!
 
+    def run_population_level_surveillance(
+        self, properties, population_level_surveillance, population_surveillance_ref, detection_probability_factor, converted_date
+    ):
+        zone_action = "Population-level Surveillance"
+        total_num_infected_birds_in_zone = 0
+        total_num_birds_in_zone = 0
+        facility_indices_included = []
+        for i, facility in enumerate(properties):
+            if (
+                (not facility.culled_status)
+                and (not facility.reported_status)
+                and (facility.status not in ["SP", "IP"])
+                and facility.data_source != ""
+                and facility.polygon.intersects(population_level_surveillance)
+            ):
+                total_num_infected_birds_in_zone += facility.prop_infectious * facility.size
+                total_num_birds_in_zone += facility.size
+                facility_indices_included.append(i)
+
+                # properties[i].custom_info["last_surveillance_date"] = converted_date # not sure about this
+        dead_birds_est = int(total_num_infected_birds_in_zone * 0.95)  # high mortality
+        positive = False
+        if total_num_birds_in_zone != 0:
+            estimated_normal_dead_birds = total_num_birds_in_zone * 0.1
+            est_infected_dead_birds = dead_birds_est / (dead_birds_est + estimated_normal_dead_birds)
+
+            if est_infected_dead_birds > 0:
+                probability_of_detection = est_infected_dead_birds * detection_probability_factor
+                if np.random.rand() < probability_of_detection:
+                    positive = True
+
+        testing_report = f"DAY {converted_date} - Population-level Surveillance ({population_surveillance_ref}) report: "
+        if positive:
+            testing_report += f"PCR testing of dead birds reports POSITIVE for HPAI - included sim_ids {facility_indices_included}"
+
+            self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
+
+            for i in facility_indices_included:
+                if properties[i].case_id == None:
+                    self.case_id_counter += 1
+                    properties[i].case_id = self.case_id_counter
+
+                # testing_report += f"\n {premise.type}, sim_id {property_index}, case_id {premise.case_id} {premise.status}"
+                property_testing_report = f"DAY {converted_date} - POSITIVE detection for HPAI in population-level surveillance ({population_surveillance_ref}) PCR testing that included this property ({properties[i].type}, sim_id {i}, case_id {properties[i].case_id} {properties[i].status})"
+                self.combined_narrative.append([self.time, converted_date, "surveillance", i, property_testing_report, properties[i].case_id])
+                OG_status = properties[i].status
+                if OG_status not in ["SP", "TP", "IP"]:
+                    properties[i].status = "DCP"
+                    self.combined_narrative.append(
+                        [
+                            self.time,
+                            converted_date,
+                            "status_update",
+                            properties[i].id,
+                            f"{properties[i].type} (sim_id {properties[i].id}) has updated status: {properties[i].status} due to positive HPAI PCR in population-level surveillance testing (mortality sampling) (prior status: {OG_status})",
+                            properties[i].case_id,
+                        ]
+                    )
+                else:
+                    print(f"OG status of property after positive population level testing was {OG_status}")
+        else:
+            testing_report += f"PCR testing of dead birds reports NEGATIVE for HPAI - included sim_ids {facility_indices_included}"
+            self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
+
+        extra_job_info = testing_report
+
+        if "NA" not in self.job_manager.jobs_queue:
+            self.job_manager.jobs_queue["NA"] = {}
+        if zone_action not in self.job_manager.jobs_queue["NA"]:
+            self.job_manager.jobs_queue["NA"][zone_action] = {}
+
+        self.job_manager.jobs_queue["NA"][zone_action][str(self.time)] = [
+            "complete",
+            converted_date,
+            extra_job_info,
+        ]
+
     def simulate_HPAI_outbreak_management(
         self,
         properties,
@@ -2326,80 +2403,9 @@ class DiseaseSimulation:
                     else:
                         detection_probability_factor = PCR_detection_probability
 
-                    total_num_infected_birds_in_zone = 0
-                    total_num_birds_in_zone = 0
-                    facility_indices_included = []
-                    for i, facility in enumerate(properties):
-                        if (
-                            (not facility.culled_status)
-                            and (not facility.reported_status)
-                            and (facility.status not in ["SP", "IP"])
-                            and facility.data_source != ""
-                            and facility.polygon.intersects(population_level_surveillance)
-                        ):
-                            total_num_infected_birds_in_zone += facility.prop_infectious * facility.size
-                            total_num_birds_in_zone += facility.size
-                            facility_indices_included.append(i)
-
-                            # properties[i].custom_info["last_surveillance_date"] = converted_date # not sure about this
-                    dead_birds_est = int(total_num_infected_birds_in_zone * 0.95)  # high mortality
-                    positive = False
-                    if total_num_birds_in_zone != 0:
-                        estimated_normal_dead_birds = total_num_birds_in_zone * 0.1
-                        est_infected_dead_birds = dead_birds_est / (dead_birds_est + estimated_normal_dead_birds)
-
-                        if est_infected_dead_birds > 0:
-                            probability_of_detection = est_infected_dead_birds * detection_probability_factor
-                            if np.random.rand() < probability_of_detection:
-                                positive = True
-
-                    testing_report = f"DAY {converted_date} - Population-level Surveillance ({population_surveillance_ref}) report: "
-                    if positive:
-                        testing_report += f"PCR testing of dead birds reports POSITIVE for HPAI - included sim_ids {facility_indices_included}"
-
-                        self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
-
-                        for i in facility_indices_included:
-                            if properties[i].case_id == None:
-                                self.case_id_counter += 1
-                                properties[i].case_id = self.case_id_counter
-
-                            # testing_report += f"\n {premise.type}, sim_id {property_index}, case_id {premise.case_id} {premise.status}"
-                            property_testing_report = f"DAY {converted_date} - POSITIVE detection for HPAI in population-level surveillance ({population_surveillance_ref}) PCR testing that included this property ({properties[i].type}, sim_id {i}, case_id {properties[i].case_id} {properties[i].status})"
-                            self.combined_narrative.append(
-                                [self.time, converted_date, "surveillance", i, property_testing_report, properties[i].case_id]
-                            )
-                            OG_status = properties[i].status
-                            if OG_status not in ["SP", "TP", "IP"]:
-                                properties[i].status = "DCP"
-                                self.combined_narrative.append(
-                                    [
-                                        self.time,
-                                        converted_date,
-                                        "status_update",
-                                        properties[i].id,
-                                        f"{properties[i].type} (sim_id {properties[i].id}) has updated status: {properties[i].status} due to positive HPAI PCR in population-level surveillance testing (mortality sampling) (prior status: {OG_status})",
-                                        properties[i].case_id,
-                                    ]
-                                )
-                            else:
-                                print(f"OG status of property after positive population level testing was {OG_status}")
-                    else:
-                        testing_report += f"PCR testing of dead birds reports NEGATIVE for HPAI - included sim_ids {facility_indices_included}"
-                        self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
-
-                    extra_job_info = testing_report
-
-                    if "NA" not in self.job_manager.jobs_queue:
-                        self.job_manager.jobs_queue["NA"] = {}
-                    if row["action"] not in self.job_manager.jobs_queue["NA"]:
-                        self.job_manager.jobs_queue["NA"][row["action"]] = {}
-
-                    self.job_manager.jobs_queue["NA"][row["action"]][str(self.time)] = [
-                        "complete",
-                        converted_date,
-                        extra_job_info,
-                    ]
+                    self.run_population_level_surveillance(
+                        properties, population_level_surveillance, population_surveillance_ref, detection_probability_factor, converted_date
+                    )
 
             # Wild-animal surveillance: mortality sampling of wild animals in the area
             wild_animal_surveillance_df = zones_based_jobs[zones_based_jobs["action"] == "Wild Animal Surveillance"]
