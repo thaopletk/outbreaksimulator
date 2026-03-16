@@ -506,6 +506,8 @@ def run_actions_excel(
     create_download_folder=False,
     RA_shape=None,
     CA_shape=None,
+    EPS_shape=None,
+    EPS_factor=None,
     download_parent_folder=None,
     download_folder_name=None,
 ):
@@ -540,6 +542,11 @@ def run_actions_excel(
 
     # construct zones
     enhanced_passive_surveillance_area, enhanced_reporting_factor = get_enhanced_passive_surveillance_area(property_based_zones, properties)
+
+    if EPS_shape != None:
+        enhanced_passive_surveillance_area = unary_union([enhanced_passive_surveillance_area, EPS_shape])
+    if EPS_factor != None:
+        enhanced_reporting_factor = EPS_factor
 
     random.seed(1235)
     np.random.seed(1116)
@@ -623,11 +630,18 @@ def run_actions_excel_shapefile(
     folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}")
 
     shp_zones = gpd.read_file(os.path.join(folder_path_main, shapefile_path))
+
+    # restricted area
     shp_zones_RA = shp_zones.loc[shp_zones["EMZ"] == "REZ", :]
     RA_shape = list(shp_zones_RA["geometry"])[0]
 
+    # control area
     shp_zones_CA = shp_zones.loc[shp_zones["EMZ"] == "CEZ", :]
     CA_shape = list(shp_zones_CA["geometry"])[0]
+
+    # enhanced passive surveillance area
+    EPS_shape = list(shp_zones_RA["geometry"])[0]  # enhanced passive surveillance shape, assuming it's the same as the RA for now
+    EPS_factor = 1.1
 
     # could also read in enhanced surveillance area here
 
@@ -641,6 +655,8 @@ def run_actions_excel_shapefile(
         create_download_folder=create_download_folder,
         RA_shape=RA_shape,
         CA_shape=CA_shape,
+        EPS_shape=EPS_shape,
+        EPS_factor=EPS_factor,
         download_parent_folder=download_parent_folder,
         download_folder_name=download_folder_name,
     )
