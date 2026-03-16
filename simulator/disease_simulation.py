@@ -1860,6 +1860,140 @@ class DiseaseSimulation:
             extra_job_info,
         ]
 
+    def run_wild_animal_surveillance(self, properties, wild_animal_surveillance, surveillance_ref, detection_probability_factor, converted_date):
+        # TODO - implement this "properly" with an FOI
+        zone_action = "Wild Animal Surveillance"
+        total_num_infected_birds_in_zone = 0
+        total_num_birds_in_zone = 0
+        facility_indices_included = []
+        for i, facility in enumerate(properties):
+            if (
+                (not facility.culled_status)
+                and (not facility.reported_status)
+                and (facility.status not in ["SP", "IP"])
+                and facility.data_source != ""
+                and facility.polygon.intersects(wild_animal_surveillance)
+            ):
+                total_num_infected_birds_in_zone += facility.prop_infectious * facility.size
+                total_num_birds_in_zone += facility.size
+                facility_indices_included.append(i)
+
+                # properties[i].custom_info["last_surveillance_date"] = converted_date # not sure about this
+        dead_birds_est = int(total_num_infected_birds_in_zone * 0.95)  # high mortality
+        positive = False
+        if total_num_birds_in_zone != 0:
+            est_infected_dead_birds = dead_birds_est / (dead_birds_est + total_num_birds_in_zone * 0.1)
+
+            if est_infected_dead_birds > 0:
+                probability_of_detection = est_infected_dead_birds * detection_probability_factor
+                if np.random.rand() < probability_of_detection:
+                    positive = True
+
+        testing_report = f"DAY {converted_date} - Wild and free-roaming animal surveillance ({surveillance_ref}) report: "
+        if positive:
+            testing_report += f"PCR testing of dead/sick wild birds reports POSITIVE for HPAI"
+
+            self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
+
+        else:
+            testing_report += f"PCR testing of dead/sick birds reports NEGATIVE for HPAI"
+            self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
+
+        extra_job_info = testing_report
+
+        if "NA" not in self.job_manager.jobs_queue:
+            self.job_manager.jobs_queue["NA"] = {}
+        if zone_action not in self.job_manager.jobs_queue["NA"]:
+            self.job_manager.jobs_queue["NA"][zone_action] = {}
+
+        self.job_manager.jobs_queue["NA"][zone_action][str(self.time)] = [
+            "complete",
+            converted_date,
+            extra_job_info,
+        ]
+
+    def run_environmental_surveillance(self, properties, surveillance_zone, surveillance_ref, detection_probability_factor, converted_date):
+        # TODO - implement this "properly" with an FOI
+        zone_action = "Environmental Surveillance"
+
+        total_num_infected_birds_in_zone = 0
+        total_num_birds_in_zone = 0
+        facility_indices_included = []
+        for i, facility in enumerate(properties):
+            if (
+                (not facility.culled_status)
+                and (not facility.reported_status)
+                and (facility.status not in ["SP", "IP"])
+                and facility.data_source != ""
+                and facility.polygon.intersects(surveillance_zone)
+            ):
+                total_num_infected_birds_in_zone += facility.prop_infectious * facility.size
+                total_num_birds_in_zone += facility.size
+                facility_indices_included.append(i)
+
+                # properties[i].custom_info["last_surveillance_date"] = converted_date # not sure about this
+        dead_birds_est = int(total_num_infected_birds_in_zone * 0.95)  # high mortality
+        positive = False
+        if total_num_birds_in_zone != 0:
+            est_infected_dead_birds = dead_birds_est / (dead_birds_est + total_num_birds_in_zone * 0.1)
+
+            if est_infected_dead_birds > 0:
+                probability_of_detection = est_infected_dead_birds * detection_probability_factor
+                if np.random.rand() < probability_of_detection:
+                    positive = True
+
+        testing_report = f"DAY {converted_date} - Environmental surveillance and eDNA ({surveillance_ref}) report: "
+        if positive:
+            testing_report += f"Environmental surveillance and eDNA reports POSITIVE for HPAI"
+
+            self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
+
+        else:
+            testing_report += f"Environmental surveillance and eDNA reports NEGATIVE for HPAI"
+            self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
+
+        extra_job_info = testing_report
+
+        if "NA" not in self.job_manager.jobs_queue:
+            self.job_manager.jobs_queue["NA"] = {}
+        if zone_action not in self.job_manager.jobs_queue["NA"]:
+            self.job_manager.jobs_queue["NA"][zone_action] = {}
+
+        self.job_manager.jobs_queue["NA"][zone_action][str(self.time)] = [
+            "complete",
+            converted_date,
+            extra_job_info,
+        ]
+
+    def run_missing_properties_survey(self, properties, surveillance_zone, surveillance_ref, detection_probability_factor, converted_date):
+        zone_action = "Missing Properties Survey"
+
+        total_properties_in_zone = 0
+        total_unknown_properties_in_zone = 0
+        for i, facility in enumerate(properties):
+            if facility.polygon.intersects(surveillance_zone):
+                total_properties_in_zone += 1
+                if facility.data_source == "":
+                    total_unknown_properties_in_zone += 1
+                    facility.data_source = "Missing Properties Survey"
+
+        testing_report = f"DAY {converted_date} - Missing Properties Survey ({surveillance_ref}) report: {total_properties_in_zone} properties found in zone, with {total_unknown_properties_in_zone} properties previously unrecorded"
+
+        self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
+
+        extra_job_info = testing_report
+
+        if "NA" not in self.job_manager.jobs_queue:
+            self.job_manager.jobs_queue["NA"] = {}
+        if zone_action not in self.job_manager.jobs_queue["NA"]:
+            self.job_manager.jobs_queue["NA"][zone_action] = {}
+
+        self.job_manager.jobs_queue["NA"][zone_action][str(self.time)] = [
+            "complete",
+            converted_date,
+            extra_job_info,
+        ]
+
     def simulate_HPAI_outbreak_management(
         self,
         properties,
@@ -2421,61 +2555,14 @@ class DiseaseSimulation:
                     )
                     surveillance_ref = row["zone_name"]
 
-                    # TODO - implement this "properly" with an FOI
-                    # PCR_detection_probability = 0.9
                     if isinstance(row["zone_parameter"], float) or isinstance(row["zone_parameter"], int):
                         detection_probability_factor = row["zone_parameter"]
                     else:
-                        detection_probability_factor = 0.3  # PCR_detection_probability
+                        detection_probability_factor = 0.3
 
-                    total_num_infected_birds_in_zone = 0
-                    total_num_birds_in_zone = 0
-                    facility_indices_included = []
-                    for i, facility in enumerate(properties):
-                        if (
-                            (not facility.culled_status)
-                            and (not facility.reported_status)
-                            and (facility.status not in ["SP", "IP"])
-                            and facility.data_source != ""
-                            and facility.polygon.intersects(wild_animal_surveillance)
-                        ):
-                            total_num_infected_birds_in_zone += facility.prop_infectious * facility.size
-                            total_num_birds_in_zone += facility.size
-                            facility_indices_included.append(i)
-
-                            # properties[i].custom_info["last_surveillance_date"] = converted_date # not sure about this
-                    dead_birds_est = int(total_num_infected_birds_in_zone * 0.95)  # high mortality
-                    positive = False
-                    if total_num_birds_in_zone != 0:
-                        est_infected_dead_birds = dead_birds_est / (dead_birds_est + total_num_birds_in_zone * 0.1)
-
-                        if est_infected_dead_birds > 0:
-                            probability_of_detection = est_infected_dead_birds * detection_probability_factor
-                            if np.random.rand() < probability_of_detection:
-                                positive = True
-
-                    testing_report = f"DAY {converted_date} - Wild and free-roaming animal surveillance ({surveillance_ref}) report: "
-                    if positive:
-                        testing_report += f"PCR testing of dead/sick wild birds reports POSITIVE for HPAI"
-
-                        self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
-
-                    else:
-                        testing_report += f"PCR testing of dead/sick birds reports NEGATIVE for HPAI"
-                        self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
-
-                    extra_job_info = testing_report
-
-                    if "NA" not in self.job_manager.jobs_queue:
-                        self.job_manager.jobs_queue["NA"] = {}
-                    if row["action"] not in self.job_manager.jobs_queue["NA"]:
-                        self.job_manager.jobs_queue["NA"][row["action"]] = {}
-
-                    self.job_manager.jobs_queue["NA"][row["action"]][str(self.time)] = [
-                        "complete",
-                        converted_date,
-                        extra_job_info,
-                    ]
+                    self.run_wild_animal_surveillance(
+                        properties, wild_animal_surveillance, surveillance_ref, detection_probability_factor, converted_date
+                    )
 
             # Environmental surveillance and eDNA
             environmental_surveillance_df = zones_based_jobs[zones_based_jobs["action"] == "Environmental Surveillance"]
@@ -2491,61 +2578,13 @@ class DiseaseSimulation:
                     )
                     surveillance_ref = row["zone_name"]
 
-                    # TODO - implement this "properly" with an FOI
                     # PCR_detection_probability = 0.9
                     if isinstance(row["zone_parameter"], float) or isinstance(row["zone_parameter"], int):
                         detection_probability_factor = row["zone_parameter"]
                     else:
                         detection_probability_factor = 0.1  # feels like eDNA should be less than PCR
 
-                    total_num_infected_birds_in_zone = 0
-                    total_num_birds_in_zone = 0
-                    facility_indices_included = []
-                    for i, facility in enumerate(properties):
-                        if (
-                            (not facility.culled_status)
-                            and (not facility.reported_status)
-                            and (facility.status not in ["SP", "IP"])
-                            and facility.data_source != ""
-                            and facility.polygon.intersects(surveillance_zone)
-                        ):
-                            total_num_infected_birds_in_zone += facility.prop_infectious * facility.size
-                            total_num_birds_in_zone += facility.size
-                            facility_indices_included.append(i)
-
-                            # properties[i].custom_info["last_surveillance_date"] = converted_date # not sure about this
-                    dead_birds_est = int(total_num_infected_birds_in_zone * 0.95)  # high mortality
-                    positive = False
-                    if total_num_birds_in_zone != 0:
-                        est_infected_dead_birds = dead_birds_est / (dead_birds_est + total_num_birds_in_zone * 0.1)
-
-                        if est_infected_dead_birds > 0:
-                            probability_of_detection = est_infected_dead_birds * detection_probability_factor
-                            if np.random.rand() < probability_of_detection:
-                                positive = True
-
-                    testing_report = f"DAY {converted_date} - Environmental surveillance and eDNA ({surveillance_ref}) report: "
-                    if positive:
-                        testing_report += f"Environmental surveillance and eDNA reports POSITIVE for HPAI"
-
-                        self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
-
-                    else:
-                        testing_report += f"Environmental surveillance and eDNA reports NEGATIVE for HPAI"
-                        self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
-
-                    extra_job_info = testing_report
-
-                    if "NA" not in self.job_manager.jobs_queue:
-                        self.job_manager.jobs_queue["NA"] = {}
-                    if row["action"] not in self.job_manager.jobs_queue["NA"]:
-                        self.job_manager.jobs_queue["NA"][row["action"]] = {}
-
-                    self.job_manager.jobs_queue["NA"][row["action"]][str(self.time)] = [
-                        "complete",
-                        converted_date,
-                        extra_job_info,
-                    ]
+                    self.run_environmental_surveillance(properties, surveillance_zone, surveillance_ref, detection_probability_factor, converted_date)
 
             # Missing Properties Survey
             survey_df = zones_based_jobs[zones_based_jobs["action"] == "Missing Properties Survey"]
@@ -2566,31 +2605,7 @@ class DiseaseSimulation:
                     else:
                         detection_probability_factor = 1.0  # assuming that we find all properties
 
-                    total_properties_in_zone = 0
-                    total_unknown_properties_in_zone = 0
-                    for i, facility in enumerate(properties):
-                        if facility.polygon.intersects(surveillance_zone):
-                            total_properties_in_zone += 1
-                            if facility.data_source == "":
-                                total_unknown_properties_in_zone += 1
-                                facility.data_source = "Missing Properties Survey"
-
-                    testing_report = f"DAY {converted_date} - Missing Properties Survey ({surveillance_ref}) report: {total_properties_in_zone} properties found in zone, with {total_unknown_properties_in_zone} properties previously unrecorded"
-
-                    self.combined_narrative.append([self.time, converted_date, "surveillance", "", testing_report, ""])
-
-                    extra_job_info = testing_report
-
-                    if "NA" not in self.job_manager.jobs_queue:
-                        self.job_manager.jobs_queue["NA"] = {}
-                    if row["action"] not in self.job_manager.jobs_queue["NA"]:
-                        self.job_manager.jobs_queue["NA"][row["action"]] = {}
-
-                    self.job_manager.jobs_queue["NA"][row["action"]][str(self.time)] = [
-                        "complete",
-                        converted_date,
-                        extra_job_info,
-                    ]
+                    self.run_missing_properties_survey(properties, surveillance_zone, surveillance_ref, detection_probability_factor, converted_date)
 
             self.contacts_for_plotting = contacts_for_plotting
 
