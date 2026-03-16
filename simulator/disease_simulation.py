@@ -1795,6 +1795,7 @@ class DiseaseSimulation:
         restricted_emergency_zone=None,
         control_emergency_zone=None,
         enhanced_passive_surveillance_area=None,
+        enhanced_reporting_factor=2,
         output_suffix="",
     ):
 

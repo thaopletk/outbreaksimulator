@@ -493,7 +493,7 @@ def get_enhanced_passive_surveillance_area(property_based_zones, properties):
 
     enhanced_passive_surveillance_area = unary_union(EPS_geo_list)
 
-    return enhanced_passive_surveillance_area
+    return enhanced_passive_surveillance_area, enhanced_reporting_factor
 
 
 def run_actions_excel(
@@ -539,7 +539,7 @@ def run_actions_excel(
     property_based_zones = pd.read_excel(actions_input, sheet_name="zones")  # could consider "expanding to SAL, LGA" or something like that
 
     # construct zones
-    enhanced_passive_surveillance_area = get_enhanced_passive_surveillance_area(property_based_zones, properties)
+    enhanced_passive_surveillance_area, enhanced_reporting_factor = get_enhanced_passive_surveillance_area(property_based_zones, properties)
 
     random.seed(1235)
     np.random.seed(1116)
@@ -562,6 +562,7 @@ def run_actions_excel(
             restricted_emergency_zone=RA_shape,
             control_emergency_zone=CA_shape,
             enhanced_passive_surveillance_area=enhanced_passive_surveillance_area,
+            enhanced_reporting_factor=enhanced_reporting_factor,
             output_suffix=output_suffix,
         )
 
@@ -707,7 +708,7 @@ def run_auto_actions(
         zones_based_jobs = pd.read_csv(os.path.join(folder_path, f"zone_jobs_{action_number}.csv"))
         property_based_zones = pd.read_csv(os.path.join(folder_path, f"zones_{action_number}.csv"))
 
-        enhanced_passive_surveillance_area = get_enhanced_passive_surveillance_area(property_based_zones, properties)
+        enhanced_passive_surveillance_area, enhanced_reporting_factor = get_enhanced_passive_surveillance_area(property_based_zones, properties)
 
         random.seed(1235)
         np.random.seed(1116)
@@ -728,6 +729,7 @@ def run_auto_actions(
                 property_based_zones,
                 days_to_run_for,
                 enhanced_passive_surveillance_area=enhanced_passive_surveillance_area,
+                enhanced_reporting_factor=enhanced_reporting_factor,
                 output_suffix=output_suffix,
             )
 
