@@ -2117,7 +2117,7 @@ class DiseaseSimulation:
                 if row["date_scheduled"] == converted_date or row["date_scheduled"] == converted_date_dt:
                     print(row)
                     job_type = row["action"]
-                    property_index = row["ID"]
+                    property_index = int(row["ID"])
                     if job_type == "LabTesting":
                         testing_report, positive = self.job_manager.conduct_labtesting(properties, property_index, self.time)
                         full_testing_report = [self.time, converted_date, "test", property_index, testing_report, properties[property_index].case_id]
