@@ -1081,6 +1081,7 @@ def HPAI_movement_network_setup(
     all_properties,
     max_movement_km=500,  # 500km max movement
     data_file=os.path.join(os.path.dirname(__file__), "..", "data", "MovementNetwork.xlsx"),
+    state="NSW",
 ):
     """
     Sets up wind neighbours and movement neighbours
@@ -1102,50 +1103,74 @@ def HPAI_movement_network_setup(
         all_properties[p1].sim_id = random_ids[p1]
 
         # TODO: this is so messy LOL
-        if all_properties[p1].get_num_chickens() > 100:
-            all_properties[p1].data_source = random.choice(
-                ["ALSR", "bio response app", "community survey", "farm records", "poultry licensing", "poultry licensing", "poultry licensing"]
-            )
-        else:
-            if all_properties[p1].type == "backyard":
-                all_properties[p1].data_source = random.choice(
-                    ["bio response app", "community survey", "", "", "", "", "", "", "", ""]
-                )  # weighting them to be unknown altogether
-            else:
-                all_properties[p1].data_source = random.choice(["ALSR", "bio response app", "community survey", "farm records", "", ""])
-
-        if all_properties[p1].data_source == "ALSR":
-            all_properties[p1].known_sheds = ""
-            if random.uniform(0, 1) < 0.5:
-                all_properties[p1].known_sheds = all_properties[p1].num_sheds
-            all_properties[p1].known_birds = rounding_entities(all_properties[p1].get_num_chickens())
-            # TODO - or maybe rather than rounding, it should be something else....
-        elif all_properties[p1].data_source == "bio response app":
-            all_properties[p1].known_sheds = ""
-            all_properties[p1].known_birds = less_rounding_entities(all_properties[p1].get_num_chickens())
-        elif all_properties[p1].data_source == "community survey":
-            all_properties[p1].known_sheds = all_properties[p1].num_sheds
-            all_properties[p1].known_birds = less_rounding_entities(all_properties[p1].get_num_chickens())
-        elif all_properties[p1].data_source == "farm records":
-            all_properties[p1].known_sheds = all_properties[p1].num_sheds
-            all_properties[p1].known_birds = all_properties[p1].get_num_chickens()
-        elif all_properties[p1].data_source == "poultry licensing":
-            all_properties[p1].known_sheds = ""
-            if random.uniform(0, 1) < 0.5:
-                all_properties[p1].known_sheds = all_properties[p1].num_sheds
-            all_properties[p1].known_birds = ""
-        elif all_properties[p1].data_source == "":
-            all_properties[p1].known_sheds = ""
-            all_properties[p1].known_birds = ""
-
-        if all_properties[p1].type in ["egg processing", "abbatoir", "backyard"]:
-            all_properties[p1].known_sheds = ""
-            all_properties[p1].known_area = ""
-        else:
+        if state == "NSW":
             if all_properties[p1].get_num_chickens() > 100:
-                all_properties[p1].known_area = all_properties[p1].area
+                all_properties[p1].data_source = random.choice(
+                    ["ALSR", "bio response app", "community survey", "farm records", "poultry licensing", "poultry licensing", "poultry licensing"]
+                )
             else:
+                if all_properties[p1].type == "backyard":
+                    all_properties[p1].data_source = random.choice(
+                        ["bio response app", "community survey", "", "", "", "", "", "", "", ""]
+                    )  # weighting them to be unknown altogether
+                else:
+                    all_properties[p1].data_source = random.choice(["ALSR", "bio response app", "community survey", "farm records", "", ""])
+
+            if all_properties[p1].data_source == "ALSR":
+                all_properties[p1].known_sheds = ""
+                if random.uniform(0, 1) < 0.5:
+                    all_properties[p1].known_sheds = all_properties[p1].num_sheds
+                all_properties[p1].known_birds = rounding_entities(all_properties[p1].get_num_chickens())
+                # TODO - or maybe rather than rounding, it should be something else....
+            elif all_properties[p1].data_source == "bio response app":
+                all_properties[p1].known_sheds = ""
+                all_properties[p1].known_birds = less_rounding_entities(all_properties[p1].get_num_chickens())
+            elif all_properties[p1].data_source == "community survey":
+                all_properties[p1].known_sheds = all_properties[p1].num_sheds
+                all_properties[p1].known_birds = less_rounding_entities(all_properties[p1].get_num_chickens())
+            elif all_properties[p1].data_source == "farm records":
+                all_properties[p1].known_sheds = all_properties[p1].num_sheds
+                all_properties[p1].known_birds = all_properties[p1].get_num_chickens()
+            elif all_properties[p1].data_source == "poultry licensing":
+                all_properties[p1].known_sheds = ""
+                if random.uniform(0, 1) < 0.5:
+                    all_properties[p1].known_sheds = all_properties[p1].num_sheds
+                all_properties[p1].known_birds = ""
+            elif all_properties[p1].data_source == "":
+                all_properties[p1].known_sheds = ""
+                all_properties[p1].known_birds = ""
+
+            if all_properties[p1].type in ["egg processing", "abbatoir", "backyard"]:
+                all_properties[p1].known_sheds = ""
                 all_properties[p1].known_area = ""
+            else:
+                if all_properties[p1].get_num_chickens() > 100:
+                    all_properties[p1].known_area = all_properties[p1].area
+                else:
+                    all_properties[p1].known_area = ""
+        elif state == "QLD":
+            if all_properties[p1].type != "backyard":
+                all_properties[p1].data_source = "RBE"
+            else:
+                all_properties[p1].data_source = random.choice(
+                    ["RBE", "RBE", "", "", "", "", "", "", "", ""]
+                )  # weighting them to be unknown altogether
+
+            if all_properties[p1].data_source == "RBE":
+                all_properties[p1].known_sheds = all_properties[p1].num_sheds
+                all_properties[p1].known_birds = all_properties[p1].get_num_chickens()
+            elif all_properties[p1].data_source == "":
+                all_properties[p1].known_sheds = ""
+                all_properties[p1].known_birds = ""
+
+            if all_properties[p1].type in ["egg processing", "abbatoir", "backyard"]:
+                all_properties[p1].known_sheds = ""
+                all_properties[p1].known_area = ""
+            else:
+                if all_properties[p1].get_num_chickens() > 100:
+                    all_properties[p1].known_area = all_properties[p1].area
+                else:
+                    all_properties[p1].known_area = ""
 
     # assign wind neighbours and update self.total_neighbours
     for p1 in range(0, len(all_properties)):

@@ -199,6 +199,7 @@ def setup_to_outbreak_detection(state="NSW", burn_in_movement=10, testing=False,
         properties = fixed_spatial_setup.HPAI_movement_network_setup(
             all_properties,
             max_movement_km=200,  # 200km max movement
+            state=state,
         )
 
         end_time = time.time()
