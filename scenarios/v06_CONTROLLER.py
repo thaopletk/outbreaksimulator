@@ -81,7 +81,7 @@ import os
 # )
 
 
-# v06_functions.setup_to_outbreak_detection(state="QLD", burn_in_movement = 1, testing=False, create_download_folder=False)
+v06_functions.setup_to_outbreak_detection(state="QLD", burn_in_movement=1, testing=False, create_download_folder=False)
 
 v06_functions.run_auto_actions(
     state="QLD",
