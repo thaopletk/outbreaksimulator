@@ -69,7 +69,7 @@ def create_separate_download_folder(folder_path_of_run, download_folder_path_mai
                     shutil.copy(source_path, destination_path)
 
 
-def setup_to_outbreak_detection(state="NSW", testing=False, create_download_folder=False, download_parent_folder=None):
+def setup_to_outbreak_detection(state="NSW", burn_in_movement=10, testing=False, create_download_folder=False, download_parent_folder=None):
     ###################################################
     # ---- Code run set up ---------------------------#
     ###################################################
@@ -106,7 +106,20 @@ def setup_to_outbreak_detection(state="NSW", testing=False, create_download_fold
                 processing_chicken_egg_property_coordinates,
             ) = fixed_spatial_setup.HPAI_NSW_setup_locations(output_filename, testing)
         elif state == "QLD":
-            raise RuntimeError("QLD not yet coded!")
+            (
+                ALL_coordinates,
+                ALL_p_polygon,
+                ALL_p_area,
+                ALL_wind_radius,
+                ALL_animal_type,
+                ALL_premises_type,
+                ALL_num_animals,
+                ALL_LGAs,
+                chicken_meat_property_coordinates,
+                processing_chicken_meat_property_coordinates,
+                chicken_egg_property_coordinates,
+                processing_chicken_egg_property_coordinates,
+            ) = fixed_spatial_setup.HPAI_QLD_setup_locations(output_filename, testing)
         end_time = time.time()
         execution_time = end_time - start_time
         print(f"Execution time of fixed_spatial_setup.HPAI_{state}_setup_locations(): {execution_time/60} minutes")
@@ -222,7 +235,7 @@ def setup_to_outbreak_detection(state="NSW", testing=False, create_download_fold
 
     random.seed(10)
     np.random.seed(10)
-    minimum_spread_time = 10
+    minimum_spread_time = burn_in_movement
     target_infected_properties = 0
 
     unique_output = f"0_burn_in_movement"
