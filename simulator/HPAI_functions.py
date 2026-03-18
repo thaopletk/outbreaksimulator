@@ -768,6 +768,16 @@ def rounding_entities(val):
     return math.floor(val / 100000) * 100000
 
 
+def little_date_converter(input_date_string):
+    """converts dd/mm/yyyy date into yyyy-mm-dd"""
+
+    if input_date_string == "NA":
+        return "NA"
+    day_string, month_string, year_string = input_date_string.split("/")
+    new_date = f"{year_string}-{month_string}-{day_string}"
+    return new_date
+
+
 def save_approx_known_data(properties, folder_path, unique_output="", output_suffix=""):
     """Outputs a csv with the approximately known data on properties and premises
 
@@ -808,6 +818,9 @@ def save_approx_known_data(properties, folder_path, unique_output="", output_suf
         "last_conducted_contact_tracing",
         "vaccinated_birds",
     ]
+
+    data_rows_for_Biosecurity_Commons = []
+
     if output_suffix == "":
         file = os.path.join(folder_path, f"approx_known_data_{unique_output}.csv")
     else:
@@ -935,3 +948,40 @@ def save_approx_known_data(properties, folder_path, unique_output="", output_suf
                 ]
 
                 writer.writerow(row)
+
+                row = [
+                    facility.id,
+                    "NIL" if facility.status == "NA" else facility.status,
+                    little_date_converter(facility.clinical_date) if infection_data_known else "NA",
+                    little_date_converter(facility.notification_date),
+                    little_date_converter(facility.removal_date),
+                    little_date_converter(facility.recovery_date) if infection_data_known else "NA",
+                    facility.coordinates[0],
+                    facility.coordinates[1],
+                ]
+
+                data_rows_for_Biosecurity_Commons.append(row)
+
+    BC_header = [
+        "id",
+        "status",
+        "clinical_date",
+        "notification_date",
+        "removal_date",
+        "recovery_date",
+        "lon",
+        "lat",
+    ]
+
+    if output_suffix == "":
+        file = os.path.join(folder_path, f"approx_known_data_{unique_output}_Biosecurity_Commons.csv")
+    else:
+        file = os.path.join(folder_path, f"approx_known_data{output_suffix}_Biosecurity_Commons.csv")
+    with open(file, "w", newline="") as f:
+        # create the csv writer
+        writer = csv.writer(f)
+
+        # write the header
+        writer.writerow(BC_header)
+        for row in data_rows_for_Biosecurity_Commons:
+            writer.writerow(row)
