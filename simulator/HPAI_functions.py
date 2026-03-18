@@ -949,9 +949,16 @@ def save_approx_known_data(properties, folder_path, unique_output="", output_suf
 
                 writer.writerow(row)
 
+                if facility.status == "NA":
+                    BC_status = "NIL"
+                elif facility.status == "RP":
+                    BC_status = "IP"
+                else:
+                    BC_status = facility.status
+
                 row = [
                     facility.id,
-                    "NIL" if facility.status == "NA" else facility.status,
+                    BC_status,
                     little_date_converter(facility.clinical_date) if infection_data_known else "NA",
                     little_date_converter(facility.notification_date),
                     little_date_converter(facility.removal_date),
