@@ -206,6 +206,12 @@ def setup_to_outbreak_detection(state="NSW", burn_in_movement=10, testing=False,
         execution_time = end_time - start_time
         print(f"Execution time of fixed_spatial_setup.HPAI_movement_network_setup(): {execution_time/60} minutes")
 
+        start_time = time.time()
+        # pre-finds all addressess - takes 1 second per property
+        for property_i in properties:
+            loc = property_i.get_location()
+        print(f"Execution time of finding all property addressess: {execution_time/60} minutes")
+
         with open(properties_filename, "wb") as file:
             pickle.dump(properties, file)
     else:
