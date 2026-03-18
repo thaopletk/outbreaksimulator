@@ -709,7 +709,8 @@ def run_auto_actions(
     days_to_run_for = 1
 
     action_number = start_action_number_int
-    while action_number <= total_days_to_run_for:
+    running_day = 1
+    while running_day <= total_days_to_run_for:
         # get previous info
         approx_data_csv = os.path.join(previous_folder, f"approx_known_data{previous_output_suffix}.csv")
 
@@ -801,3 +802,5 @@ def run_auto_actions(
         previous_folder = folder_path
         previous_output_suffix = output_suffix
         unique_output_starting_int += 1
+
+        running_day += 1
