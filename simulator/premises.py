@@ -1032,6 +1032,7 @@ class Premises(Property):
             self.chicken_array(),  # self.chickens,
             self.get_num_eggs(),
             self.get_num_fertilised_eggs(),
+            self.data_source,
         ]
 
     def accepting_chickens(self):
