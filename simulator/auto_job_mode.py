@@ -26,8 +26,8 @@ def generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, m
     min_delays = {
         "ClinicalObservation": 0,
         "ContactTracing": 0,
-        "LabTesting": 2,
-        "Cull": 2,
+        "LabTesting": 0,
+        "Cull": 1,
         "Phone Surveillance": 0,
         "Field Surveillance": 0,
         "Self-reporting Surveillance": 1,
