@@ -329,8 +329,8 @@ def setup_to_outbreak_detection(state="NSW", burn_in_movement=10, testing=False,
         random.seed(2)
         np.random.seed(2)
     elif state == "QLD":
-        random.seed(3)
-        np.random.seed(3)
+        random.seed(1086)
+        np.random.seed(3243)
     if not os.path.exists(properties_seeded_filename):
         # seed property
         unique_output = "day0"
