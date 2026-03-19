@@ -271,25 +271,29 @@ def generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, m
         zone_rows.append(zone_row)
 
     for i, row in SPs.iterrows():
-        zone_row = [row["sim_id"], 1, "RA", ""]
+        zone_row = [row["sim_id"], 0.2, "RA", ""]
         zone_rows.append(zone_row)
 
-        zone_row = [row["sim_id"], 1, "CA", ""]
+        zone_row = [row["sim_id"], 0.2, "CA", ""]
         zone_rows.append(zone_row)
 
     for i, row in TPs.iterrows():
-        zone_row = [row["sim_id"], 1, "RA", ""]
+        zone_row = [row["sim_id"], 0.2, "RA", ""]
         zone_rows.append(zone_row)
 
-        zone_row = [row["sim_id"], 1, "CA", ""]
+        zone_row = [row["sim_id"], 0.2, "CA", ""]
         zone_rows.append(zone_row)
 
     for i, row in DCPs.iterrows():
-        zone_row = [row["sim_id"], 1, "RA", ""]
+        zone_row = [row["sim_id"], 0.2, "RA", ""]
         zone_rows.append(zone_row)
 
-        zone_row = [row["sim_id"], 1, "CA", ""]
+        zone_row = [row["sim_id"], 0.2, "CA", ""]
         zone_rows.append(zone_row)
+
+    # general super enhanced passive surveillance across NSW
+    zone_row = [3, 1200, "Enhanced Passive Surveillance", "NSW-wide enhanced passive surveillance"]
+    zone_rows.append(zone_row)
 
     # and then if there are extra resources, then ---
     print(f"Resources left: {max_resource_units-resources_used}")

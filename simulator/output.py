@@ -1137,9 +1137,9 @@ def plot_HPAI_outbreak_apparent(
     control_zones = {"restricted area": restricted_area, "control area": control_area, "Enhanced Passive Surveillance": enhanced_passive_surveillance}
 
     colour_dictionary = {
-        "restricted area": {"face": "#e07b7b", "edge": "#660000"},
-        "control area": {"face": "#fce27b", "edge": "#cc6600"},
-        "Enhanced Passive Surveillance": {"face": "#7fe8f0", "edge": "#3d3d5c"},
+        "restricted area": {"face": "#e07b7b", "edge": "#660000", "alpha": 1},
+        "control area": {"face": "#fce27b", "edge": "#cc6600", "alpha": 1},
+        "Enhanced Passive Surveillance": {"face": "#7fe8f0", "edge": "#3d3d5c", "alpha": 0.1},
     }
 
     for control_type in ["Enhanced Passive Surveillance", "control area", "restricted area"]:
@@ -1154,7 +1154,7 @@ def plot_HPAI_outbreak_apparent(
                         subpoly,
                         facecolor=colour_dictionary[control_type]["face"],
                         edgecolor=colour_dictionary[control_type]["edge"],
-                        alpha=1,
+                        alpha=colour_dictionary[control_type]["alpha"],
                         label=control_type,
                     )
             except:
@@ -1164,7 +1164,7 @@ def plot_HPAI_outbreak_apparent(
                     zone,
                     facecolor=colour_dictionary[control_type]["face"],
                     edgecolor=colour_dictionary[control_type]["edge"],
-                    alpha=1,
+                    alpha=colour_dictionary[control_type]["alpha"],
                     label=control_type,
                 )
 
@@ -1199,7 +1199,7 @@ def plot_HPAI_outbreak_apparent(
             label=control_type,
             edgecolor=colour_dictionary[control_type]["edge"],
             aspect=1,
-            alpha=1,
+            alpha=colour_dictionary[control_type]["alpha"],
         )
 
     # will only have these points

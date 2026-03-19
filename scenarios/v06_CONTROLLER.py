@@ -3,7 +3,7 @@ import os
 
 # v06_functions.setup_to_outbreak_detection(state="NSW", testing=False, create_download_folder=False)
 
-# shared_folder = "C:\\Users\\thaophuongl\\OneDrive - The University of Melbourne\\01_ARDC-HASTE\\Work Package 5\\WP5_TRIAL"
+shared_folder = "C:\\Users\\thaophuongl\\OneDrive - The University of Melbourne\\01_ARDC-HASTE\\WP5_NSW_Workshop"
 
 # action_name = "actions_1"
 # v06_functions.run_actions_excel(
@@ -11,25 +11,25 @@ import os
 #     previous_unique_output="03_outbreak_detection",
 #     actions_filename_excel=os.path.join(shared_folder, f"{action_name}.xlsx"),
 #     days_to_run_for=1,
-#     unique_output=f"HASTE_{action_name}",
+#     unique_output=f"HASTE_NSW_{action_name}",
 #     output_suffix="_02",
 #     create_download_folder=True,
 #     download_parent_folder=shared_folder,
 #     download_folder_name=f"{action_name}_outputs",
 # )
 
-# action_name = "actions_2"
-# v06_functions.run_actions_excel(
-#     state="NSW",
-#     previous_unique_output="HASTE_actions_1",
-#     actions_filename_excel=os.path.join(shared_folder, f"{action_name}.xlsx"),
-#     days_to_run_for=1,
-#     unique_output=f"HASTE_{action_name}",
-#     output_suffix="_03",
-#     create_download_folder=True,
-#     download_parent_folder=shared_folder,
-#     download_folder_name=f"{action_name}_outputs",
-# )
+action_name = "actions_2"
+v06_functions.run_actions_excel(
+    state="NSW",
+    previous_unique_output="HASTE_NSW_actions_1",
+    actions_filename_excel=os.path.join(shared_folder, f"{action_name}.xlsx"),
+    days_to_run_for=1,
+    unique_output=f"HASTE_NSW_{action_name}",
+    output_suffix="_03",
+    create_download_folder=True,
+    download_parent_folder=shared_folder,
+    download_folder_name=f"{action_name}_outputs",
+)
 
 # action_name = "actions_3"
 # v06_functions.run_actions_excel(
@@ -71,25 +71,50 @@ import os
 
 # v06_functions.run_auto_actions(
 #     state="NSW",
-#     previous_unique_output="04_actions_1",
-#     previous_output_suffix_int=2,
+#     previous_unique_output="03_outbreak_detection",
+#     previous_output_suffix_int=1,
 #     total_days_to_run_for=7,
-#     start_action_number_int=2,
-#     unique_output_starting_int=5,
+#     start_action_number_int=1,
+#     unique_output_starting_int=4,
 #     create_download_folder=False,
 #     max_resource_units=100,
+#     strategy = "default",
+# )
+
+# v06_functions.run_auto_actions(
+#     state="NSW",
+#     previous_unique_output="10_actions_7",
+#     previous_output_suffix_int=8,
+#     total_days_to_run_for=4,
+#     start_action_number_int=8,
+#     unique_output_starting_int=11,
+#     create_download_folder=False,
+#     max_resource_units=100,
+#     strategy = "faster depop",
+# )
+
+# v06_functions.run_auto_actions(
+#     state="NSW",
+#     previous_unique_output="10_actions_7",
+#     previous_output_suffix_int=8,
+#     total_days_to_run_for=4,
+#     start_action_number_int=8,
+#     unique_output_starting_int=11,
+#     create_download_folder=False,
+#     max_resource_units=100,
+#     strategy = "surveillance",
 # )
 
 
-v06_functions.setup_to_outbreak_detection(state="QLD", burn_in_movement=1, testing=False, create_download_folder=False)
+# v06_functions.setup_to_outbreak_detection(state="QLD", burn_in_movement=7, testing=False, create_download_folder=False)
 
-v06_functions.run_auto_actions(
-    state="QLD",
-    previous_unique_output="03_outbreak_detection",
-    previous_output_suffix_int=1,
-    total_days_to_run_for=7,
-    start_action_number_int=1,
-    unique_output_starting_int=4,
-    create_download_folder=False,
-    max_resource_units=100,
-)
+# v06_functions.run_auto_actions(
+#     state="QLD",
+#     previous_unique_output="03_outbreak_detection",
+#     previous_output_suffix_int=1,
+#     total_days_to_run_for=7,
+#     start_action_number_int=1,
+#     unique_output_starting_int=4,
+#     create_download_folder=False,
+#     max_resource_units=100,
+# )

@@ -20,6 +20,7 @@ import simulator.fixed_spatial_setup as fixed_spatial_setup
 import simulator.HPAI_functions as HPAI_functions
 import simulator.output as output
 import simulator.auto_job_mode as auto_job_mode
+import simulator.spatial_setup as spatial_setup
 
 # import simulator.simulator as simulator
 import simulator.disease_simulation as disease_simulation
@@ -517,7 +518,13 @@ def get_enhanced_passive_surveillance_area(property_based_zones, properties):
 
     enhanced_passive_surveillance_area = unary_union(EPS_geo_list)
 
-    return enhanced_passive_surveillance_area, enhanced_reporting_factor
+    Australia_gdf = spatial_setup.get_Australia_shape()
+
+    NSW = Australia_gdf.loc[Australia_gdf["STE_NAME21"] == "New South Wales", :]
+
+    NSW_shape = list(NSW["geometry"])[0]
+
+    return enhanced_passive_surveillance_area.intersection(NSW_shape), enhanced_reporting_factor
 
 
 def run_actions_excel(
@@ -597,6 +604,18 @@ def run_actions_excel(
             output_suffix=output_suffix,
         )
 
+        HPAI_functions.save_approx_known_data(properties, folder_path, unique_output="", output_suffix=output_suffix)
+
+        # # TEMP ONLY - FIND ALL ADDRESSESS TODO - delete this afterwards
+        count = 0
+        for property_i in properties:
+            count += 1
+            if count < 10:
+                continue
+            loca = property_i.get_location()
+            if count > 50:
+                break
+
         # and then resave the end state
         with open(spread_properties_filename, "wb") as file:
             pickle.dump(properties, file)
@@ -616,8 +635,6 @@ def run_actions_excel(
             properties = pickle.load(file)
         with open(spread_diseaseoutbreak_filename, "rb") as file:
             diseaseoutbreak = pickle.load(file)
-
-    HPAI_functions.save_approx_known_data(properties, folder_path, unique_output="", output_suffix=output_suffix)
 
     if create_download_folder:
         if download_parent_folder == None:
@@ -697,6 +714,7 @@ def run_auto_actions(
     max_resource_units=100,
     download_parent_folder=None,
     download_folder_name=None,
+    strategy="default",
 ):
     folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}")
     xrange, yrange, xlims, ylims = x_y_ranges(state)
@@ -712,6 +730,10 @@ def run_auto_actions(
     with open(previous_spread_diseaseoutbreak_filename, "rb") as file:
         diseaseoutbreak = pickle.load(file)
 
+    # # TEMP ONLY - FIND ALL ADDRESSESS TODO - delete this afterwards
+    # for property_i in properties:
+    #     loca= property_i.get_location()
+
     days_to_run_for = 1
 
     action_number = start_action_number_int
@@ -725,7 +747,7 @@ def run_auto_actions(
         output_suffix = f"_{outputnumber:02d}"
 
         unique_outputnumber = unique_output_starting_int
-        unique_output = f"{unique_outputnumber:02d}_actions_{action_number}"
+        unique_output = f"{unique_outputnumber:02d}_actions_{action_number}_{strategy}"
         folder_path = os.path.join(folder_path_main, unique_output)
 
         print(folder_path)
@@ -743,7 +765,7 @@ def run_auto_actions(
             or not os.path.exists(os.path.join(folder_path, f"zone_jobs_{action_number}.csv"))
             or not os.path.exists(os.path.join(folder_path, f"zones_{action_number}.csv"))
         ):
-            auto_job_mode.generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, max_resource_units)
+            auto_job_mode.generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, max_resource_units, strategy)
 
         property_jobs = pd.read_csv(os.path.join(folder_path, f"jobs_{action_number}.csv"))
         zones_based_jobs = pd.read_csv(os.path.join(folder_path, f"zone_jobs_{action_number}.csv"))
