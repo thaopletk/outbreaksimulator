@@ -350,6 +350,8 @@ def plot_map(
         infected_coords = []
 
         for index, premise in enumerate(properties):
+            if premise.data_source == "":
+                continue
             long, lat = premise.coordinates
             curr_farm = Point(long, lat)
 
@@ -365,7 +367,7 @@ def plot_map(
             elif premise.reported_status == True:
                 geometry_confirmed_infected.append(curr_farm)
                 infected_coords.append(premise.coordinates)
-            elif premise.undergoing_testing == True:
+            elif premise.status == "TP" or premise.status == "DCP":
                 geometry_undergoing_testing.append(curr_farm)
             elif premise.vaccination_status:
                 geometry_vaccinated.append(curr_farm)
@@ -391,12 +393,12 @@ def plot_map(
             geometry_susceptible,
             "#5284b3",
             "o",
-            "susceptible",
+            "susceptible/other",
             20,
         ],  # NOTE: can take out susceptible plotting to make it clearer to see what's happening
-        [geometry_selfreport, "grey", "s", "self-reported", 70],
+        [geometry_selfreport, "grey", "s", "self-reported/SP", 70],
         [geometry_vaccinated, "#7852a4", "P", "vaccinated", 70],
-        [geometry_undergoing_testing, "#ffa200", "d", "TP/testing", 100],
+        [geometry_undergoing_testing, "#ffa200", "d", "TP/DCP", 100],
         [geometry_infected, "purple", "x", "infected", 30],
         [geometry_confirmed_infected, "#ea4335", "X", "confirmed", 120],
         # [geometry_culled_on_suspicion, "black", "X", "culled on suspicion", 150],
@@ -1127,7 +1129,9 @@ def plot_infection_pressure(
     return
 
 
-def plot_HPAI_outbreak_apparent(properties, restricted_area, control_area, enhanced_passive_surveillance, xlims, ylims, folder_path, time):
+def plot_HPAI_outbreak_apparent(
+    properties, restricted_area, control_area, enhanced_passive_surveillance, xlims, ylims, folder_path, time, zoomed_in=False
+):
     fig, ax = plt.subplots(1, 1, figsize=(30, 25))  # ,figsize=(10,12)
 
     control_zones = {"restricted area": restricted_area, "control area": control_area, "Enhanced Passive Surveillance": enhanced_passive_surveillance}
@@ -1218,6 +1222,8 @@ def plot_HPAI_outbreak_apparent(properties, restricted_area, control_area, enhan
     max_y = -38
 
     for index, premise in enumerate(properties):
+        if premise.data_source == "":
+            continue  # lol!
         long, lat = premise.coordinates
         curr_farm = Point(long, lat)
         if premise.culled_status == True:
@@ -1285,7 +1291,13 @@ def plot_HPAI_outbreak_apparent(properties, restricted_area, control_area, enhan
             alpha=alpha,
         )
 
-    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)  # source=ctx.providers.OpenStreetMap.Mapnik
+    ax.set_xlim(xlims)
+    ax.set_ylim(ylims)
+    if zoomed_in:
+        ax.set_xlim([min_x - 0.1, max_x + 0.1])  # making a more zoomed in version
+        ax.set_ylim([min_y - 0.05, max_y + 0.05])
+
+    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)  # source=ctx.providers.CartoDB.Positron
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
     points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
@@ -1301,9 +1313,6 @@ def plot_HPAI_outbreak_apparent(properties, restricted_area, control_area, enhan
 
     # ax.axis("off")
 
-    ax.set_xlim(xlims)
-    ax.set_ylim(ylims)
-
     # ax.legend(
     #     loc="upper center",
     #     bbox_to_anchor=(0.5, 0.0),
@@ -1317,13 +1326,11 @@ def plot_HPAI_outbreak_apparent(properties, restricted_area, control_area, enhan
 
     file_name_ending = f"{time}.png"
 
-    file_name = os.path.join(folder_path, "nice_map_" + file_name_ending)
-    plt.savefig(file_name, bbox_inches="tight")
-
-    ax.set_xlim([min_x - 0.1, max_x + 0.1])  # making a more zoomed in version
-    ax.set_ylim([min_y - 0.05, max_y + 0.05])
-
-    file_name = os.path.join(folder_path, "nice_map_zoomed_in" + file_name_ending)
-    plt.savefig(file_name, bbox_inches="tight")
+    if not zoomed_in:
+        file_name = os.path.join(folder_path, "nice_map_" + file_name_ending)
+        plt.savefig(file_name, bbox_inches="tight")
+    else:
+        file_name = os.path.join(folder_path, "nice_map_zoomed_in" + file_name_ending)
+        plt.savefig(file_name, bbox_inches="tight")
 
     plt.close()

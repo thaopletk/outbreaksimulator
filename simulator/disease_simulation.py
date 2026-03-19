@@ -2699,4 +2699,16 @@ class DiseaseSimulation:
             properties, restricted_area, control_area, enhanced_passive_surveillance_area, self.xlims, self.ylims, self.folder_path, self.time
         )
 
+        output.plot_HPAI_outbreak_apparent(
+            properties,
+            restricted_area,
+            control_area,
+            enhanced_passive_surveillance_area,
+            self.xlims,
+            self.ylims,
+            self.folder_path,
+            self.time,
+            zoomed_in=True,
+        )
+
         return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
