@@ -7,7 +7,9 @@ from datetime import datetime as dt
 from datetime import timedelta
 
 
-def generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, max_resource_units=100):
+def generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, max_resource_units=100, strategy="default"):
+    """
+    Available strategies: 'default', 'surveillance', and 'faster depop'"""
     approx_data = pd.read_csv(os.path.join(folder_path, approx_data_csv))
 
     resource_cost = {
@@ -23,6 +25,7 @@ def generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, m
         "Environmental Surveillance": 3,
         "Missing Properties Survey": 3,
     }
+
     min_delays = {
         "ClinicalObservation": 0,
         "ContactTracing": 0,
@@ -36,6 +39,12 @@ def generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, m
         "Environmental Surveillance": 0,
         "Missing Properties Survey": 0,
     }
+
+    resource_cost_culling_per_16k = 4
+    cull_capacity = 16000
+    if strategy == "faster depop":
+        cull_capacity = 100000
+        min_delays["Cull"] = 0
 
     min_delays = {key: timedelta(days=item) for key, item in min_delays.items()}
 
@@ -56,11 +65,18 @@ def generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, m
             else:
                 total_birds = int(row["culled_birds"] + row["total_chickens"])
             approx_chicken_per_shed = np.ceil(total_birds / sheds)
-            cull_capacity = max(15000, approx_chicken_per_shed)
 
-            job_row = [row["sim_id"], scheduled_date, "Cull", "", "", cull_capacity, "IP"]
+            max_to_cull = max(cull_capacity, approx_chicken_per_shed)
+
+            actual_chickens_left_to_cull = int(row["total_chickens"])
+
+            actual_cull = min(actual_chickens_left_to_cull, max_to_cull)
+
+            job_row = [row["sim_id"], scheduled_date, "Cull", "", "", actual_cull, "IP"]
             jobs_rows.append(job_row)
-            resources_used += resource_cost["Cull"]
+            resources_used += int(
+                np.ceil((actual_cull / 16000)) * resource_cost_culling_per_16k
+            )  # reduce resource cost if there are less chickens to actually cull
 
         # contact tracing if not yet done
         if pd.isna(row["last_conducted_contact_tracing"]):
@@ -72,28 +88,31 @@ def generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, m
     SPs = approx_data[approx_data["status"] == "SP"]  # suspect properties; all self-reported
     SPs = SPs.sort_values("case_id")
     for i, row in SPs.iterrows():
-        if (
-            pd.isna(row["last_surveillance_date"])
-            and dt.strptime(row["self_report_date"], "%d/%m/%Y") + min_delays["ClinicalObservation"] <= scheduled_date_object
-        ):
+        try:
+            self_report_date = dt.strptime(row["self_report_date"], "%d/%m/%Y")
+        except:
+            # for non-self-reported
+            self_report_date = dt.strptime(row["last_surveillance_date"], "%d/%m/%Y")
+        if pd.isna(row["last_surveillance_date"]) and self_report_date + min_delays["ClinicalObservation"] <= scheduled_date_object:
             job_row = [row["sim_id"], scheduled_date, "ClinicalObservation", "", "", "", "SP"]
             if resources_used < max_resource_units:
                 jobs_rows.append(job_row)
                 resources_used += resource_cost["ClinicalObservation"]
-        if (pd.isna(row["last_PCR_date"])) and dt.strptime(row["self_report_date"], "%d/%m/%Y") + min_delays["LabTesting"] <= scheduled_date_object:
+        if pd.isna(row["last_PCR_date"]) and self_report_date + min_delays["LabTesting"] <= scheduled_date_object:
             job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", "SP"]
             if resources_used < max_resource_units:
                 jobs_rows.append(job_row)
                 resources_used += resource_cost["LabTesting"]
 
-        if pd.isna(row["last_conducted_contact_tracing"]):
-            if dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + min_delays["ContactTracing"] <= scheduled_date_object:
+        if pd.isna(row["last_conducted_contact_tracing"]) and self_report_date + min_delays["ContactTracing"] <= scheduled_date_object:
+            if resources_used < max_resource_units:
                 job_row = [row["sim_id"], scheduled_date, "ContactTracing", "", "", "", "SP"]
                 jobs_rows.append(job_row)
                 resources_used += resource_cost["ContactTracing"]
 
     TPs = approx_data[approx_data["status"] == "TP"]  # trace properties
     TPs = TPs.sort_values("case_id")
+
     count_row = TPs.shape[0]
     if count_row * resource_cost["Phone Surveillance"] > (max_resource_units - resources_used):
         # if there are too many TPs and not enough resources
@@ -103,48 +122,73 @@ def generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, m
         TPaction = "ClinicalObservation"
     else:
         TPaction = "ClinicalObservation"
+
     for i, row in TPs.iterrows():
-        if pd.isna(row["last_surveillance_date"]):
-            if resources_used < max_resource_units:
-                job_row = [row["sim_id"], scheduled_date, TPaction, "", "", "", "TP"]
-                jobs_rows.append(job_row)
-                resources_used += resource_cost[TPaction]
+        if strategy == "surveillance":
+            if pd.isna(row["last_surveillance_date"]):
+                if resources_used < max_resource_units:
+                    job_row = [row["sim_id"], scheduled_date, "ClinicalObservation", "", "", "", "TP"]
+                    jobs_rows.append(job_row)
+                    resources_used += resource_cost[TPaction]
+            if pd.isna(row["last_PCR_date"]):
+                if resources_used < max_resource_units:
+                    job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", "TP"]
+                    jobs_rows.append(job_row)
+                    resources_used += resource_cost["LabTesting"]
         else:
-            if row["data_source"] == "Phone Surveillance":
-                if TPaction != "Phone Surveillance":
-                    if resources_used < max_resource_units:
-                        job_row = [row["sim_id"], scheduled_date, "Surveillance", "Field Surveillance", "", "", "TP"]
-                        jobs_rows.append(job_row)
-                        resources_used += resource_cost["Field Surveillance"]
+            if pd.isna(row["last_surveillance_date"]):
+                if resources_used < max_resource_units:
+                    job_row = [row["sim_id"], scheduled_date, TPaction, "", "", "", "TP"]
+                    jobs_rows.append(job_row)
+                    resources_used += resource_cost[TPaction]
             else:
-                if TPaction != "Phone Surveillance":
-                    if (
-                        pd.isna(row["last_PCR_date"])
-                        and dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + min_delays["LabTesting"] <= scheduled_date_object
-                    ):
+                if row["data_source"] == "Phone Surveillance":
+                    if TPaction != "Phone Surveillance":
                         if resources_used < max_resource_units:
-                            job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", "TP"]
+                            job_row = [row["sim_id"], scheduled_date, "Surveillance", "Field Surveillance", "", "", "TP"]
                             jobs_rows.append(job_row)
-                            resources_used += resource_cost["LabTesting"]
+                            resources_used += resource_cost["Field Surveillance"]
+                else:
+                    if TPaction != "Phone Surveillance":
+                        if (
+                            pd.isna(row["last_PCR_date"])
+                            and dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + min_delays["LabTesting"] <= scheduled_date_object
+                        ):
+                            if resources_used < max_resource_units:
+                                job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", "TP"]
+                                jobs_rows.append(job_row)
+                                resources_used += resource_cost["LabTesting"]
 
     DCPs = approx_data[approx_data["status"] == "DCP"]
     DCPs = DCPs.sort_values("case_id")
     # probably just schedule a lab test with an extra delay (less important)
     for i, row in DCPs.iterrows():
-        if pd.isna(row["last_surveillance_date"]):
-            if resources_used < max_resource_units:
-                job_row = [row["sim_id"], scheduled_date, TPaction, "", "", "", "DCP"]
-                jobs_rows.append(job_row)
-                resources_used += resource_cost[TPaction]
-        else:
-            if (
-                pd.isna(row["last_PCR_date"])
-                and dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + min_delays["LabTesting"] + timedelta(days=2) <= scheduled_date_object
-            ):
+        if strategy == "surveillance":
+            if pd.isna(row["last_surveillance_date"]):
+                if resources_used < max_resource_units:
+                    job_row = [row["sim_id"], scheduled_date, TPaction, "", "", "", "DCP"]
+                    jobs_rows.append(job_row)
+                    resources_used += resource_cost[TPaction]
+            if pd.isna(row["last_PCR_date"]):
                 if resources_used < max_resource_units:
                     job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", "DCP"]
                     jobs_rows.append(job_row)
                     resources_used += resource_cost["LabTesting"]
+        else:
+            if pd.isna(row["last_surveillance_date"]):
+                if resources_used < max_resource_units:
+                    job_row = [row["sim_id"], scheduled_date, TPaction, "", "", "", "DCP"]
+                    jobs_rows.append(job_row)
+                    resources_used += resource_cost[TPaction]
+            else:
+                if (
+                    pd.isna(row["last_PCR_date"])
+                    and dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + min_delays["LabTesting"] + timedelta(days=2) <= scheduled_date_object
+                ):
+                    if resources_used < max_resource_units:
+                        job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", "DCP"]
+                        jobs_rows.append(job_row)
+                        resources_used += resource_cost["LabTesting"]
 
     ARPs = approx_data[approx_data["status"] == "ARP"]
     ARPs = ARPs.sort_values("case_id")
@@ -156,12 +200,11 @@ def generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, m
                 resources_used += resource_cost[TPaction]
         else:
             if pd.isna(row["last_PCR_date"]):
-                if row["animals_clinical"] == True:
-                    if dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + min_delays["LabTesting"] + timedelta(days=2) <= scheduled_date_object:
-                        if resources_used < max_resource_units:
-                            job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", "ARP"]
-                            jobs_rows.append(job_row)
-                            resources_used += resource_cost["LabTesting"]
+                if dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + min_delays["LabTesting"] + timedelta(days=2) <= scheduled_date_object:
+                    if resources_used < max_resource_units:
+                        job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", "ARP"]
+                        jobs_rows.append(job_row)
+                        resources_used += resource_cost["LabTesting"]
 
     PORs = approx_data[approx_data["status"] == "POR"]
     PORs = PORs.sort_values("case_id")
@@ -173,12 +216,11 @@ def generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, m
                 resources_used += resource_cost[TPaction]
         else:
             if pd.isna(row["last_PCR_date"]):
-                if row["animals_clinical"] == True:
-                    if dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + min_delays["LabTesting"] + timedelta(days=2) <= scheduled_date_object:
-                        if resources_used < max_resource_units:
-                            job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", "POR"]
-                            jobs_rows.append(job_row)
-                            resources_used += resource_cost["LabTesting"]
+                if dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + min_delays["LabTesting"] + timedelta(days=2) <= scheduled_date_object:
+                    if resources_used < max_resource_units:
+                        job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", "POR"]
+                        jobs_rows.append(job_row)
+                        resources_used += resource_cost["LabTesting"]
 
     UPs = approx_data[approx_data["status"] == "UP"]
     UPs = UPs.sort_values("case_id")
@@ -198,14 +240,16 @@ def generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, m
     RPs = RPs.sort_values("case_id")
     # do nothing
 
-    # DCPANs = approx_data[approx_data["status"] == "DCP-AN"]
-    # DCPANs = DCPANs.sort_values("case_id")
-    # do nothing
-
     # zone jobs
     zone_jobs_header = ["ID", "date_scheduled", "radius_km", "action", "zone_name", "zone_parameter", "Free text notes"]
     zone_jobs_rows = []
-    # skip for now
+    if strategy == "surveillance":
+        for i, row in IPs.iterrows():
+            if dt.strptime(row["last_PCR_date"], "%d/%m/%Y") + timedelta(days=1) == scheduled_date_object:
+                if resources_used < max_resource_units:
+                    job_row = [row["sim_id"], scheduled_date, 5, "Population-level Surveillance", row["sim_id"], "", "surveillance around IP"]
+                    zone_jobs_rows.append(job_row)
+                    resources_used += resource_cost["Population-level Surveillance"]
 
     # zones
     zones_header = ["ID", "radius_km", "zone_type", "Free text notes"]
@@ -213,8 +257,10 @@ def generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, m
     for i, row in IPs.iterrows():
         zone_row = [row["sim_id"], 5, "RA", ""]
         zone_rows.append(zone_row)
-
-        zone_row = [row["sim_id"], 10, "CA", ""]
+        if strategy == "surveillance":
+            zone_row = [row["sim_id"], 15, "CA", ""]  # exapnd to get more PORs or ARPs
+        else:
+            zone_row = [row["sim_id"], 10, "CA", ""]
         zone_rows.append(zone_row)
 
     for i, row in RPs.iterrows():
