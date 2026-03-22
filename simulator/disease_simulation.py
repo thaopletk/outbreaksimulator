@@ -1747,7 +1747,9 @@ class DiseaseSimulation:
                                 ]
                             )
 
-                    elif facility.known_birds != "" and facility.known_birds == 0 and facility.get_num_chickens() == 0:
+                    elif (
+                        facility.known_birds != "" and facility.known_birds == 0 and facility.get_num_chickens() == 0 and facility.get_num_eggs() == 0
+                    ):
                         OG_status = facility.status
                         if facility.case_id == None:
                             self.case_id_counter += 1
