@@ -291,47 +291,53 @@ def generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, m
                     resources_used += resource_cost["Missing Properties Survey"]
 
     # zones
-    zones_header = ["ID", "radius_km", "zone_type", "Free text notes"]
+    zones_header = ["ID", "radius_km", "zone_type", "zone_parameter", "Free text notes"]
     zone_rows = []
     for i, row in IPs.iterrows():
-        zone_row = [row["sim_id"], 5, "RA", ""]
+        zone_row = [row["sim_id"], 5, "RA", "", ""]
         zone_rows.append(zone_row)
         if strategy == "surveillance":
-            zone_row = [row["sim_id"], 15, "CA", ""]  # exapnd to get more PORs or ARPs
+            zone_row = [row["sim_id"], 20, "CA", "", ""]  # exapnd to get more PORs or ARPs
         else:
-            zone_row = [row["sim_id"], 10, "CA", ""]
+            zone_row = [row["sim_id"], 10, "CA", "", ""]
         zone_rows.append(zone_row)
 
     for i, row in RPs.iterrows():
-        zone_row = [row["sim_id"], 5, "RA", ""]
+        zone_row = [row["sim_id"], 5, "RA", "", ""]
         zone_rows.append(zone_row)
 
-        zone_row = [row["sim_id"], 10, "CA", ""]
+        if strategy == "surveillance":
+            zone_row = [row["sim_id"], 20, "CA", "", ""]
+        else:
+            zone_row = [row["sim_id"], 10, "CA", "", ""]
         zone_rows.append(zone_row)
 
     for i, row in SPs.iterrows():
-        zone_row = [row["sim_id"], 0.2, "RA", ""]
+        zone_row = [row["sim_id"], 0.2, "RA", "", ""]
         zone_rows.append(zone_row)
 
-        zone_row = [row["sim_id"], 0.2, "CA", ""]
+        if strategy == "surveillance":
+            zone_row = [row["sim_id"], 20, "CA", "", ""]
+        else:
+            zone_row = [row["sim_id"], 0.2, "CA", "", ""]
         zone_rows.append(zone_row)
 
     for i, row in TPs.iterrows():
-        zone_row = [row["sim_id"], 0.2, "RA", ""]
+        zone_row = [row["sim_id"], 0.2, "RA", "", ""]
         zone_rows.append(zone_row)
 
-        zone_row = [row["sim_id"], 0.2, "CA", ""]
+        zone_row = [row["sim_id"], 0.2, "CA", "", ""]
         zone_rows.append(zone_row)
 
     for i, row in DCPs.iterrows():
-        zone_row = [row["sim_id"], 0.2, "RA", ""]
+        zone_row = [row["sim_id"], 0.2, "RA", "", ""]
         zone_rows.append(zone_row)
 
-        zone_row = [row["sim_id"], 0.2, "CA", ""]
+        zone_row = [row["sim_id"], 0.2, "CA", "", ""]
         zone_rows.append(zone_row)
 
     # general super enhanced passive surveillance across NSW
-    zone_row = [3, 1200, "Enhanced Passive Surveillance", "NSW-wide enhanced passive surveillance"]
+    zone_row = [3, 1200, "Enhanced Passive Surveillance", "", "NSW-wide enhanced passive surveillance"]
     zone_rows.append(zone_row)
 
     # and then if there are extra resources, then ---

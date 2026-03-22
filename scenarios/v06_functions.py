@@ -64,7 +64,7 @@ def create_separate_download_folder(folder_path_of_run, download_folder_path_mai
         # Loop through the files in the source directory and copy just the png or csv files
         for file in os.listdir(folder_path_of_run):
             if file.endswith(".png") or file.endswith(".csv"):
-                if "underlying" not in file and "fake_data" not in file and "movement_records" not in file:
+                if "underlying" not in file and "fake_data" not in file and "movement_records" not in file and "exposure" not in file:
                     source_path = os.path.join(folder_path_of_run, file)
                     destination_path = os.path.join(download_folder_path, file)
                     shutil.copy(source_path, destination_path)
@@ -945,7 +945,7 @@ def run_auto_actions(
             if download_parent_folder == None:
                 download_parent_folder = folder_path_main
             if download_folder_name == None:
-                download_folder_name = "download_" + unique_output
+                download_folder_name = unique_output + "_"
 
             create_separate_download_folder(folder_path, download_parent_folder, download_folder_name)
 

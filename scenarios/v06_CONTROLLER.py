@@ -1,11 +1,15 @@
 import v06_functions
 import os
+import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+import simulator.auto_job_mode as auto_job_mode
 
 # v06_functions.setup_to_outbreak_detection(state="NSW", testing=False, create_download_folder=False)
 
 shared_folder = "C:\\Users\\thaophuongl\\OneDrive - The University of Melbourne\\01_ARDC-HASTE\\WP5_NSW_Workshop"
 
-action_name = "actions_1"
+# action_name = "actions_1"
 # v06_functions.run_actions_excel(
 #     state="NSW",
 #     previous_unique_output="03_outbreak_detection",
@@ -18,25 +22,25 @@ action_name = "actions_1"
 #     download_folder_name=f"{action_name}_outputs",
 # )
 
-v06_functions.run_status_update_only_excel_shapefile(
-    state="NSW",
-    previous_unique_output="HASTE_NSW_actions_1",
-    actions_filename_excel=None,
-    shapefile_path=os.path.join(shared_folder, "actions_1IP_zones", "1IP_Zones.shp"),
-    unique_output="HASTE_NSW_actions_1_updated",
-    output_suffix="_02_updated",
-    create_download_folder=True,
-    download_parent_folder=shared_folder,
-    download_folder_name="actions_1_updated_outputs",
-)
+# v06_functions.run_status_update_only_excel_shapefile(
+#     state="NSW",
+#     previous_unique_output="HASTE_NSW_actions_1",
+#     actions_filename_excel=None,
+#     shapefile_path=os.path.join(shared_folder, "actions_1IP_zones", "1IP_Zones.shp"),
+#     unique_output="HASTE_NSW_actions_1_updated",
+#     output_suffix="_02_updated",
+#     create_download_folder=True,
+#     download_parent_folder=shared_folder,
+#     download_folder_name="actions_1_updated_outputs",
+# )
 
 
-v06_functions.generate_ARP_POR_jobs_only(
-    os.path.join(shared_folder, "actions_1_updated_outputs"),
-    "approx_known_data_02_updated.csv",
-    "21/01/2026",
-    "post_actions_1_updated_ARP_POR_jobs.csv",
-)
+# auto_job_mode.generate_ARP_POR_jobs_only(
+#     os.path.join(shared_folder, "actions_1_updated_outputs"),
+#     "approx_known_data_02_updated.csv",
+#     "21/01/2026",
+#     "post_actions_1_updated_ARP_POR_jobs",
+# )
 
 # action_name = "actions_1IP"
 # v06_functions.run_actions_excel_shapefile(
@@ -92,39 +96,40 @@ v06_functions.generate_ARP_POR_jobs_only(
 
 # v06_functions.run_auto_actions(
 #     state="NSW",
-#     previous_unique_output="03_outbreak_detection",
-#     previous_output_suffix_int=1,
-#     total_days_to_run_for=7,
-#     start_action_number_int=1,
+#     previous_unique_output="HASTE_NSW_actions_1IP_2days",
+#     previous_output_suffix_int=3,
+#     total_days_to_run_for=4,
+#     start_action_number_int=3,
 #     unique_output_starting_int=4,
-#     create_download_folder=False,
+#     create_download_folder=True,
+#     download_parent_folder=shared_folder,
 #     max_resource_units=100,
 #     strategy = "default",
 # )
 
 # v06_functions.run_auto_actions(
 #     state="NSW",
-#     previous_unique_output="10_actions_7",
-#     previous_output_suffix_int=8,
+#     previous_unique_output="07_actions_6_default",
+#     previous_output_suffix_int=7,
 #     total_days_to_run_for=4,
-#     start_action_number_int=8,
-#     unique_output_starting_int=11,
+#     start_action_number_int=7,
+#     unique_output_starting_int=8,
 #     create_download_folder=False,
-#     max_resource_units=100,
+#     max_resource_units=120,
 #     strategy = "faster depop",
 # )
 
-# v06_functions.run_auto_actions(
-#     state="NSW",
-#     previous_unique_output="10_actions_7",
-#     previous_output_suffix_int=8,
-#     total_days_to_run_for=4,
-#     start_action_number_int=8,
-#     unique_output_starting_int=11,
-#     create_download_folder=False,
-#     max_resource_units=100,
-#     strategy = "surveillance",
-# )
+v06_functions.run_auto_actions(
+    state="NSW",
+    previous_unique_output="07_actions_6_default",
+    previous_output_suffix_int=7,
+    total_days_to_run_for=4,
+    start_action_number_int=7,
+    unique_output_starting_int=8,
+    create_download_folder=False,
+    max_resource_units=100,
+    strategy="default",
+)
 
 
 # v06_functions.setup_to_outbreak_detection(state="QLD", burn_in_movement=7, testing=False, create_download_folder=False)
