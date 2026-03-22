@@ -195,14 +195,28 @@ def generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, m
     for i, row in ARPs.iterrows():
         if pd.isna(row["last_surveillance_date"]):
             if resources_used < max_resource_units:
-                job_row = [row["sim_id"], scheduled_date, TPaction, "", "", "", "ARP"]
+                job_row = [row["sim_id"], scheduled_date, "Surveillance", "Field Surveillance", "", "", "POR"]
                 jobs_rows.append(job_row)
-                resources_used += resource_cost[TPaction]
+                resources_used += resource_cost["Field Surveillance"]
+            if resources_used < max_resource_units:
+                job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", "ARP"]
+                jobs_rows.append(job_row)
+                resources_used += resource_cost["LabTesting"]
         else:
             if pd.isna(row["last_PCR_date"]):
-                if dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + min_delays["LabTesting"] + timedelta(days=2) <= scheduled_date_object:
+                if dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + min_delays["LabTesting"] <= scheduled_date_object:
                     if resources_used < max_resource_units:
                         job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", "ARP"]
+                        jobs_rows.append(job_row)
+                        resources_used += resource_cost["LabTesting"]
+            else:
+                if dt.strptime(row["last_PCR_date"], "%d/%m/%Y") + timedelta(days=7) <= scheduled_date_object:
+                    if resources_used < max_resource_units:
+                        job_row = [row["sim_id"], scheduled_date, "Surveillance", "Field Surveillance", "", "", "POR"]
+                        jobs_rows.append(job_row)
+                        resources_used += resource_cost["Field Surveillance"]
+
+                        job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", "POR"]
                         jobs_rows.append(job_row)
                         resources_used += resource_cost["LabTesting"]
 
@@ -211,13 +225,28 @@ def generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, m
     for i, row in PORs.iterrows():
         if pd.isna(row["last_surveillance_date"]):
             if resources_used < max_resource_units:
-                job_row = [row["sim_id"], scheduled_date, TPaction, "", "", "", "POR"]
+                job_row = [row["sim_id"], scheduled_date, "Surveillance", "Field Surveillance", "", "", "POR"]
                 jobs_rows.append(job_row)
-                resources_used += resource_cost[TPaction]
+                resources_used += resource_cost["Field Surveillance"]
+            if resources_used < max_resource_units:
+                job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", "POR"]
+                jobs_rows.append(job_row)
+                resources_used += resource_cost["LabTesting"]
+
         else:
             if pd.isna(row["last_PCR_date"]):
-                if dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + min_delays["LabTesting"] + timedelta(days=2) <= scheduled_date_object:
+                if dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + min_delays["LabTesting"] <= scheduled_date_object:
                     if resources_used < max_resource_units:
+                        job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", "POR"]
+                        jobs_rows.append(job_row)
+                        resources_used += resource_cost["LabTesting"]
+            else:
+                if dt.strptime(row["last_PCR_date"], "%d/%m/%Y") + timedelta(days=7) <= scheduled_date_object:
+                    if resources_used < max_resource_units:
+                        job_row = [row["sim_id"], scheduled_date, "Surveillance", "Field Surveillance", "", "", "POR"]
+                        jobs_rows.append(job_row)
+                        resources_used += resource_cost["Field Surveillance"]
+
                         job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", "POR"]
                         jobs_rows.append(job_row)
                         resources_used += resource_cost["LabTesting"]
