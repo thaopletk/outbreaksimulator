@@ -5,7 +5,7 @@ import os
 
 shared_folder = "C:\\Users\\thaophuongl\\OneDrive - The University of Melbourne\\01_ARDC-HASTE\\WP5_NSW_Workshop"
 
-# action_name = "actions_1"
+action_name = "actions_1"
 # v06_functions.run_actions_excel(
 #     state="NSW",
 #     previous_unique_output="03_outbreak_detection",
@@ -18,18 +18,31 @@ shared_folder = "C:\\Users\\thaophuongl\\OneDrive - The University of Melbourne\
 #     download_folder_name=f"{action_name}_outputs",
 # )
 
-action_name = "actions_2"
-v06_functions.run_actions_excel(
+v06_functions.run_status_update_only_excel_shapefile(
     state="NSW",
     previous_unique_output="HASTE_NSW_actions_1",
-    actions_filename_excel=os.path.join(shared_folder, f"{action_name}.xlsx"),
-    days_to_run_for=1,
-    unique_output=f"HASTE_NSW_{action_name}",
-    output_suffix="_03",
+    actions_filename_excel=None,
+    shapefile_path=os.path.join(shared_folder, "actions_1IP_zones", "1IP_Zones.shp"),
+    unique_output="HASTE_NSW_actions_1_updated",
+    output_suffix="_02_updated",
     create_download_folder=True,
     download_parent_folder=shared_folder,
-    download_folder_name=f"{action_name}_outputs",
+    download_folder_name="actions_1_updated_outputs",
 )
+
+# action_name = "actions_1IP"
+# v06_functions.run_actions_excel_shapefile(
+#     state="NSW",
+#     previous_unique_output="HASTE_NSW_actions_1",
+#     actions_filename_excel=os.path.join(shared_folder, f"{action_name}.xlsx"),
+#     shapefile_path=os.path.join(shared_folder, "actions_1IP_zones", "1IP_Zones.shp"),
+#     days_to_run_for=2,
+#     unique_output=f"HASTE_NSW_{action_name}_2days", # intention is to run something with more days
+#     output_suffix="_03",
+#     create_download_folder=True,
+#     download_parent_folder=shared_folder,
+#     download_folder_name=f"{action_name}_outputs_2days",
+# )
 
 # action_name = "actions_3"
 # v06_functions.run_actions_excel(

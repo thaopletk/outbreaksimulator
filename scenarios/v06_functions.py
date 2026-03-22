@@ -606,16 +606,6 @@ def run_actions_excel(
 
         HPAI_functions.save_approx_known_data(properties, folder_path, unique_output="", output_suffix=output_suffix)
 
-        # # TEMP ONLY - FIND ALL ADDRESSESS TODO - delete this afterwards
-        count = 0
-        for property_i in properties:
-            count += 1
-            if count < 10:
-                continue
-            loca = property_i.get_location()
-            if count > 50:
-                break
-
         # and then resave the end state
         with open(spread_properties_filename, "wb") as file:
             pickle.dump(properties, file)
@@ -668,9 +658,10 @@ def run_actions_excel_shapefile(
     download_folder_name=None,
 ):
 
-    folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}")
+    # folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}")
 
-    shp_zones = gpd.read_file(os.path.join(folder_path_main, shapefile_path))
+    # shp_zones = gpd.read_file(os.path.join(folder_path_main, shapefile_path))
+    shp_zones = gpd.read_file(shapefile_path)
 
     # restricted area
     shp_zones_RA = shp_zones.loc[shp_zones["EMZ"] == "REZ", :]
@@ -681,8 +672,9 @@ def run_actions_excel_shapefile(
     CA_shape = list(shp_zones_CA["geometry"])[0]
 
     # enhanced passive surveillance area
-    EPS_shape = list(shp_zones_RA["geometry"])[0]  # enhanced passive surveillance shape, assuming it's the same as the RA for now
-    EPS_factor = 1.1
+    shp_zones_EPS = shp_zones.loc[shp_zones["EMZ"] == "Enhanced Passive Surveillance", :]
+    EPS_shape = list(shp_zones_EPS["geometry"])[0]  # enhanced passive surveillance shape, assuming it's the same as the RA for now
+    # EPS_factor = 1.1
 
     # could also read in enhanced surveillance area here
 
@@ -697,9 +689,140 @@ def run_actions_excel_shapefile(
         RA_shape=RA_shape,
         CA_shape=CA_shape,
         EPS_shape=EPS_shape,
-        EPS_factor=EPS_factor,
+        # EPS_factor=EPS_factor,
         download_parent_folder=download_parent_folder,
         download_folder_name=download_folder_name,
+    )
+
+
+def run_status_update_only_excel_shapefile(
+    state,
+    previous_unique_output,
+    actions_filename_excel=None,
+    shapefile_path=None,
+    unique_output="04_actions_1_updated",
+    output_suffix="_02_updated",
+    create_download_folder=False,
+    download_parent_folder=None,
+    download_folder_name=None,
+):
+
+    RA_shape = None
+    CA_shape = None
+    EPS_shape = None
+    if shapefile_path != None:
+        shp_zones = gpd.read_file(shapefile_path)
+
+        # restricted area
+        shp_zones_RA = shp_zones.loc[shp_zones["EMZ"] == "REZ", :]
+        RA_shape = list(shp_zones_RA["geometry"])[0]
+
+        # control area
+        shp_zones_CA = shp_zones.loc[shp_zones["EMZ"] == "CEZ", :]
+        CA_shape = list(shp_zones_CA["geometry"])[0]
+
+        # enhanced passive surveillance area
+        shp_zones_EPS = shp_zones.loc[shp_zones["EMZ"] == "Enhanced Passive Surveillance", :]
+        EPS_shape = list(shp_zones_EPS["geometry"])[0]  # enhanced passive surveillance shape, assuming it's the same as the RA for now
+
+    folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}")
+
+    # read in previous state
+    previous_spread_properties_filename = os.path.join(folder_path_main, previous_unique_output, "properties_" + previous_unique_output)
+    previous_spread_diseaseoutbreak_filename = os.path.join(folder_path_main, previous_unique_output, "outbreakobject_" + previous_unique_output)
+
+    with open(previous_spread_properties_filename, "rb") as file:
+        properties = pickle.load(file)
+    with open(previous_spread_diseaseoutbreak_filename, "rb") as file:
+        diseaseoutbreak = pickle.load(file)
+
+    # set up for new simulation portion
+    folder_path = os.path.join(folder_path_main, unique_output)
+
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
+    spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
+
+    xrange, yrange, xlims, ylims = x_y_ranges(state)
+
+    # read in jobs and zones
+    property_based_zones = None
+    enhanced_passive_surveillance_area = None
+    if actions_filename_excel != None:
+        actions_input = os.path.join(folder_path_main, actions_filename_excel)
+        property_based_zones = pd.read_excel(actions_input, sheet_name="zones")
+
+        # construct zones
+        enhanced_passive_surveillance_area, enhanced_reporting_factor = get_enhanced_passive_surveillance_area(property_based_zones, properties)
+
+    if EPS_shape != None and enhanced_passive_surveillance_area != None:
+        enhanced_passive_surveillance_area = unary_union([enhanced_passive_surveillance_area, EPS_shape])
+    elif EPS_shape == None:
+        pass
+    elif enhanced_passive_surveillance_area == None:
+        enhanced_passive_surveillance_area = EPS_shape
+
+    random.seed(1235)
+    np.random.seed(1116)
+    if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
+        # adjust the plotting parameters for this new scenario
+        diseaseoutbreak.set_plotting_parameters(
+            xlims=xlims,
+            ylims=ylims,
+            plotting=True,
+            folder_path=folder_path,
+            unique_output=unique_output,
+        )
+
+        properties, movement_records, current_time, total_culled_animals, job_manager = diseaseoutbreak.assign_statuses_based_on_zones_only(
+            properties,
+            property_based_zones,
+            restricted_emergency_zone=RA_shape,
+            control_emergency_zone=CA_shape,
+            enhanced_passive_surveillance_area=enhanced_passive_surveillance_area,
+            output_suffix=output_suffix,
+        )
+
+        HPAI_functions.save_approx_known_data(properties, folder_path, unique_output="", output_suffix=output_suffix)
+
+        # and then resave the end state
+        with open(spread_properties_filename, "wb") as file:
+            pickle.dump(properties, file)
+
+        # and save the diseaseoutbreak object
+        with open(spread_diseaseoutbreak_filename, "wb") as file:
+            pickle.dump(diseaseoutbreak, file)
+
+        total_infected = 0
+        for property_i in properties:
+            if property_i.exposure_date != "NA":
+                total_infected += 1
+
+        print(f"Total number of infected premises: {total_infected}")
+    else:
+        with open(spread_properties_filename, "rb") as file:
+            properties = pickle.load(file)
+        with open(spread_diseaseoutbreak_filename, "rb") as file:
+            diseaseoutbreak = pickle.load(file)
+
+    if create_download_folder:
+        if download_parent_folder == None:
+            download_parent_folder = folder_path_main
+        if download_folder_name == None:
+            download_folder_name = "download_" + unique_output
+
+        create_separate_download_folder(folder_path, download_parent_folder, download_folder_name)
+
+    approx_data_filename = os.path.join(folder_path, f"approx_known_data{output_suffix}.csv")
+
+    return (
+        folder_path_main,
+        folder_path,
+        spread_properties_filename,
+        spread_diseaseoutbreak_filename,
+        approx_data_filename,
     )
 
 

@@ -1747,7 +1747,7 @@ class DiseaseSimulation:
                                 ]
                             )
 
-                    elif facility.known_birds != "" and facility.known_birds == 0:
+                    elif facility.known_birds != "" and facility.known_birds == 0 and facility.get_num_chickens() == 0:
                         OG_status = facility.status
                         if facility.case_id == None:
                             self.case_id_counter += 1
@@ -1766,7 +1766,8 @@ class DiseaseSimulation:
                             )
                     elif facility.data_source != "":
                         OG_status = facility.status
-                        facility.status = "UP"
+                        facility.status = "POR"
+                        # facility.status = "UP"
                         if facility.case_id == None:
                             self.case_id_counter += 1
                             facility.case_id = self.case_id_counter
@@ -1993,6 +1994,135 @@ class DiseaseSimulation:
             converted_date,
             extra_job_info,
         ]
+
+    def assign_statuses_based_on_zones_only(
+        self,
+        properties,
+        property_based_zones=None,
+        restricted_emergency_zone=None,
+        control_emergency_zone=None,
+        enhanced_passive_surveillance_area=None,
+        output_suffix="",
+    ):
+        # no time change
+        converted_date = premises.convert_time_to_date(self.time)
+
+        # get control zones
+        RA_geo_list = []
+        if property_based_zones != None:
+            RA_df = property_based_zones[property_based_zones["zone_type"] == "RA"]
+            for i, row in RA_df.iterrows():
+
+                restricted_area = management.define_control_zone_polygons(
+                    properties,
+                    [row["ID"]],
+                    row["radius_km"],
+                    convex=False,
+                )  # should be zero movement
+                RA_geo_list.append(restricted_area)
+        if restricted_emergency_zone != None:
+            RA_geo_list.append(restricted_emergency_zone)
+
+        restricted_area = unary_union(RA_geo_list)
+
+        CA_geo_list = []
+        if property_based_zones != None:
+            CA_df = property_based_zones[property_based_zones["zone_type"] == "CA"]
+            for i, row in CA_df.iterrows():
+
+                control_area = management.define_control_zone_polygons(
+                    properties,
+                    [row["ID"]],
+                    row["radius_km"],
+                    convex=False,
+                )  # should be zero movement
+                CA_geo_list.append(control_area)
+        if control_emergency_zone != None:
+            CA_geo_list.append(control_emergency_zone)
+
+        control_area = unary_union(CA_geo_list)
+
+        self.controlzone["restricted area"] = restricted_area
+        self.controlzone["control area"] = control_area
+
+        controlzone_movement_restrictions = restricted_area
+        self.controlzone["movement restrictions"] = controlzone_movement_restrictions
+
+        # update statuses based on the zones
+        self.update_status_based_on_zones(properties, restricted_area, control_area, converted_date)
+
+        if self.plotting:
+            simulator.plot_current_state(  # TODO - simulator is a weird place to put plotting, probably...
+                properties,
+                self.time,
+                self.xlims,
+                self.ylims,
+                self.folder_path,
+                self.controlzone,
+                infectionpoly=False,
+                contacts_for_plotting=self.contacts_for_plotting,
+                apparent_situation_plot=True,
+            )
+
+            self.save_preprocessed_plotting_information(properties)
+
+        with open(os.path.join(self.folder_path, "plotting_data" + str(self.time)), "wb") as file:
+            pickle.dump(
+                [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
+                file,
+            )
+
+        simulator.save_outbreak_state(
+            properties,
+            self.time,
+            self.folder_path,
+            self.unique_output,
+            total_culled_animals=0,
+            movement_records=self.movement_records,
+            job_manager=self.job_manager,
+        )
+
+        fixed_spatial_setup.save_chicken_property_csv(properties, self.time, self.folder_path, self.unique_output)
+
+        animal_movement.save_movement_record(self.folder_path, self.movement_records)
+        self.save_reports(properties, restricted_area, control_area, output_suffix=output_suffix)
+        self.job_manager.save_jobs_HPAI(self.folder_path, f"completed_jobs{output_suffix}.csv")
+        self.save_daily_statistics(output_suffix=output_suffix)
+
+        self.job_manager.calculate_resources_used(self.folder_path, output_suffix)
+
+        dates_list = [premises.convert_time_to_date(t) for t in range(self.first_detection_day, self.time + 1)]
+        # print(dates_list)
+        daily_notifs = [0] * len(dates_list)
+
+        for property_i in properties:
+            notif_date = property_i.notification_date
+            if notif_date != "NA":
+                index = dates_list.index(notif_date)
+                daily_notifs[index] += 1
+
+        save_name = "daily_notifications"
+        output.plot_daily_notifications_over_time(dates_list, daily_notifs, self.folder_path, save_name)
+
+        output.plot_total_notifs_over_time(dates_list, daily_notifs, self.folder_path, save_name="total_notifs")
+
+        output.plot_HPAI_outbreak_apparent(
+            properties, restricted_area, control_area, enhanced_passive_surveillance_area, self.xlims, self.ylims, self.folder_path, self.time
+        )
+
+        output.plot_HPAI_outbreak_apparent(
+            properties,
+            restricted_area,
+            control_area,
+            enhanced_passive_surveillance_area,
+            self.xlims,
+            self.ylims,
+            self.folder_path,
+            self.time,
+            zoomed_in=True,
+        )
+
+        return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
 
     def simulate_HPAI_outbreak_management(
         self,
@@ -2524,13 +2654,31 @@ class DiseaseSimulation:
 
                 if row["date_scheduled"] == converted_date_dt or row["date_scheduled"] == converted_date:
 
-                    population_level_surveillance = management.define_control_zone_polygons(
-                        properties,
-                        [row["ID"]],
-                        row["radius_km"],
-                        convex=False,
-                    )  # should be zero movement
                     population_surveillance_ref = row["zone_name"]
+
+                    if pd.isna(row["ID"]) and pd.isna(row["radius_km"]):
+                        if population_surveillance_ref == "RA":
+                            if restricted_emergency_zone == None:
+                                raise ValueError("REZ not input")
+                            population_level_surveillance = restricted_emergency_zone
+                        elif population_surveillance_ref == "CA":
+                            if control_emergency_zone == None:
+                                raise ValueError("CEZ not input")
+                            population_level_surveillance = control_emergency_zone
+                        elif population_surveillance_ref == "Enhanced Passive Surveillance":
+                            if enhanced_passive_surveillance_area == None:
+                                raise ValueError("Enhanced Passive Surveillance zone not input")
+                            population_level_surveillance = enhanced_passive_surveillance_area
+                        else:
+                            raise ValueError(f"unrecognised {row}")
+                    else:
+                        population_level_surveillance = management.define_control_zone_polygons(
+                            properties,
+                            [int(row["ID"])],
+                            row["radius_km"],
+                            convex=False,
+                        )  # should be zero movement
+
                     PCR_detection_probability = 0.98
                     if isinstance(row["zone_parameter"], float) or isinstance(row["zone_parameter"], int):
                         detection_probability_factor = row["zone_parameter"]
@@ -2547,13 +2695,30 @@ class DiseaseSimulation:
 
                 if row["date_scheduled"] == converted_date_dt or row["date_scheduled"] == converted_date:
 
-                    wild_animal_surveillance = management.define_control_zone_polygons(
-                        properties,
-                        [row["ID"]],
-                        row["radius_km"],
-                        convex=False,
-                    )
                     surveillance_ref = row["zone_name"]
+
+                    if pd.isna(row["ID"]) and pd.isna(row["radius_km"]):
+                        if surveillance_ref == "RA":
+                            if restricted_emergency_zone == None:
+                                raise ValueError("REZ not input")
+                            wild_animal_surveillance = restricted_emergency_zone
+                        elif surveillance_ref == "CA":
+                            if control_emergency_zone == None:
+                                raise ValueError("CEZ not input")
+                            wild_animal_surveillance = control_emergency_zone
+                        elif surveillance_ref == "Enhanced Passive Surveillance":
+                            if enhanced_passive_surveillance_area == None:
+                                raise ValueError("Enhanced Passive Surveillance zone not input")
+                            wild_animal_surveillance = enhanced_passive_surveillance_area
+                        else:
+                            raise ValueError(f"unrecognised {row}")
+                    else:
+                        wild_animal_surveillance = management.define_control_zone_polygons(
+                            properties,
+                            [int(row["ID"])],
+                            row["radius_km"],
+                            convex=False,
+                        )
 
                     if isinstance(row["zone_parameter"], float) or isinstance(row["zone_parameter"], int):
                         detection_probability_factor = row["zone_parameter"]
@@ -2570,13 +2735,30 @@ class DiseaseSimulation:
 
                 if row["date_scheduled"] == converted_date_dt or row["date_scheduled"] == converted_date:
 
-                    surveillance_zone = management.define_control_zone_polygons(
-                        properties,
-                        [row["ID"]],
-                        row["radius_km"],
-                        convex=False,
-                    )
                     surveillance_ref = row["zone_name"]
+
+                    if pd.isna(row["ID"]) and pd.isna(row["radius_km"]):
+                        if surveillance_ref == "RA":
+                            if restricted_emergency_zone == None:
+                                raise ValueError("REZ not input")
+                            surveillance_zone = restricted_emergency_zone
+                        elif surveillance_ref == "CA":
+                            if control_emergency_zone == None:
+                                raise ValueError("CEZ not input")
+                            surveillance_zone = control_emergency_zone
+                        elif surveillance_ref == "Enhanced Passive Surveillance":
+                            if enhanced_passive_surveillance_area == None:
+                                raise ValueError("Enhanced Passive Surveillance zone not input")
+                            surveillance_zone = enhanced_passive_surveillance_area
+                        else:
+                            raise ValueError(f"unrecognised {row}")
+                    else:
+                        surveillance_zone = management.define_control_zone_polygons(
+                            properties,
+                            [int(row["ID"])],
+                            row["radius_km"],
+                            convex=False,
+                        )
 
                     # PCR_detection_probability = 0.9
                     if isinstance(row["zone_parameter"], float) or isinstance(row["zone_parameter"], int):
@@ -2592,13 +2774,30 @@ class DiseaseSimulation:
 
                 if row["date_scheduled"] == converted_date_dt or row["date_scheduled"] == converted_date:
 
-                    surveillance_zone = management.define_control_zone_polygons(
-                        properties,
-                        [row["ID"]],
-                        row["radius_km"],
-                        convex=False,
-                    )
                     surveillance_ref = row["zone_name"]
+
+                    if pd.isna(row["ID"]) and pd.isna(row["radius_km"]):
+                        if surveillance_ref == "RA":
+                            if restricted_emergency_zone == None:
+                                raise ValueError("REZ not input")
+                            surveillance_zone = restricted_emergency_zone
+                        elif surveillance_ref == "CA":
+                            if control_emergency_zone == None:
+                                raise ValueError("CEZ not input")
+                            surveillance_zone = control_emergency_zone
+                        elif surveillance_ref == "Enhanced Passive Surveillance":
+                            if enhanced_passive_surveillance_area == None:
+                                raise ValueError("Enhanced Passive Surveillance zone not input")
+                            surveillance_zone = enhanced_passive_surveillance_area
+                        else:
+                            raise ValueError(f"unrecognised {row}")
+                    else:
+                        surveillance_zone = management.define_control_zone_polygons(
+                            properties,
+                            [int(row["ID"])],
+                            row["radius_km"],
+                            convex=False,
+                        )
 
                     if isinstance(row["zone_parameter"], float) or isinstance(row["zone_parameter"], int):
                         detection_probability_factor = row["zone_parameter"]
