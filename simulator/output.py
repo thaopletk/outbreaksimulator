@@ -896,7 +896,7 @@ def plot_simex(
     return
 
 
-def plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path, save_name):
+def plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path, save_name, title="Daily confirmed infected premises"):
     fig, ax = plt.subplots(1, 1, figsize=(10, 6))
 
     x_points = list(range(len(dates_list)))
@@ -904,7 +904,7 @@ def plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path, sa
     ax.bar(x_points, daily_notifs, color="#16ACA4")
     # ax.set_xlabel('date', fontsize =14)
     # ax.set_ylabel('cases',fontsize= 14)
-    ax.set_title("Daily confirmed infected premises", fontsize=16)
+    ax.set_title(title, fontsize=16)
     ax.grid()
 
     # labels = [item.get_text() for item in ax.get_xticklabels()]
@@ -939,7 +939,7 @@ def plot_daily_notifications_over_time(dates_list, daily_notifs, folder_path, sa
     return
 
 
-def plot_total_notifs_over_time(dates_list, daily_notifs, folder_path, save_name):
+def plot_total_notifs_over_time(dates_list, daily_notifs, folder_path, save_name, title="Total confirmed infected premises over time"):
     fig, ax = plt.subplots(1, 1, figsize=(10, 6))
 
     x_points = list(range(len(dates_list)))
@@ -948,7 +948,7 @@ def plot_total_notifs_over_time(dates_list, daily_notifs, folder_path, save_name
     ax.bar(x_points, cumulative, color="#16ACA4")
     # ax.set_xlabel('date', fontsize =14)
     # ax.set_ylabel('cases',fontsize= 14)
-    ax.set_title("Total confirmed infected premises over time", fontsize=16)
+    ax.set_title(title, fontsize=16)
     ax.grid()
 
     # labels = [item.get_text() for item in ax.get_xticklabels()]

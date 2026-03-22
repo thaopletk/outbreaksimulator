@@ -2885,16 +2885,32 @@ class DiseaseSimulation:
         # print(dates_list)
         daily_notifs = [0] * len(dates_list)
 
+        dates_list2 = [premises.convert_time_to_date(t) for t in range(0, self.time + 1)]
+        daily_exposures = [0] * len(dates_list2)
+
         for property_i in properties:
             notif_date = property_i.notification_date
             if notif_date != "NA":
                 index = dates_list.index(notif_date)
                 daily_notifs[index] += 1
 
+            exposure_date = property_i.exposure_date
+            if exposure_date != "NA":
+                index = dates_list2.index(exposure_date)
+                daily_exposures[index] += 1
+
         save_name = "daily_notifications"
         output.plot_daily_notifications_over_time(dates_list, daily_notifs, self.folder_path, save_name)
 
         output.plot_total_notifs_over_time(dates_list, daily_notifs, self.folder_path, save_name="total_notifs")
+
+        # Exposure plotting - this is the underlying
+        output.plot_daily_notifications_over_time(
+            dates_list2, daily_exposures, self.folder_path, save_name="daily_exposures", title="Daily new exposed premises"
+        )
+        output.plot_total_notifs_over_time(
+            dates_list2, daily_exposures, self.folder_path, save_name="total_exposures", title="Total exposed premises over time"
+        )
 
         output.plot_HPAI_outbreak_apparent(
             properties, restricted_area, control_area, enhanced_passive_surveillance_area, self.xlims, self.ylims, self.folder_path, self.time
