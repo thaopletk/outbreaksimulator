@@ -30,6 +30,14 @@ v06_functions.run_status_update_only_excel_shapefile(
     download_folder_name="actions_1_updated_outputs",
 )
 
+
+v06_functions.generate_ARP_POR_jobs_only(
+    os.path.join(shared_folder, "actions_1_updated_outputs"),
+    "approx_known_data_02_updated.csv",
+    "21/01/2026",
+    "post_actions_1_updated_ARP_POR_jobs.csv",
+)
+
 # action_name = "actions_1IP"
 # v06_functions.run_actions_excel_shapefile(
 #     state="NSW",

@@ -195,7 +195,7 @@ def generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, m
     for i, row in ARPs.iterrows():
         if pd.isna(row["last_surveillance_date"]):
             if resources_used < max_resource_units:
-                job_row = [row["sim_id"], scheduled_date, "Surveillance", "Field Surveillance", "", "", "POR"]
+                job_row = [row["sim_id"], scheduled_date, "Surveillance", "Field Surveillance", "", "", "ARP"]
                 jobs_rows.append(job_row)
                 resources_used += resource_cost["Field Surveillance"]
             if resources_used < max_resource_units:
@@ -212,11 +212,11 @@ def generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, m
             else:
                 if dt.strptime(row["last_PCR_date"], "%d/%m/%Y") + timedelta(days=7) <= scheduled_date_object:
                     if resources_used < max_resource_units:
-                        job_row = [row["sim_id"], scheduled_date, "Surveillance", "Field Surveillance", "", "", "POR"]
+                        job_row = [row["sim_id"], scheduled_date, "Surveillance", "Field Surveillance", "", "", "ARP"]
                         jobs_rows.append(job_row)
                         resources_used += resource_cost["Field Surveillance"]
 
-                        job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", "POR"]
+                        job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", "ARP"]
                         jobs_rows.append(job_row)
                         resources_used += resource_cost["LabTesting"]
 
@@ -346,3 +346,56 @@ def generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, m
 
     zones_df = pd.DataFrame(zone_rows, columns=zones_header)
     zones_df.to_csv(os.path.join(folder_path, f"zones_{action_number}.csv"), index=False)
+
+
+def generate_ARP_POR_jobs_only(folder_path, approx_data_csv, scheduled_date, output_file_name):
+    approx_data = pd.read_csv(os.path.join(folder_path, approx_data_csv))
+
+    # jobs
+    jobs_header = ["ID", "date_scheduled", "action", "specific_action", "detection_prob", "num", "Free text notes"]
+    jobs_rows = []
+
+    scheduled_date_object = dt.strptime(scheduled_date, "%d/%m/%Y")
+
+    ARPs = approx_data[approx_data["status"] == "ARP"]
+    ARPs = ARPs.sort_values("case_id")
+    for i, row in ARPs.iterrows():
+        if pd.isna(row["last_surveillance_date"]):
+            job_row = [row["sim_id"], scheduled_date, "Surveillance", "Field Surveillance", "", "", "ARP"]
+            jobs_rows.append(job_row)
+            job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", "ARP"]
+            jobs_rows.append(job_row)
+        else:
+            if pd.isna(row["last_PCR_date"]):
+                job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", "ARP"]
+                jobs_rows.append(job_row)
+            else:
+                if dt.strptime(row["last_PCR_date"], "%d/%m/%Y") + timedelta(days=7) <= scheduled_date_object:
+                    job_row = [row["sim_id"], scheduled_date, "Surveillance", "Field Surveillance", "", "", "ARP"]
+                    jobs_rows.append(job_row)
+
+                    job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", "ARP"]
+                    jobs_rows.append(job_row)
+
+    PORs = approx_data[approx_data["status"] == "POR"]
+    PORs = PORs.sort_values("case_id")
+    for i, row in PORs.iterrows():
+        if pd.isna(row["last_surveillance_date"]):
+            job_row = [row["sim_id"], scheduled_date, "Surveillance", "Field Surveillance", "", "", "POR"]
+            jobs_rows.append(job_row)
+            job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", "POR"]
+            jobs_rows.append(job_row)
+
+        else:
+            if pd.isna(row["last_PCR_date"]):
+                job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", "POR"]
+                jobs_rows.append(job_row)
+            else:
+                if dt.strptime(row["last_PCR_date"], "%d/%m/%Y") + timedelta(days=7) <= scheduled_date_object:
+                    job_row = [row["sim_id"], scheduled_date, "Surveillance", "Field Surveillance", "", "", "POR"]
+                    jobs_rows.append(job_row)
+
+                    job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", "POR"]
+                    jobs_rows.append(job_row)
+    jobs_df = pd.DataFrame(jobs_rows, columns=jobs_header)
+    jobs_df.to_csv(os.path.join(folder_path, f"{output_file_name}.csv"), index=False)
