@@ -280,6 +280,16 @@ def generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, m
                     zone_jobs_rows.append(job_row)
                     resources_used += resource_cost["Population-level Surveillance"]
 
+                if resources_used < max_resource_units:
+                    job_row = [row["sim_id"], scheduled_date, 5, "Wild Animal Surveillance", row["sim_id"], "", "surveillance around IP"]
+                    zone_jobs_rows.append(job_row)
+                    resources_used += resource_cost["Wild Animal Surveillance"]
+
+                if resources_used < max_resource_units:
+                    job_row = [row["sim_id"], scheduled_date, 5, "Missing Properties Survey", row["sim_id"], "", "surveillance around IP"]
+                    zone_jobs_rows.append(job_row)
+                    resources_used += resource_cost["Missing Properties Survey"]
+
     # zones
     zones_header = ["ID", "radius_km", "zone_type", "Free text notes"]
     zone_rows = []
