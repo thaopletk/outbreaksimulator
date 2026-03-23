@@ -202,6 +202,8 @@ class Premises(Property):
         self.known_birds = None
         self.known_area = None
 
+        self.case_created_date = None
+
     def find_location(self):
         try:
             self.location = geolocator.reverse(f"{self.y},{self.x}")

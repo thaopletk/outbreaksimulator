@@ -107,20 +107,22 @@ def setup_to_outbreak_detection(state="NSW", burn_in_movement=10, testing=False,
                 processing_chicken_egg_property_coordinates,
             ) = fixed_spatial_setup.HPAI_NSW_setup_locations(output_filename, testing)
         elif state == "QLD":
-            (
-                ALL_coordinates,
-                ALL_p_polygon,
-                ALL_p_area,
-                ALL_wind_radius,
-                ALL_animal_type,
-                ALL_premises_type,
-                ALL_num_animals,
-                ALL_LGAs,
-                chicken_meat_property_coordinates,
-                processing_chicken_meat_property_coordinates,
-                chicken_egg_property_coordinates,
-                processing_chicken_egg_property_coordinates,
-            ) = fixed_spatial_setup.HPAI_QLD_setup_locations(output_filename, testing)
+            # (
+            #     ALL_coordinates,
+            #     ALL_p_polygon,
+            #     ALL_p_area,
+            #     ALL_wind_radius,
+            #     ALL_animal_type,
+            #     ALL_premises_type,
+            #     ALL_num_animals,
+            #     ALL_LGAs,
+            #     chicken_meat_property_coordinates,
+            #     processing_chicken_meat_property_coordinates,
+            #     chicken_egg_property_coordinates,
+            #     processing_chicken_egg_property_coordinates,
+            # ) = fixed_spatial_setup.HPAI_QLD_setup_locations(output_filename, testing)
+
+            fixed_spatial_setup.HPAI_QLD_setup_locations_provided(output_filename)
         end_time = time.time()
         execution_time = end_time - start_time
         print(f"Execution time of fixed_spatial_setup.HPAI_{state}_setup_locations(): {execution_time/60} minutes")

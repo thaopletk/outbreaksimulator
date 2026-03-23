@@ -361,6 +361,7 @@ class DiseaseSimulation:
                     reported_property.case_id,
                 ]
             )
+            reported_property.case_created_date = converted_date
         if reported_property.data_source == "":
             reported_property.data_source = "self-report"  # for e.g. backyard premises
 
@@ -1708,6 +1709,7 @@ class DiseaseSimulation:
                     if facility.case_id == None:
                         self.case_id_counter += 1
                         facility.case_id = self.case_id_counter
+                        facility.case_created_date = converted_date
 
                     if OG_status != facility.status:
                         self.combined_narrative.append(
@@ -1733,6 +1735,7 @@ class DiseaseSimulation:
                         if facility.case_id == None:
                             self.case_id_counter += 1
                             facility.case_id = self.case_id_counter
+                            facility.case_created_date = converted_date
 
                         facility.status = "POR"
                         if OG_status != facility.status:
@@ -1754,6 +1757,7 @@ class DiseaseSimulation:
                         if facility.case_id == None:
                             self.case_id_counter += 1
                             facility.case_id = self.case_id_counter
+                            facility.case_created_date = converted_date
                         facility.status = "ZP"
                         if OG_status != facility.status:
                             self.combined_narrative.append(
@@ -1773,6 +1777,7 @@ class DiseaseSimulation:
                         if facility.case_id == None:
                             self.case_id_counter += 1
                             facility.case_id = self.case_id_counter
+                            facility.case_created_date = converted_date
                         if OG_status != facility.status:
                             self.combined_narrative.append(
                                 [
@@ -1827,6 +1832,7 @@ class DiseaseSimulation:
                 if properties[i].case_id == None:
                     self.case_id_counter += 1
                     properties[i].case_id = self.case_id_counter
+                    properties[i].case_created_date = converted_date
 
                 # testing_report += f"\n {premise.type}, sim_id {property_index}, case_id {premise.case_id} {premise.status}"
                 property_testing_report = f"DAY {converted_date} - POSITIVE detection for HPAI in population-level surveillance ({population_surveillance_ref}) PCR testing that included this property ({properties[i].type}, sim_id {i}, case_id {properties[i].case_id} {properties[i].status})"
@@ -2316,6 +2322,7 @@ class DiseaseSimulation:
                         if properties[property_index].case_id == None:
                             self.case_id_counter += 1
                             properties[property_index].case_id = self.case_id_counter
+                            properties[property_index].case_created_date = converted_date
 
                         testing_report, positive = self.job_manager.conduct_clinicalobservation(properties, property_index, self.time)
                         self.combined_narrative.append(
@@ -2398,6 +2405,7 @@ class DiseaseSimulation:
                         if properties[property_index].case_id == None:
                             self.case_id_counter += 1
                             properties[property_index].case_id = self.case_id_counter
+                            properties[property_index].case_created_date = converted_date
 
                         self.combined_narrative.append(
                             [self.time, converted_date, "surveillance", property_index, testing_report, properties[property_index].case_id]
@@ -2566,6 +2574,8 @@ class DiseaseSimulation:
                                         properties[t_i].case_id,
                                     ]
                                 )
+                                properties[t_i].case_created_date = converted_date
+
                             if properties[t_i].data_source == "":
                                 properties[t_i].data_source = "tracing"  # for e.g. backyard premises
 
@@ -2589,6 +2599,8 @@ class DiseaseSimulation:
                                     properties[property_index].case_id,
                                 ]
                             )
+
+                            properties[property_index].case_created_date = converted_date
 
                         # do this if there is a parameter input
                         if isinstance(row["detection_prob"], float):

@@ -1,6 +1,7 @@
 import v06_functions
 import os
 import sys
+import pandas as pd
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import simulator.auto_job_mode as auto_job_mode
@@ -55,6 +56,25 @@ shared_folder = "C:\\Users\\thaophuongl\\OneDrive - The University of Melbourne\
 #     download_parent_folder=shared_folder,
 #     download_folder_name=f"{action_name}_outputs_2days",
 # )
+
+
+# # Compare DataFrames
+# df1 = pd.read_csv('C:\\Users\\thaophuongl\\Documents\\HASTE_CODE\\OutbreakSimulator\\scenarios\\v06_NSW\\VERSION_BEFORE_CASE_CREATION_DATE\\HASTE_NSW_actions_1IP_2days\\approx_known_data_03.csv')
+# df2 = pd.read_csv('C:\\Users\\thaophuongl\\Documents\\HASTE_CODE\\OutbreakSimulator\\scenarios\\v06_NSW\\HASTE_NSW_actions_1IP_2days\\approx_known_data_03.csv')
+# del df2['case_created_date']
+
+# res = df1.compare(df2)
+# print(res)
+
+# df1 = pd.read_csv('C:\\Users\\thaophuongl\\Documents\\HASTE_CODE\\OutbreakSimulator\\scenarios\\v06_NSW\\VERSION_BEFORE_CASE_CREATION_DATE\\HASTE_NSW_actions_1IP_2days\\combined_narrative_03.csv')
+# df2 = pd.read_csv('C:\\Users\\thaophuongl\\Documents\\HASTE_CODE\\OutbreakSimulator\\scenarios\\v06_NSW\\HASTE_NSW_actions_1IP_2days\\combined_narrative_03.csv')
+# res = df1.compare(df2)
+# print(res)
+
+# df1 = pd.read_csv('C:\\Users\\thaophuongl\\Documents\\HASTE_CODE\\OutbreakSimulator\\scenarios\\v06_NSW\\VERSION_BEFORE_CASE_CREATION_DATE\\HASTE_NSW_actions_1IP_2days\\data_underlying_HASTE_NSW_actions_1IP_2days.csv')
+# df2 = pd.read_csv('C:\\Users\\thaophuongl\\Documents\\HASTE_CODE\\OutbreakSimulator\\scenarios\\v06_NSW\\HASTE_NSW_actions_1IP_2days\\data_underlying_HASTE_NSW_actions_1IP_2days.csv')
+# res = df1.compare(df2)
+# print(res)
 
 # action_name = "actions_3"
 # v06_functions.run_actions_excel(
@@ -119,17 +139,17 @@ shared_folder = "C:\\Users\\thaophuongl\\OneDrive - The University of Melbourne\
 #     strategy = "faster depop",
 # )
 
-v06_functions.run_auto_actions(
-    state="NSW",
-    previous_unique_output="07_actions_6_default",
-    previous_output_suffix_int=7,
-    total_days_to_run_for=4,
-    start_action_number_int=7,
-    unique_output_starting_int=8,
-    create_download_folder=False,
-    max_resource_units=100,
-    strategy="default",
-)
+# v06_functions.run_auto_actions(
+#     state="NSW",
+#     previous_unique_output="07_actions_6_default",
+#     previous_output_suffix_int=7,
+#     total_days_to_run_for=4,
+#     start_action_number_int=7,
+#     unique_output_starting_int=8,
+#     create_download_folder=False,
+#     max_resource_units=100,
+#     strategy="default",
+# )
 
 
 # v06_functions.setup_to_outbreak_detection(state="QLD", burn_in_movement=7, testing=False, create_download_folder=False)

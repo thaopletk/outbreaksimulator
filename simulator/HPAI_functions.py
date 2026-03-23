@@ -817,6 +817,7 @@ def save_approx_known_data(properties, folder_path, unique_output="", output_suf
         "destroyed_eggs",
         "last_conducted_contact_tracing",
         "vaccinated_birds",
+        "case_created_date",
     ]
 
     data_rows_for_Biosecurity_Commons = []
@@ -912,6 +913,11 @@ def save_approx_known_data(properties, folder_path, unique_output="", output_suf
                 if facility.chicken_capacity >= 100 or facility.data_source != "ALSR" or property_data_known:
                     enterprise_type = facility.type
 
+            try:
+                case_created_date = facility.case_created_date
+            except:
+                case_created_date = "NA"
+
             # num_chickens = facility.get_num_chickens()
             # num_eggs = facility.get_num_eggs() + facility.get_num_fertilised_eggs()
 
@@ -945,6 +951,7 @@ def save_approx_known_data(properties, folder_path, unique_output="", output_suf
                     destroyed_eggs,
                     last_conducted_contact_tracing_date,
                     vaccinated_birds,
+                    case_created_date,
                 ]
 
                 writer.writerow(row)
