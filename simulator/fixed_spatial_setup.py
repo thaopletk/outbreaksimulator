@@ -13,6 +13,7 @@ import simulator.random_rectangles as random_rectangles
 import simulator.output as output
 import matplotlib.pyplot as plt
 from shapely.geometry import Polygon, Point, LineString, MultiPolygon, MultiPoint
+import shapely.wkt
 import shapely.plotting
 import geopandas as gpd
 import contextily as ctx
@@ -295,6 +296,8 @@ def plot_map_land_HPAI_2(
     fig, ax = plt.subplots(1, 1, figsize=(30, 30))  # ,figsize=(10,12)
 
     for markerlabel, geometry in geometries.items():
+        if geometry == []:
+            continue
 
         geo_df = gpd.GeoDataFrame(geometry=geometry)
         geo_df.crs = {"init": "epsg:4326"}
@@ -351,6 +354,8 @@ def property_specific_initialisation_animals_no_neighbours(
     allowed_movement={},
     max_daily_movements=1,
     LGA="NA",
+    property_type=None,
+    housing_type=None,
 ):
     lat = property_coordinates[1]  # y
     lon = property_coordinates[0]  # x
@@ -373,6 +378,11 @@ def property_specific_initialisation_animals_no_neighbours(
             animal_type=animal_type,
         )
         new_p.region = LGA
+
+        if property_type != None:
+            new_p.QLD_property_type = property_type
+        if housing_type != None:
+            new_p.housing_type = housing_type
     except Exception as e:
         print("Error in creating new premises:")
         print(e)
@@ -393,6 +403,11 @@ def property_specific_initialisation_animals_no_neighbours(
             animal_type=animal_type,
         )
         new_p.region = LGA
+
+        if property_type != None:
+            new_p.QLD_property_type = property_type
+        if housing_type != None:
+            new_p.housing_type = housing_type
 
     new_p.init_chickens_eggs()
 
@@ -670,22 +685,52 @@ def initialise_all_properties(
     ALL_num_animals,
     ALL_LGAs,
     output_filename,
+    ALL_property_type=None,
+    ALL_housing_type=None,
 ):
     all_properties = []
-    for coordinates, p_polygon, p_area, wind_radius, animal_type, premises_type, num_animals, LGA in zip(
-        ALL_coordinates, ALL_p_polygon, ALL_p_area, ALL_wind_radius, ALL_animal_type, ALL_premises_type, ALL_num_animals, ALL_LGAs
-    ):
-        new_p = property_specific_initialisation_animals_no_neighbours(
-            coordinates,
-            p_polygon,
-            p_area,
-            wind_radius=wind_radius,
-            animal_type=animal_type,
-            premises_type=premises_type,
-            num_animals=num_animals,
-            LGA=LGA,
-        )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
-        all_properties.append(new_p)
+
+    if ALL_property_type == None and ALL_housing_type == None:
+        for coordinates, p_polygon, p_area, wind_radius, animal_type, premises_type, num_animals, LGA in zip(
+            ALL_coordinates, ALL_p_polygon, ALL_p_area, ALL_wind_radius, ALL_animal_type, ALL_premises_type, ALL_num_animals, ALL_LGAs
+        ):
+            new_p = property_specific_initialisation_animals_no_neighbours(
+                coordinates,
+                p_polygon,
+                p_area,
+                wind_radius=wind_radius,
+                animal_type=animal_type,
+                premises_type=premises_type,
+                num_animals=num_animals,
+                LGA=LGA,
+            )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
+            all_properties.append(new_p)
+    else:
+        for coordinates, p_polygon, p_area, wind_radius, animal_type, premises_type, num_animals, LGA, property_type, housing_type in zip(
+            ALL_coordinates,
+            ALL_p_polygon,
+            ALL_p_area,
+            ALL_wind_radius,
+            ALL_animal_type,
+            ALL_premises_type,
+            ALL_num_animals,
+            ALL_LGAs,
+            ALL_property_type,
+            ALL_housing_type,
+        ):
+            new_p = property_specific_initialisation_animals_no_neighbours(
+                coordinates,
+                p_polygon,
+                p_area,
+                wind_radius=wind_radius,
+                animal_type=animal_type,
+                premises_type=premises_type,
+                num_animals=num_animals,
+                LGA=LGA,
+                property_type=property_type,
+                housing_type=housing_type,
+            )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
+            all_properties.append(new_p)
 
     with open(output_filename, "wb") as file:
         pickle.dump(all_properties, file)
@@ -1078,6 +1123,226 @@ def HPAI_QLD_setup_locations(
     )
 
 
+def HPAI_QLD_setup_locations_provided(
+    output_filename,
+    data_file=os.path.join(os.path.dirname(__file__), "..", "data", "QLD_data", "TestCaseDataTK.xlsx"),
+    wind_radius=5,
+):
+    """Reads in provided locations from the data file"""
+
+    Australia_shape = spatial_setup.Australia_shape()
+    LGA_gdf = spatial_functions.get_LGA_gdf()
+
+    # contains custom egg processing, hatchery, abbatoirs - format same as NSW
+    data_properties = pd.read_excel(data_file, sheet_name="CasePropertyData")
+
+    occupied_regions = {}
+
+    # these are for plotting purposes
+    chicken_meat_property_coordinates = []
+    processing_chicken_meat_property_coordinates = []
+    chicken_egg_property_coordinates = []
+    processing_chicken_egg_property_coordinates = []
+
+    total_chickens_LGA = {}
+
+    ALL_coordinates = []
+    ALL_p_polygon = []
+    ALL_p_area = []
+    ALL_wind_radius = []
+    ALL_animal_type = []
+    ALL_property_type = []
+    ALL_premises_type = []
+    ALL_housing_type = []
+    ALL_num_animals = []
+    ALL_LGAs = []
+
+    property_data_by_LGA = {}
+
+    # CaseTitle	CaseStatusCurrent	CaseStatusCode	CaseLGA	IP	PropertyType	FarmingSystemType	HousingSystemType	CasePointLongitude	CasePointLatitude	CasePolygon	CasePolygonAreaHA
+
+    QLD_LGAs = LGA_gdf.loc[LGA_gdf["STE_NAME21"] == "Queensland", :]
+    QLD_LGA_list = QLD_LGAs["LGA_NAME24"].tolist()
+
+    for index, row in data_properties.iterrows():
+        LGA = row["CaseLGA"]
+
+        property_polygon = shapely.wkt.loads(row["CasePolygon"])
+        # property_area = float(row["CasePolygonAreaHA"])
+        property_area = spatial_functions.calculate_area(property_polygon)
+        property_coordinates = [float(row["CasePointLongitude"]), float(row["CasePointLatitude"])]
+
+        region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == LGA, :]  # checking if the region name is actually standard or not lol
+        if region_only.empty:
+            curr_farm = Point(float(row["CasePointLongitude"]), float(row["CasePointLatitude"]))
+            farm_LGA = 0
+            for LGA in QLD_LGA_list:
+                region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == LGA, :]
+                region_shape = list(region_only["geometry"])[0]
+                if region_shape != None and region_shape.contains(curr_farm):
+                    print(LGA)
+                    farm_LGA = LGA
+                    break
+            LGA = farm_LGA
+            region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == LGA, :]
+            if region_only.empty:
+                raise ValueError(f"{LGA} doesn't exist")
+
+        QLD_property_type = row["PropertyType"]
+        premises_type = row["FarmingSystemType"]
+        housing_type = row["HousingSystemType"]
+        animal_type = "chicken"
+
+        if "Egg production" in premises_type or "Other" in premises_type:
+            chicken_egg_property_coordinates.append(property_coordinates)
+        elif "Meat production" in premises_type or "Mixed" in premises_type:
+            chicken_meat_property_coordinates.append(property_coordinates)
+        else:
+            raise ValueError(f"Unallocated type {premises_type}")
+
+        # max: 10,000 hens per hectare
+        num_animals = int(10000 * property_area * random.uniform(0, 1))
+        if num_animals == 0:
+            print(num_animals)
+            print(property_area)
+
+        if LGA in total_chickens_LGA:
+            total_chickens_LGA[LGA] += num_animals
+        else:
+            total_chickens_LGA[LGA] = num_animals
+
+        if LGA not in occupied_regions:
+            occupied_regions[LGA] = [property_polygon]
+        else:
+            occupied_regions[LGA].append(property_polygon)
+
+        ALL_coordinates.append(property_coordinates)
+        ALL_p_polygon.append(property_polygon)
+        ALL_p_area.append(property_area)
+        ALL_wind_radius.append(wind_radius)
+        ALL_animal_type.append(animal_type)
+        ALL_premises_type.append(premises_type)
+        ALL_num_animals.append(num_animals)
+        ALL_LGAs.append(LGA)
+        ALL_property_type.append(QLD_property_type)
+        ALL_housing_type.append(housing_type)
+
+        if LGA not in property_data_by_LGA:
+            property_data_by_LGA[LGA] = {"total_properties": 0, "animal_type": [], "premises_type": [], "num_animals": []}
+
+        # add a few random backyard properties
+        print("backyard")
+        num_backyard = random.randint(1, 3)
+        property_data_by_LGA[LGA]["total_properties"] += num_backyard
+        for _ in range(num_backyard):
+            property_data_by_LGA[LGA]["animal_type"].append("chicken")
+            property_data_by_LGA[LGA]["premises_type"].append("backyard")
+            property_data_by_LGA[LGA]["num_animals"].append(random.randint(3, 50))
+
+    for LGA, LGA_properties_data in property_data_by_LGA.items():
+        if LGA not in occupied_regions:
+            occupied_regions[LGA] = []
+
+        region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == LGA, :]
+        region_shape = list(region_only["geometry"])[0]
+
+        # TODO: random number chosen
+        average_property_size = 50
+
+        property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
+            LGA_properties_data["total_properties"],
+            region_shape,
+            average_property_ha=average_property_size,
+            excluded_regions=occupied_regions[LGA],
+        )
+
+        occupied_regions[LGA].extend(property_polygons)
+
+        # sort by sizes
+        if len(property_areas) > 1:
+            property_areas, property_coordinates, property_polygons = map(
+                list, zip(*sorted(zip(property_areas, property_coordinates, property_polygons)))
+            )
+
+            # sort the property data by sizes too
+            zipped = zip(
+                property_data_by_LGA[LGA]["num_animals"], property_data_by_LGA[LGA]["animal_type"], property_data_by_LGA[LGA]["premises_type"]
+            )
+            property_data_by_LGA[LGA]["num_animals"], property_data_by_LGA[LGA]["animal_type"], property_data_by_LGA[LGA]["premises_type"] = map(
+                list, zip(*sorted(zipped))
+            )
+
+        for i in range(len(property_data_by_LGA[LGA]["animal_type"])):
+            animal_type = property_data_by_LGA[LGA]["animal_type"][i]
+            premises_type = property_data_by_LGA[LGA]["premises_type"][i]
+            num_animals = property_data_by_LGA[LGA]["num_animals"][i]
+            coordinates = property_coordinates[i]
+            p_polygon = property_polygons[i]
+            p_area = property_areas[i]
+
+            if "layers" in premises_type or "pullet" in premises_type:
+                chicken_egg_property_coordinates.extend(property_coordinates)
+            if premises_type == "egg processing":
+                processing_chicken_egg_property_coordinates.extend(property_coordinates)
+            elif premises_type == "abbatoir":
+                processing_chicken_meat_property_coordinates.extend(property_coordinates)
+            elif premises_type == "hatchery":
+                processing_chicken_egg_property_coordinates.extend(property_coordinates)
+            elif premises_type == "breeder" or premises_type == "backyard":
+                chicken_egg_property_coordinates.extend(property_coordinates)
+            else:
+                chicken_meat_property_coordinates.extend(property_coordinates)
+
+            ALL_coordinates.append(coordinates)
+            ALL_p_polygon.append(p_polygon)
+            ALL_p_area.append(p_area)
+            ALL_wind_radius.append(wind_radius)
+            ALL_animal_type.append(animal_type)
+            ALL_premises_type.append(premises_type)
+            ALL_num_animals.append(num_animals)
+            ALL_LGAs.append(LGA)
+            ALL_property_type.append("Backyard")
+            ALL_housing_type.append("Outdoor/Grazing/Free Range; ")
+
+    with open(output_filename, "wb") as file:
+        pickle.dump(
+            [
+                ALL_coordinates,
+                ALL_p_polygon,
+                ALL_p_area,
+                ALL_wind_radius,
+                ALL_animal_type,
+                ALL_premises_type,
+                ALL_num_animals,
+                ALL_LGAs,
+                ALL_property_type,
+                ALL_housing_type,
+                chicken_meat_property_coordinates,
+                processing_chicken_meat_property_coordinates,
+                chicken_egg_property_coordinates,
+                processing_chicken_egg_property_coordinates,
+            ],
+            file,
+        )
+
+    return (
+        ALL_coordinates,
+        ALL_p_polygon,
+        ALL_p_area,
+        ALL_wind_radius,
+        ALL_animal_type,
+        ALL_premises_type,
+        ALL_num_animals,
+        ALL_LGAs,
+        ALL_property_type,
+        ALL_housing_type,
+        chicken_meat_property_coordinates,
+        processing_chicken_meat_property_coordinates,
+        chicken_egg_property_coordinates,
+        processing_chicken_egg_property_coordinates,
+    )
+
+
 def HPAI_movement_network_setup(
     all_properties,
     max_movement_km=500,  # 500km max movement
@@ -1172,6 +1437,20 @@ def HPAI_movement_network_setup(
                     all_properties[p1].known_area = all_properties[p1].area
                 else:
                     all_properties[p1].known_area = ""
+        elif state == "QLD-provided":
+            if all_properties[p1].type != "backyard":
+                all_properties[p1].data_source = "RBE"
+            else:
+                all_properties[p1].data_source = ""
+
+            if all_properties[p1].data_source == "RBE":
+                all_properties[p1].known_sheds = all_properties[p1].num_sheds
+                all_properties[p1].known_birds = all_properties[p1].get_num_chickens()
+                all_properties[p1].known_area = all_properties[p1].area
+            elif all_properties[p1].data_source == "":
+                all_properties[p1].known_sheds = ""
+                all_properties[p1].known_birds = ""
+                all_properties[p1].known_area = ""
 
     # assign wind neighbours and update self.total_neighbours
     for p1 in range(0, len(all_properties)):
@@ -1247,14 +1526,19 @@ def HPAI_movement_network_setup(
                 "chickens": {"age": 546, "property_types": ["abbatoir"], "properties": []},
                 "eggs": {"property_types": ["egg processing"], "properties": []},
             }
-        elif property_i.type == "broiler farm":
+        elif property_i.type == "broiler farm" or property_i.type == "Meat production; ":
             property_i.allowed_movement_details = {"chickens": {"age": 50, "property_types": ["abbatoir"], "properties": []}}
         elif property_i.type == "egg processing":
             property_i.allowed_movement_details = {}
         elif property_i.type == "abbatoir":
             property_i.allowed_movement_details = {}
-        elif property_i.type == "backyard":
+        elif property_i.type == "backyard" or property_i.type == "Other; ":
             property_i.allowed_movement_details = {}
+        elif property_i.type == "Egg production; " or property_i.type == "Mixed; ":
+            property_i.allowed_movement_details = {
+                "chickens": {"age": 546, "property_types": ["abbatoir"], "properties": []},
+                "eggs": {"property_types": ["egg processing"], "properties": []},
+            }
         else:
             raise ValueError(f"Property type not expected: {property_i.type}")
 

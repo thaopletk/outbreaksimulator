@@ -128,10 +128,10 @@ def finish_cleaning_sheds(properties, int_time):
 def egg_production(properties):
     """implements production of eggs..."""
     for facility in properties:
-        if "layers" in facility.type:
+        if "layers" in facility.type or "Egg production" in facility.type or "Mixed" in facility.type:
             total_laying_chickens = facility.get_num_laying_chickens()
             facility.eggs += max(1, int(total_laying_chickens / 2))  # assumption... TODO fix this
-        elif facility.type == "broiler farm":
+        elif facility.type == "broiler farm" or "Meat production" in facility.type:
             pass  # no egg production
         elif facility.type == "pullet farm":
             pass  # no egg production
@@ -144,7 +144,7 @@ def egg_production(properties):
         elif facility.type == "breeder":
             total_laying_chickens = facility.get_num_laying_chickens()
             facility.eggs += max(1, int(total_laying_chickens / 4))  # assumption... TODO fix this
-        elif facility.type == "backyard":
+        elif facility.type == "backyard" or "Other" in facility.type:
             if random.uniform(0, 1) < 0.5:
                 total_laying_chickens = facility.get_num_laying_chickens()
                 facility.eggs += max(1, int(total_laying_chickens / 2))  # assumption... TODO fix this

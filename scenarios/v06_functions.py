@@ -35,7 +35,7 @@ def x_y_ranges(state="NSW"):
         # Boundaries for NSW
         xrange = [140, 155]
         yrange = [-38, -28]
-    elif state == "QLD":
+    elif state == "QLD" or state == "QLD-provided":
         # Boundaries for QLD
         xrange = [140, 155]
         yrange = [-30, -10]
@@ -107,27 +107,6 @@ def setup_to_outbreak_detection(state="NSW", burn_in_movement=10, testing=False,
                 processing_chicken_egg_property_coordinates,
             ) = fixed_spatial_setup.HPAI_NSW_setup_locations(output_filename, testing)
         elif state == "QLD":
-            # (
-            #     ALL_coordinates,
-            #     ALL_p_polygon,
-            #     ALL_p_area,
-            #     ALL_wind_radius,
-            #     ALL_animal_type,
-            #     ALL_premises_type,
-            #     ALL_num_animals,
-            #     ALL_LGAs,
-            #     chicken_meat_property_coordinates,
-            #     processing_chicken_meat_property_coordinates,
-            #     chicken_egg_property_coordinates,
-            #     processing_chicken_egg_property_coordinates,
-            # ) = fixed_spatial_setup.HPAI_QLD_setup_locations(output_filename, testing)
-
-            fixed_spatial_setup.HPAI_QLD_setup_locations_provided(output_filename)
-        end_time = time.time()
-        execution_time = end_time - start_time
-        print(f"Execution time of fixed_spatial_setup.HPAI_{state}_setup_locations(): {execution_time/60} minutes")
-    else:
-        with open(output_filename, "rb") as file:
             (
                 ALL_coordinates,
                 ALL_p_polygon,
@@ -141,7 +120,65 @@ def setup_to_outbreak_detection(state="NSW", burn_in_movement=10, testing=False,
                 processing_chicken_meat_property_coordinates,
                 chicken_egg_property_coordinates,
                 processing_chicken_egg_property_coordinates,
-            ) = pickle.load(file)
+            ) = fixed_spatial_setup.HPAI_QLD_setup_locations(output_filename, testing)
+
+            fixed_spatial_setup.HPAI_QLD_setup_locations_provided(output_filename)
+        elif state == "QLD-provided":
+            (
+                ALL_coordinates,
+                ALL_p_polygon,
+                ALL_p_area,
+                ALL_wind_radius,
+                ALL_animal_type,
+                ALL_premises_type,
+                ALL_num_animals,
+                ALL_LGAs,
+                ALL_property_type,
+                ALL_housing_type,
+                chicken_meat_property_coordinates,
+                processing_chicken_meat_property_coordinates,
+                chicken_egg_property_coordinates,
+                processing_chicken_egg_property_coordinates,
+            ) = fixed_spatial_setup.HPAI_QLD_setup_locations_provided(output_filename)
+        end_time = time.time()
+        execution_time = end_time - start_time
+        print(f"Execution time of fixed_spatial_setup.HPAI_{state}_setup_locations(): {execution_time/60} minutes")
+
+    else:
+        if state == "NSW" or state == "QLD":
+            with open(output_filename, "rb") as file:
+                (
+                    ALL_coordinates,
+                    ALL_p_polygon,
+                    ALL_p_area,
+                    ALL_wind_radius,
+                    ALL_animal_type,
+                    ALL_premises_type,
+                    ALL_num_animals,
+                    ALL_LGAs,
+                    chicken_meat_property_coordinates,
+                    processing_chicken_meat_property_coordinates,
+                    chicken_egg_property_coordinates,
+                    processing_chicken_egg_property_coordinates,
+                ) = pickle.load(file)
+        elif state == "QLD-provided":
+            with open(output_filename, "rb") as file:
+                (
+                    ALL_coordinates,
+                    ALL_p_polygon,
+                    ALL_p_area,
+                    ALL_wind_radius,
+                    ALL_animal_type,
+                    ALL_premises_type,
+                    ALL_num_animals,
+                    ALL_LGAs,
+                    ALL_property_type,
+                    ALL_housing_type,
+                    chicken_meat_property_coordinates,
+                    processing_chicken_meat_property_coordinates,
+                    chicken_egg_property_coordinates,
+                    processing_chicken_egg_property_coordinates,
+                ) = pickle.load(file)
 
     # plot that actually shows the locations of different facilities (aside from backyard ones at the moment)
     if not os.path.exists(os.path.join(folder_path_main, f"property_locations_base_map{suffix}.png")):
@@ -159,17 +196,32 @@ def setup_to_outbreak_detection(state="NSW", burn_in_movement=10, testing=False,
     output_filename = os.path.join(folder_path_main, f"HPAI_{state}_all_properties{suffix}")
     if not os.path.exists(output_filename):
         start_time = time.time()
-        all_properties = fixed_spatial_setup.initialise_all_properties(
-            ALL_coordinates,
-            ALL_p_polygon,
-            ALL_p_area,
-            ALL_wind_radius,
-            ALL_animal_type,
-            ALL_premises_type,
-            ALL_num_animals,
-            ALL_LGAs,
-            output_filename,
-        )
+        if state == "NSW" or state == "QLD":
+            all_properties = fixed_spatial_setup.initialise_all_properties(
+                ALL_coordinates,
+                ALL_p_polygon,
+                ALL_p_area,
+                ALL_wind_radius,
+                ALL_animal_type,
+                ALL_premises_type,
+                ALL_num_animals,
+                ALL_LGAs,
+                output_filename,
+            )
+        elif state == "QLD-provided":
+            all_properties = fixed_spatial_setup.initialise_all_properties(
+                ALL_coordinates,
+                ALL_p_polygon,
+                ALL_p_area,
+                ALL_wind_radius,
+                ALL_animal_type,
+                ALL_premises_type,
+                ALL_num_animals,
+                ALL_LGAs,
+                output_filename,
+                ALL_property_type,
+                ALL_housing_type,
+            )
         end_time = time.time()
         execution_time = end_time - start_time
         print(f"Execution time of fixed_spatial_setup.initialise_all_properties(): {execution_time/60} minutes")
@@ -183,13 +235,34 @@ def setup_to_outbreak_detection(state="NSW", burn_in_movement=10, testing=False,
         fixed_spatial_setup.save_chicken_property_csv(all_properties, 0, folder_path_main, suffix)
 
     if not os.path.exists(os.path.join(folder_path_main, f"property_locations_base_map_types{suffix}.png")):
-        fixed_spatial_setup.plot_map_land_HPAI_2(
-            all_properties,
-            xrange,
-            yrange,
-            folder_path_main,
-            plot_suffix=suffix,
-        )
+        if state in ["NSW", "QLD"]:
+            fixed_spatial_setup.plot_map_land_HPAI_2(
+                all_properties,
+                xrange,
+                yrange,
+                folder_path_main,
+                plot_suffix=suffix,
+            )
+        elif state == "QLD-provided":
+            fixed_spatial_setup.plot_map_land_HPAI_2(
+                all_properties,
+                xrange,
+                yrange,
+                folder_path_main,
+                plot_suffix=suffix,
+                property_type_list=[
+                    "Egg production; ",
+                    "Mixed; ",
+                    "Other; ",
+                    "Meat production; ",
+                    "pullet farm",
+                    "egg processing",
+                    "abbatoir",
+                    "hatchery",
+                    "breeder",
+                    "backyard",
+                ],
+            )
 
     if not os.path.exists(os.path.join(folder_path_main, f"approx_known_data_{suffix}.csv")):
         HPAI_functions.save_approx_known_data(all_properties, folder_path_main, suffix)
@@ -338,6 +411,9 @@ def setup_to_outbreak_detection(state="NSW", burn_in_movement=10, testing=False,
         random.seed(2)
         np.random.seed(2)
     elif state == "QLD":
+        random.seed(1086)
+        np.random.seed(3243)
+    elif state == "QLD-provided":
         random.seed(1086)
         np.random.seed(3243)
     if not os.path.exists(properties_seeded_filename):

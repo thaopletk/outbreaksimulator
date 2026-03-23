@@ -204,6 +204,9 @@ class Premises(Property):
 
         self.case_created_date = None
 
+        # QLD specific
+        self.QLD_property_type = None
+
     def find_location(self):
         try:
             self.location = geolocator.reverse(f"{self.y},{self.x}")
@@ -247,13 +250,22 @@ class Premises(Property):
         self.sheds = {}
         self.eggs = 0
 
-        if "layers" in self.type:
+        if "layers" in self.type or "Egg production" in self.type or "Mixed" in self.type:
             if self.type == "layers free-range":
                 self.approx_chickens_per_shed = 10000  # for free range, the number should be less than other cases
             elif self.type == "layers caged":
                 self.approx_chickens_per_shed = 14000  # going by 12k-14k of chickens per shed
             elif self.type == "layers barn":
                 self.approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
+            elif "Egg production" in self.type or "Mixed" in self.type:
+                if "Free Range" in self.housing_type:
+                    self.approx_chickens_per_shed = 10000
+                elif "Indoor barn" in self.housing_type:
+                    self.approx_chickens_per_shed = 12000
+                elif "Indoor" in self.housing_type:
+                    self.approx_chickens_per_shed = 14000
+                else:
+                    raise ValueError(f"{self.housing_type} not expected for egg production facility")
             else:
                 raise ValueError(f"{self.type} not expected")
 
@@ -300,7 +312,7 @@ class Premises(Property):
             # age actually doesn't matter if they're not in a shed (yet)
             # and fertilised eggs can be moved into a shed
 
-        elif self.type == "broiler farm":
+        elif self.type == "broiler farm" or "Meat" in self.type:
             # broilers: 4-6 weeks of age https://kb.rspca.org.au/categories/farmed-animals/poultry/meat-chickens/how-are-meat-chickens-farmed-in-australia
 
             self.approx_chickens_per_shed = 12000  # going by 12k-14k of chickens per shed
@@ -434,7 +446,7 @@ class Premises(Property):
             self.eggs = self.approx_chickens_per_shed * np.random.randint(
                 0, self.num_sheds
             )  # assuming some backlog; all are fertilised eggs by default
-        elif self.type == "backyard":
+        elif self.type == "backyard" or "Other" in self.type:
             self.num_sheds = 1
             chickens_possible_week_ages = list(range(1, 70 + 1))
             self.accepts_hatchlings = True
