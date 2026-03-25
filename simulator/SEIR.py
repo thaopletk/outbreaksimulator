@@ -223,7 +223,15 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mort
                 vector_mortality_adjustment = 0.5  # assuming they do some just in case
         elif outbreak_sim == "HPAI":
             vector_val_neighbour = vector_val_HPAI(properties[index].coordinates)
-            vector_mortality_adjustment = 1  # TODO | this basically assumes that the virus remains in the environment....
+            vector_mortality_adjustment = 1
+            if properties[index].culled_status:
+                days_since_culled = convert_date_to_time(properties[index].removal_date)
+                vector_mortality_adjustment = 0.1 * np.exp(-days_since_culled)
+            elif properties[index].reported_status or properties[index].clinical_report_outcome == True:
+                vector_mortality_adjustment = 0.3  # assuming that they enact some vector control just in case
+            elif properties[index].undergoing_testing:
+                vector_mortality_adjustment = 0.5  # assuming they do some just in case
+            # vector_mortality_adjustment = 1  # TODO | this basically assumes that the virus remains in the environment....
 
         # update FOI
         if isinstance(beta_wind, dict):

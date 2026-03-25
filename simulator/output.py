@@ -1137,8 +1137,8 @@ def plot_HPAI_outbreak_apparent(
     control_zones = {"restricted area": restricted_area, "control area": control_area, "Enhanced Passive Surveillance": enhanced_passive_surveillance}
 
     colour_dictionary = {
-        "restricted area": {"face": "#e07b7b", "edge": "#660000", "alpha": 1},
-        "control area": {"face": "#fce27b", "edge": "#cc6600", "alpha": 1},
+        "restricted area": {"face": "#e07b7b", "edge": "#660000", "alpha": 0.5},
+        "control area": {"face": "#fce27b", "edge": "#cc6600", "alpha": 0.5},
         "Enhanced Passive Surveillance": {"face": "#7fe8f0", "edge": "#3d3d5c", "alpha": 0.1},
     }
 

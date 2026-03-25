@@ -2250,6 +2250,7 @@ class DiseaseSimulation:
             print(converted_date)
             converted_date_dt = dt.strptime(converted_date, "%d/%m/%Y")
             # Specific property actions
+            # extra_job_info = ""
             for i, row in property_jobs.iterrows():
 
                 if row["date_scheduled"] == converted_date or row["date_scheduled"] == converted_date_dt:
@@ -2737,7 +2738,7 @@ class DiseaseSimulation:
                     if isinstance(row["zone_parameter"], float) or isinstance(row["zone_parameter"], int):
                         detection_probability_factor = row["zone_parameter"]
                     else:
-                        detection_probability_factor = 0.3
+                        detection_probability_factor = 0.7
 
                     self.run_wild_animal_surveillance(
                         properties, wild_animal_surveillance, surveillance_ref, detection_probability_factor, converted_date
@@ -2778,7 +2779,7 @@ class DiseaseSimulation:
                     if isinstance(row["zone_parameter"], float) or isinstance(row["zone_parameter"], int):
                         detection_probability_factor = row["zone_parameter"]
                     else:
-                        detection_probability_factor = 0.1  # feels like eDNA should be less than PCR
+                        detection_probability_factor = 0.2  # feels like eDNA should be less than PCR
 
                     self.run_environmental_surveillance(properties, surveillance_zone, surveillance_ref, detection_probability_factor, converted_date)
 

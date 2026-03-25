@@ -742,15 +742,15 @@ def run_actions_excel_shapefile(
     shp_zones = gpd.read_file(shapefile_path)
 
     # restricted area
-    shp_zones_RA = shp_zones.loc[shp_zones["EMZ"] == "REZ", :]
+    shp_zones_RA = shp_zones.loc[shp_zones["EMZ_1"] == "REZ", :]
     RA_shape = list(shp_zones_RA["geometry"])[0]
 
     # control area
-    shp_zones_CA = shp_zones.loc[shp_zones["EMZ"] == "CEZ", :]
+    shp_zones_CA = shp_zones.loc[shp_zones["EMZ_1"] == "CEZ", :]
     CA_shape = list(shp_zones_CA["geometry"])[0]
 
     # enhanced passive surveillance area
-    shp_zones_EPS = shp_zones.loc[shp_zones["EMZ"] == "Enhanced Passive Surveillance", :]
+    shp_zones_EPS = shp_zones.loc[shp_zones["EMZ_1"] == "Enhanced Passive Surveillance", :]
     EPS_shape = list(shp_zones_EPS["geometry"])[0]  # enhanced passive surveillance shape, assuming it's the same as the RA for now
     # EPS_factor = 1.1
 
