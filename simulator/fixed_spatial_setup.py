@@ -1125,7 +1125,8 @@ def HPAI_QLD_setup_locations(
 
 def HPAI_QLD_setup_locations_provided(
     output_filename,
-    data_file=os.path.join(os.path.dirname(__file__), "..", "data", "QLD_data", "TestCaseDataTK.xlsx"),
+    data_file=os.path.join(os.path.dirname(__file__), "..", "data", "QLD_data", "LGA_w_poultry", "LocalGovernmen_PairwiseInter.shp"),
+    data_file_AgTrends=os.path.join(os.path.dirname(__file__), "..", "data", "QLD_properties.xlsx"),
     wind_radius=5,
 ):
     """Reads in provided locations from the data file"""
@@ -1133,8 +1134,13 @@ def HPAI_QLD_setup_locations_provided(
     Australia_shape = spatial_setup.Australia_shape()
     LGA_gdf = spatial_functions.get_LGA_gdf()
 
-    # contains custom egg processing, hatchery, abbatoirs - format same as NSW
-    data_properties = pd.read_excel(data_file, sheet_name="CasePropertyData")
+    # data from https://spatial-gis.information.qld.gov.au/arcgis/rest/services/Farming/Agriculture/MapServer
+    # - layers, egg processing, and meat processing
+    # we will use the egg processing and meat processing ("abbatoirs") for our purposes
+    data_AgTrends = pd.read_excel(data_file_AgTrends, sheet_name="PoultryAgTrends")
+
+    # contains producers - eggs, meat
+    data_properties = gpd.read_file(data_file)
 
     occupied_regions = {}
 
@@ -1159,52 +1165,50 @@ def HPAI_QLD_setup_locations_provided(
 
     property_data_by_LGA = {}
 
-    # CaseTitle	CaseStatusCurrent	CaseStatusCode	CaseLGA	IP	PropertyType	FarmingSystemType	HousingSystemType	CasePointLongitude	CasePointLatitude	CasePolygon	CasePolygonAreaHA
-
     QLD_LGAs = LGA_gdf.loc[LGA_gdf["STE_NAME21"] == "Queensland", :]
     QLD_LGA_list = QLD_LGAs["LGA_NAME24"].tolist()
 
-    for index, row in data_properties.iterrows():
-        LGA = row["CaseLGA"]
+    LGAs_to_focus_on = []
 
-        property_polygon = shapely.wkt.loads(row["CasePolygon"])
-        # property_area = float(row["CasePolygonAreaHA"])
-        property_area = spatial_functions.calculate_area(property_polygon)
-        property_coordinates = [float(row["CasePointLongitude"]), float(row["CasePointLatitude"])]
+    for index, row in data_properties.iterrows():
+        # print(row)
+        LGA = row["LGA_1"]
+        if LGA == "Pittsworth":
+            LGA = "Toowoomba"  # a fix
 
         region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == LGA, :]  # checking if the region name is actually standard or not lol
         if region_only.empty:
-            curr_farm = Point(float(row["CasePointLongitude"]), float(row["CasePointLatitude"]))
-            farm_LGA = 0
-            for LGA in QLD_LGA_list:
-                region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == LGA, :]
-                region_shape = list(region_only["geometry"])[0]
-                if region_shape != None and region_shape.contains(curr_farm):
-                    print(LGA)
-                    farm_LGA = LGA
-                    break
-            LGA = farm_LGA
-            region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == LGA, :]
-            if region_only.empty:
-                raise ValueError(f"{LGA} doesn't exist")
 
-        QLD_property_type = row["PropertyType"]
-        premises_type = row["FarmingSystemType"]
-        housing_type = row["HousingSystemType"]
+            raise ValueError(f"{LGA} doesn't exist")
+
+        LGAs_to_focus_on.append(LGA)  # we're only going to focus on some LGAs
+
+        property_polygon = row["geometry"]
+        property_area = spatial_functions.calculate_area(property_polygon)
+        property_coordinates = [property_polygon.centroid.x, property_polygon.centroid.y]
+
         animal_type = "chicken"
 
-        if "Egg production" in premises_type or "Other" in premises_type:
-            chicken_egg_property_coordinates.append(property_coordinates)
-        elif "Meat production" in premises_type or "Mixed" in premises_type:
-            chicken_meat_property_coordinates.append(property_coordinates)
-        else:
-            raise ValueError(f"Unallocated type {premises_type}")
+        QLD_property_type = row["PIC"]  # just hijacking QLD property type to store PICs now
+        housing_type = row["Enterprise"]  # Free Range or Intensive
+        product_type = row["Product"]
 
-        # max: 10,000 hens per hectare
-        num_animals = int(10000 * property_area * random.uniform(0, 1))
-        if num_animals == 0:
-            print(num_animals)
-            print(property_area)
+        estimated_animals = int(row["Estimated_"])
+        if estimated_animals < 50:
+            premises_type = "backyard"
+            chicken_egg_property_coordinates.append(property_coordinates)
+        else:
+            if product_type == "Egg":
+                premises_type = random.choices(["layers", "breeder", "hatchery"], weights=(15, 1, 1))[0]
+                chicken_egg_property_coordinates.append(property_coordinates)
+            elif product_type == "Meat":
+                premises_type = random.choices(["broiler farm", "pullet farm"], weights=(15, 5))[0]
+                chicken_meat_property_coordinates.append(property_coordinates)
+            else:
+                raise ValueError(f"product type {product_type} not expected")
+
+        # assumption that the estimated value is an underestimate (i.e., that people would prefer to under report)
+        num_animals = num_animals = random.randint(estimated_animals, estimated_animals * 2)
 
         if LGA in total_chickens_LGA:
             total_chickens_LGA[LGA] += num_animals
@@ -1230,14 +1234,74 @@ def HPAI_QLD_setup_locations_provided(
         if LGA not in property_data_by_LGA:
             property_data_by_LGA[LGA] = {"total_properties": 0, "animal_type": [], "premises_type": [], "num_animals": []}
 
-        # add a few random backyard properties
+        # add a few random backyard properties that are not yet known
         print("backyard")
         num_backyard = random.randint(1, 3)
         property_data_by_LGA[LGA]["total_properties"] += num_backyard
         for _ in range(num_backyard):
             property_data_by_LGA[LGA]["animal_type"].append("chicken")
             property_data_by_LGA[LGA]["premises_type"].append("backyard")
-            property_data_by_LGA[LGA]["num_animals"].append(random.randint(3, 50))
+            property_data_by_LGA[LGA]["num_animals"].append(random.randint(1, 10))  # very small backyard
+
+    for i, row in data_AgTrends.iterrows():
+        animal_type = "chicken"
+        x_coord = row["x"]
+        y_coord = row["y"]
+        property_type = row["Commodity description or property type"]
+        if "layer" in property_type:
+            pass  # not taking these
+        elif "egg processing" in property_type:
+            premises_type = property_type
+            num_animals = 0
+        elif "abbatoir" in property_type:
+            premises_type = property_type
+            num_animals = 1000  # assuming some initial live chickens
+        else:
+            raise ValueError(f"Not expecting this property type: {property_type}")
+        # num = row["Number of agricultural businesses"] = 1
+        curr_farm = Point(x_coord, y_coord)
+        farm_LGA = 0
+        for LGA in QLD_LGA_list:
+            region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == LGA, :]
+            region_shape = list(region_only["geometry"])[0]
+            if region_shape != None and region_shape.contains(curr_farm):
+                # print(LGA)
+                farm_LGA = LGA
+                break
+        if farm_LGA in LGAs_to_focus_on:  # only include if it's in the right area
+            property_coordinates = [x_coord, y_coord]
+            property_polygon = Polygon(
+                spatial_functions.geodesic_point_buffer(y_coord, x_coord, km=random.uniform(0.01, 0.5))
+            )  # making a small round property for ease
+            property_area = spatial_functions.calculate_area(property_polygon)
+
+            if premises_type == "egg processing":
+                processing_chicken_egg_property_coordinates.append(property_coordinates)
+            else:
+                processing_chicken_meat_property_coordinates.append(property_coordinates)
+
+            if farm_LGA not in occupied_regions:
+                occupied_regions[farm_LGA] = [property_polygon]
+            else:
+                occupied_regions[farm_LGA].append(property_polygon)
+
+            if farm_LGA in total_chickens_LGA:
+                total_chickens_LGA[farm_LGA] += num_animals
+            else:
+                total_chickens_LGA[farm_LGA] = num_animals
+
+            ALL_coordinates.append(property_coordinates)
+            ALL_p_polygon.append(property_polygon)
+            ALL_p_area.append(property_area)
+            ALL_wind_radius.append(wind_radius)
+            ALL_animal_type.append(animal_type)
+            ALL_premises_type.append(premises_type)
+            ALL_num_animals.append(num_animals)
+            ALL_LGAs.append(LGA)
+            QLD_property_type = ""  # nothing
+            ALL_property_type.append(QLD_property_type)
+            housing_type = ""  # not relevant
+            ALL_housing_type.append(housing_type)
 
     for LGA, LGA_properties_data in property_data_by_LGA.items():
         if LGA not in occupied_regions:
@@ -1247,7 +1311,7 @@ def HPAI_QLD_setup_locations_provided(
         region_shape = list(region_only["geometry"])[0]
 
         # TODO: random number chosen
-        average_property_size = 50
+        average_property_size = 1
 
         property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
             LGA_properties_data["total_properties"],
@@ -1301,7 +1365,7 @@ def HPAI_QLD_setup_locations_provided(
             ALL_premises_type.append(premises_type)
             ALL_num_animals.append(num_animals)
             ALL_LGAs.append(LGA)
-            ALL_property_type.append("Backyard")
+            ALL_property_type.append("")
             ALL_housing_type.append("Outdoor/Grazing/Free Range; ")
 
     with open(output_filename, "wb") as file:
