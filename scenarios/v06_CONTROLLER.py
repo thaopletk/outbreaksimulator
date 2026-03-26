@@ -99,15 +99,15 @@ shared_folder = "C:\\Users\\thaophuongl\\OneDrive - The University of Melbourne\
 #     download_folder_name=f"{action_name}_outputs",
 # )
 
-# # FAST DDD
-# v06_functions.run_auto_actions_with_shapefile(
-#     state="NSW",
-#     previous_unique_output = "HASTE_NSW_actions_1 Fast DDD",
-#     shapefile_path = os.path.join(shared_folder, "Day15", "Day15_Zones.shp"),
-#     previous_output_suffix_int=5,
-#     total_days_to_run_for=15,
-#     strategy="fast DDD",
-# )
+# FAST DDD
+v06_functions.run_auto_actions_with_shapefile(
+    state="NSW",
+    previous_unique_output="HASTE_NSW_actions_1 Fast DDD",
+    shapefile_path=os.path.join(shared_folder, "Day15", "Day15_Zones.shp"),
+    previous_output_suffix_int=5,
+    total_days_to_run_for=25,
+    strategy="fast DDD",
+)
 
 # SLOW DDD
 v06_functions.run_auto_actions_with_shapefile(
@@ -115,7 +115,7 @@ v06_functions.run_auto_actions_with_shapefile(
     previous_unique_output="HASTE_NSW_actions_1 Slow DDD",
     shapefile_path=os.path.join(shared_folder, "Day15", "Day15_Zones.shp"),
     previous_output_suffix_int=5,
-    total_days_to_run_for=15,
+    total_days_to_run_for=25,
     strategy="slow DDD",
 )
 
