@@ -1033,3 +1033,135 @@ def run_auto_actions(
         unique_output_starting_int += 1
 
         running_day += 1
+
+
+def run_auto_actions_with_shapefile(
+    state,
+    previous_unique_output,
+    shapefile_path,
+    previous_output_suffix_int=1,
+    total_days_to_run_for=7,
+    strategy="fast DDD",
+):
+    folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}")
+    xrange, yrange, xlims, ylims = x_y_ranges(state)
+
+    # shp_zones = gpd.read_file(os.path.join(folder_path_main, shapefile_path))
+    shp_zones = gpd.read_file(shapefile_path)
+
+    # restricted area
+    shp_zones_RA = shp_zones.loc[shp_zones["EMZ"] == "REZ", :]
+    RA_shape = list(shp_zones_RA["geometry"])[0]
+
+    # control area
+    shp_zones_CA = shp_zones.loc[shp_zones["EMZ"] == "CEZ", :]
+    CA_shape = list(shp_zones_CA["geometry"])[0]
+
+    # enhanced passive surveillance area
+    shp_zones_EPS = shp_zones.loc[shp_zones["EMZ"] == "Enhanced Passive Surveillance", :]
+    EPS_shape = list(shp_zones_EPS["geometry"])[0]  # enhanced passive surveillance shape, assuming it's the same as the RA for now
+    EPS_factor = None
+
+    previous_folder = os.path.join(folder_path_main, previous_unique_output)
+    previous_output_suffix = f"_{previous_output_suffix_int:02d}"
+
+    previous_spread_properties_filename = os.path.join(folder_path_main, previous_unique_output, "properties_" + previous_unique_output)
+    previous_spread_diseaseoutbreak_filename = os.path.join(folder_path_main, previous_unique_output, "outbreakobject_" + previous_unique_output)
+
+    with open(previous_spread_properties_filename, "rb") as file:
+        properties = pickle.load(file)
+    with open(previous_spread_diseaseoutbreak_filename, "rb") as file:
+        diseaseoutbreak = pickle.load(file)
+
+    running_day = 1
+    days_to_run_for = 1
+    while running_day <= total_days_to_run_for:
+        # get previous info
+        approx_data_csv = os.path.join(previous_folder, f"approx_known_data{previous_output_suffix}.csv")
+
+        # set up new info
+        outputnumber = previous_output_suffix_int + 1
+        output_suffix = f"_{outputnumber:02d}"
+
+        unique_output = f"{previous_unique_output}_{running_day:02d}"
+        folder_path = os.path.join(folder_path_main, unique_output)
+
+        print(folder_path)
+
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+
+        spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
+        spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
+
+        # assign jobs
+        scheduled_date = premises.convert_time_to_date(diseaseoutbreak.time + 1)
+        if (
+            not os.path.exists(os.path.join(folder_path, f"jobs_{running_day}.csv"))
+            or not os.path.exists(os.path.join(folder_path, f"zone_jobs_{running_day}.csv"))
+            or not os.path.exists(os.path.join(folder_path, f"zones_{running_day}.csv"))
+        ):
+            auto_job_mode.generate_jobs_teams(folder_path, approx_data_csv, scheduled_date, running_day, strategy)
+
+        property_jobs = pd.read_csv(os.path.join(folder_path, f"jobs_{running_day}.csv"))
+        zones_based_jobs = pd.read_csv(os.path.join(folder_path, f"zone_jobs_{running_day}.csv"))
+        property_based_zones = pd.read_csv(os.path.join(folder_path, f"zones_{running_day}.csv"))
+
+        enhanced_passive_surveillance_area, enhanced_reporting_factor = get_enhanced_passive_surveillance_area(property_based_zones, properties)
+        if EPS_shape != None:
+            enhanced_passive_surveillance_area = unary_union([enhanced_passive_surveillance_area, EPS_shape])
+        if EPS_factor != None:
+            enhanced_reporting_factor = EPS_factor
+
+        random.seed(1235)
+        np.random.seed(1116)
+        if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
+            # adjust the plotting parameters for this new scenario
+            diseaseoutbreak.set_plotting_parameters(
+                xlims=xlims,
+                ylims=ylims,
+                plotting=True,
+                folder_path=folder_path,
+                unique_output=unique_output,
+            )
+
+            properties, movement_records, current_time, total_culled_animals, job_manager = diseaseoutbreak.simulate_HPAI_outbreak_management(
+                properties,
+                property_jobs,
+                zones_based_jobs,
+                property_based_zones,
+                days_to_run_for,
+                restricted_emergency_zone=RA_shape,
+                control_emergency_zone=CA_shape,
+                enhanced_passive_surveillance_area=enhanced_passive_surveillance_area,
+                enhanced_reporting_factor=enhanced_reporting_factor,
+                output_suffix=output_suffix,
+            )
+
+            HPAI_functions.save_approx_known_data(properties, folder_path, unique_output="", output_suffix=output_suffix)
+
+            # and then resave the end state
+            with open(spread_properties_filename, "wb") as file:
+                pickle.dump(properties, file)
+
+            # and save the diseaseoutbreak object
+            with open(spread_diseaseoutbreak_filename, "wb") as file:
+                pickle.dump(diseaseoutbreak, file)
+
+            total_infected = 0
+            for property_i in properties:
+                if property_i.exposure_date != "NA":
+                    total_infected += 1
+
+            print(f"Total number of infected premises: {total_infected}")
+        else:
+            with open(spread_properties_filename, "rb") as file:
+                properties = pickle.load(file)
+            with open(spread_diseaseoutbreak_filename, "rb") as file:
+                diseaseoutbreak = pickle.load(file)
+
+        previous_folder = folder_path
+        previous_output_suffix_int = outputnumber
+        previous_output_suffix = output_suffix
+
+        running_day += 1

@@ -71,34 +71,53 @@ shared_folder = "C:\\Users\\thaophuongl\\OneDrive - The University of Melbourne\
 #     download_folder_name=f"{action_name}_outputs",
 # )
 
-action_name = "actions_1 Fast DDD"
-v06_functions.run_actions_excel_shapefile(
-    state="NSW",
-    previous_unique_output="HASTE_NSW_action_2_new",
-    actions_filename_excel=os.path.join(shared_folder, f"{action_name}.xlsx"),
-    shapefile_path=os.path.join(shared_folder, "Day4", "Day4_1510.shp"),  # TODO -
-    days_to_run_for=7,  # TODO
-    unique_output=f"HASTE_NSW_{action_name}",  # intention is to run something with more days
-    output_suffix="_05",
-    create_download_folder=True,
-    download_parent_folder=shared_folder,
-    download_folder_name=f"{action_name}_outputs",
-)
+# action_name = "actions_1 Fast DDD"
+# v06_functions.run_actions_excel_shapefile(
+#     state="NSW",
+#     previous_unique_output="HASTE_NSW_action_2_new",
+#     actions_filename_excel=os.path.join(shared_folder, f"{action_name}.xlsx"),
+#     shapefile_path=os.path.join(shared_folder, "Day4", "Day4_1510.shp"),  # TODO -
+#     days_to_run_for=7,  # TODO
+#     unique_output=f"HASTE_NSW_{action_name}",  # intention is to run something with more days
+#     output_suffix="_05",
+#     create_download_folder=True,
+#     download_parent_folder=shared_folder,
+#     download_folder_name=f"{action_name}_outputs",
+# )
 
-action_name = "actions_1 Slow DDD"
-v06_functions.run_actions_excel_shapefile(
-    state="NSW",
-    previous_unique_output="HASTE_NSW_action_2_new",
-    actions_filename_excel=os.path.join(shared_folder, f"{action_name}.xlsx"),
-    shapefile_path=os.path.join(shared_folder, "Day4", "Day4_1510.shp"),  # TODO -
-    days_to_run_for=7,  # TODO
-    unique_output=f"HASTE_NSW_{action_name}",  # intention is to run something with more days
-    output_suffix="_05",
-    create_download_folder=True,
-    download_parent_folder=shared_folder,
-    download_folder_name=f"{action_name}_outputs",
-)
+# action_name = "actions_1 Slow DDD"
+# v06_functions.run_actions_excel_shapefile(
+#     state="NSW",
+#     previous_unique_output="HASTE_NSW_action_2_new",
+#     actions_filename_excel=os.path.join(shared_folder, f"{action_name}.xlsx"),
+#     shapefile_path=os.path.join(shared_folder, "Day4", "Day4_1510.shp"),  # TODO -
+#     days_to_run_for=7,  # TODO
+#     unique_output=f"HASTE_NSW_{action_name}",  # intention is to run something with more days
+#     output_suffix="_05",
+#     create_download_folder=True,
+#     download_parent_folder=shared_folder,
+#     download_folder_name=f"{action_name}_outputs",
+# )
 
+# # FAST DDD
+# v06_functions.run_auto_actions_with_shapefile(
+#     state="NSW",
+#     previous_unique_output = "HASTE_NSW_actions_1 Fast DDD",
+#     shapefile_path = os.path.join(shared_folder, "Day15", "Day15_Zones.shp"),
+#     previous_output_suffix_int=5,
+#     total_days_to_run_for=15,
+#     strategy="fast DDD",
+# )
+
+# SLOW DDD
+v06_functions.run_auto_actions_with_shapefile(
+    state="NSW",
+    previous_unique_output="HASTE_NSW_actions_1 Slow DDD",
+    shapefile_path=os.path.join(shared_folder, "Day15", "Day15_Zones.shp"),
+    previous_output_suffix_int=5,
+    total_days_to_run_for=15,
+    strategy="slow DDD",
+)
 
 # v06_functions.run_auto_actions(
 #     state="NSW",
