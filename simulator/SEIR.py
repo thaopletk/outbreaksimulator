@@ -194,14 +194,21 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mort
                 raise ValueError(f"Unexpected u10 {u10}, v10 {v10}")
 
             unsafe_disc_j = sector_square.intersection(neighbour.puffed_poly)
-            A_js = calculate_area(unsafe_disc_j)
+            if unsafe_disc_j.type == "Point":
+                A_js = 0
+            else:
+                A_js = calculate_area(unsafe_disc_j)
         else:
             # calculating area overlap
             unsafe_disc_j = properties[index].puffed_poly
             A_js = properties[index].puffed_poly_area  # area of unsafe_disc_j of properties[index]
 
         C_j = properties[index].cumulative_infections
-        A_ijs = calculate_area(property_i_polygon.intersection(unsafe_disc_j))
+        if unsafe_disc_j.type == "Point":
+            A_ijs = 0
+            continue  # no point continuing here.
+        else:
+            A_ijs = calculate_area(property_i_polygon.intersection(unsafe_disc_j))
 
         # calculating min distance centre j to boundary of i, in km
         p1, p2 = nearest_points(property_i_polygon, Point(*properties[index].coordinates))
@@ -253,7 +260,11 @@ def calculate_force_of_infection(properties, premise_index, vax_modifier, r_wind
     indoor_modifier = 1
     outdoor_modifier = 1
     if outbreak_sim == "HPAI":
-        if "free-range" in properties[premise_index].type or properties[premise_index].housing_type == "free-range":
+        if (
+            "free-range" in properties[premise_index].type
+            or properties[premise_index].housing_type == "free-range"
+            or "Free Range" in properties[premise_index].housing_type
+        ):
             indoor_modifier = 0.9
             outdoor_modifier = 1.1
         else:

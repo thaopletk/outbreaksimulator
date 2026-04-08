@@ -1790,6 +1790,21 @@ class DiseaseSimulation:
                                 ]
                             )
                     # else - we don't know about it, so we can't assign it any particular status!
+            else:
+                # outside area
+                if facility.status in ["POR", "ARP"]:
+                    OG_status = facility.status
+                    facility.status = "NA"
+                    self.combined_narrative.append(
+                        [
+                            self.time,
+                            converted_date,
+                            "status_update",
+                            facility.id,
+                            f"{facility.type} (sim_id {facility.id}) has updated status: {facility.status} due to no longer being in an RA/CA (prior status: {OG_status})",
+                            facility.case_id,
+                        ]
+                    )
 
     def run_population_level_surveillance(
         self, properties, population_level_surveillance, population_surveillance_ref, detection_probability_factor, converted_date
@@ -2017,7 +2032,7 @@ class DiseaseSimulation:
 
         # get control zones
         RA_geo_list = []
-        if property_based_zones != None:
+        if isinstance(property_based_zones, pd.DataFrame):  # property_based_zones != None:
             RA_df = property_based_zones[property_based_zones["zone_type"] == "RA"]
             for i, row in RA_df.iterrows():
 
@@ -2034,7 +2049,7 @@ class DiseaseSimulation:
         restricted_area = unary_union(RA_geo_list)
 
         CA_geo_list = []
-        if property_based_zones != None:
+        if isinstance(property_based_zones, pd.DataFrame):  # property_based_zones != None:
             CA_df = property_based_zones[property_based_zones["zone_type"] == "CA"]
             for i, row in CA_df.iterrows():
 

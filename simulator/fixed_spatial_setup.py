@@ -26,6 +26,7 @@ from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import pandas as pd
 import csv
 import math
+import pointpats
 
 
 # copied from HPAIfunctions
@@ -687,6 +688,7 @@ def initialise_all_properties(
     output_filename,
     ALL_property_type=None,
     ALL_housing_type=None,
+    ALL_datasource=None,
 ):
     all_properties = []
 
@@ -706,7 +708,19 @@ def initialise_all_properties(
             )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
             all_properties.append(new_p)
     else:
-        for coordinates, p_polygon, p_area, wind_radius, animal_type, premises_type, num_animals, LGA, property_type, housing_type in zip(
+        for (
+            coordinates,
+            p_polygon,
+            p_area,
+            wind_radius,
+            animal_type,
+            premises_type,
+            num_animals,
+            LGA,
+            property_type,
+            housing_type,
+            data_source,
+        ) in zip(
             ALL_coordinates,
             ALL_p_polygon,
             ALL_p_area,
@@ -717,6 +731,7 @@ def initialise_all_properties(
             ALL_LGAs,
             ALL_property_type,
             ALL_housing_type,
+            ALL_datasource,
         ):
             new_p = property_specific_initialisation_animals_no_neighbours(
                 coordinates,
@@ -730,6 +745,7 @@ def initialise_all_properties(
                 property_type=property_type,
                 housing_type=housing_type,
             )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
+            new_p.data_source = data_source
             all_properties.append(new_p)
 
     with open(output_filename, "wb") as file:
@@ -1128,6 +1144,10 @@ def HPAI_QLD_setup_locations_provided(
     data_file=os.path.join(os.path.dirname(__file__), "..", "data", "QLD_data", "LGA_w_poultry", "LocalGovernmen_PairwiseInter.shp"),
     data_file_AgTrends=os.path.join(os.path.dirname(__file__), "..", "data", "QLD_properties.xlsx"),
     wind_radius=5,
+    max_x_coord=152.769,
+    max_y_coord=-26.529,
+    min_x_coord=150.877,
+    min_y_coord=-28.27,
 ):
     """Reads in provided locations from the data file"""
 
@@ -1162,6 +1182,7 @@ def HPAI_QLD_setup_locations_provided(
     ALL_housing_type = []
     ALL_num_animals = []
     ALL_LGAs = []
+    ALL_datasource = []
 
     property_data_by_LGA = {}
 
@@ -1190,22 +1211,37 @@ def HPAI_QLD_setup_locations_provided(
         animal_type = "chicken"
 
         QLD_property_type = row["PIC"]  # just hijacking QLD property type to store PICs now
-        housing_type = row["Enterprise"]  # Free Range or Intensive
+        housing_type = row["Enterprise"]  # Free Range or Intensive OR Abbatoir
         product_type = row["Product"]
 
         estimated_animals = int(row["Estimated_"])
-        if estimated_animals < 50:
-            premises_type = "backyard"
-            chicken_egg_property_coordinates.append(property_coordinates)
-        else:
+
+        if housing_type == "":
+            raise ValueError("empty housing type")
+
+        if housing_type in ["Free Range", "Intensive"]:
             if product_type == "Egg":
-                premises_type = random.choices(["layers", "breeder", "hatchery"], weights=(15, 1, 1))[0]
+                if estimated_animals < 15:
+                    premises_type = "backyard"
+                else:
+                    premises_type = random.choices(["layers", "breeder", "hatchery"], weights=(15, 1, 1))[0]
                 chicken_egg_property_coordinates.append(property_coordinates)
             elif product_type == "Meat":
                 premises_type = random.choices(["broiler farm", "pullet farm"], weights=(15, 5))[0]
                 chicken_meat_property_coordinates.append(property_coordinates)
             else:
                 raise ValueError(f"product type {product_type} not expected")
+        else:
+            if product_type == "Egg":
+                premises_type = "egg processing"
+                processing_chicken_egg_property_coordinates.append(property_coordinates)
+            elif product_type == "Meat":
+                premises_type = "abbatoir"
+                processing_chicken_meat_property_coordinates.append(property_coordinates)
+            else:
+                raise ValueError(f"product type {product_type} not expected for abbatoir")
+
+            housing_type = ""
 
         # assumption that the estimated value is an underestimate (i.e., that people would prefer to under report)
         num_animals = num_animals = random.randint(estimated_animals, estimated_animals * 2)
@@ -1230,15 +1266,15 @@ def HPAI_QLD_setup_locations_provided(
         ALL_LGAs.append(LGA)
         ALL_property_type.append(QLD_property_type)
         ALL_housing_type.append(housing_type)
+        ALL_datasource.append("RBE")
 
         if LGA not in property_data_by_LGA:
             property_data_by_LGA[LGA] = {"total_properties": 0, "animal_type": [], "premises_type": [], "num_animals": []}
 
         # add a few random backyard properties that are not yet known
-        print("backyard")
-        num_backyard = random.randint(1, 3)
-        property_data_by_LGA[LGA]["total_properties"] += num_backyard
-        for _ in range(num_backyard):
+        if random.uniform(0, 1) < 0.01:
+            print("backyard")
+            property_data_by_LGA[LGA]["total_properties"] += 1
             property_data_by_LGA[LGA]["animal_type"].append("chicken")
             property_data_by_LGA[LGA]["premises_type"].append("backyard")
             property_data_by_LGA[LGA]["num_animals"].append(random.randint(1, 10))  # very small backyard
@@ -1247,15 +1283,26 @@ def HPAI_QLD_setup_locations_provided(
         animal_type = "chicken"
         x_coord = row["x"]
         y_coord = row["y"]
+
+        if x_coord < max_x_coord and x_coord > min_x_coord and y_coord < max_y_coord and y_coord > min_y_coord:
+            pass
+        else:
+            continue
+
         property_type = row["Commodity description or property type"]
         if "layer" in property_type:
-            pass  # not taking these
+            continue  # not taking these
         elif "egg processing" in property_type:
             premises_type = property_type
             num_animals = 0
         elif "abbatoir" in property_type:
-            premises_type = property_type
-            num_animals = 1000  # assuming some initial live chickens
+            if random.uniform(0, 1) < 0.3:
+
+                premises_type = property_type
+                # num_animals = 1000  # assuming some initial live chickens
+                num_animals = 0
+            else:
+                continue
         else:
             raise ValueError(f"Not expecting this property type: {property_type}")
         # num = row["Number of agricultural businesses"] = 1
@@ -1268,11 +1315,19 @@ def HPAI_QLD_setup_locations_provided(
                 # print(LGA)
                 farm_LGA = LGA
                 break
+
         if farm_LGA in LGAs_to_focus_on:  # only include if it's in the right area
+
             property_coordinates = [x_coord, y_coord]
             property_polygon = Polygon(
                 spatial_functions.geodesic_point_buffer(y_coord, x_coord, km=random.uniform(0.01, 0.5))
             )  # making a small round property for ease
+
+            # check that this point isn't already in somewhere...
+            preoccupied_region = unary_union(occupied_regions[farm_LGA])
+            if preoccupied_region.contains(curr_farm):
+                continue  # skip this!
+
             property_area = spatial_functions.calculate_area(property_polygon)
 
             if premises_type == "egg processing":
@@ -1302,6 +1357,7 @@ def HPAI_QLD_setup_locations_provided(
             ALL_property_type.append(QLD_property_type)
             housing_type = ""  # not relevant
             ALL_housing_type.append(housing_type)
+            ALL_datasource.append("EA")
 
     for LGA, LGA_properties_data in property_data_by_LGA.items():
         if LGA not in occupied_regions:
@@ -1313,60 +1369,63 @@ def HPAI_QLD_setup_locations_provided(
         # TODO: random number chosen
         average_property_size = 1
 
-        property_coordinates, property_polygons, property_areas = assign_property_locations_in_region(
-            LGA_properties_data["total_properties"],
-            region_shape,
-            average_property_ha=average_property_size,
-            excluded_regions=occupied_regions[LGA],
-        )
+        if LGA_properties_data["total_properties"] > 0:
 
-        occupied_regions[LGA].extend(property_polygons)
+            excluded_regions = unary_union(occupied_regions[LGA])
 
-        # sort by sizes
-        if len(property_areas) > 1:
-            property_areas, property_coordinates, property_polygons = map(
-                list, zip(*sorted(zip(property_areas, property_coordinates, property_polygons)))
-            )
+            # Generates 5 points inside polygon
+            points_inside_LGA = pointpats.random.poisson(region_shape, size=2 * LGA_properties_data["total_properties"])
+            i_random_points = -1
+            for i in range(LGA_properties_data["total_properties"]):
+                suitable = False
+                while not suitable:
+                    i_random_points += 1
+                    if i_random_points >= len(points_inside_LGA):
+                        raise Exception("Not enough generated points within region!")
 
-            # sort the property data by sizes too
-            zipped = zip(
-                property_data_by_LGA[LGA]["num_animals"], property_data_by_LGA[LGA]["animal_type"], property_data_by_LGA[LGA]["premises_type"]
-            )
-            property_data_by_LGA[LGA]["num_animals"], property_data_by_LGA[LGA]["animal_type"], property_data_by_LGA[LGA]["premises_type"] = map(
-                list, zip(*sorted(zipped))
-            )
+                    coords = points_inside_LGA[i_random_points]
+                    x_coord = coords[0]
+                    y_coord = coords[1]
+                    property_polygon = Polygon(
+                        spatial_functions.geodesic_point_buffer(y_coord, x_coord, km=random.uniform(0.01, 0.5))
+                    )  # making a small round property for ease
 
-        for i in range(len(property_data_by_LGA[LGA]["animal_type"])):
-            animal_type = property_data_by_LGA[LGA]["animal_type"][i]
-            premises_type = property_data_by_LGA[LGA]["premises_type"][i]
-            num_animals = property_data_by_LGA[LGA]["num_animals"][i]
-            coordinates = property_coordinates[i]
-            p_polygon = property_polygons[i]
-            p_area = property_areas[i]
+                    if region_shape.contains(property_polygon) and not excluded_regions.contains(property_polygon):
+                        suitable = True
 
-            if "layers" in premises_type or "pullet" in premises_type:
-                chicken_egg_property_coordinates.extend(property_coordinates)
-            if premises_type == "egg processing":
-                processing_chicken_egg_property_coordinates.extend(property_coordinates)
-            elif premises_type == "abbatoir":
-                processing_chicken_meat_property_coordinates.extend(property_coordinates)
-            elif premises_type == "hatchery":
-                processing_chicken_egg_property_coordinates.extend(property_coordinates)
-            elif premises_type == "breeder" or premises_type == "backyard":
-                chicken_egg_property_coordinates.extend(property_coordinates)
-            else:
-                chicken_meat_property_coordinates.extend(property_coordinates)
+                        property_area = spatial_functions.calculate_area(property_polygon)
 
-            ALL_coordinates.append(coordinates)
-            ALL_p_polygon.append(p_polygon)
-            ALL_p_area.append(p_area)
-            ALL_wind_radius.append(wind_radius)
-            ALL_animal_type.append(animal_type)
-            ALL_premises_type.append(premises_type)
-            ALL_num_animals.append(num_animals)
-            ALL_LGAs.append(LGA)
-            ALL_property_type.append("")
-            ALL_housing_type.append("Outdoor/Grazing/Free Range; ")
+                        occupied_regions[LGA].append(property_polygon)
+
+                        animal_type = property_data_by_LGA[LGA]["animal_type"][i]
+                        premises_type = property_data_by_LGA[LGA]["premises_type"][i]
+                        num_animals = property_data_by_LGA[LGA]["num_animals"][i]
+                        property_coordinates = [x_coord, y_coord]
+
+                        ALL_coordinates.append(property_coordinates)
+                        ALL_p_polygon.append(property_polygon)
+                        ALL_p_area.append(property_area)
+                        ALL_wind_radius.append(wind_radius)
+                        ALL_animal_type.append(animal_type)
+                        ALL_premises_type.append(premises_type)
+                        ALL_num_animals.append(num_animals)
+                        ALL_LGAs.append(LGA)
+                        ALL_property_type.append("")
+                        ALL_housing_type.append("Free Range")
+                        ALL_datasource.append("")
+
+                        if "layers" in premises_type or "pullet" in premises_type:
+                            chicken_egg_property_coordinates.append(property_coordinates)
+                        if premises_type == "egg processing":
+                            processing_chicken_egg_property_coordinates.append(property_coordinates)
+                        elif premises_type == "abbatoir":
+                            processing_chicken_meat_property_coordinates.append(property_coordinates)
+                        elif premises_type == "hatchery":
+                            processing_chicken_egg_property_coordinates.append(property_coordinates)
+                        elif premises_type == "breeder" or premises_type == "backyard":
+                            chicken_egg_property_coordinates.append(property_coordinates)
+                        else:
+                            chicken_meat_property_coordinates.append(property_coordinates)
 
     with open(output_filename, "wb") as file:
         pickle.dump(
@@ -1381,6 +1440,7 @@ def HPAI_QLD_setup_locations_provided(
                 ALL_LGAs,
                 ALL_property_type,
                 ALL_housing_type,
+                ALL_datasource,
                 chicken_meat_property_coordinates,
                 processing_chicken_meat_property_coordinates,
                 chicken_egg_property_coordinates,
@@ -1400,6 +1460,7 @@ def HPAI_QLD_setup_locations_provided(
         ALL_LGAs,
         ALL_property_type,
         ALL_housing_type,
+        ALL_datasource,
         chicken_meat_property_coordinates,
         processing_chicken_meat_property_coordinates,
         chicken_egg_property_coordinates,
@@ -1502,16 +1563,15 @@ def HPAI_movement_network_setup(
                 else:
                     all_properties[p1].known_area = ""
         elif state == "QLD-provided":
-            if all_properties[p1].type != "backyard":
-                all_properties[p1].data_source = "RBE"
-            else:
-                all_properties[p1].data_source = ""
-
             if all_properties[p1].data_source == "RBE":
                 all_properties[p1].known_sheds = all_properties[p1].num_sheds
                 all_properties[p1].known_birds = all_properties[p1].get_num_chickens()
                 all_properties[p1].known_area = all_properties[p1].area
             elif all_properties[p1].data_source == "":
+                all_properties[p1].known_sheds = ""
+                all_properties[p1].known_birds = ""
+                all_properties[p1].known_area = ""
+            elif all_properties[p1].data_source == "EA":  # should only be abbatoirs and egg processors
                 all_properties[p1].known_sheds = ""
                 all_properties[p1].known_birds = ""
                 all_properties[p1].known_area = ""

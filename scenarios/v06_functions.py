@@ -35,10 +35,13 @@ def x_y_ranges(state="NSW"):
         # Boundaries for NSW
         xrange = [140, 155]
         yrange = [-38, -28]
-    elif state == "QLD" or state == "QLD-provided":
+    elif state == "QLD":
         # Boundaries for QLD
         xrange = [140, 155]
         yrange = [-30, -10]
+    elif state == "QLD-provided":
+        xrange = [150.5, 153.5]
+        yrange = [-28.5, -26.1]
     else:
         raise ValueError(f"{state} state not expected")
 
@@ -135,6 +138,7 @@ def setup_to_outbreak_detection(state="NSW", burn_in_movement=10, testing=False,
                 ALL_LGAs,
                 ALL_property_type,
                 ALL_housing_type,
+                ALL_datasource,
                 chicken_meat_property_coordinates,
                 processing_chicken_meat_property_coordinates,
                 chicken_egg_property_coordinates,
@@ -174,6 +178,7 @@ def setup_to_outbreak_detection(state="NSW", burn_in_movement=10, testing=False,
                     ALL_LGAs,
                     ALL_property_type,
                     ALL_housing_type,
+                    ALL_datasource,
                     chicken_meat_property_coordinates,
                     processing_chicken_meat_property_coordinates,
                     chicken_egg_property_coordinates,
@@ -221,6 +226,7 @@ def setup_to_outbreak_detection(state="NSW", burn_in_movement=10, testing=False,
                 output_filename,
                 ALL_property_type,
                 ALL_housing_type,
+                ALL_datasource,
             )
         end_time = time.time()
         execution_time = end_time - start_time
@@ -251,10 +257,8 @@ def setup_to_outbreak_detection(state="NSW", burn_in_movement=10, testing=False,
                 folder_path_main,
                 plot_suffix=suffix,
                 property_type_list=[
-                    "Egg production; ",
-                    "Mixed; ",
-                    "Other; ",
-                    "Meat production; ",
+                    "layers",
+                    "broiler farm",
                     "pullet farm",
                     "egg processing",
                     "abbatoir",
@@ -282,11 +286,13 @@ def setup_to_outbreak_detection(state="NSW", burn_in_movement=10, testing=False,
         execution_time = end_time - start_time
         print(f"Execution time of fixed_spatial_setup.HPAI_movement_network_setup(): {execution_time/60} minutes")
 
-        start_time = time.time()
-        # pre-finds all addressess - takes 1 second per property
-        for property_i in properties:
-            loc = property_i.get_location()
-        print(f"Execution time of finding all property addressess: {execution_time/60} minutes")
+        # start_time = time.time()
+        # # pre-finds all addressess - takes 1 second per property
+        # for property_i in properties:
+        #     loc = property_i.get_location()
+        # end_time = time.time()
+        # execution_time = end_time - start_time
+        # print(f"Execution time of finding all property addressess: {execution_time/60} minutes")
 
         with open(properties_filename, "wb") as file:
             pickle.dump(properties, file)
@@ -414,8 +420,8 @@ def setup_to_outbreak_detection(state="NSW", burn_in_movement=10, testing=False,
         random.seed(1086)
         np.random.seed(3243)
     elif state == "QLD-provided":
-        random.seed(1086)
-        np.random.seed(3243)
+        random.seed(3)
+        np.random.seed(3)
     if not os.path.exists(properties_seeded_filename):
         # seed property
         unique_output = "day0"
@@ -736,22 +742,37 @@ def run_actions_excel_shapefile(
     download_folder_name=None,
 ):
 
-    # folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}")
+    folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}")
 
-    # shp_zones = gpd.read_file(os.path.join(folder_path_main, shapefile_path))
-    shp_zones = gpd.read_file(shapefile_path)
+    #
+    try:
+        shp_zones = gpd.read_file(shapefile_path)
+    except:
+        shp_zones = gpd.read_file(os.path.join(folder_path_main, shapefile_path))
+        shp_zones2 = gpd.read_file(os.path.join(folder_path_main, "Day_RA", "Layer 12", "Layer 12-polygons.shp"))
 
     # restricted area
-    shp_zones_RA = shp_zones.loc[shp_zones["EMZ_1"] == "REZ", :]
+    try:
+        shp_zones_RA = shp_zones.loc[shp_zones["EMZ"] == "REZ", :]
+    except:
+        # shp_zones_RA = shp_zones.loc[shp_zones["ZoneTitle"] == "Restricted Area", :]
+        shp_zones_RA = shp_zones2.loc[shp_zones2["ZoneTitle"] == "Restricted Area", :]
     RA_shape = list(shp_zones_RA["geometry"])[0]
 
     # control area
-    shp_zones_CA = shp_zones.loc[shp_zones["EMZ_1"] == "CEZ", :]
+    try:
+        shp_zones_CA = shp_zones.loc[shp_zones["EMZ"] == "CEZ", :]
+    except:
+        shp_zones_CA = shp_zones.loc[shp_zones["ZoneTitle"] == "Control Area", :]
     CA_shape = list(shp_zones_CA["geometry"])[0]
 
     # enhanced passive surveillance area
-    shp_zones_EPS = shp_zones.loc[shp_zones["EMZ_1"] == "Enhanced Passive Surveillance", :]
-    EPS_shape = list(shp_zones_EPS["geometry"])[0]  # enhanced passive surveillance shape, assuming it's the same as the RA for now
+    try:
+        shp_zones_EPS = shp_zones.loc[shp_zones["EMZ_1"] == "Enhanced Passive Surveillance", :]
+        EPS_shape = list(shp_zones_EPS["geometry"])[0]  # enhanced passive surveillance shape, assuming it's the same as the RA for now
+    except:
+        shp_zones_EPS = None
+        EPS_shape = None
     # EPS_factor = 1.1
 
     # could also read in enhanced surveillance area here
@@ -785,25 +806,38 @@ def run_status_update_only_excel_shapefile(
     download_folder_name=None,
 ):
 
+    folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}")
+
     RA_shape = None
     CA_shape = None
     EPS_shape = None
     if shapefile_path != None:
-        shp_zones = gpd.read_file(shapefile_path)
+        try:
+            shp_zones = gpd.read_file(shapefile_path)
+        except:
+            shp_zones = gpd.read_file(os.path.join(folder_path_main, shapefile_path))
 
         # restricted area
-        shp_zones_RA = shp_zones.loc[shp_zones["EMZ"] == "REZ", :]
+        try:
+            shp_zones_RA = shp_zones.loc[shp_zones["EMZ"] == "REZ", :]
+        except:
+            shp_zones_RA = shp_zones.loc[shp_zones["ZoneTitle"] == "Restricted Area", :]
         RA_shape = list(shp_zones_RA["geometry"])[0]
 
         # control area
-        shp_zones_CA = shp_zones.loc[shp_zones["EMZ"] == "CEZ", :]
+        try:
+            shp_zones_CA = shp_zones.loc[shp_zones["EMZ"] == "CEZ", :]
+        except:
+            shp_zones_CA = shp_zones.loc[shp_zones["ZoneTitle"] == "Control Area", :]
         CA_shape = list(shp_zones_CA["geometry"])[0]
 
         # enhanced passive surveillance area
-        shp_zones_EPS = shp_zones.loc[shp_zones["EMZ"] == "Enhanced Passive Surveillance", :]
-        EPS_shape = list(shp_zones_EPS["geometry"])[0]  # enhanced passive surveillance shape, assuming it's the same as the RA for now
-
-    folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}")
+        try:
+            shp_zones_EPS = shp_zones.loc[shp_zones["EMZ"] == "Enhanced Passive Surveillance", :]
+            EPS_shape = list(shp_zones_EPS["geometry"])[0]  # enhanced passive surveillance shape, assuming it's the same as the RA for now
+        except:
+            shp_zones_EPS = None
+            EPS_shape = None
 
     # read in previous state
     previous_spread_properties_filename = os.path.join(folder_path_main, previous_unique_output, "properties_" + previous_unique_output)
@@ -916,6 +950,7 @@ def run_auto_actions(
     download_parent_folder=None,
     download_folder_name=None,
     strategy="default",
+    shapefile_path=None,
 ):
     folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}")
     xrange, yrange, xlims, ylims = x_y_ranges(state)
@@ -931,9 +966,36 @@ def run_auto_actions(
     with open(previous_spread_diseaseoutbreak_filename, "rb") as file:
         diseaseoutbreak = pickle.load(file)
 
-    # # TEMP ONLY - FIND ALL ADDRESSESS TODO - delete this afterwards
-    # for property_i in properties:
-    #     loca= property_i.get_location()
+    RA_shape = None
+    CA_shape = None
+    EPS_shape = None
+    EPS_factor = None
+    if shapefile_path != None:
+        try:
+            shp_zones = gpd.read_file(shapefile_path)
+        except:
+            shp_zones = gpd.read_file(os.path.join(folder_path_main, shapefile_path))
+
+        # restricted area
+        try:
+            shp_zones_RA = shp_zones.loc[shp_zones["EMZ"] == "REZ", :]
+        except:
+            shp_zones_RA = shp_zones.loc[shp_zones["ZoneTitle"] == "Restricted Area", :]
+        RA_shape = list(shp_zones_RA["geometry"])[0]
+
+        # control area
+        try:
+            shp_zones_CA = shp_zones.loc[shp_zones["EMZ"] == "CEZ", :]
+        except:
+            shp_zones_CA = shp_zones.loc[shp_zones["ZoneTitle"] == "Control Area", :]
+        CA_shape = list(shp_zones_CA["geometry"])[0]
+
+        # enhanced passive surveillance area
+        try:
+            shp_zones_EPS = shp_zones.loc[shp_zones["EMZ_1"] == "Enhanced Passive Surveillance", :]
+            EPS_shape = list(shp_zones_EPS["geometry"])[0]  # enhanced passive surveillance shape, assuming it's the same as the RA for now
+        except:
+            shp_zones_EPS = None
 
     days_to_run_for = 1
 
@@ -966,13 +1028,20 @@ def run_auto_actions(
             or not os.path.exists(os.path.join(folder_path, f"zone_jobs_{action_number}.csv"))
             or not os.path.exists(os.path.join(folder_path, f"zones_{action_number}.csv"))
         ):
-            auto_job_mode.generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, max_resource_units, strategy)
+            if state == "QLD-provided":
+                auto_job_mode.generate_jobs_QLD(folder_path, approx_data_csv, scheduled_date, action_number, properties, strategy=strategy)
+            else:
+                auto_job_mode.generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, max_resource_units, strategy)
 
         property_jobs = pd.read_csv(os.path.join(folder_path, f"jobs_{action_number}.csv"))
         zones_based_jobs = pd.read_csv(os.path.join(folder_path, f"zone_jobs_{action_number}.csv"))
         property_based_zones = pd.read_csv(os.path.join(folder_path, f"zones_{action_number}.csv"))
 
         enhanced_passive_surveillance_area, enhanced_reporting_factor = get_enhanced_passive_surveillance_area(property_based_zones, properties)
+        if EPS_shape != None:
+            enhanced_passive_surveillance_area = unary_union([enhanced_passive_surveillance_area, EPS_shape])
+        if EPS_factor != None:
+            enhanced_reporting_factor = EPS_factor
 
         random.seed(1235)
         np.random.seed(1116)
@@ -992,10 +1061,14 @@ def run_auto_actions(
                 zones_based_jobs,
                 property_based_zones,
                 days_to_run_for,
+                restricted_emergency_zone=RA_shape,
+                control_emergency_zone=CA_shape,
                 enhanced_passive_surveillance_area=enhanced_passive_surveillance_area,
                 enhanced_reporting_factor=enhanced_reporting_factor,
                 output_suffix=output_suffix,
             )
+
+            HPAI_functions.save_approx_known_data(properties, folder_path, unique_output="", output_suffix=output_suffix)
 
             # and then resave the end state
             with open(spread_properties_filename, "wb") as file:
@@ -1016,8 +1089,6 @@ def run_auto_actions(
                 properties = pickle.load(file)
             with open(spread_diseaseoutbreak_filename, "rb") as file:
                 diseaseoutbreak = pickle.load(file)
-
-        HPAI_functions.save_approx_known_data(properties, folder_path, unique_output="", output_suffix=output_suffix)
 
         if create_download_folder:
             if download_parent_folder == None:

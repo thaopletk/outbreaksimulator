@@ -5,6 +5,7 @@ import os
 import numpy as np
 from datetime import datetime as dt
 from datetime import timedelta
+import simulator.spatial_functions as spatial_functions
 
 
 def generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, max_resource_units=100, strategy="default"):
@@ -550,6 +551,236 @@ def generate_jobs_teams(folder_path, approx_data_csv, scheduled_date, action_num
             zone_rows.append(zone_row)
 
     print(teams)
+
+    # and then save
+    jobs_df = pd.DataFrame(jobs_rows, columns=jobs_header)
+    jobs_df.to_csv(os.path.join(folder_path, f"jobs_{action_number}.csv"), index=False)
+
+    zone_jobs_df = pd.DataFrame(zone_jobs_rows, columns=zone_jobs_header)
+    zone_jobs_df.to_csv(os.path.join(folder_path, f"zone_jobs_{action_number}.csv"), index=False)
+
+    zones_df = pd.DataFrame(zone_rows, columns=zones_header)
+    zones_df.to_csv(os.path.join(folder_path, f"zones_{action_number}.csv"), index=False)
+
+
+def generate_jobs_QLD(folder_path, approx_data_csv, scheduled_date, action_number, properties, strategy="normal_zones"):
+    approx_data = pd.read_csv(os.path.join(folder_path, approx_data_csv))
+
+    scheduled_date_object = dt.strptime(scheduled_date, "%d/%m/%Y")
+
+    delays = {"ContactTracing": timedelta(days=2), "DDD": timedelta(days=2), "LabTesting": timedelta(days=1)}
+
+    # jobs
+    jobs_header = ["ID", "date_scheduled", "action", "specific_action", "detection_prob", "num", "Free text notes"]
+    jobs_rows = []
+
+    # top priority: IPs
+    IPs = approx_data[approx_data["status"] == "IP"]
+    IPs = IPs.sort_values("ip")
+
+    culling_team_points = 8  # two teams, up to 4 properties each if they're small
+    contact_tracing_points = 2
+
+    for i, row in IPs.iterrows():
+        if culling_team_points > 0 and dt.strptime(row["last_PCR_date"], "%d/%m/%Y") + delays["DDD"] <= scheduled_date_object:
+            if row["total_chickens"] < 2000:
+                job_row = [row["sim_id"], scheduled_date, "Cull", "", "", row["total_chickens"], "IP"]
+                jobs_rows.append(job_row)
+                culling_team_points -= 1
+            else:
+                job_row = [row["sim_id"], scheduled_date, "Cull", "", "", 15000, "IP"]
+                jobs_rows.append(job_row)
+                culling_team_points -= 4
+
+    # checking contact tracing - go from large to small
+    IPs = IPs.sort_values("total_chickens", ascending=False)
+    for i, row in IPs.iterrows():
+        if contact_tracing_points > 0 and pd.isna(row["last_conducted_contact_tracing"]):
+            if dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + delays["ContactTracing"] <= scheduled_date_object:
+                job_row = [row["sim_id"], scheduled_date, "ContactTracing", "", "", "", "IP"]
+                jobs_rows.append(job_row)
+                contact_tracing_points -= 1
+
+    # SPs and DCPs and TPs are treated the same. Go with the properties that are either larger OR are close to something large
+    SPDCP_site_visit = 5
+    SPDCP_lab_testing = 5
+    SPDCPs = approx_data[approx_data["status"].isin(["SP", "DCP", "TP"])]
+    SPDCPs = SPDCPs.sort_values("total_chickens", ascending=False)
+    for i, row in SPDCPs.iterrows():
+        if row["enterprise"] not in ["abbatoir", "egg processing"]:
+            if row["total_chickens"] > 1000:
+                if pd.isna(row["last_surveillance_date"]) and SPDCP_site_visit > 0:
+                    job_row = [row["sim_id"], scheduled_date, "ClinicalObservation", "", "", "", row["status"]]
+                    jobs_rows.append(job_row)
+                    SPDCP_site_visit -= 1
+                elif (
+                    not pd.isna(row["last_surveillance_date"])
+                    and dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + delays["LabTesting"] <= scheduled_date_object
+                    and SPDCP_lab_testing > 0
+                ):
+                    job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", row["status"]]
+                    jobs_rows.append(job_row)
+                    SPDCP_lab_testing -= 1
+            else:
+                # check if it's near anything or not
+                focus_facility = properties[int(row["sim_id"])]
+                close_to_commercial = False
+                for j, facility in enumerate(properties):
+                    if j != int(row["sim_id"]):
+                        distance = spatial_functions.quick_distance_haversine(
+                            focus_facility.coordinates,
+                            facility.coordinates,
+                        )
+                        if distance < 2:
+                            close_to_commercial = True
+                            break
+
+                if close_to_commercial:
+                    if pd.isna(row["last_surveillance_date"]) and SPDCP_site_visit > 0:
+                        job_row = [row["sim_id"], scheduled_date, "ClinicalObservation", "", "", "", row["status"]]
+                        jobs_rows.append(job_row)
+                        SPDCP_site_visit -= 1
+                    elif (
+                        not pd.isna(row["last_surveillance_date"])
+                        and dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + delays["LabTesting"] <= scheduled_date_object
+                        and SPDCP_lab_testing > 0
+                    ):
+                        job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", row["status"]]
+                        jobs_rows.append(job_row)
+                        SPDCP_lab_testing -= 1
+
+    if SPDCP_site_visit > 0 or SPDCP_lab_testing > 0:  # i.e., there is capacity left
+        for i, row in SPDCPs.iterrows():
+            if row["enterprise"] not in ["abbatoir", "egg processing"]:
+                if row["total_chickens"] < 1000:
+                    focus_facility = properties[int(row["sim_id"])]
+                    close_to_commercial = False
+                    for j, facility in enumerate(properties):
+                        if j != int(row["sim_id"]):
+                            distance = spatial_functions.quick_distance_haversine(
+                                focus_facility.coordinates,
+                                facility.coordinates,
+                            )
+                            if distance < 2:
+                                close_to_commercial = True
+                                break
+                    if not close_to_commercial:
+                        if pd.isna(row["last_surveillance_date"]) and SPDCP_site_visit > 0:
+                            job_row = [row["sim_id"], scheduled_date, "ClinicalObservation", "", "", "", row["status"]]
+                            jobs_rows.append(job_row)
+                            SPDCP_site_visit -= 1
+                        elif (
+                            not pd.isna(row["last_surveillance_date"])
+                            and dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + delays["LabTesting"] <= scheduled_date_object
+                            and SPDCP_lab_testing > 0
+                        ):
+                            job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", row["status"]]
+                            jobs_rows.append(job_row)
+                            SPDCP_lab_testing -= 1
+
+    # ARPs and PORs are treated the same. Go with the properties that are either larger OR are close to something large
+    SPDCP_site_visit = 5
+    SPDCP_lab_testing = 5
+    SPDCPs = approx_data[approx_data["status"].isin(["ARP", "POR"])]
+    SPDCPs = SPDCPs.sort_values("total_chickens", ascending=False)
+    for i, row in SPDCPs.iterrows():
+        if row["enterprise"] not in ["abbatoir", "egg processing"]:
+            if row["total_chickens"] > 1000:
+                if pd.isna(row["last_surveillance_date"]) and SPDCP_site_visit > 0:
+                    job_row = [row["sim_id"], scheduled_date, "ClinicalObservation", "", "", "", row["status"]]
+                    jobs_rows.append(job_row)
+                    SPDCP_site_visit -= 1
+                elif (
+                    not pd.isna(row["last_surveillance_date"])
+                    and dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + delays["LabTesting"] <= scheduled_date_object
+                    and SPDCP_lab_testing > 0
+                ):
+                    job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", row["status"]]
+                    jobs_rows.append(job_row)
+                    SPDCP_lab_testing -= 1
+            else:
+                # check if it's near anything or not
+                focus_facility = properties[int(row["sim_id"])]
+                close_to_commercial = False
+                for j, facility in enumerate(properties):
+                    if j != int(row["sim_id"]):
+                        distance = spatial_functions.quick_distance_haversine(
+                            focus_facility.coordinates,
+                            facility.coordinates,
+                        )
+                        if distance < 2:
+                            close_to_commercial = True
+                            break
+
+                if close_to_commercial:
+                    if pd.isna(row["last_surveillance_date"]) and SPDCP_site_visit > 0:
+                        job_row = [row["sim_id"], scheduled_date, "ClinicalObservation", "", "", "", row["status"]]
+                        jobs_rows.append(job_row)
+                        SPDCP_site_visit -= 1
+                    elif (
+                        not pd.isna(row["last_surveillance_date"])
+                        and dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + delays["LabTesting"] <= scheduled_date_object
+                        and SPDCP_lab_testing > 0
+                    ):
+                        job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", row["status"]]
+                        jobs_rows.append(job_row)
+                        SPDCP_lab_testing -= 1
+
+    if SPDCP_site_visit > 0 or SPDCP_lab_testing > 0:  # i.e., there is capacity left
+        for i, row in SPDCPs.iterrows():
+            if row["enterprise"] not in ["abbatoir", "egg processing"]:
+                if row["total_chickens"] < 1000:
+                    focus_facility = properties[int(row["sim_id"])]
+                    close_to_commercial = False
+                    for j, facility in enumerate(properties):
+                        if j != int(row["sim_id"]):
+                            distance = spatial_functions.quick_distance_haversine(
+                                focus_facility.coordinates,
+                                facility.coordinates,
+                            )
+                            if distance < 2:
+                                close_to_commercial = True
+                                break
+                    if not close_to_commercial:
+                        if pd.isna(row["last_surveillance_date"]) and SPDCP_site_visit > 0:
+                            job_row = [row["sim_id"], scheduled_date, "ClinicalObservation", "", "", "", row["status"]]
+                            jobs_rows.append(job_row)
+                            SPDCP_site_visit -= 1
+                        elif (
+                            not pd.isna(row["last_surveillance_date"])
+                            and dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + delays["LabTesting"] <= scheduled_date_object
+                            and SPDCP_lab_testing > 0
+                        ):
+                            job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", row["status"]]
+                            jobs_rows.append(job_row)
+                            SPDCP_lab_testing -= 1
+
+    zone_jobs_header = ["ID", "date_scheduled", "radius_km", "action", "zone_name", "zone_parameter", "Free text notes"]
+    zone_jobs_rows = []
+    # nothing
+
+    zones_header = ["ID", "radius_km", "zone_type", "zone_parameter", "Free text notes"]
+    zone_rows = []
+    IPs = approx_data[approx_data["status"].isin(["IP", "RP"])]
+    for i, row in IPs.iterrows():
+        if strategy == "normal_zones":
+            zone_row = [row["sim_id"], 5, "RA", "", ""]
+            zone_rows.append(zone_row)
+
+            zone_row = [row["sim_id"], 15, "CA", "", ""]
+            zone_rows.append(zone_row)
+        elif strategy == "small_zones":
+            zone_row = [row["sim_id"], 2, "RA", "", ""]
+            zone_rows.append(zone_row)
+
+            zone_row = [row["sim_id"], 7, "CA", "", ""]
+            zone_rows.append(zone_row)
+
+    for status in ["SP", "TP", "DCP"]:
+        properties = approx_data[approx_data["status"] == status]
+        for i, row in properties.iterrows():
+            zone_row = [row["sim_id"], 0.2, "RA", "", "quarantine"]
+            zone_rows.append(zone_row)
 
     # and then save
     jobs_df = pd.DataFrame(jobs_rows, columns=jobs_header)

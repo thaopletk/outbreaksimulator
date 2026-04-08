@@ -73,7 +73,8 @@ def contact_tracing(properties, property_index, movement_records, time):
 
     properties_found = False
 
-    timeframe_days = 56
+    # timeframe_days = 56
+    timeframe_days = 14
 
     timeframe = movement_records.loc[movement_records["day"] >= time - timeframe_days]
     forward = timeframe.loc[timeframe["to"] == property_index]

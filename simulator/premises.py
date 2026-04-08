@@ -266,6 +266,11 @@ class Premises(Property):
                     self.approx_chickens_per_shed = 14000
                 else:
                     raise ValueError(f"{self.housing_type} not expected for egg production facility")
+            elif self.type == "layers":
+                if "Free Range" in self.housing_type:
+                    self.approx_chickens_per_shed = 10000
+                else:  # intensive
+                    self.approx_chickens_per_shed = 14000
             else:
                 raise ValueError(f"{self.type} not expected")
 
@@ -1010,6 +1015,10 @@ class Premises(Property):
                 self.number_infected = number_infected
                 if number_infected > 0:
                     self.infection_status = 1
+
+            if self.type in ["abbatoir", "egg processing"]:
+                if number_infected == 0 and number_infectious == 0 and number_clinical == 0:
+                    self.infection_status = 0
 
     def return_output_row_chickens(self):
         """Returns a row with information for outputing (required downstream for forecasting)

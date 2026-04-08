@@ -43,8 +43,12 @@ def seed_HPAI_infection(
     for i, property in enumerate(properties):
         coords = property.coordinates
         if (
-            coords[0] <= xrange_bounds[1] and coords[0] >= xrange_bounds[0] and coords[1] <= yrange_bounds[1] and coords[1] >= yrange_bounds[0]
-        ) and property.type not in ["egg processing", "abbatoir", "hatchery", "backyard", "layers free-range", "layers caged", "layers barn"]:
+            (coords[0] <= xrange_bounds[1] and coords[0] >= xrange_bounds[0] and coords[1] <= yrange_bounds[1] and coords[1] >= yrange_bounds[0])
+            and property.type
+            not in ["egg processing", "abbatoir", "hatchery", "backyard", "layers free-range", "layers caged", "layers barn", "layers"]
+            and property.get_num_chickens() > 700
+            and property.get_num_chickens() < 50000
+        ):
             viable_properties.append(i)
 
     # seed this property
@@ -820,6 +824,9 @@ def save_approx_known_data(properties, folder_path, unique_output="", output_suf
         "case_created_date",
     ]
 
+    if "QLD-provided" in folder_path:
+        header.append("QLD_property")
+
     data_rows_for_Biosecurity_Commons = []
 
     if output_suffix == "":
@@ -898,20 +905,24 @@ def save_approx_known_data(properties, folder_path, unique_output="", output_suf
             # default known housing/enterprise type is nothing
             housing_type = ""
             enterprise_type = ""
-            if "layers" in facility.type:
-                if facility.chicken_capacity >= 100 or facility.data_source != "ALSR":
-                    enterprise_type = "layers"
-                if facility.data_source != "ALSR" or property_data_known:
-                    housing_type = facility.type[7:]
-            elif "broiler" in facility.type:
-                if facility.chicken_capacity >= 100 or facility.data_source != "ALSR" or property_data_known:
-                    enterprise_type = facility.type
-
-                if facility.data_source != "ALSR" or property_data_known:
-                    housing_type = facility.housing_type
+            if facility.data_source == "RBE":
+                enterprise_type = facility.type
+                housing_type = facility.housing_type
             else:
-                if facility.chicken_capacity >= 100 or facility.data_source != "ALSR" or property_data_known:
-                    enterprise_type = facility.type
+                if "layers" in facility.type:
+                    if facility.chicken_capacity >= 100 or facility.data_source != "ALSR":
+                        enterprise_type = "layers"
+                    if facility.data_source != "ALSR" or property_data_known:
+                        housing_type = facility.type[7:]
+                elif "broiler" in facility.type:
+                    if facility.chicken_capacity >= 100 or facility.data_source != "ALSR" or property_data_known:
+                        enterprise_type = facility.type
+
+                    if facility.data_source != "ALSR" or property_data_known:
+                        housing_type = facility.housing_type
+                else:
+                    if facility.chicken_capacity >= 100 or facility.data_source != "ALSR" or property_data_known:
+                        enterprise_type = facility.type
 
             try:
                 case_created_date = facility.case_created_date
@@ -953,6 +964,9 @@ def save_approx_known_data(properties, folder_path, unique_output="", output_suf
                     vaccinated_birds,
                     case_created_date,
                 ]
+
+                if "QLD-provided" in folder_path:
+                    row.append(facility.QLD_property_type)
 
                 writer.writerow(row)
 
