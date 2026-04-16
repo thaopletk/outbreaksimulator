@@ -11,8 +11,8 @@ import geopandas as gpd
 import xarray as xr
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "FMD_modelling"))
-import FMD_modelling.FOI_calculation_fns as FOI_calculation_fns
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "FMD_modelling_code"))
+import FMD_modelling_code.FOI_calculation_fns as FOI_calculation_fns
 from simulator.spatial_functions import (
     calculate_area,
     quick_distance_haversine,
