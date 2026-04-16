@@ -16,7 +16,7 @@ This is the infectious animal disease outbreak and decision-making simulator for
 - Some kind of GIS installation for mapping outputs
 - Live internet connection for address finding
 
-**Code written by Thao P. Le and Isobel Abell**
+**Code written by**:
 - Thao (TK) P. Le: lead programmer
 - Isobel Abell: programmer of infectious disease components 
 - Martin Cyster: plotting assistance
