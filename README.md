@@ -1,22 +1,70 @@
 # Disease and decision simulator
 
-Simulates disease outbreaks given management decisions, and outputs data for simulation workshops 
+*Simulates disease outbreaks given management decisions, and outputs synthetic data for simulation workshops*
 
+This is the infectious animal disease outbreak and decision-making simulator for the [Enhancing Models for Rapid Decision-Support in Emergency Animal Disease Outbreaks (HASTE)](https://ardc.edu.au/project/enhancing-models-for-rapid-decision-support-in-emergency-animal-disease-outbreaks/) project. This simulator simulates a realistic disease outbreak scenario and synthetic data that could be recorded during an emergency animal disease outbreak. Users can input in different management options at differenet time points; the code supports branching decision-making.
 
-Infectious animal disease outbreak and decision-making simulator for [Enhancing Models for Rapid Decision-Support in Emergency Animal Disease Outbreaks (HASTE)](https://ardc.edu.au/project/enhancing-models-for-rapid-decision-support-in-emergency-animal-disease-outbreaks/) project. The aim of this simulator is to simulate a realistic scenario and data that could be recorded during an emergency animal disease outbreak, and support branching decision-making.
+**Key features**:
+- Disease spread via close contact, movements and wind-aided fomite dispersal
+- Animal and animal material movements between different types of premises
+- Multiple management options including movement restrictions, vaccination, depopulation, surveillance and laboratory testing
+- Version v0.5+ can accept CSV or Excel spreadsheets and shapefiles to specific the exact management actions over a customisable amount of days
+- Data outputs at end of simulation periods allows return to previous time points and branching decision-making.
+
+**Code requirements**:
+- Python (3.12.10)
+- Some kind of GIS installation for mapping outputs
+- Live internet connection for address finding
 
 **Code written by Thao P. Le and Isobel Abell**
-(base code and FMD_modelling module written by Isobel Abell, and adapted by Thao P. Le)
+- Thao (TK) P. Le: lead programmer
+- Isobel Abell: programmer of infectious disease components 
+- Martin Cyster: plotting assistance
 
-**FMD_modelling** folder: submodule containing infectious disease spread code
 
-**simulator** folder: containing this-project-specific elements of the simulation code, including spatial system setup, any modified infectious disease components, management actions etc.
+## Quick start - Highly pathogenic avian influenza (v0.5)
 
-**scenarios** folder: contains the code that calls the simulation code
+1. Clone the repository
 
-**tests** folder: contains some tests
+`git clone https://github.com/thaopletk/outbreaksimulator.git`
 
-# Simulator workflow (v0.2)
+2. Install virtual environment and requirements. For Windows:
+
+```
+python -m venv venv
+. venv/Scripts/activate
+pip install -r requirements.txt
+```
+
+3. Download required data files
+
+- ABS: region information
+- Wildlife information
+- Wind data
+
+4. Run an outbreak of HPAI in NSW:
+
+Run `scenarios/v06_CONTROLLER.py`
+
+
+## Repository Structure
+
+📂**FMD_modelling_code**: folder containing infectious disease spread code written by Isobel Abell, forms basis of disease spread and tracking
+
+📂**data**: stores geographic data (Australian states, LGAs, postal areas etc), property distribution data (e.g. different types of animal industry premises by LGA) and movement network information (directed movements from different types of premises)
+
+📂**figure_gen**: plotting code written by Martin Cyster
+
+📂**images**: images for plotting, readmes
+
+📂**scenarios**: contains the code that calls the simulation code and runs specific scenarios
+
+📂**simulator**: simulation code, including spatial system setup, any modified infectious disease components, management actions etc.
+
+📂**tests** folder: contains some tests. Note: incomplete.
+
+
+## v0.2 simulator workflow - Lumpy Skin Disease
 
 **The main steps**:
 1. Initiate map
