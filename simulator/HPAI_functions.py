@@ -21,7 +21,7 @@ from iteround import saferound
 from shapely.ops import transform, unary_union
 from simulator.spatial_functions import quick_distance_haversine
 import time
-from FMD_modelling_code.class_definitions import Animal
+from FMD_modelling.class_definitions import Animal
 
 
 def seed_HPAI_infection(
@@ -46,7 +46,7 @@ def seed_HPAI_infection(
             (coords[0] <= xrange_bounds[1] and coords[0] >= xrange_bounds[0] and coords[1] <= yrange_bounds[1] and coords[1] >= yrange_bounds[0])
             and property.type
             not in ["egg processing", "abbatoir", "hatchery", "backyard", "layers free-range", "layers caged", "layers barn", "layers"]
-            and property.get_num_chickens() > 700
+            and property.get_num_chickens() > 2000
             and property.get_num_chickens() < 50000
         ):
             viable_properties.append(i)

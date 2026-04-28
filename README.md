@@ -49,7 +49,7 @@ Run `scenarios/v06_CONTROLLER.py`
 
 ## Repository Structure
 
-📂**FMD_modelling_code**: folder containing infectious disease spread code written by Isobel Abell, forms basis of disease spread and tracking
+📂**FMD_modelling**: folder containing infectious disease spread code written by Isobel Abell, forms basis of disease spread and tracking
 
 📂**data**: stores geographic data (Australian states, LGAs, postal areas etc), property distribution data (e.g. different types of animal industry premises by LGA) and movement network information (directed movements from different types of premises)
 

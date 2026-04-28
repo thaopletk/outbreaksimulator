@@ -13,7 +13,7 @@ from geopy.geocoders import Nominatim
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-from FMD_modelling_code.class_definitions import Property, Animal
+from FMD_modelling.class_definitions import Property, Animal
 import datetime
 import itertools
 from simulator.spatial_functions import calculate_area
