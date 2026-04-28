@@ -35,6 +35,7 @@ def seed_HPAI_infection(
     unique_output="",
     latent_period=7,
     disease_parameters=None,
+    further_restriction=False,
 ):
     """Seeds an infection at a property within the bounds specified"""
     seed_property = 0  # default
@@ -43,13 +44,13 @@ def seed_HPAI_infection(
     for i, property in enumerate(properties):
         coords = property.coordinates
         if (
-            (coords[0] <= xrange_bounds[1] and coords[0] >= xrange_bounds[0] and coords[1] <= yrange_bounds[1] and coords[1] >= yrange_bounds[0])
-            and property.type
-            not in ["egg processing", "abbatoir", "hatchery", "backyard", "layers free-range", "layers caged", "layers barn", "layers"]
-            and property.get_num_chickens() > 2000
-            and property.get_num_chickens() < 50000
-        ):
-            viable_properties.append(i)
+            coords[0] <= xrange_bounds[1] and coords[0] >= xrange_bounds[0] and coords[1] <= yrange_bounds[1] and coords[1] >= yrange_bounds[0]
+        ) and property.type not in ["egg processing", "abbatoir", "hatchery", "backyard", "layers free-range", "layers caged", "layers barn"]:
+            if further_restriction:
+                if property.get_num_chickens() > 2000 and property.get_num_chickens() < 50000:
+                    viable_properties.append(i)
+            else:
+                viable_properties.append(i)
 
     # seed this property
     # randomly pick a property to see:
