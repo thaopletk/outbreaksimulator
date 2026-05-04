@@ -21,10 +21,11 @@ This is the infectious animal disease outbreak and decision-making simulator for
 - Isobel Abell: programmer of infectious disease components 
 - Martin Cyster: plotting assistance
 
+For assistance, contact TK at tk.le (at) unimelb.edu.au
 
 ## Quick start - Highly pathogenic avian influenza (v0.5)
 
-1. Clone the repository
+1. Download the HPAI-version of the repository [v0.5.3](https://github.com/thaopletk/outbreaksimulator/releases/tag/v0.5.3)  
 
 `git clone https://github.com/thaopletk/outbreaksimulator.git`
 
@@ -40,11 +41,11 @@ pip install -r requirements.txt
 
 - ABS: region information
 - Wildlife information
-- Wind data
+- Wind data (has already been included in the repo - downloaded from the Climate Data Store)
 
 4. Run an outbreak of HPAI in NSW:
 
-Run `scenarios/v06_CONTROLLER.py`
+Run `scenarios/v06_CONTROLLER.py`, making sure to uncomment or comment out appropriate sections.
 
 
 ## Repository Structure
