@@ -23,6 +23,9 @@ This is the infectious animal disease outbreak and decision-making simulator for
 
 For assistance, contact TK at tk.le (at) unimelb.edu.au
 
+**Report**:
+Thao P Le, Isobel Abell, Simon Firestone, Sarita Rosenstock, Chris Baker (2026). HASTE Simulation exercise workshops for EAD preparedness - Joint WP4 and WP5 final report. The University of Melbourne. Report. [doi:10.26188/32129971.v2](https://doi.org/10.26188/32129971.v2)
+
 ## Quick start - Highly pathogenic avian influenza (v0.5)
 
 1. Download the HPAI-version of the repository [v0.5.3](https://github.com/thaopletk/outbreaksimulator/releases/tag/v0.5.3)  
