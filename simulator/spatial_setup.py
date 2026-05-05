@@ -1,10 +1,10 @@
-""" Spatial setup
+"""Spatial setup
 
-    Original code written by Isobel Abell and adapted by Thao Le     (overriding the spatial setup code from FMD_modelling from generate_property_grid.py)
+Original code written by Isobel Abell and adapted by Thao Le     (overriding the spatial setup code from FMD_modelling from generate_property_grid.py)
 
-    This script generates random properties (i.e. farms) across the landscape, in latitude,longitude coordinates and areas in hectares and distances in kilometers (where relevant)
+This script generates random properties (i.e. farms) across the landscape, in latitude,longitude coordinates and areas in hectares and distances in kilometers (where relevant)
 
-    Some of the functions are adapted from elsewhere, noted down at each function description.
+Some of the functions are adapted from elsewhere, noted down at each function description.
 
 """
 
@@ -71,9 +71,7 @@ def assign_neighbours(property_coordinates, n, r):
 
     for p1 in range(n):
         neighbourhoods.append([])
-        for p2 in range(
-            n
-        ):  # this could be simplified by choosing on p2 in range (p1+1, n), and changing p1 to range (0,n-1), given the symmetry...
+        for p2 in range(n):  # this could be simplified by choosing on p2 in range (p1+1, n), and changing p1 to range (0,n-1), given the symmetry...
 
             if p1 != p2:
                 # dist = np.linalg.norm(np.array(property_coordinates[p1]) - np.array(property_coordinates[p2]))
@@ -117,9 +115,7 @@ def plot_coordinates(property_coordinates, neighbour_pairs):
 @functools.lru_cache(maxsize=None)
 def Australia_shape():
     # Read in Australia shapefile
-    Australia_gdf = gpd.read_file(
-        os.path.join(os.path.dirname(__file__), "..", "data", "AUS_2021_AUST_SHP_GDA2020", "AUS_2021_AUST_GDA2020.shp")
-    )
+    Australia_gdf = gpd.read_file(os.path.join(os.path.dirname(__file__), "..", "data", "AUS_2021_AUST_SHP_GDA2020", "AUS_2021_AUST_GDA2020.shp"))
     print(Australia_gdf)
     Australia_only = Australia_gdf.loc[Australia_gdf["AUS_NAME21"] == "Australia", :]
     # Australia_gdf['geometry'] - multipolygon
@@ -131,9 +127,7 @@ def Australia_shape():
 
 @functools.lru_cache(maxsize=None)
 def get_Australia_shape():
-    Australia_gdf = gpd.read_file(
-        os.path.join(os.path.dirname(__file__), "..", "data", "STE_2021_AUST_SHP_GDA2020", "STE_2021_AUST_GDA2020.shp")
-    )
+    Australia_gdf = gpd.read_file(os.path.join(os.path.dirname(__file__), "..", "data", "STE_2021_AUST_SHP_GDA2020", "STE_2021_AUST_GDA2020.shp"))
 
     print(Australia_gdf)
     return Australia_gdf
@@ -164,6 +158,16 @@ def get_QLD_NSW_VIC_SA_shape():
     Queenslandshape = get_Queensland_shape()
 
     return unary_union([NSW_shape, VIC_shape, Queenslandshape, SA_shape])
+
+
+@functools.lru_cache(maxsize=None)
+def get_Victoria_shape():
+    Australia_gdf = get_Australia_shape()
+
+    Victoria_only = Australia_gdf.loc[Australia_gdf["STE_NAME21"] == "Victoria", :]
+    Victoriashape = list(Victoria_only["geometry"])[0]
+
+    return Victoriashape
 
 
 @functools.lru_cache(maxsize=None)
@@ -426,9 +430,7 @@ def assign_neighbours_with_land(property_coordinates, property_polygons, n, r):
             if p1 != p2:
                 # calculate distance between centres
                 # dist = np.linalg.norm(np.array(property_coordinates[p1]) - np.array(property_coordinates[p2]))
-                dist_centres = quick_distance_haversine(
-                    property_coordinates[p1], property_coordinates[p2]
-                )  # distance in km
+                dist_centres = quick_distance_haversine(property_coordinates[p1], property_coordinates[p2])  # distance in km
 
                 # calculate whether they're wind-neighbours
                 p2_poly = property_polygons[p2]
@@ -511,9 +513,7 @@ def generate_properties_with_land(
     """
 
     # randomly divide the space up into rectangles (approximately), and choose some randomly to be property locations
-    property_coordinates, property_polygons, property_areas = assign_property_locations(
-        n, xrange, yrange, average_property_ha
-    )
+    property_coordinates, property_polygons, property_areas = assign_property_locations(n, xrange, yrange, average_property_ha)
 
     # find wind-neighbours given wind-neighbourhood radius
 

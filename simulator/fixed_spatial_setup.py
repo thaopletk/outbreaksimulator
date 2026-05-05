@@ -1714,3 +1714,434 @@ def HPAI_movement_network_setup(
                             property_i.movement_neighbours[property_j.type].append(j)
 
     return all_properties
+
+
+def FMD_VIC_setup_locations(
+    output_filename,
+    data_folder=os.path.join(os.path.dirname(__file__), "..", "data", "FMDVIC"),
+    wind_radius=20,
+):
+    """
+    Reads in provided farm (herd) locations and sizes
+
+    output_filename : location to save the processed data
+    data_folder : folder that contains various data available for property set up
+    wind_radius : max distance for wind dispersal of fomites
+    """
+
+    Victoria_shape = spatial_setup.get_Victoria_shape()
+    LGA_gdf = spatial_functions.get_LGA_gdf()
+
+    herd_data = pd.read_csv(os.path.join(data_folder, "herd.csv"))
+    herd_type = pd.read_csv(os.path.join(data_folder, "herd_type.csv"))
+    species_data = pd.read_csv(os.path.join(data_folder, "species.csv"))
+
+    herd_type = herd_type[["herd type id", "herd type name", "species ID"]]
+    species_data = species_data[["species id", "species desc"]]  # What is "other" here...
+    species_data.rename(columns={"species id": "species ID", "species desc": "animal_type"}, inplace=True)
+    herd_type = pd.merge(herd_type, species_data, on="species ID")
+    herd_type.rename(columns={"herd type id": "herd type"}, inplace=True)
+
+    herd_data = pd.merge(herd_data, herd_type, on="herd type")
+
+    lga = pd.read_csv(os.path.join(data_folder, "lga.csv"))
+    lga = lga[["AADIS id", "Lga code10", "Lga name10", "State id"]]
+    lga.rename(columns={"AADIS id": "lga id"}, inplace=True)
+
+    herd_data = pd.merge(herd_data, lga, on="lga id")
+    # filter out things not in Victoria, State id = 2
+    herd_data = herd_data[herd_data["State id"] == 2]
+
+    # various facilities
+    abattoir_data = pd.read_csv(os.path.join(data_folder, "abattoir.csv"))
+    export_facility_data = pd.read_csv(os.path.join(data_folder, "export_facility.csv"))
+    saleyard_data = pd.read_csv(os.path.join(data_folder, "saleyard.csv"))
+
+    occupied_regions = {}
+
+    beef_coordinates = []
+    sheep_coordinates = []
+    dairy_coordinates = []
+    pigs_coordinates = []
+    facility_coordinates = []
+    other_coordinates = []
+
+    ALL_coordinates = []
+    ALL_p_polygon = []
+    ALL_p_area = []
+    ALL_wind_radius = []
+    ALL_animal_type = []
+    ALL_premises_type = []
+    ALL_num_animals = []
+    ALL_LGAs = []
+    # new FMD specific
+    ALL_extra_info = []
+
+    # property_data_by_LGA = {}
+
+    for i, row in herd_data.iterrows():
+        LGA = row["Lga name10"]
+        LGA = (LGA[:-4]).rstrip()  # removing the last few characters
+        # print(LGA)
+
+        region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == LGA, :]  # checking if the region name is actually standard or not lol
+        if region_only.empty:
+            if LGA == "Unincorporated":
+                LGA = LGA + " Vic"
+            elif LGA == "Colac-Otway":
+                LGA = "Colac Otway"
+            elif LGA == "Moreland":
+                LGA = "Merri-bek"
+            else:
+                LGA = LGA + " (Vic.)"
+            region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == LGA, :]  # checking if the region name is actually standard or not lol
+            if region_only.empty:
+                print(row)
+                raise ValueError(f"{LGA} doesn't exist")
+
+        property_coordinates = [row["herd long"], row["herd lat"]]
+        property_polygon = Polygon(
+            spatial_functions.geodesic_point_buffer(row["herd lat"], row["herd long"], km=random.uniform(0.01, 0.5))
+        )  # making a small round property for ease ; to update with Vic property parcel data if possible
+
+        property_area = spatial_functions.calculate_area(property_polygon)
+
+        premises_type = row["herd type name"]
+        animal_type = row["animal_type"]
+        if animal_type == "other":
+            animal_type = random.choices(["cattle", "sheep", "pigs"])[0]
+
+        if "beef" in premises_type:
+            beef_coordinates.append(property_coordinates)
+        elif "feedlot" in premises_type:
+            facility_coordinates.append(property_coordinates)
+        elif "sheep" in premises_type:
+            sheep_coordinates.append(property_coordinates)
+        elif "dairy" in premises_type:
+            dairy_coordinates.append(property_coordinates)
+        elif "pigs" in premises_type:
+            pigs_coordinates.append(property_coordinates)
+        else:
+            other_coordinates.append(property_coordinates)  # small holders
+
+        num_animals = int(row["herd size"])
+
+        if LGA not in occupied_regions:
+            occupied_regions[LGA] = [property_polygon]
+        else:
+            occupied_regions[LGA].append(property_polygon)
+
+        ALL_coordinates.append(property_coordinates)
+        ALL_p_polygon.append(property_polygon)
+        ALL_p_area.append(property_area)
+        ALL_wind_radius.append(wind_radius)
+        ALL_animal_type.append(animal_type)
+        ALL_premises_type.append(premises_type)
+        ALL_num_animals.append(num_animals)
+        ALL_LGAs.append(LGA)
+        # new FMD specific
+        ALL_extra_info.append({"herd_id": int(row["herd id"]), "farm_id": int(row["farm id"]), "saleyard_id": int(row["saleyard id"])})
+
+    VIC_LGAs = LGA_gdf.loc[LGA_gdf["STE_NAME21"] == "Victoria", :]
+    VIC_LGA_list = VIC_LGAs["LGA_NAME24"].tolist()
+
+    for i, row in abattoir_data.iterrows():
+        x_coord = row["longitude"]
+        y_coord = row["latitude"]
+
+        # check if it is in Victoria or not
+        curr_farm = Point(x_coord, y_coord)
+        if not Victoria_shape.contains(curr_farm):
+            continue
+
+        # Find the LGA
+        farm_LGA = 0
+        for LGA in VIC_LGA_list:
+            region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == LGA, :]
+            region_shape = list(region_only["geometry"])[0]
+            if region_shape != None and region_shape.contains(curr_farm):
+                print(LGA)
+                farm_LGA = LGA
+                break
+        if farm_LGA == 0:
+            print(row)
+            raise ValueError("Unable to find LGA")
+        LGA = farm_LGA
+
+        property_coordinates = [x_coord, y_coord]
+        property_polygon = Polygon(
+            spatial_functions.geodesic_point_buffer(y_coord, x_coord, km=random.uniform(0.01, 0.5))
+        )  # making a small round property for ease ; to update with Vic property parcel data if possible
+        property_area = spatial_functions.calculate_area(property_polygon)
+
+        premises_type = "abattoir"
+        animal_type = []
+        if row["cattle"]:  # if true
+            animal_type.append("cattle")
+        if row["sheep"]:
+            animal_type.append("sheep")
+        if row["pigs"]:
+            animal_type.append("pigs")
+
+        facility_coordinates.append(property_coordinates)
+
+        num_animals = 0
+
+        if LGA not in occupied_regions:
+            occupied_regions[LGA] = [property_polygon]
+        else:
+            occupied_regions[LGA].append(property_polygon)
+
+        ALL_coordinates.append(property_coordinates)
+        ALL_p_polygon.append(property_polygon)
+        ALL_p_area.append(property_area)
+        ALL_wind_radius.append(wind_radius)
+        ALL_animal_type.append(animal_type)
+        ALL_premises_type.append(premises_type)
+        ALL_num_animals.append(num_animals)
+        ALL_LGAs.append(LGA)
+        # new FMD specific
+        ALL_extra_info.append({"id": row["ID"], "PIC": row["PIC"], "name": row["Name"], "export": int(row["export"])})
+
+    for i, row in saleyard_data.iterrows():
+        x_coord = row["longitude"]
+        y_coord = row["latitude"]
+
+        # check if it is in Victoria or not
+        curr_farm = Point(x_coord, y_coord)
+        if not Victoria_shape.contains(curr_farm):
+            continue
+
+        # Find the LGA
+        farm_LGA = 0
+        for LGA in VIC_LGA_list:
+            region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == LGA, :]
+            region_shape = list(region_only["geometry"])[0]
+            if region_shape != None and region_shape.contains(curr_farm):
+                print(LGA)
+                farm_LGA = LGA
+                break
+        if farm_LGA == 0:
+            print(row)
+            raise ValueError("Unable to find LGA")
+        LGA = farm_LGA
+
+        property_coordinates = [x_coord, y_coord]
+        property_polygon = Polygon(
+            spatial_functions.geodesic_point_buffer(y_coord, x_coord, km=random.uniform(0.01, 0.5))
+        )  # making a small round property for ease ; to update with Vic property parcel data if possible
+        property_area = spatial_functions.calculate_area(property_polygon)
+
+        premises_type = "saleyard"
+        animal_type = ["cattle", "sheep", "pigs"]
+
+        facility_coordinates.append(property_coordinates)
+
+        num_animals = 0
+
+        if LGA not in occupied_regions:
+            occupied_regions[LGA] = [property_polygon]
+        else:
+            occupied_regions[LGA].append(property_polygon)
+
+        ALL_coordinates.append(property_coordinates)
+        ALL_p_polygon.append(property_polygon)
+        ALL_p_area.append(property_area)
+        ALL_wind_radius.append(wind_radius)
+        ALL_animal_type.append(animal_type)
+        ALL_premises_type.append(premises_type)
+        ALL_num_animals.append(num_animals)
+        ALL_LGAs.append(LGA)
+        # new FMD specific
+        ALL_extra_info.append({"id": row["id"], "name": row["name"]})
+
+    for i, row in export_facility_data.iterrows():
+        x_coord = row["longitude"]
+        y_coord = row["latitude"]
+
+        # check if it is in Victoria or not
+        curr_farm = Point(x_coord, y_coord)
+        if not Victoria_shape.contains(curr_farm):
+            continue
+
+        # Find the LGA
+        farm_LGA = 0
+        for LGA in VIC_LGA_list:
+            region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == LGA, :]
+            region_shape = list(region_only["geometry"])[0]
+            if region_shape != None and region_shape.contains(curr_farm):
+                print(LGA)
+                farm_LGA = LGA
+                break
+        if farm_LGA == 0:
+            print(row)
+            raise ValueError("Unable to find LGA")
+        LGA = farm_LGA
+
+        property_coordinates = [x_coord, y_coord]
+        property_polygon = Polygon(
+            spatial_functions.geodesic_point_buffer(y_coord, x_coord, km=random.uniform(0.01, 0.5))
+        )  # making a small round property for ease ; to update with Vic property parcel data if possible
+        property_area = spatial_functions.calculate_area(property_polygon)
+
+        premises_type = "export_facility"
+        animal_type = ["cattle", "sheep", "pigs"]
+
+        facility_coordinates.append(property_coordinates)
+
+        num_animals = 0
+
+        if LGA not in occupied_regions:
+            occupied_regions[LGA] = [property_polygon]
+        else:
+            occupied_regions[LGA].append(property_polygon)
+
+        ALL_coordinates.append(property_coordinates)
+        ALL_p_polygon.append(property_polygon)
+        ALL_p_area.append(property_area)
+        ALL_wind_radius.append(wind_radius)
+        ALL_animal_type.append(animal_type)
+        ALL_premises_type.append(premises_type)
+        ALL_num_animals.append(num_animals)
+        ALL_LGAs.append(LGA)
+        # new FMD specific
+        ALL_extra_info.append({"id": row["ID"], "name": row["Name"], "PIC": row["PIC"], "capacity": row["capacity"]})
+
+    with open(output_filename, "wb") as file:
+        pickle.dump(
+            [
+                ALL_coordinates,
+                ALL_p_polygon,
+                ALL_p_area,
+                ALL_wind_radius,
+                ALL_animal_type,
+                ALL_premises_type,
+                ALL_num_animals,
+                ALL_LGAs,
+                ALL_extra_info,
+                beef_coordinates,
+                sheep_coordinates,
+                dairy_coordinates,
+                pigs_coordinates,
+                facility_coordinates,
+                other_coordinates,
+            ],
+            file,
+        )
+
+    return (
+        ALL_coordinates,
+        ALL_p_polygon,
+        ALL_p_area,
+        ALL_wind_radius,
+        ALL_animal_type,
+        ALL_premises_type,
+        ALL_num_animals,
+        ALL_LGAs,
+        ALL_extra_info,
+        beef_coordinates,
+        sheep_coordinates,
+        dairy_coordinates,
+        pigs_coordinates,
+        facility_coordinates,
+        other_coordinates,
+    )
+
+
+def plot_map_land_FMD(
+    beef_coordinates,
+    sheep_coordinates,
+    dairy_coordinates,
+    pigs_coordinates,
+    facility_coordinates,
+    other_coordinates,
+    xlims,
+    ylims,
+    folder_path,
+    plot_suffix="",
+):
+    """Plot properties"""
+
+    brown_cow = plt.imread(os.path.join(os.path.dirname(__file__), "..", "images", "cow_brown.png"))
+    brown_cow = OffsetImage(brown_cow, zoom=0.02)
+
+    cow = plt.imread(os.path.join(os.path.dirname(__file__), "..", "images", "cow.png"))
+    cow = OffsetImage(cow, zoom=0.1)
+
+    sheep = plt.imread(os.path.join(os.path.dirname(__file__), "..", "images", "sheep.png"))
+    sheep = OffsetImage(sheep, zoom=0.02)
+
+    pig = plt.imread(os.path.join(os.path.dirname(__file__), "..", "images", "pig.png"))
+    pig = OffsetImage(pig, zoom=0.02)
+
+    fence = plt.imread(os.path.join(os.path.dirname(__file__), "..", "images", "fence.png"))
+    fence = OffsetImage(fence, zoom=0.01)
+
+    factory = plt.imread(os.path.join(os.path.dirname(__file__), "..", "images", "factory.png"))
+    factory = OffsetImage(factory, zoom=0.02)
+
+    fig, ax = plt.subplots(1, 1, figsize=(40, 40))  # ,figsize=(10,12)
+
+    for coordinates, marker, markerlabel in [
+        [beef_coordinates, brown_cow, "beef"],
+        [sheep_coordinates, sheep, "sheep"],
+        [dairy_coordinates, cow, "dairy"],
+        [pigs_coordinates, pig, "pigs"],
+        [facility_coordinates, factory, "facilities"],
+        [other_coordinates, fence, "other"],
+    ]:
+        geometries = []
+        # print(markerlabel)
+        # print(coordinates)
+
+        if len(coordinates) == 0:
+            continue
+
+        for long, lat in coordinates:
+            curr_farm = Point(long, lat)
+            geometries.append(curr_farm)
+
+        geo_df = gpd.GeoDataFrame(geometry=geometries)
+        geo_df.crs = {"init": "epsg:4326"}
+        # plot the marker
+        ax = geo_df.plot(ax=ax, markersize=20)
+
+        for x, y in coordinates:
+            ab = AnnotationBbox(marker, (x, y), frameon=False)
+            ax.add_artist(ab)
+
+    ax.set_xlim(xlims)
+    ax.set_ylim(ylims)
+
+    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
+
+    # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
+    points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
+    points = points.to_crs(32619)  # Projected WGS 84 - meters
+    distance_meters = points[0].distance(points[1])
+    ax.add_artist(
+        ScaleBar(
+            distance_meters,
+            box_alpha=0.1,
+            location="lower right",
+        )
+    )
+
+    ax.set_title("Map", fontsize=18)
+
+    ax.set_ylabel("latitude", fontsize=16)
+    ax.set_xlabel("longitude", fontsize=16)
+
+    # ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
+    #       fancybox=True, shadow=True, fontsize=18)
+
+    ax.tick_params(axis="x", labelsize=14)
+    ax.tick_params(axis="y", labelsize=14)
+
+    file_name = f"property_locations_base_map{plot_suffix}.png"
+
+    file_name = os.path.join(folder_path, file_name)
+
+    plt.savefig(file_name, bbox_inches="tight")
+
+    plt.close()
