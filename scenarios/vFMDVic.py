@@ -20,6 +20,7 @@ import simulator.HPAI_functions as HPAI_functions
 import simulator.output as output
 import simulator.auto_job_mode as auto_job_mode
 import simulator.spatial_setup as spatial_setup
+import simulator.FMD_functions as FMD_functions
 
 # import simulator.simulator as simulator
 import simulator.disease_simulation as disease_simulation
@@ -135,3 +136,78 @@ if not os.path.exists(os.path.join(folder_path_main, f"property_locations_base_m
         folder_path_main,
         plot_suffix="",
     )
+
+output_filename = os.path.join(folder_path_main, f"FMD_{state}_all_properties")
+if not os.path.exists(output_filename):
+    start_time = time.time()
+    all_properties = fixed_spatial_setup.initialise_all_properties(
+        ALL_coordinates,
+        ALL_p_polygon,
+        ALL_p_area,
+        ALL_wind_radius,
+        ALL_animal_type,
+        ALL_premises_type,
+        ALL_num_animals,
+        ALL_LGAs,
+        output_filename,
+        ALL_extra_info=ALL_extra_info,
+    )
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print(f"Execution time of fixed_spatial_setup.initialise_all_properties(): {execution_time/60} minutes")
+else:
+    with open(output_filename, "rb") as file:
+        all_properties = pickle.load(file)
+
+print(f"total facilities started: {len(all_properties)}")
+
+if not os.path.exists(os.path.join(folder_path_main, f"data_underlying.csv")):
+    fixed_spatial_setup.save_FMD_property_csv(all_properties, 0, folder_path_main, "")
+
+
+if not os.path.exists(os.path.join(folder_path_main, f"property_locations_base_map_types.png")):
+    fixed_spatial_setup.plot_map_land_HPAI_2(
+        all_properties,
+        xrange,
+        yrange,
+        folder_path_main,
+        plot_suffix="",
+        property_type_list=[
+            "beef extensive",
+            "beef intensive",
+            "feedlot",
+            "mixed beef",
+            "mixed sheep",
+            "dairy",
+            "pigs small",
+            "pigs large",
+            "sheep",
+            "smallholder",
+            "abattoir",
+            "saleyard",
+            "export_facility",
+            "milk_processing",
+        ],
+    )
+
+
+if not os.path.exists(os.path.join(folder_path_main, f"approx_known_data_.csv")):
+    FMD_functions.save_approx_known_data(all_properties, folder_path_main, "")
+
+
+properties_filename = os.path.join(folder_path_main, f"FMD_{state}_properties")
+if not os.path.exists(properties_filename):
+
+    start_time = time.time()
+
+    properties = fixed_spatial_setup.FMD_movement_network_setup(
+        all_properties,
+        max_movement_km=200,  # 200km max movement
+        state=state,
+    )
+
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print(f"Execution time of fixed_spatial_setup.FMD_movement_network_setup(): {execution_time/60} minutes")
+
+# notes for next steps:continue following the v0.6 and continue set up of properties.

@@ -357,6 +357,7 @@ def property_specific_initialisation_animals_no_neighbours(
     LGA="NA",
     property_type=None,
     housing_type=None,
+    extra_info=None,
 ):
     lat = property_coordinates[1]  # y
     lon = property_coordinates[0]  # x
@@ -384,6 +385,9 @@ def property_specific_initialisation_animals_no_neighbours(
             new_p.QLD_property_type = property_type
         if housing_type != None:
             new_p.housing_type = housing_type
+        if extra_info != None:
+            new_p.FMD_extra_info = extra_info
+
     except Exception as e:
         print("Error in creating new premises:")
         print(e)
@@ -409,8 +413,17 @@ def property_specific_initialisation_animals_no_neighbours(
             new_p.QLD_property_type = property_type
         if housing_type != None:
             new_p.housing_type = housing_type
+        if extra_info != None:
+            new_p.FMD_extra_info = extra_info
 
-    new_p.init_chickens_eggs()
+    if animal_type == "chicken":
+        new_p.init_chickens_eggs()
+    elif extra_info != None:
+        # FMD - keeping the number of animals as a number until we need to turn them into animal objects;
+        # assuming no age for now (no birth processes)
+        new_p.animals = num_animals
+    else:
+        new_p.init_animals(None)
 
     return new_p
 
@@ -689,10 +702,11 @@ def initialise_all_properties(
     ALL_property_type=None,
     ALL_housing_type=None,
     ALL_datasource=None,
+    ALL_extra_info=None,
 ):
     all_properties = []
 
-    if ALL_property_type == None and ALL_housing_type == None:
+    if ALL_property_type == None and ALL_housing_type == None and ALL_extra_info == None:
         for coordinates, p_polygon, p_area, wind_radius, animal_type, premises_type, num_animals, LGA in zip(
             ALL_coordinates, ALL_p_polygon, ALL_p_area, ALL_wind_radius, ALL_animal_type, ALL_premises_type, ALL_num_animals, ALL_LGAs
         ):
@@ -707,7 +721,7 @@ def initialise_all_properties(
                 LGA=LGA,
             )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
             all_properties.append(new_p)
-    else:
+    elif ALL_extra_info == None:
         for (
             coordinates,
             p_polygon,
@@ -746,6 +760,23 @@ def initialise_all_properties(
                 housing_type=housing_type,
             )  # note: no movement parameters - will set up a more complex system for direct movement (more direct, less random)
             new_p.data_source = data_source
+            all_properties.append(new_p)
+    else:
+        for coordinates, p_polygon, p_area, wind_radius, animal_type, premises_type, num_animals, LGA, extra_info in zip(
+            ALL_coordinates, ALL_p_polygon, ALL_p_area, ALL_wind_radius, ALL_animal_type, ALL_premises_type, ALL_num_animals, ALL_LGAs, ALL_extra_info
+        ):
+            new_p = property_specific_initialisation_animals_no_neighbours(
+                coordinates,
+                p_polygon,
+                p_area,
+                wind_radius=wind_radius,
+                animal_type=animal_type,
+                premises_type=premises_type,
+                num_animals=num_animals,
+                LGA=LGA,
+                extra_info=extra_info,
+            )
+            new_p.data_source = "NLIS"
             all_properties.append(new_p)
 
     with open(output_filename, "wb") as file:
@@ -1720,6 +1751,9 @@ def FMD_VIC_setup_locations(
     output_filename,
     data_folder=os.path.join(os.path.dirname(__file__), "..", "data", "FMDVIC"),
     wind_radius=20,
+    vic_polygons_shp_file=os.path.join(
+        os.path.dirname(__file__), "..", "data", "Vicmap", "ll_gda2020", "esrishape", "whole_of_dataset", "victoria", "VMPROP", "PROPERTY_VIEW.shp"
+    ),
 ):
     """
     Reads in provided farm (herd) locations and sizes
@@ -1731,6 +1765,9 @@ def FMD_VIC_setup_locations(
 
     Victoria_shape = spatial_setup.get_Victoria_shape()
     LGA_gdf = spatial_functions.get_LGA_gdf()
+
+    # TODO - replace the round polygons with the actual property polygons
+    vic_polygons = gpd.read_file(vic_polygons_shp_file)
 
     herd_data = pd.read_csv(os.path.join(data_folder, "herd.csv"))
     herd_type = pd.read_csv(os.path.join(data_folder, "herd_type.csv"))
@@ -1756,6 +1793,9 @@ def FMD_VIC_setup_locations(
     abattoir_data = pd.read_csv(os.path.join(data_folder, "abattoir.csv"))
     export_facility_data = pd.read_csv(os.path.join(data_folder, "export_facility.csv"))
     saleyard_data = pd.read_csv(os.path.join(data_folder, "saleyard.csv"))
+
+    # milk processing - constructed this myself
+    milk_processor_data = pd.read_excel(os.path.join(data_folder, "milk_processing.xlsx"), sheet_name="processors")
 
     occupied_regions = {}
 
@@ -2007,6 +2047,58 @@ def FMD_VIC_setup_locations(
         # new FMD specific
         ALL_extra_info.append({"id": row["ID"], "name": row["Name"], "PIC": row["PIC"], "capacity": row["capacity"]})
 
+    for i, row in milk_processor_data.iterrows():
+        x_coord = row["x"]
+        y_coord = row["y"]
+
+        # # check if it is in Victoria or not
+        curr_farm = Point(x_coord, y_coord)
+        # if not Victoria_shape.contains(curr_farm):
+        #     continue
+
+        # Find the LGA
+        farm_LGA = 0
+        for LGA in VIC_LGA_list:
+            region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == LGA, :]
+            region_shape = list(region_only["geometry"])[0]
+            if region_shape != None and region_shape.contains(curr_farm):
+                print(LGA)
+                farm_LGA = LGA
+                break
+        if farm_LGA == 0:
+            print(row)
+            raise ValueError("Unable to find LGA")
+        LGA = farm_LGA
+
+        property_coordinates = [x_coord, y_coord]
+        property_polygon = Polygon(
+            spatial_functions.geodesic_point_buffer(y_coord, x_coord, km=random.uniform(0.01, 0.5))
+        )  # making a small round property for ease ; to update with Vic property parcel data if possible
+        property_area = spatial_functions.calculate_area(property_polygon)
+
+        premises_type = "milk_processing"
+        animal_type = "cattle"
+
+        facility_coordinates.append(property_coordinates)
+
+        num_animals = 0
+
+        if LGA not in occupied_regions:
+            occupied_regions[LGA] = [property_polygon]
+        else:
+            occupied_regions[LGA].append(property_polygon)
+
+        ALL_coordinates.append(property_coordinates)
+        ALL_p_polygon.append(property_polygon)
+        ALL_p_area.append(property_area)
+        ALL_wind_radius.append(wind_radius)
+        ALL_animal_type.append(animal_type)
+        ALL_premises_type.append(premises_type)
+        ALL_num_animals.append(num_animals)
+        ALL_LGAs.append(LGA)
+        # new FMD specific
+        ALL_extra_info.append({})  # there is more data that I gathered but it's not relevant
+
     with open(output_filename, "wb") as file:
         pickle.dump(
             [
@@ -2145,3 +2237,132 @@ def plot_map_land_FMD(
     plt.savefig(file_name, bbox_inches="tight")
 
     plt.close()
+
+
+def save_FMD_property_csv(properties, time, folder_path, unique_output):
+
+    to_save = properties
+
+    with open(os.path.join(folder_path, "properties_" + str(time)), "wb") as file:
+        pickle.dump(to_save, file)
+
+    # print output: all
+    header = [
+        "sim_id",
+        "case_id",
+        "status",
+        "ip",
+        "exposure_date",
+        "clinical_date",
+        "notification_date",
+        "removal_date",
+        "recovery_date",
+        "vacc_date",
+        "region",
+        "county",
+        "cluster",
+        "xcoord",
+        "ycoord",
+        "area",
+        "type",
+        "animal",
+        "total",
+        "data_source",
+        "extra_info",
+    ]
+    file = os.path.join(folder_path, f"data_underlying{unique_output}.csv")
+    with open(file, "w", newline="") as f:
+
+        # create the csv writer
+        writer = csv.writer(f)
+
+        # write the header
+        writer.writerow(header)
+
+        for premise in properties:
+            # if premise.data_source != "":
+            row = premise.return_output_row_FMD()
+            writer.writerow(row)
+
+
+def FMD_movement_network_setup(all_properties, max_movement_km=200, state="VIC"):
+    """
+    Sets up wind neighbours and movement neighbours
+
+    :param all_properties: Description
+    :param max_movement_km: Description
+    """
+
+    # ensuring the ids match
+    for p1 in range(0, len(all_properties)):
+        all_properties[p1].id = p1
+
+    # # assigning random (scrambled) simids
+    # random_ids = np.random.choice(range(1, 10 * len(all_properties)), size=len(all_properties), replace=False)
+    # for p1 in range(0, len(all_properties)):
+    #     all_properties[p1].sim_id = random_ids[p1]
+
+    # assign wind neighbours and update self.total_neighbours
+    for p1 in range(0, len(all_properties)):
+        p1_neighbourhood = []
+        puff_p1 = all_properties[p1].puffed_poly
+        for p2 in range(0, len(all_properties)):
+            if p1 != p2:
+                # calculate distance between centres
+                # dist = np.linalg.norm(np.array(property_coordinates[p1]) - np.array(property_coordinates[p2]))
+                dist_centres = spatial_functions.quick_distance_haversine(
+                    all_properties[p1].coordinates, all_properties[p2].coordinates
+                )  # distance in km
+
+                # calculate whether they're wind-neighbours
+                p2_poly = all_properties[p2].polygon
+
+                if puff_p1.intersects(p2_poly):
+                    # they're wind-neighbours, congrats
+                    p1_neighbourhood.append([p2, dist_centres])
+
+        all_properties[p1].neighbourhood = p1_neighbourhood
+        all_properties[p1].total_neighbours = len(p1_neighbourhood)
+
+    for i, property_i in enumerate(all_properties):  # TODO: refactor this to not be hard coded
+        property_i.allowed_movement = {}  # will ignore this original / old structure
+
+        if property_i.type in ["beef extensive", "beef intensive", "mixed beef"]:
+            property_i.allowed_movement_details = {
+                "cattle": {
+                    "age": 0,
+                    "property_types": ["beef extensive", "beef intensive", "abattoir", "saleyard", "feedlot", "mixed beef"],
+                    "properties": [],
+                },
+            }
+        elif property_i.type in ["mixed sheep", "sheep"]:
+            property_i.allowed_movement_details = {
+                "sheep": {"age": 0, "property_types": ["mixed sheep", "sheep", "abattoir", "saleyard", "feedlot"], "properties": []},
+                # TODO could add in wool movements here
+            }
+        elif property_i.type in ["dairy"]:
+            property_i.allowed_movement_details = {
+                "cattle": {"age": 0, "property_types": ["abattoir"], "properties": []},
+                "milk": {"property_types": ["milk_processing"], "properties": []},
+            }
+        elif property_i.type in ["pigs small", "pigs large"]:  # hmm is this actually baby pigs vs adult pigs?
+            property_i.allowed_movement_details = {
+                "cattle": {"age": 0, "property_types": ["pigs small", "pigs large", "abattoir", "saleyard", "feedlot"], "properties": []},
+            }
+
+            # "beef extensive",
+            # "beef intensive",
+            # "mixed beef",
+            # "mixed sheep",
+            # "sheep",
+
+            # "dairy",
+            # "pigs small",
+            # "pigs large",
+
+            # "smallholder",
+            # "abattoir",
+            # "saleyard",
+            # "export_facility",
+            # "milk_processing",
+            # "feedlot",

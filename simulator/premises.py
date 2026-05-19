@@ -207,6 +207,9 @@ class Premises(Property):
         # QLD specific
         self.QLD_property_type = None
 
+        # FMD specific
+        self.FMD_extra_info = None
+
     def find_location(self):
         try:
             self.location = geolocator.reverse(f"{self.y},{self.x}")
@@ -1099,3 +1102,44 @@ class Premises(Property):
                 num_eggs_to_move = self.eggs
             # else - no moving eggs yet.
         return num_eggs_to_move, properties_to_move_to
+
+    def get_num_animals(self):
+        if isinstance(self.animals, int):
+            return self.animals
+        else:
+            return len(self.animals)
+
+    def return_output_row_FMD(self):
+        """Returns a row with information for outputing (required downstream for forecasting)
+
+        Returns
+        -------
+        list
+            a list containing the following information in order:
+            id, status, ip, exposure_date, clinical_date, notification_date, removal_date, recovery_date, vacc_date, region, county, cluster, xcoord, ycoord, area, type, total
+
+        """
+
+        return [
+            self.id,
+            self.case_id,
+            self.status,
+            self.ip,
+            self.exposure_date,
+            self.clinical_date,
+            self.notification_date,
+            self.removal_date,
+            self.recovery_date,
+            self.vacc_date,
+            self.region,
+            self.county,
+            self.cluster,
+            self.coordinates[0],
+            self.coordinates[1],
+            self.area,
+            self.type,
+            self.animal_type,
+            self.get_num_animals(),
+            self.data_source,
+            self.FMD_extra_info,
+        ]

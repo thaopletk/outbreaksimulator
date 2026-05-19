@@ -23,3 +23,23 @@ Queensland intensive livestock https://qldspatial.information.qld.gov.au/catalog
 
 Wind
 https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels?tab=download
+
+
+
+===
+Vic property data shape files from here https://discover.data.vic.gov.au/dataset/vicmap-property-property-polygon 
+
+details https://www.land.vic.gov.au/maps-and-spatial/spatial-data/vicmap-catalogue/vicmap-property 
+
+live view: https://digitaltwin.vic.gov.au/portals/44/map/?share=8833678a-162e-4902-a474-420dae050936
+
+
+Vicmap Property - Property Polygon
+Resource Name: PROPERTY_VIEW
+Publication Date: 01-05-2026
+Metadata ID: 295f83bc-e029-5379-afab-b32d1d42d196
+Type : Vector
+Format: ESRI Shape file
+Projection: Geographicals on GDA2020
+Area: Whole dataset
+Buffer: No buffer
