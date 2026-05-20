@@ -29,6 +29,8 @@ import simulator.management as management
 # import simulator.management as management
 import simulator.premises as premises
 
+import v06_functions
+
 
 def x_y_ranges(state="VIC"):
     if state == "NSW":
@@ -64,6 +66,9 @@ def x_y_ranges(state="VIC"):
 
 state = "VIC"
 xrange, yrange, xlims, ylims = x_y_ranges(state)
+wind_radius = 20
+create_download_folder = False
+download_parent_folder = None
 
 folder_path_main = os.path.join(os.path.dirname(__file__), f"vFMD{state}")
 
@@ -94,7 +99,10 @@ if not os.path.exists(output_filename):
             pigs_coordinates,
             facility_coordinates,
             other_coordinates,
-        ) = fixed_spatial_setup.FMD_VIC_setup_locations(output_filename)
+        ) = fixed_spatial_setup.FMD_VIC_setup_locations(
+            output_filename,
+            wind_radius=wind_radius,
+        )
 
     end_time = time.time()
     execution_time = end_time - start_time
@@ -210,4 +218,222 @@ if not os.path.exists(properties_filename):
     execution_time = end_time - start_time
     print(f"Execution time of fixed_spatial_setup.FMD_movement_network_setup(): {execution_time/60} minutes")
 
+    with open(properties_filename, "wb") as file:
+        pickle.dump(properties, file)
+
+
+# plot the neighbours (not wind-neighbours)
+if not os.path.exists(os.path.join(folder_path_main, f"map_underlying0_neighbours.png")):
+    output.plot_map(
+        properties,
+        time=0,
+        xlims=xlims,
+        ylims=ylims,
+        folder_path=folder_path_main,
+        real_situation=True,
+        controlzone=None,
+        infectionpoly=False,
+        contacts_for_plotting={},
+        show_movement_neighbours=True,
+        save_suffix="_neighbours",
+    )
+
+
+###################################################
+# ---- "Burn in" movement -------------------------#
+###################################################
+
+start_time = 0
+
+random.seed(10)
+np.random.seed(10)
+minimum_spread_time = 5
+target_infected_properties = 0
+
+unique_output = f"0_burn_in_movement"
+folder_path_burn_in_movement = os.path.join(folder_path_main, unique_output)
+if not os.path.exists(folder_path_burn_in_movement):
+    os.makedirs(folder_path_burn_in_movement)
+
+initial_movement_properties_filename = os.path.join(folder_path_burn_in_movement, "properties_" + unique_output)
+initial_movement_diseaseoutbreak_filename = os.path.join(folder_path_burn_in_movement, "outbreakobject_" + unique_output)
+
+# parameters
+with open(os.path.join(folder_path_main, "disease_parameters.json"), "r") as file:
+    disease_parameters = json.load(file)
+with open(os.path.join(folder_path_main, "job_parameters.json"), "r") as file:
+    job_parameters = json.load(file)
+with open(os.path.join(folder_path_main, "scenario_parameters.json"), "r") as file:
+    scenario_parameters = json.load(file)
+
+spatial_only_parameters = {
+    "n": len(properties),
+    "r_wind": wind_radius,
+    "xrange": xrange,
+    "yrange": yrange,
+}
+
+if not os.path.exists(initial_movement_properties_filename) or not os.path.exists(initial_movement_diseaseoutbreak_filename):
+
+    # initiate various things that start from empty:
+    diseaseoutbreak = disease_simulation.DiseaseSimulation(
+        time=start_time,
+        movement_records=FMD_functions.create_movement_records_df(),
+        disease_parameters=disease_parameters,
+        spatial_only_parameters=spatial_only_parameters,
+        job_parameters=job_parameters,
+        scenario_parameters=scenario_parameters,
+    )
+
+    diseaseoutbreak.set_plotting_parameters(
+        xlims=xlims,
+        ylims=ylims,
+        plotting=True,
+        folder_path=folder_path_burn_in_movement,
+        unique_output=unique_output,
+    )
+
+    properties, movement_records, current_time = diseaseoutbreak.simulate_outbreak_spread_only(
+        properties=properties,
+        stop_time=minimum_spread_time,
+        reporting_region_check=[xrange, yrange],
+        min_infected_premises=target_infected_properties,
+        outbreak_sim="FMD",
+        max_spread_time=minimum_spread_time,
+    )
+
+    # and then resave the end state
+    with open(initial_movement_properties_filename, "wb") as file:
+        pickle.dump(properties, file)
+
+    # and save the diseaseoutbreak object
+    with open(initial_movement_diseaseoutbreak_filename, "wb") as file:
+        pickle.dump(diseaseoutbreak, file)
+
+else:
+    with open(initial_movement_properties_filename, "rb") as file:
+        properties = pickle.load(file)
+    with open(initial_movement_diseaseoutbreak_filename, "rb") as file:
+        diseaseoutbreak = pickle.load(file)
+
+HPAI_functions.save_approx_known_data(properties, folder_path_burn_in_movement, unique_output)
+
+if create_download_folder:
+    if download_parent_folder != None:
+        v06_functions.create_separate_download_folder(folder_path_burn_in_movement, download_parent_folder, unique_output)
+    else:
+        v06_functions.create_separate_download_folder(folder_path_burn_in_movement, folder_path_main, "download_" + unique_output)
+
+
+###################################################
+# ---- Seed the first infection ------------------#
+###################################################
+
+# up to line 407
+
+folder_path_seed = os.path.join(folder_path_main, "01_seed")
+if not os.path.exists(folder_path_seed):
+    os.makedirs(folder_path_seed)
+
+properties_seeded_filename = os.path.join(folder_path_seed, f"properties_seeded")
+
+seed_herd_id = 125520
+
+
+if not os.path.exists(properties_seeded_filename):
+    # seed property
+    unique_output = "day0"
+    properties, seed_property = FMD_functions.seed_FMD_infection(
+        seed_herd_id,
+        properties,
+        diseaseoutbreak.time,
+        xlims,
+        ylims,
+        folder_path_seed,
+        unique_output,
+        None,  # disease_parameters["latent_period"],
+        disease_parameters,
+    )
+else:
+    with open(properties_seeded_filename, "rb") as file:
+        properties = pickle.load(file)
+
+
+###################################################
+# ---- Undetected spread -------------------------#
+###################################################
+# spread and then detection after a fixed number of properties infected...
+
+random.seed(3)
+np.random.seed(3)
+minimum_spread_time = minimum_spread_time + 27
+target_infected_properties = 18
+
+# area for first report - anywhere for now
+reportingregion_x = xrange
+reportingregion_y = yrange
+
+
+unique_output = f"02_undetected_spread"
+folder_path_undetected_spread = os.path.join(folder_path_main, unique_output)
+if not os.path.exists(folder_path_undetected_spread):
+    os.makedirs(folder_path_undetected_spread)
+
+undetected_spread_properties_filename = os.path.join(folder_path_undetected_spread, "properties_" + unique_output)
+undetected_spread_diseaseoutbreak_filename = os.path.join(folder_path_undetected_spread, "outbreakobject_" + unique_output)
+
+spatial_only_parameters["n"] = len(properties)
+
+if not os.path.exists(undetected_spread_properties_filename) or not os.path.exists(undetected_spread_diseaseoutbreak_filename):
+
+    diseaseoutbreak.set_plotting_parameters(
+        xlims=xlims,
+        ylims=ylims,
+        plotting=True,
+        folder_path=folder_path_undetected_spread,
+        unique_output=unique_output,
+    )
+
+    # print(diseaseoutbreak.job_manager.jobs_queue)
+
+    properties, movement_records, current_time = diseaseoutbreak.simulate_outbreak_spread_only(
+        properties=properties,
+        stop_time=minimum_spread_time,
+        reporting_region_check=[reportingregion_x, reportingregion_y],
+        min_infected_premises=target_infected_properties,
+        outbreak_sim="FMD",
+        max_spread_time=30,
+    )
+
+    # and then resave the end state
+    with open(undetected_spread_properties_filename, "wb") as file:
+        pickle.dump(properties, file)
+
+    # and save the diseaseoutbreak object
+    with open(undetected_spread_diseaseoutbreak_filename, "wb") as file:
+        pickle.dump(diseaseoutbreak, file)
+
+    total_infected = 0
+    for property_i in properties:
+        if property_i.exposure_date != "NA":
+            total_infected += 1
+
+    print(f"Total number of infected premises: {total_infected}")
+
+else:
+    with open(undetected_spread_properties_filename, "rb") as file:
+        properties = pickle.load(file)
+    with open(undetected_spread_diseaseoutbreak_filename, "rb") as file:
+        diseaseoutbreak = pickle.load(file)
+
+FMD_functions.save_approx_known_data(properties, folder_path_undetected_spread, unique_output)
+
+if create_download_folder:
+    if download_parent_folder != None:
+        v06_functions.create_separate_download_folder(folder_path_undetected_spread, download_parent_folder, unique_output)
+    else:
+        v06_functions.create_separate_download_folder(folder_path_undetected_spread, folder_path_main, "download_" + unique_output)
+        # line 516
+
 # notes for next steps:continue following the v0.6 and continue set up of properties.
+# then take a closer look at (1) the original FMD parameters to try and match them; and (2) the initial outbreak data to try and fit it; and (3) ABC method to more roughly fit it.

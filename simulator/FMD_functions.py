@@ -1,5 +1,31 @@
 import os
 import csv
+import pandas as pd
+import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+import simulator.premises as premises
+import simulator.output as output
+import simulator.fixed_spatial_setup as fixed_spatial_setup
+import numpy as np
+
+movement_record_header = [
+    "day",
+    "date",
+    "from",
+    "to",
+    "entity",
+    "quantity",
+    "facility_type_1",
+    "facility_type_2",
+    "truck_id",
+    "report",
+]
+
+
+def create_movement_records_df():
+
+    return pd.DataFrame(columns=movement_record_header)
 
 
 def little_date_converter(input_date_string):
@@ -217,3 +243,79 @@ def save_approx_known_data(properties, folder_path, unique_output="", output_suf
         writer.writerow(BC_header)
         for row in data_rows_for_Biosecurity_Commons:
             writer.writerow(row)
+
+
+def seed_FMD_infection(
+    seed_herd_id,
+    properties,
+    int_time=0,
+    xlims=[],
+    ylims=[],
+    folder_path="",
+    unique_output="",
+    latent_period=7,
+    disease_parameters=None,
+):
+    """Seeds an infection at a property within the bounds specified"""
+    seed_property = 0  # default
+
+    for i, property in enumerate(properties):
+        if "herd_id" in property.FMD_extra_info:
+            if seed_herd_id == property.FMD_extra_info["herd_id"]:
+                seed_property = i
+                break
+
+    # seed this property
+    p = properties[seed_property]
+    # TODO technically, to encapsulate this better, there should a function that allows you to infect a specific animal(s), and that will then update infection_status, prop_infections, cumulative_infections, and exposure_date, and anything else that may need to be updated
+    p.infection_status = 1
+    if latent_period != None:
+        p.exposure_date = premises.convert_time_to_date(int_time - latent_period)
+    else:  # the version with multiple animals
+        latent_period = disease_parameters[p.animal_type]["latent_period"]
+        p.exposure_date = premises.convert_time_to_date(int_time - latent_period)
+
+    num_infected = min(10, p.animals)
+    if len(p.animal_type) == 1:
+        p.init_animals(None)
+
+        for seed_animal in range(num_infected):
+            p.animals[seed_animal].status = "infected"
+    else:  # there could be several animal types here
+        raise ValueError("Haven't yet coded up seeding a property with multiple animal types")
+
+    p.prop_infectious = num_infected / p.get_num_animals()
+    p.cumulative_infections = num_infected
+
+    output.plot_map(
+        properties,
+        int_time,
+        xlims=xlims,
+        ylims=ylims,
+        folder_path=folder_path,
+        real_situation=True,
+        controlzone=None,
+        infectionpoly=None,
+        contacts_for_plotting={},  # contacts_for_plotting,  # hiding the contacts for plotting, to make things look clearer,,,, TODO in the real situation, these should be the actual movements, or something
+    )
+
+    fixed_spatial_setup.save_FMD_property_csv(properties, int_time, folder_path, unique_output)
+
+    return properties, seed_property
+
+
+def animal_movement(
+    properties,
+    day,
+    controlzone,
+    reduced_movement_zone=None,
+    movement_reduction_factor=0.2,
+    all_movement_reduction_factor=1.0,
+):
+
+    date = premises.convert_time_to_date(day)
+
+    movement_record = []
+    number_of_movement_requests = 0
+
+    return movement_record, number_of_movement_requests

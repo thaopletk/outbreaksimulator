@@ -32,6 +32,7 @@ import simulator.output as output
 import simulator.animal_movement as animal_movement
 import simulator.spatial_functions as spatial_functions
 import simulator.HPAI_functions as HPAI_functions
+import simulator.FMD_functions as FMD_functions
 import simulator.fixed_spatial_setup as fixed_spatial_setup
 from datetime import datetime as dt
 
@@ -511,6 +512,11 @@ class DiseaseSimulation:
                     self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
             elif outbreak_sim == "HPAI":
                 movement_record, number_of_movement_requests = HPAI_functions.animal_movement(
+                    properties, day=self.time, controlzone=controlzone_movement_restrictions
+                )
+                self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
+            elif outbreak_sim == "FMD":
+                movement_record, number_of_movement_requests = FMD_functions.animal_movement(
                     properties, day=self.time, controlzone=controlzone_movement_restrictions
                 )
                 self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)

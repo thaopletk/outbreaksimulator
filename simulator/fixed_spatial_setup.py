@@ -1839,6 +1839,20 @@ def FMD_VIC_setup_locations(
                 print(row)
                 raise ValueError(f"{LGA} doesn't exist")
 
+        if LGA not in [
+            "South Gippsland",
+            "Bass Coast",
+            "Latrobe (Vic.)",
+            "Wellington",
+            "Baw Baw",
+            "Cardinia",
+            "Yarra Ranges",
+            "Mansfield",
+            "Murrindindi",
+            "East Gipsland",
+        ]:
+            continue
+
         property_coordinates = [row["herd long"], row["herd lat"]]
         property_polygon = Polygon(
             spatial_functions.geodesic_point_buffer(row["herd lat"], row["herd long"], km=random.uniform(0.01, 0.5))
@@ -2297,33 +2311,6 @@ def FMD_movement_network_setup(all_properties, max_movement_km=200, state="VIC")
     for p1 in range(0, len(all_properties)):
         all_properties[p1].id = p1
 
-    # # assigning random (scrambled) simids
-    # random_ids = np.random.choice(range(1, 10 * len(all_properties)), size=len(all_properties), replace=False)
-    # for p1 in range(0, len(all_properties)):
-    #     all_properties[p1].sim_id = random_ids[p1]
-
-    # assign wind neighbours and update self.total_neighbours
-    for p1 in range(0, len(all_properties)):
-        p1_neighbourhood = []
-        puff_p1 = all_properties[p1].puffed_poly
-        for p2 in range(0, len(all_properties)):
-            if p1 != p2:
-                # calculate distance between centres
-                # dist = np.linalg.norm(np.array(property_coordinates[p1]) - np.array(property_coordinates[p2]))
-                dist_centres = spatial_functions.quick_distance_haversine(
-                    all_properties[p1].coordinates, all_properties[p2].coordinates
-                )  # distance in km
-
-                # calculate whether they're wind-neighbours
-                p2_poly = all_properties[p2].polygon
-
-                if puff_p1.intersects(p2_poly):
-                    # they're wind-neighbours, congrats
-                    p1_neighbourhood.append([p2, dist_centres])
-
-        all_properties[p1].neighbourhood = p1_neighbourhood
-        all_properties[p1].total_neighbours = len(p1_neighbourhood)
-
     for i, property_i in enumerate(all_properties):  # TODO: refactor this to not be hard coded
         property_i.allowed_movement = {}  # will ignore this original / old structure
 
@@ -2347,22 +2334,118 @@ def FMD_movement_network_setup(all_properties, max_movement_km=200, state="VIC")
             }
         elif property_i.type in ["pigs small", "pigs large"]:  # hmm is this actually baby pigs vs adult pigs?
             property_i.allowed_movement_details = {
-                "cattle": {"age": 0, "property_types": ["pigs small", "pigs large", "abattoir", "saleyard", "feedlot"], "properties": []},
+                "pigs": {"age": 0, "property_types": ["pigs small", "pigs large", "abattoir", "saleyard", "feedlot"], "properties": []},
             }
+        elif property_i.type == "smallholder":
+            # get the animal type
+            animal_type = property_i.animal_type
+            if animal_type == "cattle":
+                property_i.allowed_movement_details = {
+                    "cattle": {
+                        "age": 0,
+                        "property_types": ["beef extensive", "beef intensive", "abattoir", "saleyard", "feedlot", "mixed beef"],
+                        "properties": [],
+                    },
+                }
+            elif animal_type == "sheep":
+                property_i.allowed_movement_details = {
+                    "sheep": {"age": 0, "property_types": ["mixed sheep", "sheep", "abattoir", "saleyard", "feedlot"], "properties": []},
+                    # TODO could add in wool movements here
+                }
+            elif animal_type == "pigs":
+                property_i.allowed_movement_details = {
+                    "pigs": {"age": 0, "property_types": ["pigs small", "pigs large", "abattoir", "saleyard", "feedlot"], "properties": []},
+                }
+            else:
+                raise ValueError(f"unexpected animal type for smallholder: {animal_type}")
+        elif property_i.type == "abattoir":
+            # could add in other distributors  / can also do a sink
+            property_i.allowed_movement_details = {}
+            for animal in property_i.animal_type:  # abbatoirs only accept some animal types
+                property_i.allowed_movement_details[animal] = {"age": 0, "property_types": ["export_facility"], "properties": []}
+        elif property_i.type == "saleyard":
+            # could add in other distributors  / can also do a sink
+            property_i.allowed_movement_details = {
+                "pigs": {"age": 0, "property_types": ["pigs small", "pigs large", "export_facility", "abattoir", "feedlot"], "properties": []},
+                "cattle": {
+                    "age": 0,
+                    "property_types": ["beef extensive", "beef intensive", "mixed beef", "export_facility", "abattoir", "feedlot"],
+                    "properties": [],
+                },
+                "sheep": {"age": 0, "property_types": ["mixed sheep", "sheep", "export_facility", "abattoir", "feedlot"], "properties": []},
+            }
+        elif property_i.type == "export_facility":
+            property_i.allowed_movement_details = {}  # sink
+        elif property_i.type == "milk_processing":
+            property_i.allowed_movement_details = {}  # sink
+        elif property_i.type == "feedlot":
+            property_i.allowed_movement_details = {
+                "pigs": {"age": 0, "property_types": ["abattoir"], "properties": []},
+                "cattle": {"age": 0, "property_types": ["abattoir"], "properties": []},
+                "sheep": {"age": 0, "property_types": ["abattoir"], "properties": []},
+            }
+        else:
+            raise ValueError(f"Unexpected property type {property_i.type}")
 
-            # "beef extensive",
-            # "beef intensive",
-            # "mixed beef",
-            # "mixed sheep",
-            # "sheep",
+        max_allowable_movement = max_movement_km
 
-            # "dairy",
-            # "pigs small",
-            # "pigs large",
+        property_i.movement_neighbours = {
+            "beef extensive": [],
+            "beef intensive": [],
+            "feedlot": [],
+            "mixed beef": [],
+            "mixed sheep": [],
+            "dairy": [],
+            "pigs small": [],
+            "pigs large": [],
+            "sheep": [],
+            "smallholder": [],
+            "abattoir": [],
+            "saleyard": [],
+            "export_facility": [],
+            "milk_processing": [],
+        }
 
-            # "smallholder",
-            # "abattoir",
-            # "saleyard",
-            # "export_facility",
-            # "milk_processing",
-            # "feedlot",
+        # assign wind neighbours and update self.total_neighbours
+        p1_neighbourhood = []
+        puff_p1 = property_i.puffed_poly
+
+        if property_i.type in ["export_facility", "egg milk_processing"]:  # wind only
+            for j, property_j in enumerate(all_properties):
+                if i != j:
+                    distance = spatial_functions.quick_distance_haversine(
+                        property_i.coordinates,
+                        property_j.coordinates,
+                    )
+                    if distance < max_allowable_movement:
+                        # calculate whether they're wind-neighbours
+                        p2_poly = property_j.polygon
+
+                        if puff_p1.intersects(p2_poly):
+                            # they're wind-neighbours, congrats
+                            p1_neighbourhood.append([j, distance])
+
+        else:
+            for j, property_j in enumerate(all_properties):
+                if i != j:
+                    distance = spatial_functions.quick_distance_haversine(
+                        property_i.coordinates,
+                        property_j.coordinates,
+                    )
+                    if distance < max_allowable_movement:
+                        # calculate whether they're wind-neighbours
+                        p2_poly = property_j.polygon
+
+                        if puff_p1.intersects(p2_poly):
+                            # they're wind-neighbours, congrats
+                            p1_neighbourhood.append([j, distance])
+                        for animal in property_i.allowed_movement_details:
+                            if animal in property_j.animal_type and property_j.type in property_i.allowed_movement_details[animal]["property_types"]:
+                                property_i.allowed_movement_details[animal]["properties"].append(j)
+                                property_i.movement_neighbours[property_j.type].append(j)
+
+        all_properties[i].neighbourhood = p1_neighbourhood
+        all_properties[i].total_neighbours = len(p1_neighbourhood)
+        print(i)
+
+    return all_properties
