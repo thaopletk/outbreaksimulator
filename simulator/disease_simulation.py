@@ -94,6 +94,8 @@ class DiseaseSimulation:
 
         animal_types = list(disease_parameters.keys())
 
+        self.disease_parameters = disease_parameters
+
         self.beta_wind = {animal: disease_parameters[animal]["beta_wind"] for animal in animal_types}
         self.beta_animal = {animal: disease_parameters[animal]["beta_animal"] for animal in animal_types}
         self.latent_period = {animal: disease_parameters[animal]["latent_period"] for animal in animal_types}
@@ -441,19 +443,22 @@ class DiseaseSimulation:
                 )
         return FOI
 
-    def run_infection_model_for_each_property(self, properties, FOI):
+    def run_infection_model_for_each_property(self, properties, FOI, outbreak_sim):
         """Runs the infection model for each property, i.e., advances infection stages and checks if properties become infected or not"""
         for i, property_i in enumerate(properties):
             if property_i.get_num_animals() == 0:
                 continue
-            animal_type = property_i.animal_type
-            property_i.infection_model(
-                self.latent_period[animal_type],
-                self.infectious_period[animal_type],
-                self.preclinical_period[animal_type],
-                FOI[i],
-                self.time,
-            )
+            if outbreak_sim == "FMD":
+                property_i.infection_model(FOI=FOI[i], time=self.time, disease_parameters_by_animal_type=self.disease_parameters)
+            else:
+                animal_type = property_i.animal_type
+                property_i.infection_model(
+                    latent_period=self.latent_period[animal_type],
+                    infectious_period=self.infectious_period[animal_type],
+                    preclinical_period=self.preclinical_period[animal_type],
+                    FOI=FOI[i],
+                    time=self.time,
+                )
         return properties
 
     # TODO: technically, it may be possible to just run a different simulate_outbreak_spread function, but just set the probability of reporting to zero, or to modularise things further (the code parts that are repeated across different functions)
@@ -501,7 +506,7 @@ class DiseaseSimulation:
             FOI = self.calculate_FOI_for_each_property(properties, outbreak_sim, self.time)
 
             # run infection model for each property
-            properties = self.run_infection_model_for_each_property(properties, FOI)
+            properties = self.run_infection_model_for_each_property(properties, FOI, outbreak_sim)
 
             # movement of animals
             controlzone_movement_restrictions = None

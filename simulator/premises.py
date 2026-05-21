@@ -478,14 +478,18 @@ class Premises(Property):
         pass
 
     def init_animals(self, params):
-        if self.animal_type != "chicken":
-            super().init_animals(params)  # call the OG init_animals function
-        else:
+        if self.animal_type == "chicken":
             for shed_i, shed_info in self.sheds.items():
                 if "chickens" in shed_info:
                     for chicken_dict in self.sheds[shed_i]["chickens"]:
                         chicken_animal_objs = [Animal(params) for _ in range(chicken_dict["n"])]
                         chicken_dict["objs"] = chicken_animal_objs
+        elif isinstance(self.animal_type, list) or self.animal_type in ["cattle", "pigs", "sheep"]:
+            for ani_type, ani_inf in self.animals.items():
+                animal_objs = [Animal(params) for _ in range(ani_inf["n"])]
+                self.animals[ani_type]["objs"] = animal_objs
+        else:
+            super().init_animals(params)  # call the OG init_animals function
         return
 
     #
@@ -707,7 +711,7 @@ class Premises(Property):
 
         return 0
 
-    def infection_model(self, latent_period, infectious_period, preclinical_period, FOI, time):
+    def infection_model(self, latent_period=0, infectious_period=0, preclinical_period=0, FOI=0, time=0, disease_parameters_by_animal_type=None):
         params = {
             "latent_period": latent_period,
             "infectious_period": infectious_period,
@@ -740,30 +744,23 @@ class Premises(Property):
                             else:
                                 pass  # pass  - no infection risk
         elif isinstance(self.animal_type, list) or self.animal_type in ["cattle", "pigs", "sheep"]:
-            # cumulative_infections_by_animal_type < TODO this {"cattle": number}
-            if isinstance(self.animal_type, list):
-                pass  # CURRENT TODO
-            else:
-                if isinstance(self.animals, list):
-                    for anim in self.animals:
-                        animal_inf = anim.infection_event(params, FOI)
-                        if animal_inf:
-                            self.cumulative_infections += 1
-                        anim.check_transition(params)
-                        anim.update_clock()
-                    # means they are infected, already animal type
-                elif FOI > 0:  # i.e., they can get infected
-                    self.init_animals(None)
-                    for anim in self.animals:
-                        animal_inf = anim.infection_event(params, FOI)
-                        if animal_inf:
-                            self.cumulative_infections += 1
-                        anim.check_transition(params)
-                        anim.update_clock()
-                else:
-                    pass  # pass  - no infection risk
+            if self.check_if_animal_objects() == False and FOI > 0:
+                # they could get infected
+                self.init_animals(None)
 
-            # CURRENT TODO
+            if self.check_if_animal_objects() == True:
+                for ani_type in self.animals:
+                    params = disease_parameters_by_animal_type[ani_type]
+                    for anim in self.animals[ani_type]["objs"]:
+                        animal_inf = anim.infection_event(params, FOI)
+                        if animal_inf:
+                            self.cumulative_infections += 1
+                            if ani_type in self.cumulative_infections_by_animal_type:
+                                self.cumulative_infections_by_animal_type[ani_type] += 1
+                            else:
+                                self.cumulative_infections_by_animal_type[ani_type] = 1
+                        anim.check_transition(params)
+
         else:
             super().infection_model(
                 params,
@@ -941,6 +938,12 @@ class Premises(Property):
                 pass
         return False
 
+    def check_if_animal_objects(self):
+        for ani_type, ani_info in self.animals.items():  # format is {"animal":{"n": 10, "objs": [...]}}
+            if "objs" in ani_info:  # if len(ani_info["objs"])>0:
+                return True
+        return False
+
     def chicken_array(self):
         """Returns the chicken array for printing - needed in the case that it's actually full of chicken objects"""
         chick_array = []
@@ -1000,7 +1003,7 @@ class Premises(Property):
             return 0
 
     def update_counts(self):
-        if self.animal_type != "chicken":
+        if self.animal_type == "chicken":
             number_infected = 0
             number_infectious = 0
             number_clinical = 0
@@ -1047,10 +1050,51 @@ class Premises(Property):
                 if number_infected == 0 and number_infectious == 0 and number_clinical == 0:
                     self.infection_status = 0
         if self.animal_type in ["cattle", "sheep", "pigs"] or isinstance(self.animal_type, list):
-            # TODO
+            self.size = self.get_num_animals()
             self.number_infectious_by_animal_type = {}
-            self.prop_infectious_by_animal_type = {}
-            raise SyntaxError("Update counts for FMD not done yet")
+            number_infected = 0
+            number_infectious = 0
+            number_clinical = 0
+            if self.check_if_animal_objects() == False:
+                # no infections
+                self.prop_infectious = 0
+                self.prop_clinical = 0
+                self.number_infected = 0
+                self.size = self.get_num_animals()
+            else:
+                # potential infection, check animals one by one
+                for ani_type, ani_info in self.animals.items():
+                    if "objs" in ani_info:
+                        for ani in ani_info["objs"]:
+                            if ani.infection_status == "exposed":
+                                number_infected += 1
+                            elif ani.infection_status == "infectious":
+                                number_infected += 1
+                                if ani_type not in self.number_infectious_by_animal_type:
+                                    self.number_infectious_by_animal_type[ani_type] = 1
+                                else:
+                                    self.number_infectious_by_animal_type[ani_type] += 1
+
+                            if ani.clinical_status == "clinical":
+                                number_clinical += 1
+
+                self.size = self.get_num_animals()
+                if self.size > 0:
+                    self.prop_infectious = number_infectious / self.size
+                    self.prop_clinical = number_clinical / self.size
+                else:
+                    self.prop_infectious = 0
+                    self.prop_clinical = 0
+
+                # if there's any infection, property is labelled infected
+                self.number_infected = number_infected
+                if number_infected > 0:
+                    self.infection_status = 1
+
+            if self.type in ["abbatoir", "milk processing"]:
+                if number_infected == 0 and number_infectious == 0 and number_clinical == 0:
+                    if np.random.rand() < 0.8:
+                        self.infection_status = 0
 
         else:
             super.update_counts()
