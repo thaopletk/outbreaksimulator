@@ -8,6 +8,7 @@ import simulator.premises as premises
 import simulator.output as output
 import simulator.fixed_spatial_setup as fixed_spatial_setup
 import numpy as np
+import random
 
 movement_record_header = [
     "day",
@@ -185,7 +186,7 @@ def save_approx_known_data(properties, folder_path, unique_output="", output_suf
                     facility.area,
                     facility.type,
                     facility.animal_type,
-                    facility.animals,
+                    facility.get_num_animals(),
                     facility.data_source,
                     last_surveillance_date,
                     animals_clinical,
@@ -304,13 +305,93 @@ def seed_FMD_infection(
     return properties, seed_property
 
 
+def construct_trucks(properties):
+    # set up trucks (e.g. 10) at each processing facility, saleyard, export facility and maybe at large premises with a lot of animals
+    trucks_list = []
+    truck_id = 0
+    for premise_index, facility in enumerate(properties):
+        if facility.type in [
+            "beef extensive",
+            "beef intensive",
+            "mixed beef",
+            "mixed sheep",
+            "pigs small",
+            "pigs large",
+            "sheep",
+            "smallholder",
+            "feedlot",
+        ]:
+            cargo = 0
+            contamination_level = 0
+            home_location = premise_index
+            if facility.animal_type == "cattle":
+                cargo_limit = 30
+            elif facility.animal_type == "pigs":
+                cargo_limit = 60
+            elif facility.animal_type == "sheep":
+                cargo_limit = 90
+            else:
+                raise ValueError(f"unexpected animal type for facility/ truck, {facility.animal_type}")
+
+            num_trucks = 0
+            if facility.get_num_animals() > 100:  # a bigger property
+                num_trucks = max(1, int(np.ceil(facility.get_num_animals() / 100)))
+            for _ in range(num_trucks):
+                trucks_list.append([truck_id, home_location, facility.animal_type, cargo_limit, cargo, contamination_level, False])
+                truck_id += 1
+
+        elif facility.type == "milk_processing":
+            cargo = 0
+            contamination_level = 0
+            home_location = premise_index
+            properties_serviced = [premise_index]
+            cargo_limit = 40000
+            for _ in range(10):
+                trucks_list.append([truck_id, home_location, "milk", cargo_limit, cargo, contamination_level, False])
+                truck_id += 1
+        elif facility.type == "dairy":
+            num_trucks = 0
+            # 20 litres of milk per day
+            if facility.get_num_animals() * 20 > 15000:  # a bigger property
+                num_trucks = max(1, int(np.ceil(facility.get_num_animals() * 20 / 15000)))
+                cargo = 0
+                contamination_level = 0
+                home_location = premise_index
+                properties_serviced = [premise_index]
+                cargo_limit = 15000
+
+                for _ in range(num_trucks):
+                    trucks_list.append([truck_id, home_location, "milk", cargo_limit, cargo, contamination_level, False])
+                    truck_id += 1
+
+        elif facility.type in ["abattoir", "saleyard", "export_facility"]:
+            cargo = 0
+            contamination_level = 0
+            home_location = premise_index
+            properties_serviced = [premise_index]
+            if "cattle" in facility.animal_type:
+                cargo_limit = 30
+                trucks_list.append([truck_id, home_location, "cattle", cargo_limit, cargo, contamination_level, False])
+                truck_id += 1
+
+            if "pigs" in facility.animal_type:
+                cargo_limit = 60
+                trucks_list.append([truck_id, home_location, "pigs", cargo_limit, cargo, contamination_level, False])
+                truck_id += 1
+
+            if "sheep" in facility.animal_type:
+                cargo_limit = 90
+                trucks_list.append([truck_id, home_location, "sheep", cargo_limit, cargo, contamination_level, False])
+                truck_id += 1
+
+    # NOTE: assuming for now that trucks automatically return to their "home" at the end of the day.
+    trucks_df = pd.DataFrame(trucks_list, columns=["truck_id", "home_property", "cargo_type", "cargo_cap", "cargo", "contamination", "busy"])
+
+    return trucks_df
+
+
 def animal_movement(
-    properties,
-    day,
-    controlzone,
-    reduced_movement_zone=None,
-    movement_reduction_factor=0.2,
-    all_movement_reduction_factor=1.0,
+    properties, day, controlzone, reduced_movement_zone=None, movement_reduction_factor=0.2, all_movement_reduction_factor=1.0, trucks_df=None
 ):
 
     date = premises.convert_time_to_date(day)
@@ -318,4 +399,112 @@ def animal_movement(
     movement_record = []
     number_of_movement_requests = 0
 
-    return movement_record, number_of_movement_requests
+    for premise_index, facility in enumerate(properties):
+        if facility.culled_status or facility.status == "IP" or facility.status == "RP":
+            continue
+
+        if facility.type != "dairy" and facility.id % 10 != day % 10:
+            continue  # check non-dairy properties every ten days
+
+        in_control_zone = False
+        if controlzone != None and facility.polygon.intersects(controlzone):
+            in_control_zone = True
+            # TODO: if True, use this to raise movement permit request
+
+        in_reduced_movement_zone = False
+        if reduced_movement_zone != None and facility.polygon.intersects(reduced_movement_zone):
+            in_reduced_movement_zone = True
+
+        if facility.type == "dairy":
+            # moving milk every 24 or 48 hours. just go daily for now for simplicity
+            # get places to move milk to; assume no movement of cattle for simplicity
+            targets_unrestricted_zones = []
+            targets_in_control_zones = []
+            properties_to_move_to = facility.allowed_movement_details["milk"]["properties"]
+            for property_index in properties_to_move_to:
+                target_facility = properties[property_index]
+                if target_facility == "IP" or target_facility == "RP":
+                    continue  # skip it
+
+                if controlzone != None and target_facility.polygon.intersects(controlzone):
+                    if random.uniform(0, 1) < movement_reduction_factor * all_movement_reduction_factor:
+                        # ILLEGAL MOVEMENT, aka with some probability, there will be movement without movement requests!
+                        targets_unrestricted_zones.append(property_index)
+                    else:
+                        targets_in_control_zones.append(property_index)
+                else:
+                    if reduced_movement_zone != None and target_facility.polygon.intersects(reduced_movement_zone):
+                        if random.uniform(0, 1) < all_movement_reduction_factor:  # illegal or reduced movement
+                            targets_unrestricted_zones.append(property_index)
+                        else:
+                            targets_in_control_zones.append(property_index)
+                    else:
+                        targets_unrestricted_zones.append(property_index)
+            if targets_unrestricted_zones == [] and targets_in_control_zones == []:
+                pass
+            else:
+
+                if in_control_zone and (random.uniform(0, 1) > movement_reduction_factor):
+                    # TODO permit request:  facility id[], type [], status [], requests to move [X animals] to [target facility]
+                    if targets_unrestricted_zones != [] or targets_in_control_zones != []:  # i.e., there is a place it could have moved stuff
+                        print(f"{facility.type} (sim_id {facility.id}) would like to transport milk but is inside restricted zone")
+                        number_of_movement_requests += 1
+                elif in_reduced_movement_zone and (random.uniform(0, 1) > movement_reduction_factor):
+                    if targets_unrestricted_zones != [] or targets_in_control_zones != []:  # i.e., there is a place it could have moved stuff
+                        print(f"{facility.type} (sim_id {facility.id}) would like to transport milk but is inside control zone")
+                        number_of_movement_requests += 1
+                else:
+                    # legal movement and some illegal movement
+                    if targets_unrestricted_zones != []:
+                        random.shuffle(targets_unrestricted_zones)
+                        target_index = targets_unrestricted_zones[0]
+                    elif targets_in_control_zones != []:
+                        random.shuffle(targets_in_control_zones)
+                        target_index = targets_in_control_zones[0]
+                    new_facility = properties[target_index]
+                    milk_litres = (20 * facility.get_num_animals(),)  # 20 L of milk per day
+                    # find a truck
+                    # first check if the property has any trucks
+                    trucks_sub_df = trucks_df[trucks_df["home_property"] == premise_index]
+                    trucks_sub = list(trucks_sub_df.truck_id)
+                    trucks_capacity = list(trucks_sub_df.cargo_cap)
+                    if len(trucks_sub) > 0:
+                        for truck_id, cap in zip(trucks_sub, trucks_capacity):
+                            milk_on_truck = min(cap, milk_litres)
+                            row = [
+                                day,
+                                f"{date}",
+                                premise_index,
+                                target_index,
+                                "milk",
+                                milk_on_truck,  # 20 L of milk per day
+                                facility.type,
+                                new_facility.type,
+                                truck_id,
+                                f"DAY {date} - moved {milk_litres} L milk from {facility.type} (sim_id {facility.id}) ({facility.region}) to {new_facility.type} (sim_id {new_facility.id}) ( {new_facility.region})",
+                            ]
+                            #     "day",
+                            #     "date",
+                            #     "from",
+                            #     "to",
+                            #     "entity",
+                            #     "quantity",
+                            #     "facility_type_1",
+                            #     "facility_type_2",
+                            #     "truck_id",
+                            #     "report",
+                            # ]
+
+                            if len(row) != len(movement_record_header):
+                                raise ValueError("The length of movement record is not the same as the movement header")
+                                # added in case I decide to change the information recorded again
+
+                            movement_record.append(row)
+
+                            milk_litres = milk_litres - milk_on_truck
+                            if milk_litres == 0:
+                                break
+
+            # ln 366
+
+    return movement_record, number_of_movement_requests, trucks_df

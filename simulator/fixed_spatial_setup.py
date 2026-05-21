@@ -421,7 +421,13 @@ def property_specific_initialisation_animals_no_neighbours(
     elif extra_info != None:
         # FMD - keeping the number of animals as a number until we need to turn them into animal objects;
         # assuming no age for now (no birth processes)
-        new_p.animals = num_animals
+        if isinstance(animal_type, list):
+            new_p.animals = {animal_t: {"n": 0} for animal_t in animal_type}
+            if num_animals > 0:
+                raise ValueError(f"Unexpected situation with animals in processing facilities at the start {num_animals}, {animal_type}")
+        else:
+            new_p.animals = {animal_type: {"n": num_animals}}
+
     else:
         new_p.init_animals(None)
 
@@ -1840,16 +1846,13 @@ def FMD_VIC_setup_locations(
                 raise ValueError(f"{LGA} doesn't exist")
 
         if LGA not in [
-            "South Gippsland",
-            "Bass Coast",
-            "Latrobe (Vic.)",
+            # "South Gippsland",
+            # "Bass Coast",
+            # "Latrobe (Vic.)",
             "Wellington",
-            "Baw Baw",
-            "Cardinia",
-            "Yarra Ranges",
-            "Mansfield",
-            "Murrindindi",
-            "East Gipsland",
+            # "Baw Baw",
+            # "Cardinia",
+            # "Yarra Ranges",
         ]:
             continue
 
@@ -1936,6 +1939,8 @@ def FMD_VIC_setup_locations(
             animal_type.append("sheep")
         if row["pigs"]:
             animal_type.append("pigs")
+        if len(animal_type) == 1:
+            animal_type = animal_type[0]
 
         facility_coordinates.append(property_coordinates)
 
@@ -2262,6 +2267,8 @@ def save_FMD_property_csv(properties, time, folder_path, unique_output):
 
     # print output: all
     header = [
+        "herd_id",
+        "farm_id",
         "sim_id",
         "case_id",
         "status",
@@ -2325,11 +2332,11 @@ def FMD_movement_network_setup(all_properties, max_movement_km=200, state="VIC")
         elif property_i.type in ["mixed sheep", "sheep"]:
             property_i.allowed_movement_details = {
                 "sheep": {"age": 0, "property_types": ["mixed sheep", "sheep", "abattoir", "saleyard", "feedlot"], "properties": []},
-                # TODO could add in wool movements here
+                # NOTE could add in wool movements here
             }
         elif property_i.type in ["dairy"]:
             property_i.allowed_movement_details = {
-                "cattle": {"age": 0, "property_types": ["abattoir"], "properties": []},
+                # "cattle": {"age": 0, "property_types": ["abattoir"], "properties": []}, #NOTE: assuming just milk movements for simplicity at this point
                 "milk": {"property_types": ["milk_processing"], "properties": []},
             }
         elif property_i.type in ["pigs small", "pigs large"]:  # hmm is this actually baby pigs vs adult pigs?
@@ -2350,7 +2357,7 @@ def FMD_movement_network_setup(all_properties, max_movement_km=200, state="VIC")
             elif animal_type == "sheep":
                 property_i.allowed_movement_details = {
                     "sheep": {"age": 0, "property_types": ["mixed sheep", "sheep", "abattoir", "saleyard", "feedlot"], "properties": []},
-                    # TODO could add in wool movements here
+                    # NOTE could add in wool movements here
                 }
             elif animal_type == "pigs":
                 property_i.allowed_movement_details = {
@@ -2360,9 +2367,17 @@ def FMD_movement_network_setup(all_properties, max_movement_km=200, state="VIC")
                 raise ValueError(f"unexpected animal type for smallholder: {animal_type}")
         elif property_i.type == "abattoir":
             # could add in other distributors  / can also do a sink
-            property_i.allowed_movement_details = {}
-            for animal in property_i.animal_type:  # abbatoirs only accept some animal types
-                property_i.allowed_movement_details[animal] = {"age": 0, "property_types": ["export_facility"], "properties": []}
+            if property_i.FMD_extra_info["export"] == 1:
+                if isinstance(property_i.animal_type, list):
+                    property_i.allowed_movement_details = {}
+                    for animal in property_i.animal_type:  # abbatoirs only accept some animal types
+                        property_i.allowed_movement_details[animal] = {"age": 0, "property_types": ["export_facility"], "properties": []}
+                else:
+                    property_i.allowed_movement_details = {
+                        property_i.animal_type: {"age": 0, "property_types": ["export_facility"], "properties": []}
+                    }
+            else:
+                property_i.allowed_movement_details = {}  # pure sink, send to local meat processor
         elif property_i.type == "saleyard":
             # could add in other distributors  / can also do a sink
             property_i.allowed_movement_details = {
@@ -2380,9 +2395,7 @@ def FMD_movement_network_setup(all_properties, max_movement_km=200, state="VIC")
             property_i.allowed_movement_details = {}  # sink
         elif property_i.type == "feedlot":
             property_i.allowed_movement_details = {
-                "pigs": {"age": 0, "property_types": ["abattoir"], "properties": []},
-                "cattle": {"age": 0, "property_types": ["abattoir"], "properties": []},
-                "sheep": {"age": 0, "property_types": ["abattoir"], "properties": []},
+                property_i.animal_type: {"age": 0, "property_types": ["abattoir"], "properties": []},
             }
         else:
             raise ValueError(f"Unexpected property type {property_i.type}")
@@ -2441,11 +2454,16 @@ def FMD_movement_network_setup(all_properties, max_movement_km=200, state="VIC")
                             p1_neighbourhood.append([j, distance])
                         for animal in property_i.allowed_movement_details:
                             if animal in property_j.animal_type and property_j.type in property_i.allowed_movement_details[animal]["property_types"]:
-                                property_i.allowed_movement_details[animal]["properties"].append(j)
-                                property_i.movement_neighbours[property_j.type].append(j)
+                                if property_j.type == "saleyard" and "saleyard_id" in property_i.FMD_extra_info:
+                                    # check if the saleyard id matches or not
+                                    if property_j.FMD_extra_info["id"] == property_i.FMD_extra_info["saleyard_id"]:
+                                        property_i.allowed_movement_details[animal]["properties"].append(j)
+                                        property_i.movement_neighbours[property_j.type].append(j)
+                                else:
+                                    property_i.allowed_movement_details[animal]["properties"].append(j)
+                                    property_i.movement_neighbours[property_j.type].append(j)
 
         all_properties[i].neighbourhood = p1_neighbourhood
         all_properties[i].total_neighbours = len(p1_neighbourhood)
-        print(i)
 
     return all_properties

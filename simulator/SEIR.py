@@ -148,8 +148,10 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mort
         )  # Proj_current_Philaenus.spumarius..Linnaeus..1758._rangebag.tif from Biosecurity Commons
         vectors_img = rasterio.open(vectors_file)
         vector_val = [x for x in vectors_img.sample([properties[premise_index].coordinates])][0][0]
-    else:
+    elif outbreak_sim == "HPAI":
         vector_val = vector_val_HPAI(properties[premise_index].coordinates)
+    elif outbreak_sim == "FMD":
+        vector_val = 1  # no vectors in FMD
 
     # contribution from property i (on itself???)
     C_i = properties[premise_index].cumulative_infections
@@ -162,7 +164,11 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mort
 
     if isinstance(beta_wind, dict):
         animal_type_i = properties[premise_index].animal_type
-        FOI += vector_val * beta_wind[animal_type_i] * C_i * A_i / A_is
+        if isinstance(animal_type_i, list):
+            averaged_beta = sum([beta_wind[a_type] for a_type in animal_type_i]) / len(animal_type_i)
+            FOI += vector_val * averaged_beta * C_i * A_i / A_is
+        else:
+            FOI += vector_val * beta_wind[animal_type_i] * C_i * A_i / A_is
     else:
         FOI += vector_val * beta_wind * C_i * A_i / A_is
 
@@ -170,7 +176,7 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mort
 
     # contributions from neighbouring properties
     for [index, dist_centres] in properties[premise_index].neighbourhood:
-        if outbreak_sim == "HPAI":
+        if outbreak_sim in ["HPAI", "FMD"]:
             # check if the neighbouring property is along the correct wind direction
             neighbour = properties[index]
             u10, v10 = get_wind_direction(neighbour.coordinates, time)
@@ -239,11 +245,26 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mort
             elif properties[index].undergoing_testing:
                 vector_mortality_adjustment = 0.5  # assuming they do some just in case
             # vector_mortality_adjustment = 1  # TODO | this basically assumes that the virus remains in the environment....
+        elif outbreak_sim == "FMD":
+            vector_mortality_adjustment = 1
+            vector_val_neighbour = 1
+            if properties[index].culled_status:
+                days_since_culled = convert_date_to_time(properties[index].removal_date)
+                vector_mortality_adjustment = 0
+            elif properties[index].reported_status or properties[index].clinical_report_outcome == True:
+                vector_mortality_adjustment = 0.3  # assuming that they enact some control just in case
+            elif properties[index].undergoing_testing:
+                vector_mortality_adjustment = 0.5  # assuming they do some just in case
 
         # update FOI
         if isinstance(beta_wind, dict):
             animal_type_j = properties[index].animal_type
-            FOI += vector_mortality_adjustment * vector_val_neighbour * beta_wind[animal_type_j] * C_j * distance_modifier * A_ijs / A_js
+            if isinstance(animal_type_j, list):
+                averaged_beta = sum([beta_wind[a_type] for a_type in animal_type_j]) / len(animal_type_j)
+                FOI += vector_mortality_adjustment * vector_val_neighbour * averaged_beta * C_j * distance_modifier * A_ijs / A_js
+                # TODO! need to handle properties with multiple animal types better
+            else:
+                FOI += vector_mortality_adjustment * vector_val_neighbour * beta_wind[animal_type_j] * C_j * distance_modifier * A_ijs / A_js
         else:
             FOI += vector_mortality_adjustment * vector_val_neighbour * beta_wind * C_j * distance_modifier * A_ijs / A_js
 
@@ -274,7 +295,11 @@ def calculate_force_of_infection(properties, premise_index, vax_modifier, r_wind
     FOI_wind = wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, outbreak_sim=outbreak_sim, time=time)
     if isinstance(beta_animal, dict):
         animal_type_i = properties[premise_index].animal_type
-        FOI_animal = FOI_calculation_fns.animal_FOI(properties[premise_index], {"beta_animal": beta_animal[animal_type_i]})
+        if isinstance(animal_type_i, list):
+            averaged_beta = sum([beta_animal[a_type] for a_type in animal_type_i]) / len(animal_type_i)
+            FOI_animal = FOI_calculation_fns.animal_FOI(properties[premise_index], {"beta_animal": averaged_beta})
+        else:
+            FOI_animal = FOI_calculation_fns.animal_FOI(properties[premise_index], {"beta_animal": beta_animal[animal_type_i]})
     else:
         FOI_animal = FOI_calculation_fns.animal_FOI(properties[premise_index], {"beta_animal": beta_animal})
 

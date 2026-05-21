@@ -444,6 +444,8 @@ class DiseaseSimulation:
     def run_infection_model_for_each_property(self, properties, FOI):
         """Runs the infection model for each property, i.e., advances infection stages and checks if properties become infected or not"""
         for i, property_i in enumerate(properties):
+            if property_i.get_num_animals() == 0:
+                continue
             animal_type = property_i.animal_type
             property_i.infection_model(
                 self.latent_period[animal_type],
@@ -464,6 +466,7 @@ class DiseaseSimulation:
         min_infected_premises=70,
         outbreak_sim="LSD",
         max_spread_time=150,
+        trucks_df=None,
     ):
         """Run simulated outbreak, for undetected spread between (self.time (or time parameter if not NA)+1) and (stop_time) [inclusive], with no management
 
@@ -516,8 +519,11 @@ class DiseaseSimulation:
                 )
                 self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
             elif outbreak_sim == "FMD":
-                movement_record, number_of_movement_requests = FMD_functions.animal_movement(
-                    properties, day=self.time, controlzone=controlzone_movement_restrictions
+                movement_record, number_of_movement_requests, trucks_df = FMD_functions.animal_movement(
+                    properties,
+                    day=self.time,
+                    controlzone=controlzone_movement_restrictions,
+                    trucks_df=trucks_df,
                 )
                 self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
 
@@ -582,10 +588,12 @@ class DiseaseSimulation:
 
         if outbreak_sim == "HPAI":
             fixed_spatial_setup.save_chicken_property_csv(properties, self.time, self.folder_path, self.unique_output)
+        if outbreak_sim == "FMD":
+            fixed_spatial_setup.save_FMD_property_csv(properties, self.time, self.folder_path, self.unique_output)
 
         animal_movement.save_movement_record(self.folder_path, self.movement_records)
 
-        return properties, self.movement_records, self.time
+        return properties, self.movement_records, self.time, trucks_df
 
     def get_properties_in_reporting_region(self, properties, reportingregion_x, reportingregion_y):
         # find properties with infected (clinical infected) animals within reportingregion_x, reportingregion_y

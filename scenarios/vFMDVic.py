@@ -172,7 +172,6 @@ print(f"total facilities started: {len(all_properties)}")
 if not os.path.exists(os.path.join(folder_path_main, f"data_underlying.csv")):
     fixed_spatial_setup.save_FMD_property_csv(all_properties, 0, folder_path_main, "")
 
-
 if not os.path.exists(os.path.join(folder_path_main, f"property_locations_base_map_types.png")):
     fixed_spatial_setup.plot_map_land_HPAI_2(
         all_properties,
@@ -202,7 +201,6 @@ if not os.path.exists(os.path.join(folder_path_main, f"property_locations_base_m
 if not os.path.exists(os.path.join(folder_path_main, f"approx_known_data_.csv")):
     FMD_functions.save_approx_known_data(all_properties, folder_path_main, "")
 
-
 properties_filename = os.path.join(folder_path_main, f"FMD_{state}_properties")
 if not os.path.exists(properties_filename):
 
@@ -220,24 +218,32 @@ if not os.path.exists(properties_filename):
 
     with open(properties_filename, "wb") as file:
         pickle.dump(properties, file)
+else:
+    with open(properties_filename, "rb") as file:
+        properties = pickle.load(file)
+
+# TAKES WAY TOO LONG is there a way for this to take less time?
+# # plot the neighbours (not wind-neighbours)
+# if not os.path.exists(os.path.join(folder_path_main, f"map_underlying0_neighbours.png")):
+#     output.plot_map(
+#         properties,
+#         time=0,
+#         xlims=xlims,
+#         ylims=ylims,
+#         folder_path=folder_path_main,
+#         real_situation=True,
+#         controlzone=None,
+#         infectionpoly=False,
+#         contacts_for_plotting={},
+#         show_movement_neighbours=True,
+#         save_suffix="_neighbours",
+#     )
 
 
-# plot the neighbours (not wind-neighbours)
-if not os.path.exists(os.path.join(folder_path_main, f"map_underlying0_neighbours.png")):
-    output.plot_map(
-        properties,
-        time=0,
-        xlims=xlims,
-        ylims=ylims,
-        folder_path=folder_path_main,
-        real_situation=True,
-        controlzone=None,
-        infectionpoly=False,
-        contacts_for_plotting={},
-        show_movement_neighbours=True,
-        save_suffix="_neighbours",
-    )
+trucks_df = FMD_functions.construct_trucks(properties)
+trucks_df.to_csv(os.path.join(folder_path_main, f"trucks_df_.csv"))
 
+exit(1)
 
 ###################################################
 # ---- "Burn in" movement -------------------------#
@@ -247,7 +253,8 @@ start_time = 0
 
 random.seed(10)
 np.random.seed(10)
-minimum_spread_time = 5
+burn_in_time = 1
+minimum_spread_time = start_time + burn_in_time
 target_infected_properties = 0
 
 unique_output = f"0_burn_in_movement"
@@ -257,6 +264,7 @@ if not os.path.exists(folder_path_burn_in_movement):
 
 initial_movement_properties_filename = os.path.join(folder_path_burn_in_movement, "properties_" + unique_output)
 initial_movement_diseaseoutbreak_filename = os.path.join(folder_path_burn_in_movement, "outbreakobject_" + unique_output)
+initial_movement_trucks_filename = os.path.join(folder_path_burn_in_movement, "trucks_df_" + unique_output)
 
 # parameters
 with open(os.path.join(folder_path_main, "disease_parameters.json"), "r") as file:
@@ -293,13 +301,14 @@ if not os.path.exists(initial_movement_properties_filename) or not os.path.exist
         unique_output=unique_output,
     )
 
-    properties, movement_records, current_time = diseaseoutbreak.simulate_outbreak_spread_only(
+    properties, movement_records, current_time, trucks_df = diseaseoutbreak.simulate_outbreak_spread_only(
         properties=properties,
         stop_time=minimum_spread_time,
         reporting_region_check=[xrange, yrange],
         min_infected_premises=target_infected_properties,
         outbreak_sim="FMD",
         max_spread_time=minimum_spread_time,
+        trucks_df=trucks_df,
     )
 
     # and then resave the end state
@@ -310,11 +319,17 @@ if not os.path.exists(initial_movement_properties_filename) or not os.path.exist
     with open(initial_movement_diseaseoutbreak_filename, "wb") as file:
         pickle.dump(diseaseoutbreak, file)
 
+    # and save the trucks
+    with open(initial_movement_trucks_filename, "wb") as file:
+        pickle.dump(trucks_df, file)
+
 else:
     with open(initial_movement_properties_filename, "rb") as file:
         properties = pickle.load(file)
     with open(initial_movement_diseaseoutbreak_filename, "rb") as file:
         diseaseoutbreak = pickle.load(file)
+    with open(initial_movement_trucks_filename, "rb") as file:
+        trucks_df = pickle.load(file)
 
 HPAI_functions.save_approx_known_data(properties, folder_path_burn_in_movement, unique_output)
 
@@ -396,13 +411,14 @@ if not os.path.exists(undetected_spread_properties_filename) or not os.path.exis
 
     # print(diseaseoutbreak.job_manager.jobs_queue)
 
-    properties, movement_records, current_time = diseaseoutbreak.simulate_outbreak_spread_only(
+    properties, movement_records, current_time, trucks_df = diseaseoutbreak.simulate_outbreak_spread_only(
         properties=properties,
         stop_time=minimum_spread_time,
         reporting_region_check=[reportingregion_x, reportingregion_y],
         min_infected_premises=target_infected_properties,
         outbreak_sim="FMD",
         max_spread_time=30,
+        trucks_df=trucks_df,
     )
 
     # and then resave the end state

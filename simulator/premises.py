@@ -713,12 +713,7 @@ class Premises(Property):
             "pre-clinical_period": preclinical_period,
         }
 
-        if self.animal_type != "chicken":
-            super().infection_model(
-                params,
-                FOI,
-            )
-        else:
+        if self.animal_type == "chicken":
             # infection model for each animals # TODO : there should be more infection risk within the same shed
             for shed_i, shed_info in self.sheds.items():
                 if "chickens" in shed_info:
@@ -743,6 +738,35 @@ class Premises(Property):
                                     chicken.update_clock()
                             else:
                                 pass  # pass  - no infection risk
+        elif isinstance(self.animal_type, list) or self.animal_type in ["cattle", "pigs", "sheep"]:
+            if isinstance(self.animal_type, list):
+                pass  # CURRENT TODO
+            else:
+                if isinstance(self.animals, list):
+                    for anim in self.animals:
+                        animal_inf = anim.infection_event(params, FOI)
+                        if animal_inf:
+                            self.cumulative_infections += 1
+                        anim.check_transition(params)
+                        anim.update_clock()
+                    # means they are infected, already animal type
+                elif FOI > 0:  # i.e., they can get infected
+                    self.init_animals(None)
+                    for anim in self.animals:
+                        animal_inf = anim.infection_event(params, FOI)
+                        if animal_inf:
+                            self.cumulative_infections += 1
+                        anim.check_transition(params)
+                        anim.update_clock()
+                else:
+                    pass  # pass  - no infection risk
+
+            # CURRENT TODO
+        else:
+            super().infection_model(
+                params,
+                FOI,
+            )
 
         if self.infection_status == 1 and self.exposure_date == "NA":
             self.exposure_date = convert_time_to_date(time)
@@ -1106,8 +1130,16 @@ class Premises(Property):
     def get_num_animals(self):
         if isinstance(self.animals, int):
             return self.animals
-        else:
+        elif isinstance(self.animals, list):
             return len(self.animals)
+        elif isinstance(self.animals, dict):
+            # new_p.animals[animal_type] = {"n":num_animals}
+            total_animals = 0
+            for ani_type in self.animals:
+                total_animals += self.animals[ani_type]["n"]
+            return total_animals
+        else:
+            raise ValueError(f"Unexpected self.animals {self.animals}")
 
     def return_output_row_FMD(self):
         """Returns a row with information for outputing (required downstream for forecasting)
@@ -1116,11 +1148,22 @@ class Premises(Property):
         -------
         list
             a list containing the following information in order:
-            id, status, ip, exposure_date, clinical_date, notification_date, removal_date, recovery_date, vacc_date, region, county, cluster, xcoord, ycoord, area, type, total
+            herd_id, farm_id, id, status, ip, exposure_date, clinical_date, notification_date, removal_date, recovery_date, vacc_date, region, county, cluster, xcoord, ycoord, area, type, total
 
         """
+        if "herd_id" in self.FMD_extra_info:
+            herd_id = self.FMD_extra_info["herd_id"]
+        else:
+            herd_id = "NA"
+
+        if "farm_id" in self.FMD_extra_info:
+            farm_id = self.FMD_extra_info["farm_id"]
+        else:
+            farm_id = "NA"
 
         return [
+            herd_id,
+            farm_id,
             self.id,
             self.case_id,
             self.status,
