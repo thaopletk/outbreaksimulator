@@ -209,6 +209,7 @@ class Premises(Property):
 
         # FMD specific
         self.FMD_extra_info = None
+        self.cumulative_infections_by_animal_type = {}
 
     def find_location(self):
         try:
@@ -739,6 +740,7 @@ class Premises(Property):
                             else:
                                 pass  # pass  - no infection risk
         elif isinstance(self.animal_type, list) or self.animal_type in ["cattle", "pigs", "sheep"]:
+            # cumulative_infections_by_animal_type < TODO this {"cattle": number}
             if isinstance(self.animal_type, list):
                 pass  # CURRENT TODO
             else:
@@ -999,8 +1001,6 @@ class Premises(Property):
 
     def update_counts(self):
         if self.animal_type != "chicken":
-            super.update_counts()
-        else:
             number_infected = 0
             number_infectious = 0
             number_clinical = 0
@@ -1046,6 +1046,22 @@ class Premises(Property):
             if self.type in ["abbatoir", "egg processing"]:
                 if number_infected == 0 and number_infectious == 0 and number_clinical == 0:
                     self.infection_status = 0
+        if self.animal_type in ["cattle", "sheep", "pigs"] or isinstance(self.animal_type, list):
+            # TODO
+            self.number_infectious_by_animal_type = {}
+            self.prop_infectious_by_animal_type = {}
+            raise SyntaxError("Update counts for FMD not done yet")
+
+        else:
+            super.update_counts()
+
+    def animal_types_on_site(self):
+        """for FMD scenario, to check if there are multiple animal types on site (relevant for abbatoir, and some other facilities)"""
+        animal_types_on_site = []
+        for a_type in self.animals:
+            if self.animals[a_type]["n"] > 0:
+                animal_types_on_site.append(a_type)
+        return animal_types_on_site
 
     def return_output_row_chickens(self):
         """Returns a row with information for outputing (required downstream for forecasting)

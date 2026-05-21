@@ -243,7 +243,6 @@ else:
 trucks_df = FMD_functions.construct_trucks(properties)
 trucks_df.to_csv(os.path.join(folder_path_main, f"trucks_df_.csv"))
 
-exit(1)
 
 ###################################################
 # ---- "Burn in" movement -------------------------#
@@ -339,6 +338,7 @@ if create_download_folder:
     else:
         v06_functions.create_separate_download_folder(folder_path_burn_in_movement, folder_path_main, "download_" + unique_output)
 
+exit(1)
 
 ###################################################
 # ---- Seed the first infection ------------------#

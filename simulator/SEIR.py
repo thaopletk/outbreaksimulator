@@ -151,122 +151,125 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mort
     elif outbreak_sim == "HPAI":
         vector_val = vector_val_HPAI(properties[premise_index].coordinates)
     elif outbreak_sim == "FMD":
-        vector_val = 1  # no vectors in FMD
+        vector_val = 1  # no vectors in FMD, purely wind
 
     # contribution from property i (on itself???)
     C_i = properties[premise_index].cumulative_infections
-    A_i = properties[premise_index].area
+    if C_i > 0:
+        A_i = properties[premise_index].area
 
-    # area of safe radius disc
-    # unsafe dist is the puffed polygons!
-    # unsafe_disc_i = properties[premise_index].puff_poly
-    A_is = properties[premise_index].puffed_poly_area
+        # area of safe radius disc
+        # unsafe dist is the puffed polygons!
+        # unsafe_disc_i = properties[premise_index].puff_poly
+        A_is = properties[premise_index].puffed_poly_area
 
-    if isinstance(beta_wind, dict):
-        animal_type_i = properties[premise_index].animal_type
-        if isinstance(animal_type_i, list):
-            averaged_beta = sum([beta_wind[a_type] for a_type in animal_type_i]) / len(animal_type_i)
-            FOI += vector_val * averaged_beta * C_i * A_i / A_is
+        if isinstance(beta_wind, dict):
+            animal_type_i = properties[premise_index].animal_type
+            if isinstance(animal_type_i, list):
+                C_i = properties[premise_index].cumulative_infections_by_animal_type
+                beta_C_i = sum([beta_wind[a_type] * C_i[a_type] for a_type in animal_type_i])
+                FOI += vector_val * (beta_C_i) * A_i / A_is
+            else:
+                FOI += vector_val * beta_wind[animal_type_i] * C_i * A_i / A_is
         else:
-            FOI += vector_val * beta_wind[animal_type_i] * C_i * A_i / A_is
-    else:
-        FOI += vector_val * beta_wind * C_i * A_i / A_is
+            FOI += vector_val * beta_wind * C_i * A_i / A_is
 
     property_i_polygon = properties[premise_index].polygon
 
     # contributions from neighbouring properties
     for [index, dist_centres] in properties[premise_index].neighbourhood:
-        if outbreak_sim in ["HPAI", "FMD"]:
-            # check if the neighbouring property is along the correct wind direction
-            neighbour = properties[index]
-            u10, v10 = get_wind_direction(neighbour.coordinates, time)
-
-            x0, y0 = neighbour.coordinates
-            minx, miny, maxx, maxy = neighbour.puffed_poly.bounds
-
-            if u10 > 0 and v10 > 0:
-                # top right
-                sector_square = Polygon([(x0, y0), (maxx, y0), (maxx, maxy), (x0, maxy), (x0, y0)])
-            elif u10 > 0 and v10 < 0:
-                # bottom  right
-                sector_square = Polygon([(x0, y0), (maxx, y0), (maxx, miny), (x0, miny), (x0, y0)])
-            elif u10 < 0 and v10 < 0:
-                # bottom left
-                sector_square = Polygon([(x0, y0), (x0, miny), (minx, miny), (minx, y0), (x0, y0)])
-            elif u10 < 0 and v10 > 0:
-                # top left
-                sector_square = Polygon([(x0, y0), (minx, y0), (minx, maxy), (x0, maxy), (x0, y0)])
-            else:
-                raise ValueError(f"Unexpected u10 {u10}, v10 {v10}")
-
-            unsafe_disc_j = sector_square.intersection(neighbour.puffed_poly)
-            if unsafe_disc_j.type == "Point":
-                A_js = 0
-            else:
-                A_js = calculate_area(unsafe_disc_j)
-        else:
-            # calculating area overlap
-            unsafe_disc_j = properties[index].puffed_poly
-            A_js = properties[index].puffed_poly_area  # area of unsafe_disc_j of properties[index]
-
         C_j = properties[index].cumulative_infections
-        if unsafe_disc_j.type == "Point":
-            A_ijs = 0
-            continue  # no point continuing here.
-        else:
-            A_ijs = calculate_area(property_i_polygon.intersection(unsafe_disc_j))
+        if C_j > 0:
+            if outbreak_sim in ["HPAI", "FMD"]:
+                # check if the neighbouring property is along the correct wind direction
+                neighbour = properties[index]
+                u10, v10 = get_wind_direction(neighbour.coordinates, time)
 
-        # calculating min distance centre j to boundary of i, in km
-        p1, p2 = nearest_points(property_i_polygon, Point(*properties[index].coordinates))
+                x0, y0 = neighbour.coordinates
+                minx, miny, maxx, maxy = neighbour.puffed_poly.bounds
 
-        d_ij = quick_distance_haversine([p1.x, p1.y], [p2.x, p2.y])
-        distance_modifier = max(0.001, 1 - (d_ij / r_wind))
+                if u10 > 0 and v10 > 0:
+                    # top right
+                    sector_square = Polygon([(x0, y0), (maxx, y0), (maxx, maxy), (x0, maxy), (x0, y0)])
+                elif u10 > 0 and v10 < 0:
+                    # bottom  right
+                    sector_square = Polygon([(x0, y0), (maxx, y0), (maxx, miny), (x0, miny), (x0, y0)])
+                elif u10 < 0 and v10 < 0:
+                    # bottom left
+                    sector_square = Polygon([(x0, y0), (x0, miny), (minx, miny), (minx, y0), (x0, y0)])
+                elif u10 < 0 and v10 > 0:
+                    # top left
+                    sector_square = Polygon([(x0, y0), (minx, y0), (minx, maxy), (x0, maxy), (x0, y0)])
+                else:
+                    raise ValueError(f"Unexpected u10 {u10}, v10 {v10}")
 
-        if outbreak_sim == "LSD":
-            # vector-relevant parts
-            vector_val_neighbour = [x for x in vectors_img.sample([properties[index].coordinates])][0][0]
-            # also, if this neighbouring property has already been culled, then calculate how long they have been culled, and implement a basic death rate for the vectors
-            vector_mortality_adjustment = 1
-            if properties[index].culled_status:
-                days_since_culled = convert_date_to_time(properties[index].removal_date)
-                vector_mortality_adjustment = 0.1 * np.exp(-vector_mortality_rate * days_since_culled)
-            elif properties[index].reported_status or properties[index].clinical_report_outcome == True:
-                vector_mortality_adjustment = 0.3  # assuming that they enact some vector control just in case
-            elif properties[index].undergoing_testing:
-                vector_mortality_adjustment = 0.5  # assuming they do some just in case
-        elif outbreak_sim == "HPAI":
-            vector_val_neighbour = vector_val_HPAI(properties[index].coordinates)
-            vector_mortality_adjustment = 1
-            if properties[index].culled_status:
-                days_since_culled = convert_date_to_time(properties[index].removal_date)
-                vector_mortality_adjustment = 0.1 * np.exp(-days_since_culled)
-            elif properties[index].reported_status or properties[index].clinical_report_outcome == True:
-                vector_mortality_adjustment = 0.3  # assuming that they enact some vector control just in case
-            elif properties[index].undergoing_testing:
-                vector_mortality_adjustment = 0.5  # assuming they do some just in case
-            # vector_mortality_adjustment = 1  # TODO | this basically assumes that the virus remains in the environment....
-        elif outbreak_sim == "FMD":
-            vector_mortality_adjustment = 1
-            vector_val_neighbour = 1
-            if properties[index].culled_status:
-                days_since_culled = convert_date_to_time(properties[index].removal_date)
-                vector_mortality_adjustment = 0
-            elif properties[index].reported_status or properties[index].clinical_report_outcome == True:
-                vector_mortality_adjustment = 0.3  # assuming that they enact some control just in case
-            elif properties[index].undergoing_testing:
-                vector_mortality_adjustment = 0.5  # assuming they do some just in case
-
-        # update FOI
-        if isinstance(beta_wind, dict):
-            animal_type_j = properties[index].animal_type
-            if isinstance(animal_type_j, list):
-                averaged_beta = sum([beta_wind[a_type] for a_type in animal_type_j]) / len(animal_type_j)
-                FOI += vector_mortality_adjustment * vector_val_neighbour * averaged_beta * C_j * distance_modifier * A_ijs / A_js
-                # TODO! need to handle properties with multiple animal types better
+                unsafe_disc_j = sector_square.intersection(neighbour.puffed_poly)
+                if unsafe_disc_j.type == "Point":
+                    A_js = 0
+                else:
+                    A_js = calculate_area(unsafe_disc_j)
             else:
-                FOI += vector_mortality_adjustment * vector_val_neighbour * beta_wind[animal_type_j] * C_j * distance_modifier * A_ijs / A_js
-        else:
-            FOI += vector_mortality_adjustment * vector_val_neighbour * beta_wind * C_j * distance_modifier * A_ijs / A_js
+                # calculating area overlap
+                unsafe_disc_j = properties[index].puffed_poly
+                A_js = properties[index].puffed_poly_area  # area of unsafe_disc_j of properties[index]
+
+            if unsafe_disc_j.type == "Point":
+                A_ijs = 0
+                pass  # no point continuing here.
+            else:
+                A_ijs = calculate_area(property_i_polygon.intersection(unsafe_disc_j))
+
+                # calculating min distance centre j to boundary of i, in km
+                p1, p2 = nearest_points(property_i_polygon, Point(*properties[index].coordinates))
+
+                d_ij = quick_distance_haversine([p1.x, p1.y], [p2.x, p2.y])
+                distance_modifier = max(0.001, 1 - (d_ij / r_wind))
+
+                if outbreak_sim == "LSD":
+                    # vector-relevant parts
+                    vector_val_neighbour = [x for x in vectors_img.sample([properties[index].coordinates])][0][0]
+                    # also, if this neighbouring property has already been culled, then calculate how long they have been culled, and implement a basic death rate for the vectors
+                    vector_mortality_adjustment = 1
+                    if properties[index].culled_status:
+                        days_since_culled = convert_date_to_time(properties[index].removal_date)
+                        vector_mortality_adjustment = 0.1 * np.exp(-vector_mortality_rate * days_since_culled)
+                    elif properties[index].reported_status or properties[index].clinical_report_outcome == True:
+                        vector_mortality_adjustment = 0.3  # assuming that they enact some vector control just in case
+                    elif properties[index].undergoing_testing:
+                        vector_mortality_adjustment = 0.5  # assuming they do some just in case
+                elif outbreak_sim == "HPAI":
+                    vector_val_neighbour = vector_val_HPAI(properties[index].coordinates)
+                    vector_mortality_adjustment = 1
+                    if properties[index].culled_status:
+                        days_since_culled = convert_date_to_time(properties[index].removal_date)
+                        vector_mortality_adjustment = 0.1 * np.exp(-days_since_culled)
+                    elif properties[index].reported_status or properties[index].clinical_report_outcome == True:
+                        vector_mortality_adjustment = 0.3  # assuming that they enact some vector control just in case
+                    elif properties[index].undergoing_testing:
+                        vector_mortality_adjustment = 0.5  # assuming they do some just in case
+                    # vector_mortality_adjustment = 1  # TODO | this basically assumes that the virus remains in the environment....
+                elif outbreak_sim == "FMD":
+                    vector_mortality_adjustment = 1
+                    vector_val_neighbour = 1
+                    if properties[index].culled_status:
+                        days_since_culled = convert_date_to_time(properties[index].removal_date)
+                        vector_mortality_adjustment = 0
+                    elif properties[index].reported_status or properties[index].clinical_report_outcome == True:
+                        vector_mortality_adjustment = 0.3  # assuming that they enact some control just in case
+                    elif properties[index].undergoing_testing:
+                        vector_mortality_adjustment = 0.5  # assuming they do some just in case
+
+                # update FOI
+                if isinstance(beta_wind, dict):
+                    animal_type_j = properties[index].animal_type
+                    if isinstance(animal_type_j, list):
+                        C_j = properties[index].cumulative_infections_by_animal_type
+                        beta_C_j = sum([beta_wind[a_type] * C_j[a_type] for a_type in animal_type_j])
+                        FOI += vector_mortality_adjustment * vector_val_neighbour * beta_C_j * distance_modifier * A_ijs / A_js
+                    else:
+                        FOI += vector_mortality_adjustment * vector_val_neighbour * beta_wind[animal_type_j] * C_j * distance_modifier * A_ijs / A_js
+                else:
+                    FOI += vector_mortality_adjustment * vector_val_neighbour * beta_wind * C_j * distance_modifier * A_ijs / A_js
 
     return FOI
 
@@ -291,17 +294,39 @@ def calculate_force_of_infection(properties, premise_index, vax_modifier, r_wind
         else:
             indoor_modifier = 1.1
             outdoor_modifier = 0.8
+    if outbreak_sim == "FMD":
+        if "intensive" in properties[premise_index].type:
+            indoor_modifier = 1.1
+            outdoor_modifier = 0.8
+        elif "extensive" in properties[premise_index].type:  # outdoor, free range basically
+            indoor_modifier = 0.9
+            outdoor_modifier = 1.1
 
+    # wind / fomite transmission
     FOI_wind = wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, outbreak_sim=outbreak_sim, time=time)
-    if isinstance(beta_animal, dict):
-        animal_type_i = properties[premise_index].animal_type
-        if isinstance(animal_type_i, list):
-            averaged_beta = sum([beta_animal[a_type] for a_type in animal_type_i]) / len(animal_type_i)
-            FOI_animal = FOI_calculation_fns.animal_FOI(properties[premise_index], {"beta_animal": averaged_beta})
+
+    # animal-to-animal transmission
+    if properties[premise_index].prop_infectious > 0:
+        if isinstance(beta_animal, dict):
+            animal_type_i = properties[premise_index].animal_type
+            if isinstance(animal_type_i, list):
+                # check if there are ACTUALLY multiple different types of animals or not on the premises
+                animal_types_on_site = properties[premise_index].animal_types_on_site()
+                if len(animal_types_on_site) == 0:
+                    FOI_animal = 0
+                elif len(animal_types_on_site) == 1:
+                    FOI_animal = FOI_calculation_fns.animal_FOI(properties[premise_index], {"beta_animal": beta_animal[animal_types_on_site[0]]})
+                else:  # there are multiple animal types on site
+                    FOI_animal = (
+                        sum([beta_animal[a_type] * properties[premise_index].number_infectious_by_animal_type[a_type] for a_type in animal_type_i])
+                        / properties[premise_index].get_num_animals()
+                    )
+            else:
+                FOI_animal = FOI_calculation_fns.animal_FOI(properties[premise_index], {"beta_animal": beta_animal[animal_type_i]})
         else:
-            FOI_animal = FOI_calculation_fns.animal_FOI(properties[premise_index], {"beta_animal": beta_animal[animal_type_i]})
+            FOI_animal = FOI_calculation_fns.animal_FOI(properties[premise_index], {"beta_animal": beta_animal})
     else:
-        FOI_animal = FOI_calculation_fns.animal_FOI(properties[premise_index], {"beta_animal": beta_animal})
+        FOI_animal = 0
 
     FOI = vax_status * (FOI_animal * indoor_modifier + FOI_wind * outdoor_modifier)
 
