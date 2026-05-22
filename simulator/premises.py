@@ -750,16 +750,18 @@ class Premises(Property):
 
             if self.check_if_animal_objects() == True:
                 for ani_type in self.animals:
-                    params = disease_parameters_by_animal_type[ani_type]
-                    for anim in self.animals[ani_type]["objs"]:
-                        animal_inf = anim.infection_event(params, FOI)
-                        if animal_inf:
-                            self.cumulative_infections += 1
-                            if ani_type in self.cumulative_infections_by_animal_type:
-                                self.cumulative_infections_by_animal_type[ani_type] += 1
-                            else:
-                                self.cumulative_infections_by_animal_type[ani_type] = 1
-                        anim.check_transition(params)
+                    if self.animals[ani_type]["n"] > 0:
+                        params = disease_parameters_by_animal_type[ani_type]
+                        for anim in self.animals[ani_type]["objs"]:
+                            animal_inf = anim.infection_event(params, FOI)
+                            if animal_inf:
+                                self.cumulative_infections += 1
+                                if ani_type in self.cumulative_infections_by_animal_type:
+                                    self.cumulative_infections_by_animal_type[ani_type] += 1
+                                else:
+                                    self.cumulative_infections_by_animal_type[ani_type] = 1
+                            anim.check_transition(params)
+                            anim.update_clock()
 
         else:
             super().infection_model(

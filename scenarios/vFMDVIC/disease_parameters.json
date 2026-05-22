@@ -3,18 +3,21 @@
     "beta_animal": 0.45,
     "latent_period": 10,
     "infectious_period": 7,
-    "preclinical_period": 14
+    "preclinical_period": 14,
+    "pre-clinical_period": 14
 },
     "pigs":{"beta_wind": 0.01,
     "beta_animal": 0.0375,
     "latent_period": 3,
     "infectious_period": 7,
-    "preclinical_period": 14
+    "preclinical_period": 14,
+    "pre-clinical_period": 14
 },
     "sheep": {"beta_wind": 0.0001,
     "beta_animal": 0.1125,
     "latent_period": 7,
     "infectious_period": 7,
-    "preclinical_period": 14
+    "preclinical_period": 14,
+    "pre-clinical_period": 14
 }
 }

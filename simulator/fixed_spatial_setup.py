@@ -1849,7 +1849,8 @@ def FMD_VIC_setup_locations(
             # "South Gippsland",
             # "Bass Coast",
             # "Latrobe (Vic.)",
-            "Wellington",
+            "Wellington",  # location of seeding property
+            "Wodonga",  # location of first detection
             # "Baw Baw",
             # "Cardinia",
             # "Yarra Ranges",

@@ -529,6 +529,7 @@ class DiseaseSimulation:
                     day=self.time,
                     controlzone=controlzone_movement_restrictions,
                     trucks_df=trucks_df,
+                    disease_parameters=self.disease_parameters,
                 )
                 self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
 
@@ -595,6 +596,7 @@ class DiseaseSimulation:
             fixed_spatial_setup.save_chicken_property_csv(properties, self.time, self.folder_path, self.unique_output)
         if outbreak_sim == "FMD":
             fixed_spatial_setup.save_FMD_property_csv(properties, self.time, self.folder_path, self.unique_output)
+            trucks_df.to_csv(os.path.join(self.folder_path, f"trucks_df_{self.unique_output}.csv"))
 
         animal_movement.save_movement_record(self.folder_path, self.movement_records)
 
@@ -707,7 +709,9 @@ class DiseaseSimulation:
 
         return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
 
-    def simulate_first_report(self, properties, reportingregion_x, reportingregion_y, outbreak_sim="LSD", output_suffix=""):
+    def simulate_first_report(
+        self, properties, reportingregion_x, reportingregion_y, outbreak_sim="LSD", output_suffix="", first_report_herd_id=None
+    ):
         """Simulates the first day of reporting and subsequent actions on that first day
 
         Parameters
@@ -755,10 +759,29 @@ class DiseaseSimulation:
 
         FOI = self.calculate_FOI_for_each_property(properties, outbreak_sim, self.time)
 
-        properties = self.run_infection_model_for_each_property(properties, FOI)
+        properties = self.run_infection_model_for_each_property(properties, FOI, outbreak_sim)
 
         # forcing a property to report
-        first_report_i = self.select_first_reported_property(properties, reportingregion_x, reportingregion_y)
+        if outbreak_sim == "FMD":
+            first_report_i = None
+            for i, property in enumerate(properties):
+                if "herd_id" in property.FMD_extra_info:
+                    if first_report_herd_id == property.FMD_extra_info["herd_id"]:
+                        first_report_i = i
+                        break
+            if first_report_i != None:
+                # check if it's actually infected or not
+                if properties[first_report_i].clinical_date != "NA":
+                    print("first detected herd successfully found")
+                    pass  # good
+                else:
+                    print("ideal first detected herd not actualy infected")
+                    first_report_i = self.select_first_reported_property(properties, reportingregion_x, reportingregion_y)
+            else:
+                print("ideal first detected herd not among the current properties")
+                first_report_i = self.select_first_reported_property(properties, reportingregion_x, reportingregion_y)
+        else:
+            first_report_i = self.select_first_reported_property(properties, reportingregion_x, reportingregion_y)
         reported_property = properties[first_report_i]
         self.make_report(reported_property, converted_date, first_report_i)
         self.daily_statistics[converted_date]["num self-reported"] += 1
