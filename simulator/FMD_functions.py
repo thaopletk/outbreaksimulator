@@ -79,6 +79,8 @@ def save_approx_known_data(properties, folder_path, unique_output="", output_suf
         "last_conducted_contact_tracing",
         "vaccinated_animals",
         "case_created_date",
+        "disposal_date",
+        "decontamination_date",
     ]
 
     data_rows_for_Biosecurity_Commons = []
@@ -116,11 +118,6 @@ def save_approx_known_data(properties, folder_path, unique_output="", output_suf
                 infection_data_known = facility.custom_info["infection_data_known"]
             except:
                 infection_data_known = False
-
-            # try:
-            #     property_data_known = facility.custom_info["property_data_known"]
-            # except:
-            #     property_data_known = False
 
             try:
                 last_surveillance_date = facility.custom_info["last_surveillance_date"]
@@ -198,6 +195,8 @@ def save_approx_known_data(properties, folder_path, unique_output="", output_suf
                     last_conducted_contact_tracing_date,
                     vaccinated_animals,
                     case_created_date,
+                    facility.disposal_date,
+                    facility.decontamination_date,
                 ]
 
                 writer.writerow(row)

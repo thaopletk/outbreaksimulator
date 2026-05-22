@@ -200,38 +200,41 @@ class DiseaseSimulation:
 
         narrative_df.to_csv(os.path.join(self.folder_path, f"combined_narrative{output_suffix}.csv"), index=False)
 
-    def save_daily_statistics(self, output_suffix=""):
-        header = [
-            "date",
-            "num self-reported",
-            "num positive clinical",
-            "num lab tested",
-            "num confirmed infected",
-            "num tested negative",
-            "DCP tested negative",
-            "surveillance tested negative",
-            "culled birds",
-            "destroyed eggs",
-            "vaccinated birds",
-        ]
+    def save_daily_statistics(self, output_suffix="", outbreak_sim="HPAI"):
+        if outbreak_sim == "HPAI":
+            header = [
+                "date",
+                "num self-reported",
+                "num positive clinical",
+                "num lab tested",
+                "num confirmed infected",
+                "num tested negative",
+                "DCP tested negative",
+                "surveillance tested negative",
+                "culled birds",
+                "destroyed eggs",
+                "vaccinated birds",
+            ]
+        elif outbreak_sim == "FMD":
+            header = [
+                "date",
+                "num self-reported",
+                "num positive clinical",
+                "num lab tested",
+                "num confirmed infected",
+                "num tested negative",
+                "DCP tested negative",
+                "surveillance tested negative",
+                "culled animals",
+                "vaccinated animals",
+            ]
         data = []
 
         for key, value in self.daily_statistics.items():
-            data.append(
-                [
-                    key,
-                    value["num self-reported"],
-                    value["num positive clinical"],
-                    value["num lab tested"],
-                    value["num confirmed infected"],
-                    value["num tested negative"],
-                    value["DCP tested negative"],
-                    value["surveillance tested negative"],
-                    value["culled birds"],
-                    value["destroyed eggs"],
-                    value["vaccinated birds"],
-                ]
-            )
+            row = [key]
+            for i in range(1, len(header)):
+                row.append(value[header[i]])
+            data.append(row)
         # order by the date
         data.sort(key=lambda x: x[0])
         # convert to dataframe
@@ -642,7 +645,7 @@ class DiseaseSimulation:
 
         return first_report_i
 
-    def force_sim_pause_after_report(self, properties, restricted_area, control_area, output_suffix=""):
+    def force_sim_pause_after_report(self, properties, restricted_area, control_area, output_suffix="", outbreak_sim="HPAI"):
         simulator.plot_current_state(
             properties,
             self.time,
@@ -674,7 +677,7 @@ class DiseaseSimulation:
         animal_movement.save_movement_record(self.folder_path, self.movement_records)
         self.save_reports(properties, restricted_area, control_area, output_suffix=output_suffix)
         self.job_manager.save_jobs_queue(self.folder_path)
-        self.save_daily_statistics(output_suffix)
+        self.save_daily_statistics(output_suffix, outbreak_sim=outbreak_sim)
 
         # TODO: add in a "total" column? or add in relative costs/estimated costs and a total estimated cost...
         self.job_manager.calculate_resources_used(self.folder_path, output_suffix)
@@ -739,18 +742,31 @@ class DiseaseSimulation:
         self.time += 1
         self.first_detection_day = self.time
         converted_date = premises.convert_time_to_date(self.time)
-        self.daily_statistics[converted_date] = {
-            "num self-reported": 0,
-            "num positive clinical": 0,
-            "num lab tested": 0,
-            "num confirmed infected": 0,
-            "num tested negative": 0,
-            "DCP tested negative": 0,
-            "surveillance tested negative": 0,
-            "culled birds": 0,
-            "destroyed eggs": 0,
-            "vaccinated birds": 0,
-        }
+        if outbreak_sim == "HPAI":
+            self.daily_statistics[converted_date] = {
+                "num self-reported": 0,
+                "num positive clinical": 0,
+                "num lab tested": 0,
+                "num confirmed infected": 0,
+                "num tested negative": 0,
+                "DCP tested negative": 0,
+                "surveillance tested negative": 0,
+                "culled birds": 0,
+                "destroyed eggs": 0,
+                "vaccinated birds": 0,
+            }
+        elif outbreak_sim == "FMD":
+            self.daily_statistics[converted_date] = {
+                "num self-reported": 0,
+                "num positive clinical": 0,
+                "num lab tested": 0,
+                "num confirmed infected": 0,
+                "num tested negative": 0,
+                "DCP tested negative": 0,
+                "surveillance tested negative": 0,
+                "culled animals": 0,
+                "vaccinated animals": 0,
+            }
 
         if outbreak_sim == "HPAI":
             HPAI_functions.advance_chicken_egg_ages(properties)
@@ -786,7 +802,9 @@ class DiseaseSimulation:
         self.make_report(reported_property, converted_date, first_report_i)
         self.daily_statistics[converted_date]["num self-reported"] += 1
 
-        return self.force_sim_pause_after_report(properties, restricted_area=None, control_area=None, output_suffix=output_suffix)
+        return self.force_sim_pause_after_report(
+            properties, restricted_area=None, control_area=None, output_suffix=output_suffix, outbreak_sim=outbreak_sim
+        )
 
     def simulate_first_day(self, properties, reportingregion_x, reportingregion_y):
         """Simulates the first day of reporting and subsequent actions on that first day
@@ -1766,11 +1784,12 @@ class DiseaseSimulation:
                         )
             elif facility.polygon.intersects(control_area):  # control area is the disease free buffer
                 if facility.status not in higher_priority_statuses:
-                    # if it contains chickens -> POR -> Premises of relevance
+                    # if it contains animals -> POR -> Premises of relevance
                     if (
                         (facility.known_birds != "" and facility.known_birds > 0)
                         or facility.get_num_eggs() > 0
                         or facility.get_num_fertilised_eggs() > 0
+                        or facility.get_num_animals() > 0
                     ):
                         OG_status = facility.status
 
@@ -1793,7 +1812,11 @@ class DiseaseSimulation:
                             )
 
                     elif (
-                        facility.known_birds != "" and facility.known_birds == 0 and facility.get_num_chickens() == 0 and facility.get_num_eggs() == 0
+                        facility.known_birds != ""
+                        and facility.known_birds == 0
+                        and facility.get_num_chickens() == 0
+                        and facility.get_num_eggs() == 0
+                        and facility.get_num_animals() == 0
                     ):
                         OG_status = facility.status
                         if facility.case_id == None:
@@ -2152,7 +2175,7 @@ class DiseaseSimulation:
         animal_movement.save_movement_record(self.folder_path, self.movement_records)
         self.save_reports(properties, restricted_area, control_area, output_suffix=output_suffix)
         self.job_manager.save_jobs_HPAI(self.folder_path, f"completed_jobs{output_suffix}.csv")
-        self.save_daily_statistics(output_suffix=output_suffix)
+        self.save_daily_statistics(output_suffix=output_suffix, outbreak_sim=outbreak_sim)
 
         self.job_manager.calculate_resources_used(self.folder_path, output_suffix)
 
@@ -2203,6 +2226,7 @@ class DiseaseSimulation:
         enhanced_passive_surveillance_area=None,
         enhanced_reporting_factor=2,
         output_suffix="",
+        trucks_df=None,
     ):
 
         if time != None:
@@ -2216,22 +2240,36 @@ class DiseaseSimulation:
         while self.time < stop_time:
             self.time += 1
             converted_date = premises.convert_time_to_date(self.time)
-            self.daily_statistics[converted_date] = {
-                "num self-reported": 0,
-                "num positive clinical": 0,
-                "num lab tested": 0,
-                "num confirmed infected": 0,
-                "num tested negative": 0,
-                "DCP tested negative": 0,
-                "surveillance tested negative": 0,
-                "culled birds": 0,
-                "destroyed eggs": 0,
-                "vaccinated birds": 0,
-            }
+            if outbreak_sim == "HPAI":
+                self.daily_statistics[converted_date] = {
+                    "num self-reported": 0,
+                    "num positive clinical": 0,
+                    "num lab tested": 0,
+                    "num confirmed infected": 0,
+                    "num tested negative": 0,
+                    "DCP tested negative": 0,
+                    "surveillance tested negative": 0,
+                    "culled birds": 0,
+                    "destroyed eggs": 0,
+                    "vaccinated birds": 0,
+                }
 
-            HPAI_functions.advance_chicken_egg_ages(properties)
-            HPAI_functions.egg_production(properties)
-            HPAI_functions.finish_cleaning_sheds(properties, self.time)
+                HPAI_functions.advance_chicken_egg_ages(properties)
+                HPAI_functions.egg_production(properties)
+                HPAI_functions.finish_cleaning_sheds(properties, self.time)
+
+            elif outbreak_sim == "FMD":
+                self.daily_statistics[converted_date] = {
+                    "num self-reported": 0,
+                    "num positive clinical": 0,
+                    "num lab tested": 0,
+                    "num confirmed infected": 0,
+                    "num tested negative": 0,
+                    "DCP tested negative": 0,
+                    "surveillance tested negative": 0,
+                    "culled animals": 0,
+                    "vaccinated animals": 0,
+                }
 
             # calculate FOI for each property
             FOI = self.calculate_FOI_for_each_property(properties, outbreak_sim, self.time)
@@ -2243,7 +2281,7 @@ class DiseaseSimulation:
                 else:
                     increased_reporting_factor = 1
 
-                if facility.type == "backyard":
+                if facility.type == "backyard" or facility.type == "smallholder":
                     reporting_probability = self.prob_report_backyard
                 else:
                     reporting_probability = self.prob_report_commercial
@@ -2260,7 +2298,7 @@ class DiseaseSimulation:
                     self.daily_statistics[converted_date]["num self-reported"] += 1
 
             # run infection model for each property
-            properties = self.run_infection_model_for_each_property(properties, FOI)
+            properties = self.run_infection_model_for_each_property(properties, FOI, outbreak_sim)
 
             # get control zones - TODO - should move this out of the disease simulation component??? and just input in restricted area and control area directly
             RA_df = property_based_zones[property_based_zones["zone_type"] == "RA"]
@@ -2387,14 +2425,16 @@ class DiseaseSimulation:
                             [self.time, converted_date, "test", property_index, testing_report, properties[property_index].case_id]
                         )
 
-                        properties[property_index].custom_info["property_data_known"] = True
-                        properties[property_index].data_source = "farm inspection"
-                        properties[property_index].known_sheds = properties[property_index].num_sheds
-                        if not (properties[property_index].type in ["egg processing", "abbatoir", "backyard"]):
-                            properties[property_index].known_area = properties[property_index].area
-                            properties[property_index].known_birds = properties[property_index].get_num_chickens()
-                        if properties[property_index].type == "backyard":
-                            properties[property_index].known_birds = properties[property_index].get_num_chickens()
+                        if outbreak_sim == "HPAI":
+                            properties[property_index].custom_info["property_data_known"] = True
+
+                            properties[property_index].data_source = "farm inspection"
+                            properties[property_index].known_sheds = properties[property_index].num_sheds
+                            if not (properties[property_index].type in ["egg processing", "abbatoir", "backyard"]):
+                                properties[property_index].known_area = properties[property_index].area
+                                properties[property_index].known_birds = properties[property_index].get_num_chickens()
+                            if properties[property_index].type == "backyard":
+                                properties[property_index].known_birds = properties[property_index].get_num_chickens()
 
                         properties[property_index].custom_info["last_surveillance_date"] = converted_date
 
@@ -2435,7 +2475,7 @@ class DiseaseSimulation:
                             detection_prob = row["detection_prob"]
                         else:
                             if row["specific_action"] == "Phone Surveillance":
-                                if properties[property_index].type == "backyard":
+                                if properties[property_index].type == "backyard" or properties[property_index].type == "smallholder":
                                     detection_prob = 0.95 * 0.5
                                 else:
                                     detection_prob = 0.95 * 0.95
@@ -2469,14 +2509,15 @@ class DiseaseSimulation:
                             [self.time, converted_date, "surveillance", property_index, testing_report, properties[property_index].case_id]
                         )
 
-                        properties[property_index].custom_info["property_data_known"] = True
-                        properties[property_index].data_source = row["specific_action"]
-                        properties[property_index].known_sheds = properties[property_index].num_sheds
-                        if not (properties[property_index].type in ["egg processing", "abbatoir", "backyard"]):
-                            properties[property_index].known_area = properties[property_index].area
-                            properties[property_index].known_birds = properties[property_index].get_num_chickens()
-                        if properties[property_index].type == "backyard":
-                            properties[property_index].known_birds = properties[property_index].get_num_chickens()
+                        if outbreak_sim == "HPAI":
+                            properties[property_index].custom_info["property_data_known"] = True
+                            properties[property_index].data_source = row["specific_action"]
+                            properties[property_index].known_sheds = properties[property_index].num_sheds
+                            if not (properties[property_index].type in ["egg processing", "abbatoir", "backyard"]):
+                                properties[property_index].known_area = properties[property_index].area
+                                properties[property_index].known_birds = properties[property_index].get_num_chickens()
+                            if properties[property_index].type == "backyard":
+                                properties[property_index].known_birds = properties[property_index].get_num_chickens()
 
                         properties[property_index].custom_info["last_surveillance_date"] = converted_date
 
@@ -2524,74 +2565,130 @@ class DiseaseSimulation:
                         facility = properties[property_index]
                         facility.custom_info["last_cull_date"] = converted_date
 
-                        num_eggs = properties[property_index].get_num_eggs() + properties[property_index].get_num_fertilised_eggs()
-                        if num_eggs > 0:
-                            if "destroyed_eggs" in properties[property_index].custom_info:
-                                properties[property_index].custom_info["destroyed_eggs"] += num_eggs
+                        if outbreak_sim == "HPAI":
+                            num_eggs = properties[property_index].get_num_eggs() + properties[property_index].get_num_fertilised_eggs()
+                            if num_eggs > 0:
+                                if "destroyed_eggs" in properties[property_index].custom_info:
+                                    properties[property_index].custom_info["destroyed_eggs"] += num_eggs
+                                else:
+                                    properties[property_index].custom_info["destroyed_eggs"] = num_eggs
+                                properties[property_index].eggs = 0
+                                for shed_i, shed_info in facility.sheds.items():
+                                    if "eggs" in shed_info:
+                                        shed_info["eggs"] = []  # removing fertlised eggs from existence
+
+                            num_chickens_left = properties[property_index].get_num_chickens()
+                            if num_chickens_left <= num_animals_to_cull:
+                                # cull everything
+                                for shed_i, shed_info in facility.sheds.items():
+                                    if "chickens" in shed_info:
+                                        shed_info["chickens"] = []  # removing them from existence
+                                        # TODO: technically could set the sheds to "clean"
+
+                                if "culled_birds" in properties[property_index].custom_info:
+                                    properties[property_index].custom_info["culled_birds"] += num_chickens_left
+                                else:
+                                    properties[property_index].custom_info["culled_birds"] = num_chickens_left
+
+                                newly_culled_animals = num_chickens_left
+                                properties[property_index].known_birds = properties[property_index].known_birds - num_chickens_left
                             else:
-                                properties[property_index].custom_info["destroyed_eggs"] = num_eggs
-                            properties[property_index].eggs = 0
-                            for shed_i, shed_info in facility.sheds.items():
-                                if "eggs" in shed_info:
-                                    shed_info["eggs"] = []  # removing fertlised eggs from existence
+                                # there are more chickens than capacity to cull
+                                chickens_left_to_cull_today = num_animals_to_cull
+                                newly_culled_animals = num_animals_to_cull
 
-                        num_chickens_left = properties[property_index].get_num_chickens()
-                        if num_chickens_left <= num_animals_to_cull:
-                            # cull everything
-                            for shed_i, shed_info in facility.sheds.items():
-                                if "chickens" in shed_info:
-                                    shed_info["chickens"] = []  # removing them from existence
-                                    # TODO: technically could set the sheds to "clean"
+                                if "culled_birds" in properties[property_index].custom_info:
+                                    properties[property_index].custom_info["culled_birds"] += num_animals_to_cull
+                                else:
+                                    properties[property_index].custom_info["culled_birds"] = num_animals_to_cull
 
-                            if "culled_birds" in properties[property_index].custom_info:
-                                properties[property_index].custom_info["culled_birds"] += num_chickens_left
+                                # calling this function actually "pops" out the chickens for us
+                                chickens_to_cull = HPAI_functions.chickens_to_cull(properties, property_index, self.time, chickens_left_to_cull_today)
+
+                                properties[property_index].known_birds = properties[property_index].get_num_chickens()
+
+                            premise_report = f"DAY {converted_date} - {facility.type} (sim_id {facility.id}), case_id {facility.case_id} {facility.status}, IP {facility.ip}) at ({round(facility.x,2)}, {round(facility.y,2)}), {facility.get_location()}: \nA total of {newly_culled_animals} animal(s) have been culled and {num_eggs} egg(s) destroyed."
+                            self.combined_narrative.append([self.time, converted_date, "cull", property_index, premise_report, facility.case_id])
+
+                            if facility.get_num_chickens() == 0:
+                                facility.culled_status = 1
+                                facility.removal_date = converted_date
+                                facility.infection_status = 0
+                                OG_status = facility.status
+                                facility.status = "RP"
+                                self.combined_narrative.append(
+                                    [
+                                        self.time,
+                                        converted_date,
+                                        "status_update",
+                                        properties[property_index].id,
+                                        f"{properties[property_index].type} (sim_id {properties[property_index].id}) has updated status: {properties[property_index].status} (prior status: {OG_status})",
+                                        properties[property_index].case_id,
+                                    ]
+                                )
+
+                            self.total_culled_animals += newly_culled_animals
+                            self.daily_statistics[converted_date]["culled birds"] += newly_culled_animals
+                            self.daily_statistics[converted_date]["destroyed eggs"] += num_eggs
+
+                            extra_job_info = f"{newly_culled_animals} chickens culled, {num_eggs} eggs destroyed"
+                            if facility.infection_status == 0:
+                                extra_job_info += "; culling on property complete"
+
+                        elif outbreak_sim == "FMD":
+                            animals_left = properties[property_index].get_num_animals()
+                            if animals_left <= num_animals_to_cull:
+                                # cull everything
+                                properties[property_index].animals = {}
+
+                                if "cull_animals" in properties[property_index].custom_info:
+                                    properties[property_index].custom_info["cull_animals"] += animals_left
+                                else:
+                                    properties[property_index].custom_info["cull_animals"] = animals_left
+
+                                newly_culled_animals = animals_left
                             else:
-                                properties[property_index].custom_info["culled_birds"] = num_chickens_left
+                                # there are more animals than available to cull
+                                animals_left_to_cull_today = num_animals_to_cull
+                                newly_culled_animals = num_animals_to_cull
 
-                            newly_culled_animals = num_chickens_left
-                            properties[property_index].known_birds = properties[property_index].known_birds - num_chickens_left
+                                if "cull_animals" in properties[property_index].custom_info:
+                                    properties[property_index].custom_info["cull_animals"] += num_animals_to_cull
+                                else:
+                                    properties[property_index].custom_info["cull_animals"] = num_animals_to_cull
+
+                                for ani_type in properties[property_index].animals:
+                                    if properties[property_index].animals[ani_type]["n"] > 0:
+                                        if properties[property_index].animals[ani_type]["n"] < animals_left_to_cull_today:
+                                            # clear this
+                                            animals_left_to_cull_today -= properties[property_index].animals[ani_type]["n"]
+                                            properties[property_index].animals[ani_type]["n"] = 0
+                                            if "objs" in properties[property_index].animals[ani_type]:
+                                                del properties[property_index].animals[ani_type]["objs"]
+                                        else:
+                                            properties[property_index].animals[ani_type]["n"] = (
+                                                properties[property_index].animals[ani_type]["n"] - animals_left_to_cull_today
+                                            )
+                                            if "objs" in properties[property_index].animals[ani_type]:
+                                                properties[property_index].animals[ani_type]["objs"] = properties[property_index].animals[ani_type][
+                                                    "objs"
+                                                ][animals_left_to_cull_today:]
+
+                                            animals_left_to_cull_today = 0
+
+                            premise_report = f"DAY {converted_date} - {facility.type} (sim_id {facility.id}), case_id {facility.case_id} {facility.status}, IP {facility.ip}) at ({round(facility.x,2)}, {round(facility.y,2)}), {facility.get_location()}: \nA total of {newly_culled_animals} animal(s) have been culled."
+                            self.combined_narrative.append([self.time, converted_date, "cull", property_index, premise_report, facility.case_id])
+
+                            if facility.get_num_animals() == 0:
+                                facility.culled_status = 1
+                                facility.removal_date = converted_date
+                                facility.infection_status = 0
+
+                            self.total_culled_animals += newly_culled_animals
+                            self.daily_statistics[converted_date]["culled animals"] += newly_culled_animals
+
                         else:
-                            # there are more chickens than capacity to cull
-                            chickens_left_to_cull_today = num_animals_to_cull
-                            newly_culled_animals = num_animals_to_cull
-
-                            if "culled_birds" in properties[property_index].custom_info:
-                                properties[property_index].custom_info["culled_birds"] += num_animals_to_cull
-                            else:
-                                properties[property_index].custom_info["culled_birds"] = num_animals_to_cull
-
-                            # calling this function actually "pops" out the chickens for us
-                            chickens_to_cull = HPAI_functions.chickens_to_cull(properties, property_index, self.time, chickens_left_to_cull_today)
-
-                            properties[property_index].known_birds = properties[property_index].get_num_chickens()
-
-                        premise_report = f"DAY {converted_date} - {facility.type} (sim_id {facility.id}), case_id {facility.case_id} {facility.status}, IP {facility.ip}) at ({round(facility.x,2)}, {round(facility.y,2)}), {facility.get_location()}: \nA total of {newly_culled_animals} animal(s) have been culled and {num_eggs} egg(s) destroyed."
-                        self.combined_narrative.append([self.time, converted_date, "cull", property_index, premise_report, facility.case_id])
-
-                        if facility.get_num_chickens() == 0:
-                            facility.culled_status = 1
-                            facility.removal_date = converted_date
-                            facility.infection_status = 0
-                            OG_status = facility.status
-                            facility.status = "RP"
-                            self.combined_narrative.append(
-                                [
-                                    self.time,
-                                    converted_date,
-                                    "status_update",
-                                    properties[property_index].id,
-                                    f"{properties[property_index].type} (sim_id {properties[property_index].id}) has updated status: {properties[property_index].status} (prior status: {OG_status})",
-                                    properties[property_index].case_id,
-                                ]
-                            )
-
-                        self.total_culled_animals += newly_culled_animals
-                        self.daily_statistics[converted_date]["culled birds"] += newly_culled_animals
-                        self.daily_statistics[converted_date]["destroyed eggs"] += num_eggs
-
-                        extra_job_info = f"{newly_culled_animals} chickens culled, {num_eggs} eggs destroyed"
-                        if facility.infection_status == 0:
-                            extra_job_info += "; culling on property complete"
+                            raise ValueError(f"outbreak_sim {outbreak_sim} not expected - for culling procedures")
 
                     elif job_type == "ContactTracing":
                         contact_tracing_report, traced_property_indices = management.contact_tracing(
@@ -2641,8 +2738,13 @@ class DiseaseSimulation:
 
                     elif job_type == "Vaccination":
                         num_animals_to_vaccinate = int(row["num"])
-                        total_animals = properties[property_index].get_num_chickens()
+
                         properties[property_index].custom_info["last_vaccination_date"] = converted_date
+
+                        if outbreak_sim == "HPAI":
+                            total_animals = properties[property_index].get_num_chickens()
+                        elif outbreak_sim == "FMD":
+                            total_animals = properties[property_index].get_num_animals()
 
                         if properties[property_index].case_id == None:
                             self.case_id_counter += 1
@@ -2664,34 +2766,41 @@ class DiseaseSimulation:
                         if isinstance(row["detection_prob"], float):
                             self.set_vax_modifier(row["detection_prob"])
 
+                        if outbreak_sim == "HPAI":
+                            dict_text = "vaccinated_birds"
+                            daily_stat_text = "vaccinated birds"
+                        elif outbreak_sim == "FMD":
+                            dict_text = "vaccinated_animals"
+                            daily_stat_text = "vaccinated animals"
+
                         if num_animals_to_vaccinate >= total_animals:
                             properties[property_index].vaccinate(self.time)
-                            if "vaccinated_birds" in properties[property_index].custom_info:
-                                properties[property_index].custom_info["vaccinated_birds"] += total_animals
+                            if dict_text in properties[property_index].custom_info:
+                                properties[property_index].custom_info[dict_text] += total_animals
                             else:
-                                properties[property_index].custom_info["vaccinated_birds"] = total_animals
+                                properties[property_index].custom_info[dict_text] = total_animals
 
-                            self.daily_statistics[converted_date]["vaccinated birds"] += total_animals
+                            self.daily_statistics[converted_date][daily_stat_text] += total_animals
 
                             num_animals_to_vaccinate = total_animals
                         else:
                             proportion_vaccinated = num_animals_to_vaccinate / total_animals
                             properties[property_index].vaccination_status = properties[property_index].vaccination_status + proportion_vaccinated
 
-                            if "vaccinated_birds" in properties[property_index].custom_info:
-                                properties[property_index].custom_info["vaccinated_birds"] += num_animals_to_vaccinate
+                            if dict_text in properties[property_index].custom_info:
+                                properties[property_index].custom_info[dict_text] += num_animals_to_vaccinate
                             else:
-                                properties[property_index].custom_info["vaccinated_birds"] = num_animals_to_vaccinate
+                                properties[property_index].custom_info[dict_text] = num_animals_to_vaccinate
 
                             if properties[property_index].vaccination_status >= 1.0:
                                 properties[property_index].vacc_date = converted_date
 
-                            self.daily_statistics[converted_date]["vaccinated birds"] += num_animals_to_vaccinate
+                            self.daily_statistics[converted_date][daily_stat_text] += num_animals_to_vaccinate
 
-                        premise_report = f"DAY {converted_date} - {properties[property_index].type} (sim_id {properties[property_index].id}), case_id {properties[property_index].case_id} {properties[property_index].status}, IP {properties[property_index].ip}) at ({round(properties[property_index].x,2)}, {round(properties[property_index].y,2)}), {properties[property_index].get_location()}: \nA total of {num_animals_to_vaccinate} birds have been vaccinated."
+                        premise_report = f"DAY {converted_date} - {properties[property_index].type} (sim_id {properties[property_index].id}), case_id {properties[property_index].case_id} {properties[property_index].status}, IP {properties[property_index].ip}) at ({round(properties[property_index].x,2)}, {round(properties[property_index].y,2)}), {properties[property_index].get_location()}: \nA total of {num_animals_to_vaccinate} animals have been vaccinated."
                         self.combined_narrative.append([self.time, converted_date, "vaccination", property_index, premise_report, facility.case_id])
 
-                        extra_job_info = f"{num_animals_to_vaccinate} chickens vaccinated"
+                        extra_job_info = f"{num_animals_to_vaccinate} animals vaccinated"
                         if properties[property_index].vaccination_status >= 1.0:
                             extra_job_info += "; vaccination on property complete"
 
@@ -2708,6 +2817,25 @@ class DiseaseSimulation:
                                         properties[t_i].case_id,
                                     ]
                                 )
+                    elif job_type == "Disposal":
+                        facility.disposed_status = 1
+                        facility.disposal_date = converted_date
+                    elif job_type == "Decontamination":
+                        facility.decontaminated_status = 1
+                        facility.decontamination_date = converted_date
+
+                        OG_status = facility.status
+                        facility.status = "RP"
+                        self.combined_narrative.append(
+                            [
+                                self.time,
+                                converted_date,
+                                "status_update",
+                                properties[property_index].id,
+                                f"{properties[property_index].type} (sim_id {properties[property_index].id}) has updated status: {properties[property_index].status} (prior status: {OG_status}) - decontamination complete",
+                                properties[property_index].case_id,
+                            ]
+                        )
 
                     if job_type not in self.job_manager.jobs_queue[property_index]:
                         self.job_manager.jobs_queue[property_index][job_type] = {}
@@ -2883,14 +3011,27 @@ class DiseaseSimulation:
             controlzone_movement_restrictions = restricted_area
             movement_reduction_factor = 0.2  # 80% reduction / 20% chance of movement
 
-            movement_record, number_of_movement_requests = HPAI_functions.animal_movement(
-                properties,
-                day=self.time,
-                controlzone=controlzone_movement_restrictions,
-                reduced_movement_zone=control_area,
-                movement_reduction_factor=movement_reduction_factor,
-                all_movement_reduction_factor=0.8,  # reducing probability of movement in RA and CA
-            )
+            if outbreak_sim == "HPAI":
+                movement_record, number_of_movement_requests = HPAI_functions.animal_movement(
+                    properties,
+                    day=self.time,
+                    controlzone=controlzone_movement_restrictions,
+                    reduced_movement_zone=control_area,
+                    movement_reduction_factor=movement_reduction_factor,
+                    all_movement_reduction_factor=0.8,  # reducing probability of movement in RA and CA
+                )
+            elif outbreak_sim == "FMD":
+                movement_record, number_of_movement_requests, trucks_df = FMD_functions.animal_movement(
+                    properties,
+                    day=self.time,
+                    controlzone=controlzone_movement_restrictions,
+                    reduced_movement_zone=control_area,
+                    movement_reduction_factor=movement_reduction_factor,
+                    all_movement_reduction_factor=0.8,
+                    trucks_df=trucks_df,
+                    disease_parameters=self.disease_parameters,
+                )
+
             self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
             self.combined_narrative.append(
                 [
@@ -2942,12 +3083,16 @@ class DiseaseSimulation:
             job_manager=self.job_manager,
         )
 
-        fixed_spatial_setup.save_chicken_property_csv(properties, self.time, self.folder_path, self.unique_output)
+        if outbreak_sim == "HPAI":
+            fixed_spatial_setup.save_chicken_property_csv(properties, self.time, self.folder_path, self.unique_output)
+        if outbreak_sim == "FMD":
+            fixed_spatial_setup.save_FMD_property_csv(properties, self.time, self.folder_path, self.unique_output)
+            trucks_df.to_csv(os.path.join(self.folder_path, f"trucks_df_{self.unique_output}.csv"))
 
         animal_movement.save_movement_record(self.folder_path, self.movement_records)
         self.save_reports(properties, restricted_area, control_area, output_suffix=output_suffix)
         self.job_manager.save_jobs_HPAI(self.folder_path, f"completed_jobs{output_suffix}.csv")
-        self.save_daily_statistics(output_suffix=output_suffix)
+        self.save_daily_statistics(output_suffix=output_suffix, outbreak_sim=outbreak_sim)
 
         self.job_manager.calculate_resources_used(self.folder_path, output_suffix)
 

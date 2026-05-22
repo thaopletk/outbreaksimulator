@@ -233,6 +233,7 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mort
                     if properties[index].culled_status:
                         days_since_culled = convert_date_to_time(properties[index].removal_date)
                         vector_mortality_adjustment = 0.1 * np.exp(-vector_mortality_rate * days_since_culled)
+
                     elif properties[index].reported_status or properties[index].clinical_report_outcome == True:
                         vector_mortality_adjustment = 0.3  # assuming that they enact some vector control just in case
                     elif properties[index].undergoing_testing:
@@ -243,6 +244,10 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mort
                     if properties[index].culled_status:
                         days_since_culled = convert_date_to_time(properties[index].removal_date)
                         vector_mortality_adjustment = 0.1 * np.exp(-days_since_culled)
+
+                        if properties[index].decontaminated_status:
+                            vector_mortality_adjustment = 0
+
                     elif properties[index].reported_status or properties[index].clinical_report_outcome == True:
                         vector_mortality_adjustment = 0.3  # assuming that they enact some vector control just in case
                     elif properties[index].undergoing_testing:
@@ -252,12 +257,16 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mort
                     vector_mortality_adjustment = 1
                     vector_val_neighbour = 1
                     if properties[index].culled_status:
-                        days_since_culled = convert_date_to_time(properties[index].removal_date)
-                        vector_mortality_adjustment = 0
+                        # days_since_culled = convert_date_to_time(properties[index].removal_date)
+                        vector_mortality_adjustment = 0.3
+                        if properties[index].disposed_status:
+                            vector_mortality_adjustment = 0.15
+                        if properties[index].decontaminated_status:
+                            vector_mortality_adjustment = 0
                     elif properties[index].reported_status or properties[index].clinical_report_outcome == True:
-                        vector_mortality_adjustment = 0.3  # assuming that they enact some control just in case
+                        vector_mortality_adjustment = 0.5  # assuming that they enact some control just in case
                     elif properties[index].undergoing_testing:
-                        vector_mortality_adjustment = 0.5  # assuming they do some just in case
+                        vector_mortality_adjustment = 0.7  # assuming they do some just in case
 
                 # update FOI
                 if isinstance(beta_wind, dict):

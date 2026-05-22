@@ -760,6 +760,8 @@ class JobManager:
             "Population-level Surveillance",
             "Wild Animal Surveillance",
             "Environmental Surveillance",
+            "Disposal",
+            "Decontamination",
         ]
         resources = {}
         for property_index in self.jobs_queue.keys():

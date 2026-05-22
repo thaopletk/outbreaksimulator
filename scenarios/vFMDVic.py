@@ -12,6 +12,7 @@ import geopandas as gpd
 
 # import subprocess
 import pandas as pd
+from shapely.ops import unary_union
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -490,13 +491,6 @@ def run_seeding_undetected_spread(state="VIC", burn_in_time=0, create_download_f
         with open(undetected_spread_trucks_filename, "wb") as file:
             pickle.dump(trucks_df, file)
 
-        total_infected = 0
-        for property_i in properties:
-            if property_i.exposure_date != "NA":
-                total_infected += 1
-
-        print(f"Total number of infected premises: {total_infected}")
-
         FMD_functions.save_approx_known_data(properties, folder_path_undetected_spread, unique_output)
 
         if create_download_folder:
@@ -505,13 +499,20 @@ def run_seeding_undetected_spread(state="VIC", burn_in_time=0, create_download_f
             else:
                 v06_functions.create_separate_download_folder(folder_path_undetected_spread, folder_path_main, "download_" + unique_output)
 
-    # else:
-    #     with open(undetected_spread_properties_filename, "rb") as file:
-    #         properties = pickle.load(file)
+    else:
+        with open(undetected_spread_properties_filename, "rb") as file:
+            properties = pickle.load(file)
     #     with open(undetected_spread_diseaseoutbreak_filename, "rb") as file:
     #         diseaseoutbreak = pickle.load(file)
     #     with open(undetected_spread_trucks_filename, "rb") as file:
     #         trucks_df = pickle.load(file)
+
+    total_infected = 0
+    for property_i in properties:
+        if property_i.exposure_date != "NA":
+            total_infected += 1
+
+    print(f"Total number of infected premises: {total_infected}")
 
     return total_infected, undetected_spread_properties_filename, undetected_spread_diseaseoutbreak_filename, undetected_spread_trucks_filename
 
@@ -626,5 +627,165 @@ def trigger_first_report(
     )
 
 
-# notes for next steps:continue following the v0.6 and continue set up of properties.
-# then take a closer look at (1) the original FMD parameters to try and match them; and (2) the initial outbreak data to try and fit it; and (3) ABC method to more roughly fit it.
+def get_enhanced_passive_surveillance_area(property_based_zones, properties):
+    EPS_df = property_based_zones[property_based_zones["zone_type"] == "Enhanced Passive Surveillance"]
+    EPS_geo_list = []
+    enhanced_reporting_factor = 1
+    for i, row in EPS_df.iterrows():
+
+        enhanced_passive_surveillance_area = management.define_control_zone_polygons(
+            properties,
+            [row["ID"]],
+            row["radius_km"],
+            convex=False,
+        )  # should be zero movement
+        EPS_geo_list.append(enhanced_passive_surveillance_area)
+        if isinstance(row["zone_parameter"], float):
+            enhanced_reporting_factor = row["zone_parameter"]
+        elif row["zone_parameter"].isnull() and enhanced_reporting_factor == 1:
+            enhanced_reporting_factor = 2
+        else:
+            pass
+
+    enhanced_passive_surveillance_area = unary_union(EPS_geo_list)
+
+    Australia_gdf = spatial_setup.get_Australia_shape()
+
+    VIC = Australia_gdf.loc[Australia_gdf["STE_NAME21"] == "Victoria", :]
+
+    VIC_shape = list(VIC["geometry"])[0]
+
+    return enhanced_passive_surveillance_area.intersection(VIC_shape), enhanced_reporting_factor
+
+
+def run_actions_excel(
+    state,
+    previous_unique_output,
+    actions_filename_excel,
+    days_to_run_for=1,
+    unique_output="04_actions_1",
+    output_suffix="_02",
+    create_download_folder=False,
+    RA_shape=None,
+    CA_shape=None,
+    EPS_shape=None,
+    EPS_factor=None,
+    download_parent_folder=None,
+    download_folder_name=None,
+):
+    ###################################################
+    # ---- Code run set up ---------------------------#
+    ###################################################
+
+    folder_path_main = os.path.join(os.path.dirname(__file__), f"vFMD{state}")
+    xrange, yrange, xlims, ylims = x_y_ranges(state)
+
+    # read in previous state
+    previous_spread_properties_filename = os.path.join(folder_path_main, previous_unique_output, "properties_" + previous_unique_output)
+    previous_spread_diseaseoutbreak_filename = os.path.join(folder_path_main, previous_unique_output, "outbreakobject_" + previous_unique_output)
+    previous_truck_filename = os.path.join(folder_path_main, previous_unique_output, "trucks_df_" + previous_unique_output)
+
+    with open(previous_spread_properties_filename, "rb") as file:
+        properties = pickle.load(file)
+    with open(previous_spread_diseaseoutbreak_filename, "rb") as file:
+        diseaseoutbreak = pickle.load(file)
+    with open(previous_truck_filename, "rb") as file:
+        trucks_df = pickle.load(file)
+
+    # set up for new simulation portion
+    folder_path = os.path.join(folder_path_main, unique_output)
+
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
+    spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
+    spread_trucks_filename = os.path.join(folder_path, "trucks_df_" + unique_output)
+
+    # read in jobs and zones
+    actions_input = os.path.join(folder_path_main, actions_filename_excel)
+    property_jobs = pd.read_excel(actions_input, sheet_name="jobs")
+    zones_based_jobs = pd.read_excel(actions_input, sheet_name="zone_jobs")  # could consider "expanding to SAL, LGA" or something like that
+    property_based_zones = pd.read_excel(actions_input, sheet_name="zones")  # could consider "expanding to SAL, LGA" or something like that
+
+    # construct zones
+    enhanced_passive_surveillance_area, enhanced_reporting_factor = get_enhanced_passive_surveillance_area(property_based_zones, properties)
+
+    if EPS_shape != None:
+        enhanced_passive_surveillance_area = unary_union([enhanced_passive_surveillance_area, EPS_shape])
+    if EPS_factor != None:
+        enhanced_reporting_factor = EPS_factor
+
+    random.seed(1235)
+    np.random.seed(1116)
+    if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
+        # adjust the plotting parameters for this new scenario
+        diseaseoutbreak.set_plotting_parameters(
+            xlims=xlims,
+            ylims=ylims,
+            plotting=True,
+            folder_path=folder_path,
+            unique_output=unique_output,
+        )
+
+        properties, movement_records, current_time, total_culled_animals, job_manager, trucks_df = diseaseoutbreak.simulate_HPAI_outbreak_management(
+            properties,
+            property_jobs,
+            zones_based_jobs,
+            property_based_zones,
+            days_to_run_for,
+            restricted_emergency_zone=RA_shape,
+            control_emergency_zone=CA_shape,
+            enhanced_passive_surveillance_area=enhanced_passive_surveillance_area,
+            enhanced_reporting_factor=enhanced_reporting_factor,
+            output_suffix=output_suffix,
+            trucks_df=trucks_df,
+            outbreak_sim="FMD",
+        )
+
+        FMD_functions.save_approx_known_data(properties, folder_path, unique_output="", output_suffix=output_suffix)
+
+        # and then resave the end state
+        with open(spread_properties_filename, "wb") as file:
+            pickle.dump(properties, file)
+
+        # and save the diseaseoutbreak object
+        with open(spread_diseaseoutbreak_filename, "wb") as file:
+            pickle.dump(diseaseoutbreak, file)
+
+        # and save the trucks
+        with open(spread_trucks_filename, "wb") as file:
+            pickle.dump(trucks_df, file)
+
+        total_infected = 0
+        for property_i in properties:
+            if property_i.exposure_date != "NA":
+                total_infected += 1
+
+        print(f"Total number of infected premises: {total_infected}")
+    else:
+        with open(spread_properties_filename, "rb") as file:
+            properties = pickle.load(file)
+        with open(spread_diseaseoutbreak_filename, "rb") as file:
+            diseaseoutbreak = pickle.load(file)
+        with open(spread_trucks_filename, "rb") as file:
+            trucks_df = pickle.load(file)
+
+    if create_download_folder:
+        if download_parent_folder == None:
+            download_parent_folder = folder_path_main
+        if download_folder_name == None:
+            download_folder_name = "download_" + unique_output
+
+        v06_functions.create_separate_download_folder(folder_path, download_parent_folder, download_folder_name)
+
+    approx_data_filename = os.path.join(folder_path, f"approx_known_data{output_suffix}.csv")
+
+    return (
+        folder_path_main,
+        folder_path,
+        spread_properties_filename,
+        spread_diseaseoutbreak_filename,
+        spread_trucks_filename,
+        approx_data_filename,
+    )

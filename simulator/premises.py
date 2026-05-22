@@ -210,6 +210,10 @@ class Premises(Property):
         # FMD specific
         self.FMD_extra_info = None
         self.cumulative_infections_by_animal_type = {}
+        self.disposed_status = 0
+        self.decontaminated_status = 0
+        self.disposal_date = "NA"
+        self.decontamination_date = "NA"
 
     def find_location(self):
         try:
@@ -1190,6 +1194,8 @@ class Premises(Property):
         return num_eggs_to_move, properties_to_move_to
 
     def get_num_animals(self):
+        if self.animal_type == "chicken":
+            return self.get_num_chickens()
         if isinstance(self.animals, int):
             return self.animals
         elif isinstance(self.animals, list):
