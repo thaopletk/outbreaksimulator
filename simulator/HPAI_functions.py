@@ -69,7 +69,7 @@ def seed_HPAI_infection(
     p.init_animals(None)
     infected_shed = np.random.randint(1, p.num_sheds + 1)
     for seed_animal in range(num_infected):
-        p.sheds[infected_shed]["chickens"][0]["objs"][seed_animal].status = "infectious"  # picks chickens from the first row
+        p.sheds[infected_shed]["chickens"][0]["objs"][seed_animal].infection_status = "infectious"  # picks chickens from the first row
 
     p.prop_infectious = num_infected / p.get_num_chickens()
     p.cumulative_infections = num_infected

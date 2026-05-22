@@ -60,7 +60,7 @@ def x_y_ranges(state="VIC"):
     return xrange, yrange, xlims, ylims
 
 
-def setup_to_outbreak_detection(state="VIC", burn_in_time=1, create_download_folder=False, download_parent_folder=None, wind_radius=20):
+def setup(state="VIC", wind_radius=20):
     ###################################################
     # ---- Code run set up ---------------------------#
     ###################################################
@@ -233,15 +233,33 @@ def setup_to_outbreak_detection(state="VIC", burn_in_time=1, create_download_fol
     #         save_suffix="_neighbours",
     #     )
 
-    trucks_df = FMD_functions.construct_trucks(properties)
-    trucks_df.to_csv(os.path.join(folder_path_main, f"trucks_df_.csv"))
+    trucks_filename = os.path.join(folder_path_main, f"FMD_{state}_trucks_df")
+    if not os.path.exists(trucks_filename):
+        trucks_df = FMD_functions.construct_trucks(properties)
+        trucks_df.to_csv(os.path.join(folder_path_main, f"trucks_df_.csv"))
+        with open(trucks_filename, "wb") as file:
+            pickle.dump(trucks_df, file)
 
-    ###################################################
-    # ---- "Burn in" movement -------------------------#
-    ###################################################
+    return (folder_path_main, properties_filename, trucks_filename)
 
-    start_time = 0
 
+def run_burn_in_movement(
+    properties,
+    trucks_df,
+    start_time,
+    burn_in_time,
+    folder_path_main,
+    disease_parameters,
+    spatial_only_parameters,
+    job_parameters,
+    scenario_parameters,
+    xlims,
+    ylims,
+    xrange,
+    yrange,
+    create_download_folder,
+    download_parent_folder,
+):
     random.seed(10)
     np.random.seed(10)
 
@@ -256,21 +274,6 @@ def setup_to_outbreak_detection(state="VIC", burn_in_time=1, create_download_fol
     initial_movement_properties_filename = os.path.join(folder_path_burn_in_movement, "properties_" + unique_output)
     initial_movement_diseaseoutbreak_filename = os.path.join(folder_path_burn_in_movement, "outbreakobject_" + unique_output)
     initial_movement_trucks_filename = os.path.join(folder_path_burn_in_movement, "trucks_df_" + unique_output)
-
-    # parameters
-    with open(os.path.join(folder_path_main, "disease_parameters.json"), "r") as file:
-        disease_parameters = json.load(file)
-    with open(os.path.join(folder_path_main, "job_parameters.json"), "r") as file:
-        job_parameters = json.load(file)
-    with open(os.path.join(folder_path_main, "scenario_parameters.json"), "r") as file:
-        scenario_parameters = json.load(file)
-
-    spatial_only_parameters = {
-        "n": len(properties),
-        "r_wind": wind_radius,
-        "xrange": xrange,
-        "yrange": yrange,
-    }
 
     if not os.path.exists(initial_movement_properties_filename) or not os.path.exists(initial_movement_diseaseoutbreak_filename):
 
@@ -330,6 +333,80 @@ def setup_to_outbreak_detection(state="VIC", burn_in_time=1, create_download_fol
         else:
             v06_functions.create_separate_download_folder(folder_path_burn_in_movement, folder_path_main, "download_" + unique_output)
 
+    return properties, diseaseoutbreak, trucks_df
+
+
+def run_seeding_undetected_spread(state="VIC", burn_in_time=0, create_download_folder=False, download_parent_folder=None, wind_radius=20):
+    ###################################################
+    # ---- Code run set up ---------------------------#
+    ###################################################
+
+    xrange, yrange, xlims, ylims = x_y_ranges(state)
+
+    folder_path_main = os.path.join(os.path.dirname(__file__), f"vFMD{state}")
+
+    properties_filename = os.path.join(folder_path_main, f"FMD_{state}_properties")
+    with open(properties_filename, "rb") as file:
+        properties = pickle.load(file)
+
+    trucks_filename = os.path.join(folder_path_main, f"FMD_{state}_trucks_df")
+    with open(trucks_filename, "rb") as file:
+        trucks_df = pickle.load(file)
+
+    start_time = 0
+
+    # parameters
+    with open(os.path.join(folder_path_main, "disease_parameters.json"), "r") as file:
+        disease_parameters = json.load(file)
+    with open(os.path.join(folder_path_main, "job_parameters.json"), "r") as file:
+        job_parameters = json.load(file)
+    with open(os.path.join(folder_path_main, "scenario_parameters.json"), "r") as file:
+        scenario_parameters = json.load(file)
+
+    spatial_only_parameters = {
+        "n": len(properties),
+        "r_wind": wind_radius,
+        "xrange": xrange,
+        "yrange": yrange,
+    }
+
+    # area for first report - anywhere for now
+    reportingregion_x = xrange
+    reportingregion_y = yrange
+
+    ###################################################
+    # ---- "Burn in" movement ------------------------#
+    ###################################################
+
+    if burn_in_time > 0:
+        properties, diseaseoutbreak, trucks_df = run_burn_in_movement(
+            properties,
+            trucks_df,
+            start_time,
+            burn_in_time,
+            folder_path_main,
+            disease_parameters,
+            spatial_only_parameters,
+            job_parameters,
+            scenario_parameters,
+            xlims,
+            ylims,
+            xrange,
+            yrange,
+            create_download_folder,
+            download_parent_folder,
+        )
+    else:
+        # initiate various things that start from empty:
+        diseaseoutbreak = disease_simulation.DiseaseSimulation(
+            time=start_time,
+            movement_records=FMD_functions.create_movement_records_df(),
+            disease_parameters=disease_parameters,
+            spatial_only_parameters=spatial_only_parameters,
+            job_parameters=job_parameters,
+            scenario_parameters=scenario_parameters,
+        )
+
     ###################################################
     # ---- Seed the first infection ------------------#
     ###################################################
@@ -353,8 +430,6 @@ def setup_to_outbreak_detection(state="VIC", burn_in_time=1, create_download_fol
             ylims,
             folder_path_seed,
             unique_output,
-            None,  # disease_parameters["latent_period"],
-            disease_parameters,
         )
     else:
         with open(properties_seeded_filename, "rb") as file:
@@ -365,14 +440,10 @@ def setup_to_outbreak_detection(state="VIC", burn_in_time=1, create_download_fol
     ###################################################
     # spread and then detection after a fixed number of properties infected...
 
-    random.seed(3)
-    np.random.seed(3)
-    minimum_spread_time = minimum_spread_time + 27
+    random.seed(10)
+    np.random.seed(10)
+    minimum_spread_time = diseaseoutbreak.time + 27
     target_infected_properties = 18
-
-    # area for first report - anywhere for now
-    reportingregion_x = xrange
-    reportingregion_y = yrange
 
     unique_output = f"02_undetected_spread"
     folder_path_undetected_spread = os.path.join(folder_path_main, unique_output)
@@ -426,21 +497,50 @@ def setup_to_outbreak_detection(state="VIC", burn_in_time=1, create_download_fol
 
         print(f"Total number of infected premises: {total_infected}")
 
-    else:
-        with open(undetected_spread_properties_filename, "rb") as file:
-            properties = pickle.load(file)
-        with open(undetected_spread_diseaseoutbreak_filename, "rb") as file:
-            diseaseoutbreak = pickle.load(file)
-        with open(undetected_spread_trucks_filename, "rb") as file:
-            trucks_df = pickle.load(file)
+        FMD_functions.save_approx_known_data(properties, folder_path_undetected_spread, unique_output)
 
-    FMD_functions.save_approx_known_data(properties, folder_path_undetected_spread, unique_output)
+        if create_download_folder:
+            if download_parent_folder != None:
+                v06_functions.create_separate_download_folder(folder_path_undetected_spread, download_parent_folder, unique_output)
+            else:
+                v06_functions.create_separate_download_folder(folder_path_undetected_spread, folder_path_main, "download_" + unique_output)
 
-    if create_download_folder:
-        if download_parent_folder != None:
-            v06_functions.create_separate_download_folder(folder_path_undetected_spread, download_parent_folder, unique_output)
-        else:
-            v06_functions.create_separate_download_folder(folder_path_undetected_spread, folder_path_main, "download_" + unique_output)
+    # else:
+    #     with open(undetected_spread_properties_filename, "rb") as file:
+    #         properties = pickle.load(file)
+    #     with open(undetected_spread_diseaseoutbreak_filename, "rb") as file:
+    #         diseaseoutbreak = pickle.load(file)
+    #     with open(undetected_spread_trucks_filename, "rb") as file:
+    #         trucks_df = pickle.load(file)
+
+    return total_infected, undetected_spread_properties_filename, undetected_spread_diseaseoutbreak_filename, undetected_spread_trucks_filename
+
+
+def trigger_first_report(
+    undetected_spread_properties_filename,
+    undetected_spread_diseaseoutbreak_filename,
+    undetected_spread_trucks_filename,
+    state="VIC",
+    create_download_folder=False,
+    download_parent_folder=None,
+):
+    ###################################################
+    # ---- Code run set up ---------------------------#
+    ###################################################
+
+    xrange, yrange, xlims, ylims = x_y_ranges(state)
+    # area for first report - anywhere for now
+    reportingregion_x = xrange
+    reportingregion_y = yrange
+
+    folder_path_main = os.path.join(os.path.dirname(__file__), f"vFMD{state}")
+
+    with open(undetected_spread_properties_filename, "rb") as file:
+        properties = pickle.load(file)
+    with open(undetected_spread_diseaseoutbreak_filename, "rb") as file:
+        diseaseoutbreak = pickle.load(file)
+    with open(undetected_spread_trucks_filename, "rb") as file:
+        trucks_df = pickle.load(file)
 
     ###################################################
     # ---- Trigger first report ----------------------#
@@ -508,9 +608,9 @@ def setup_to_outbreak_detection(state="VIC", burn_in_time=1, create_download_fol
 
     if create_download_folder:
         if download_parent_folder != None:
-            v06_functions.create_separate_download_folder(folder_path_burn_in_movement, download_parent_folder, unique_output)
+            v06_functions.create_separate_download_folder(folder_path_first_report, download_parent_folder, unique_output)
         else:
-            v06_functions.create_separate_download_folder(folder_path_burn_in_movement, folder_path_main, "download_" + unique_output)
+            v06_functions.create_separate_download_folder(folder_path_first_report, folder_path_main, "download_" + unique_output)
 
     # ========== LINE 572 - end of the v06_functions.setup_to_outbreak_detection() function =============== #
 

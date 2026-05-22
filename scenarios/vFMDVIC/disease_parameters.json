@@ -1,23 +1,23 @@
 {
-    "cattle": {"beta_wind": 0.0001,
+    "cattle": {"beta_wind": 0.001,
     "beta_animal": 0.45,
-    "latent_period": 10,
-    "infectious_period": 7,
-    "preclinical_period": 14,
-    "pre-clinical_period": 14
+    "latent_period": 2,
+    "infectious_period": 10,
+    "preclinical_period": 3,
+    "pre-clinical_period": 3
 },
-    "pigs":{"beta_wind": 0.01,
-    "beta_animal": 0.0375,
-    "latent_period": 3,
-    "infectious_period": 7,
-    "preclinical_period": 14,
-    "pre-clinical_period": 14
+    "pigs":{"beta_wind": 0.1,
+    "beta_animal": 1.375,
+    "latent_period": 1,
+    "infectious_period": 10,
+    "preclinical_period":3,
+    "pre-clinical_period": 3
 },
-    "sheep": {"beta_wind": 0.0001,
-    "beta_animal": 0.1125,
-    "latent_period": 7,
-    "infectious_period": 7,
-    "preclinical_period": 14,
-    "pre-clinical_period": 14
+    "sheep": {"beta_wind": 0.001,
+    "beta_animal": 0.25,
+    "latent_period": 5,
+    "infectious_period": 10,
+    "preclinical_period": 3,
+    "pre-clinical_period": 3
 }
 }

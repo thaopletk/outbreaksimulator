@@ -269,22 +269,32 @@ def seed_FMD_infection(
 
     # seed this property
     p = properties[seed_property]
-    # TODO technically, to encapsulate this better, there should a function that allows you to infect a specific animal(s), and that will then update infection_status, prop_infections, cumulative_infections, and exposure_date, and anything else that may need to be updated
-    p.infection_status = 1
-    if latent_period != None:
-        p.exposure_date = premises.convert_time_to_date(int_time - latent_period)
-    else:  # the version with multiple animals
-        latent_period = disease_parameters[p.animal_type]["latent_period"]
-        p.exposure_date = premises.convert_time_to_date(int_time - latent_period)
-
     num_infected = min(10, p.animals[p.animal_type]["n"])
     p.init_animals(None)
 
-    for seed_animal in range(num_infected):
-        p.animals[p.animal_type]["objs"][seed_animal].status = "infectious"
+    # TODO technically, to encapsulate this better, there should a function that allows you to infect a specific animal(s), and that will then update infection_status, prop_infections, cumulative_infections, and exposure_date, and anything else that may need to be updated
+    p.infection_status = 1
+    # if latent_period != None:
+    #     p.exposure_date = premises.convert_time_to_date(int_time - latent_period)
+    # else:  # the version with multiple animals
+    #     latent_period = disease_parameters[p.animal_type]["latent_period"]
+    #     p.exposure_date = premises.convert_time_to_date(int_time - latent_period)
 
-    p.prop_infectious = num_infected / p.get_num_animals()
+    p.exposure_date = premises.convert_time_to_date(int_time)
+
+    for seed_animal in range(num_infected):
+        p.animals[p.animal_type]["objs"][seed_animal].infection_status = "exposed"
+        p.animals[p.animal_type]["objs"][seed_animal].clinical_status = "pre-clinical"
+        # p.animals[p.animal_type]["objs"][seed_animal].check_transition(disease_parameters[p.animal_type])
+        # p.animals[p.animal_type]["objs"][seed_animal].update_clock()
+
+        # p.animals[p.animal_type]["objs"][seed_animal].infection_status = "infectious"
+        # p.animals[p.animal_type]["objs"][seed_animal].infection_clock = latent_period
+        # p.animals[p.animal_type]["objs"][seed_animal].clinical_clock = latent_period
+
+    # p.prop_infectious = num_infected / p.get_num_animals()
     p.cumulative_infections = num_infected
+    p.cumulative_infections_by_animal_type[p.animal_type] = num_infected
 
     output.plot_map(
         properties,
@@ -504,17 +514,18 @@ def animal_movement(
     movement_record = []
     number_of_movement_requests = 0
 
-    # this is the probability of movement every 10 days
+    # this is the probability of movement every x days
+    x = 5
     probability_of_movement = {
-        "beef extensive": 10 / 365,  # one year movement
-        "beef intensive": 10 / (7 * 30.5),  # movements every 7 months
-        "feedlot": 10 / 100,  # animals stay from 50 days minimum to 400 days; so proability as expected for 100 days
-        "mixed beef": 10 / (7 * 30.5),
-        "mixed sheep": 10 / 365,
-        "pigs small": 10 / (5 * 30),
-        "pigs large": 10 / (5 * 30),
-        "sheep": 10 / 365,
-        "smallholder": 10 / (6 * 30),
+        "beef extensive": x / 365,  # one year movement
+        "beef intensive": x / (7 * 30.5),  # movements every 7 months
+        "feedlot": x / 100,  # animals stay from 50 days minimum to 400 days; so proability as expected for 100 days
+        "mixed beef": x / (7 * 30.5),
+        "mixed sheep": x / 365,
+        "pigs small": x / (5 * 30),
+        "pigs large": x / (5 * 30),
+        "sheep": x / 365,
+        "smallholder": x / (6 * 30),
         "saleyard": 1,  # daily movement allowed
     }
 
@@ -525,7 +536,7 @@ def animal_movement(
         if facility.culled_status or facility.status == "IP" or facility.status == "RP":
             continue
 
-        if facility.type not in ["dairy", "abattoir", "saleyard", "export_facility", "milk_processing"] and facility.id % 10 != day % 10:
+        if facility.type not in ["dairy", "abattoir", "saleyard", "export_facility", "milk_processing"] and facility.id % x != day % x:
             continue  # check non-dairy properties every ten days
 
         in_control_zone, in_reduced_movement_zone = in_zones(facility.polygon, controlzone, reduced_movement_zone)
