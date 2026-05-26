@@ -885,76 +885,74 @@ def animal_movement(
         else:
             raise ValueError(f"Unexpected facility type {facility.type} ")
 
-        # in transit - complete movements
-        # at the end, move the animals from the temporary dictionary into the new properties
-        for truck_id in in_transit:
+    # in transit - complete movements
+    # at the end, move the animals from the temporary dictionary into the new properties
+    for truck_id in in_transit:
 
-            # if the animals are infectious, then the truck should get a contamination level
-            num_infectious_on_board = 0
-            new_infections = 0
-            if "objs" in in_transit[truck_id]:
-                for a in in_transit[truck_id]["objs"]:
-                    if a.infection_status == "infectious":
-                        num_infectious_on_board += 1
+        # if the animals are infectious, then the truck should get a contamination level
+        num_infectious_on_board = 0
+        new_infections = 0
+        if "objs" in in_transit[truck_id]:
+            for a in in_transit[truck_id]["objs"]:
+                if a.infection_status == "infectious":
+                    num_infectious_on_board += 1
 
-                        # probably want some beta_wind based on the animal type, some kind of FOI here, for the contamination level
-                        # alternatively, if the truck is already contaminated, then the animals could get sick...!
-                        # TODO
-            if num_infectious_on_board > 0:  # won't be milk
-                # contaminate the truck
-                FOI_ish = (
-                    num_infectious_on_board * disease_parameters[in_transit[truck_id]["cargo"]]["beta_wind"] * truck_contanmination_infection_factor
-                )
-                trucks_df.loc[trucks_df["truck_id"] == truck_id, "contamination"] += FOI_ish
-                print(f"infected animals on truck {truck_id}")
-            else:  # see if the truck is contaminated and therefore can infect the animals
-                existing_contamination = list(trucks_df[trucks_df["truck_id"] == truck_id].contamination)[0]
-                if existing_contamination > 0:
-                    if "objs" not in in_transit[truck_id]:
-                        in_transit[truck_id]["objs"] = [Animal(None) for _ in range(in_transit[truck_id]["n"])]
-
-                    params = disease_parameters[in_transit[truck_id]["cargo"]]
-
-                    for anim in in_transit[truck_id]["objs"]:
-                        animal_inf = anim.infection_event(params, existing_contamination)
-                        # just makes some of them exposed
-                        new_infections += animal_inf
-
-                        # TODO/ to think about: if infected, should I add cumulative infections at the property level... ???
-                        # if animal_inf:
-                        #     self.cumulative_infections += 1
-                        #     if ani_type in self.cumulative_infections_by_animal_type:
-                        #         self.cumulative_infections_by_animal_type[ani_type] += 1
-                        #     else:
-                        #         self.cumulative_infections_by_animal_type[ani_type] = 1
-                        # anim.check_transition(params)
-                        # anim.update_clock()
-
-            # now transport; may need to align animal objects
-            new_facility = properties[in_transit[truck_id]["target"]]
-            if in_transit[truck_id]["cargo"] not in new_facility.animals:
-                new_facility.animals[in_transit[truck_id]["cargo"]] = {"n": in_transit[truck_id]["n"]}
-            else:
-                new_facility.animals[in_transit[truck_id]["cargo"]]["n"] += in_transit[truck_id]["n"]
-
-            if new_facility.check_if_animal_objects():
+                    # probably want some beta_wind based on the animal type, some kind of FOI here, for the contamination level
+                    # alternatively, if the truck is already contaminated, then the animals could get sick...!
+                    # TODO
+        if num_infectious_on_board > 0:  # won't be milk
+            # contaminate the truck
+            FOI_ish = num_infectious_on_board * disease_parameters[in_transit[truck_id]["cargo"]]["beta_wind"] * truck_contanmination_infection_factor
+            trucks_df.loc[trucks_df["truck_id"] == truck_id, "contamination"] += FOI_ish
+            print(f"infected animals on truck {truck_id}")
+        else:  # see if the truck is contaminated and therefore can infect the animals
+            existing_contamination = list(trucks_df[trucks_df["truck_id"] == truck_id].contamination)[0]
+            if existing_contamination > 0:
                 if "objs" not in in_transit[truck_id]:
                     in_transit[truck_id]["objs"] = [Animal(None) for _ in range(in_transit[truck_id]["n"])]
+
+                params = disease_parameters[in_transit[truck_id]["cargo"]]
+
+                for anim in in_transit[truck_id]["objs"]:
+                    animal_inf = anim.infection_event(params, existing_contamination)
+                    # just makes some of them exposed
+                    new_infections += animal_inf
+
+                    # TODO/ to think about: if infected, should I add cumulative infections at the property level... ???
+                    # if animal_inf:
+                    #     self.cumulative_infections += 1
+                    #     if ani_type in self.cumulative_infections_by_animal_type:
+                    #         self.cumulative_infections_by_animal_type[ani_type] += 1
+                    #     else:
+                    #         self.cumulative_infections_by_animal_type[ani_type] = 1
+                    # anim.check_transition(params)
+                    # anim.update_clock()
+
+        # now transport; may need to align animal objects
+        new_facility = properties[in_transit[truck_id]["target"]]
+        if in_transit[truck_id]["cargo"] not in new_facility.animals:
+            new_facility.animals[in_transit[truck_id]["cargo"]] = {"n": in_transit[truck_id]["n"]}
+        else:
+            new_facility.animals[in_transit[truck_id]["cargo"]]["n"] += in_transit[truck_id]["n"]
+
+        if new_facility.check_if_animal_objects():
+            if "objs" not in in_transit[truck_id]:
+                in_transit[truck_id]["objs"] = [Animal(None) for _ in range(in_transit[truck_id]["n"])]
+            new_facility.animals[in_transit[truck_id]["cargo"]]["objs"].extend(in_transit[truck_id]["objs"])
+        else:
+            if new_infections == 0 and num_infectious_on_board == 0 and "objs" in in_transit[truck_id]:  # nothing actually infected
+                del in_transit[truck_id]["objs"]
+
+            if "objs" in in_transit[truck_id]:
+                new_facility.init_animals(None)
                 new_facility.animals[in_transit[truck_id]["cargo"]]["objs"].extend(in_transit[truck_id]["objs"])
-            else:
-                if new_infections == 0 and num_infectious_on_board == 0 and "objs" in in_transit[truck_id]:  # nothing actually infected
-                    del in_transit[truck_id]["objs"]
 
-                if "objs" in in_transit[truck_id]:
-                    new_facility.init_animals(None)
-                    new_facility.animals[in_transit[truck_id]["cargo"]]["objs"].extend(in_transit[truck_id]["objs"])
+    # discard the in_transit dictionary - should be automatic
 
-        # discard the in_transit dictionary - should be automatic
-
-        # and do some "truck cleaning"
-        trucks_df.loc[:, "contamination"] = trucks_df["contamination"] * truck_cleaning
-        # and convert all trucks to not being busy again.
-        trucks_df.loc[:, "busy"] = False
+    # and do some "truck cleaning"
+    trucks_df.loc[:, "contamination"] = trucks_df["contamination"] * truck_cleaning
+    # and convert all trucks to not being busy again.
+    trucks_df.loc[:, "busy"] = False
 
     print(f"movements for day {day} / {date} completed")
 
