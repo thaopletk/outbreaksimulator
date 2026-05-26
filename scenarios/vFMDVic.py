@@ -32,6 +32,10 @@ import simulator.premises as premises
 
 import v06_functions
 
+# # ABC stuff
+# import arviz as az
+# import pymc as pm
+
 
 def x_y_ranges(state="VIC"):
     if state == "NSW":
@@ -337,7 +341,16 @@ def run_burn_in_movement(
     return properties, diseaseoutbreak, trucks_df
 
 
-def run_seeding_undetected_spread(state="VIC", burn_in_time=0, create_download_folder=False, download_parent_folder=None, wind_radius=20):
+def run_seeding_undetected_spread(
+    state="VIC",
+    burn_in_time=0,
+    create_download_folder=False,
+    download_parent_folder=None,
+    wind_radius=20,
+    ABC_mode=False,
+    disease_parameters=None,
+    max_infected_premises=10000,
+):
     ###################################################
     # ---- Code run set up ---------------------------#
     ###################################################
@@ -357,12 +370,19 @@ def run_seeding_undetected_spread(state="VIC", burn_in_time=0, create_download_f
     start_time = 0
 
     # parameters
-    with open(os.path.join(folder_path_main, "disease_parameters.json"), "r") as file:
-        disease_parameters = json.load(file)
     with open(os.path.join(folder_path_main, "job_parameters.json"), "r") as file:
         job_parameters = json.load(file)
     with open(os.path.join(folder_path_main, "scenario_parameters.json"), "r") as file:
         scenario_parameters = json.load(file)
+
+    if ABC_mode == True:
+        folder_path_main = os.path.join(os.path.dirname(__file__), f"vFMD{state}", "ABC")
+        if not os.path.exists(folder_path_main):
+            os.makedirs(folder_path_main)
+
+    else:
+        with open(os.path.join(folder_path_main, "disease_parameters.json"), "r") as file:
+            disease_parameters = json.load(file)
 
     spatial_only_parameters = {
         "n": len(properties),
@@ -432,6 +452,12 @@ def run_seeding_undetected_spread(state="VIC", burn_in_time=0, create_download_f
             folder_path_seed,
             unique_output,
         )
+
+        if ABC_mode == False:
+            # and then resave the end state
+            with open(properties_seeded_filename, "wb") as file:
+                pickle.dump(properties, file)
+
     else:
         with open(properties_seeded_filename, "rb") as file:
             properties = pickle.load(file)
@@ -457,6 +483,8 @@ def run_seeding_undetected_spread(state="VIC", burn_in_time=0, create_download_f
 
     spatial_only_parameters["n"] = len(properties)
 
+    total_infected = 0
+
     if not os.path.exists(undetected_spread_properties_filename) or not os.path.exists(undetected_spread_diseaseoutbreak_filename):
 
         diseaseoutbreak.set_plotting_parameters(
@@ -477,21 +505,23 @@ def run_seeding_undetected_spread(state="VIC", burn_in_time=0, create_download_f
             outbreak_sim="FMD",
             max_spread_time=30,
             trucks_df=trucks_df,
+            max_infected_premises=max_infected_premises,
         )
 
-        # and then resave the end state
-        with open(undetected_spread_properties_filename, "wb") as file:
-            pickle.dump(properties, file)
+        if ABC_mode == False:
+            # and then resave the end state
+            with open(undetected_spread_properties_filename, "wb") as file:
+                pickle.dump(properties, file)
 
-        # and save the diseaseoutbreak object
-        with open(undetected_spread_diseaseoutbreak_filename, "wb") as file:
-            pickle.dump(diseaseoutbreak, file)
+            # and save the diseaseoutbreak object
+            with open(undetected_spread_diseaseoutbreak_filename, "wb") as file:
+                pickle.dump(diseaseoutbreak, file)
 
-        # and save the trucks
-        with open(undetected_spread_trucks_filename, "wb") as file:
-            pickle.dump(trucks_df, file)
+            # and save the trucks
+            with open(undetected_spread_trucks_filename, "wb") as file:
+                pickle.dump(trucks_df, file)
 
-        FMD_functions.save_approx_known_data(properties, folder_path_undetected_spread, unique_output)
+            FMD_functions.save_approx_known_data(properties, folder_path_undetected_spread, unique_output)
 
         if create_download_folder:
             if download_parent_folder != None:
@@ -499,18 +529,24 @@ def run_seeding_undetected_spread(state="VIC", burn_in_time=0, create_download_f
             else:
                 v06_functions.create_separate_download_folder(folder_path_undetected_spread, folder_path_main, "download_" + unique_output)
 
-    else:
-        with open(undetected_spread_properties_filename, "rb") as file:
-            properties = pickle.load(file)
-    #     with open(undetected_spread_diseaseoutbreak_filename, "rb") as file:
-    #         diseaseoutbreak = pickle.load(file)
-    #     with open(undetected_spread_trucks_filename, "rb") as file:
-    #         trucks_df = pickle.load(file)
+        total_infected = 0
+        for property_i in properties:
+            if property_i.exposure_date != "NA":
+                total_infected += 1
 
-    total_infected = 0
-    for property_i in properties:
-        if property_i.exposure_date != "NA":
-            total_infected += 1
+    else:
+        if ABC_mode == False:
+            with open(undetected_spread_properties_filename, "rb") as file:
+                properties = pickle.load(file)
+            #     with open(undetected_spread_diseaseoutbreak_filename, "rb") as file:
+            #         diseaseoutbreak = pickle.load(file)
+            #     with open(undetected_spread_trucks_filename, "rb") as file:
+            #         trucks_df = pickle.load(file)
+
+            total_infected = 0
+            for property_i in properties:
+                if property_i.exposure_date != "NA":
+                    total_infected += 1
 
     print(f"Total number of infected premises: {total_infected}")
 
@@ -789,3 +825,317 @@ def run_actions_excel(
         spread_trucks_filename,
         approx_data_filename,
     )
+
+
+def run_auto_actions(
+    state,
+    previous_unique_output,
+    previous_output_suffix_int=1,
+    total_days_to_run_for=7,
+    start_action_number_int=1,
+    unique_output_starting_int=4,
+    create_download_folder=False,
+    download_parent_folder=None,
+    download_folder_name=None,
+    strategy="default",
+    shapefile_path=None,
+):
+    ###################################################
+    # ---- Code run set up ---------------------------#
+    ###################################################
+
+    folder_path_main = os.path.join(os.path.dirname(__file__), f"vFMD{state}")
+    xrange, yrange, xlims, ylims = x_y_ranges(state)
+
+    previous_folder = os.path.join(folder_path_main, previous_unique_output)
+    previous_output_suffix = f"_{previous_output_suffix_int:02d}"
+
+    # read in previous state
+    previous_spread_properties_filename = os.path.join(folder_path_main, previous_unique_output, "properties_" + previous_unique_output)
+    previous_spread_diseaseoutbreak_filename = os.path.join(folder_path_main, previous_unique_output, "outbreakobject_" + previous_unique_output)
+    previous_truck_filename = os.path.join(folder_path_main, previous_unique_output, "trucks_df_" + previous_unique_output)
+
+    with open(previous_spread_properties_filename, "rb") as file:
+        properties = pickle.load(file)
+    with open(previous_spread_diseaseoutbreak_filename, "rb") as file:
+        diseaseoutbreak = pickle.load(file)
+    with open(previous_truck_filename, "rb") as file:
+        trucks_df = pickle.load(file)
+
+    RA_shape = None
+    CA_shape = None
+    EPS_shape = None
+    EPS_factor = None
+    if shapefile_path != None:
+        try:
+            shp_zones = gpd.read_file(shapefile_path)
+        except:
+            shp_zones = gpd.read_file(os.path.join(folder_path_main, shapefile_path))
+
+        # restricted area
+        try:
+            shp_zones_RA = shp_zones.loc[shp_zones["EMZ"] == "REZ", :]
+        except:
+            shp_zones_RA = shp_zones.loc[shp_zones["ZoneTitle"] == "Restricted Area", :]
+        RA_shape = list(shp_zones_RA["geometry"])[0]
+
+        # control area
+        try:
+            shp_zones_CA = shp_zones.loc[shp_zones["EMZ"] == "CEZ", :]
+        except:
+            shp_zones_CA = shp_zones.loc[shp_zones["ZoneTitle"] == "Control Area", :]
+        CA_shape = list(shp_zones_CA["geometry"])[0]
+
+        # enhanced passive surveillance area
+        try:
+            shp_zones_EPS = shp_zones.loc[shp_zones["EMZ_1"] == "Enhanced Passive Surveillance", :]
+            EPS_shape = list(shp_zones_EPS["geometry"])[0]  # enhanced passive surveillance shape, assuming it's the same as the RA for now
+        except:
+            shp_zones_EPS = None
+
+    days_to_run_for = 1
+
+    action_number = start_action_number_int
+    running_day = 1
+    while running_day <= total_days_to_run_for:
+        # get previous info
+        approx_data_csv = os.path.join(previous_folder, f"approx_known_data{previous_output_suffix}.csv")
+        # set up for new simulation portion
+        # set up new info
+        outputnumber = action_number + 1
+        output_suffix = f"_{outputnumber:02d}"
+
+        unique_outputnumber = unique_output_starting_int
+        unique_output = f"{unique_outputnumber:02d}_actions_{action_number}_{strategy}"
+        folder_path = os.path.join(folder_path_main, unique_output)
+
+        print(folder_path)
+
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+
+        spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
+        spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
+        spread_trucks_filename = os.path.join(folder_path, "trucks_df_" + unique_output)
+
+        # assign jobs
+        scheduled_date = premises.convert_time_to_date(diseaseoutbreak.time + 1)
+        if (
+            not os.path.exists(os.path.join(folder_path, f"jobs_{action_number}.csv"))
+            or not os.path.exists(os.path.join(folder_path, f"zone_jobs_{action_number}.csv"))
+            or not os.path.exists(os.path.join(folder_path, f"zones_{action_number}.csv"))
+        ):
+            auto_job_mode.generate_jobs_teams_FMD(folder_path, approx_data_csv, scheduled_date, action_number, strategy)
+
+        property_jobs = pd.read_csv(os.path.join(folder_path, f"jobs_{action_number}.csv"))
+        zones_based_jobs = pd.read_csv(os.path.join(folder_path, f"zone_jobs_{action_number}.csv"))
+        property_based_zones = pd.read_csv(os.path.join(folder_path, f"zones_{action_number}.csv"))
+
+        # construct zones
+        enhanced_passive_surveillance_area, enhanced_reporting_factor = get_enhanced_passive_surveillance_area(property_based_zones, properties)
+
+        if EPS_shape != None:
+            enhanced_passive_surveillance_area = unary_union([enhanced_passive_surveillance_area, EPS_shape])
+        if EPS_factor != None:
+            enhanced_reporting_factor = EPS_factor
+
+        random.seed(1235)
+        np.random.seed(1116)
+        if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
+            # adjust the plotting parameters for this new scenario
+            diseaseoutbreak.set_plotting_parameters(
+                xlims=xlims,
+                ylims=ylims,
+                plotting=True,
+                folder_path=folder_path,
+                unique_output=unique_output,
+            )
+
+            properties, movement_records, current_time, total_culled_animals, job_manager, trucks_df = (
+                diseaseoutbreak.simulate_HPAI_outbreak_management(
+                    properties,
+                    property_jobs,
+                    zones_based_jobs,
+                    property_based_zones,
+                    days_to_run_for,
+                    restricted_emergency_zone=RA_shape,
+                    control_emergency_zone=CA_shape,
+                    enhanced_passive_surveillance_area=enhanced_passive_surveillance_area,
+                    enhanced_reporting_factor=enhanced_reporting_factor,
+                    output_suffix=output_suffix,
+                    trucks_df=trucks_df,
+                    outbreak_sim="FMD",
+                )
+            )
+
+            FMD_functions.save_approx_known_data(properties, folder_path, unique_output="", output_suffix=output_suffix)
+
+            # and then resave the end state
+            with open(spread_properties_filename, "wb") as file:
+                pickle.dump(properties, file)
+
+            # and save the diseaseoutbreak object
+            with open(spread_diseaseoutbreak_filename, "wb") as file:
+                pickle.dump(diseaseoutbreak, file)
+
+            # and save the trucks
+            with open(spread_trucks_filename, "wb") as file:
+                pickle.dump(trucks_df, file)
+
+            total_infected = 0
+            for property_i in properties:
+                if property_i.exposure_date != "NA":
+                    total_infected += 1
+
+            print(f"Total number of infected premises: {total_infected}")
+        else:
+            with open(spread_properties_filename, "rb") as file:
+                properties = pickle.load(file)
+            with open(spread_diseaseoutbreak_filename, "rb") as file:
+                diseaseoutbreak = pickle.load(file)
+            with open(spread_trucks_filename, "rb") as file:
+                trucks_df = pickle.load(file)
+
+        if create_download_folder:
+            if download_parent_folder == None:
+                download_parent_folder = folder_path_main
+            if download_folder_name == None:
+                download_folder_name = "download_" + unique_output
+
+            v06_functions.create_separate_download_folder(folder_path, download_parent_folder, download_folder_name)
+
+        action_number += 1
+        previous_folder = folder_path
+        previous_output_suffix = output_suffix
+        unique_output_starting_int += 1
+
+        running_day += 1
+
+    return 0
+
+
+# def undetected_spread_sim(rng, cattle_wind, cattle_beta, pigs_wind, pigs_beta, sheep_wind, sheep_beta,size=None):
+
+#     disease_parameters = {
+#             "cattle": {"beta_wind": cattle_wind,
+#             "beta_animal": cattle_beta,
+#             "latent_period": 2,
+#             "infectious_period": 10,
+#             "preclinical_period": 3,
+#             "pre-clinical_period": 3
+#         },
+#             "pigs":{"beta_wind": pigs_wind,
+#             "beta_animal": pigs_beta,
+#             "latent_period": 1,
+#             "infectious_period": 10,
+#             "preclinical_period":3,
+#             "pre-clinical_period": 3
+#         },
+#             "sheep": {"beta_wind": sheep_wind,
+#             "beta_animal": sheep_beta,
+#             "latent_period": 5,
+#             "infectious_period": 10,
+#             "preclinical_period": 3,
+#             "pre-clinical_period": 3
+#         }
+#     }
+#     total_infected, undetected_spread_properties_filename, undetected_spread_diseaseoutbreak_filename, undetected_spread_trucks_filename =run_seeding_undetected_spread(state="VIC", burn_in_time=0, create_download_folder=False, download_parent_folder=None, wind_radius=20,ABC_mode = True,disease_parameters = disease_parameters)
+
+#     return total_infected
+
+
+def ABC(state="VIC", total_runs=100):
+    total_infected_aim = 18  # or something like this - double check
+
+    successful_saves = 0
+
+    folder_path_main = os.path.join(os.path.dirname(__file__), f"vFMD{state}")
+    folder_path_main_ABC_params = os.path.join(folder_path_main, "ABC_params")
+    if not os.path.exists(folder_path_main_ABC_params):
+        os.makedirs(folder_path_main_ABC_params)
+
+    for run in range(total_runs):
+        start_time = time.time()
+        # hmmm maybe rather than random, I should actually be stepping down/up in the parameter space
+        beta_wind = np.random.uniform(0.0001, 0.4)
+        beta_animal = np.random.uniform(0.01, 0.5)
+        pig_multiplier = np.random.uniform(1, 3)
+        sheep_multiplier = np.random.uniform(0.2, 1.2)
+
+        disease_parameters = {
+            "cattle": {
+                "beta_wind": beta_wind,
+                "beta_animal": beta_animal,
+                "latent_period": 2,
+                "infectious_period": 10,
+                "preclinical_period": 3,
+                "pre-clinical_period": 3,
+            },
+            "pigs": {
+                "beta_wind": beta_wind * pig_multiplier,
+                "beta_animal": beta_animal * pig_multiplier,
+                "latent_period": 1,
+                "infectious_period": 10,
+                "preclinical_period": 3,
+                "pre-clinical_period": 3,
+            },
+            "sheep": {
+                "beta_wind": beta_wind * sheep_multiplier,
+                "beta_animal": beta_animal * sheep_multiplier,
+                "latent_period": 5,
+                "infectious_period": 10,
+                "preclinical_period": 3,
+                "pre-clinical_period": 3,
+            },
+        }
+
+        print(disease_parameters)
+
+        total_infected, undetected_spread_properties_filename, undetected_spread_diseaseoutbreak_filename, undetected_spread_trucks_filename = (
+            run_seeding_undetected_spread(
+                state="VIC",
+                burn_in_time=0,
+                create_download_folder=False,
+                download_parent_folder=None,
+                wind_radius=20,
+                ABC_mode=True,
+                disease_parameters=disease_parameters,
+                max_infected_premises=21,
+            )
+        )
+
+        if total_infected > 10 and total_infected < 20:
+            # accept the parameters ; delete the runs ; and start again
+            with open(os.path.join(folder_path_main_ABC_params, f"disease_parameters_{successful_saves}.json"), "w") as f:
+                json.dump(disease_parameters, f)
+
+            successful_saves += 1
+
+            os.rmdir(os.path.join(os.path.dirname(__file__), f"vFMD{state}", "ABC"))
+
+        end_time = time.time()
+        execution_time = end_time - start_time
+        print(f"Execution time of an ABC run: {execution_time/60} minutes")
+
+
+# if __name__ == "__main__":
+# # def ABC_pyMC():
+#     with pm.Model() as model_lv:
+#         # Priors
+#         cattle_wind = pm.HalfNormal("cattle_wind", 1.0)
+#         cattle_beta  = pm.HalfNormal("cattle_beta", 1.0)
+#         pigs_wind = pm.HalfNormal("pigs_wind", 1.0)
+#         pigs_beta = pm.HalfNormal("pigs_beta", 1.0)
+#         sheep_wind = pm.HalfNormal("sheep_wind", 1.0)
+#         sheep_beta = pm.HalfNormal("sheep_beta", 1.0)
+
+#         observed = 18
+#         # Likelihood (ABC). Epsilon is the initial tolerance
+#         sim = pm.Simulator("sim", undetected_spread_sim, params=(cattle_wind, cattle_beta, pigs_wind, pigs_beta, sheep_wind, sheep_beta), epsilon=10, observed=observed)
+#         # Inference
+#         samples = pm.sample_smc(draws=500, chains=4, threshold=0.3, correlation_threshold=0.1)
+#         # Convert to ArviZ InferenceData
+#         posterior = samples.posterior.stack(samples=("draw", "chain"))
+#         # post = posterior.to_pandas()
+
+#     az.summary(samples, hdi_prob=0.95)
