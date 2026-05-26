@@ -1216,10 +1216,10 @@ def plot_HPAI_outbreak_apparent(
     geometry_ZP = []
     geometry_other = []
 
-    max_x = 140
-    min_x = 154
-    min_y = -28
-    max_y = -38
+    max_x = 0
+    min_x = 180
+    min_y = 0
+    max_y = -180
 
     for index, premise in enumerate(properties):
         if premise.data_source == "":
@@ -1293,7 +1293,10 @@ def plot_HPAI_outbreak_apparent(
 
     ax.set_xlim(xlims)
     ax.set_ylim(ylims)
-    if zoomed_in:
+    if zoomed_in and min_x < max_x:
+
+        print([min_x - 0.1, max_x + 0.1])
+        print([min_y - 0.05, max_y + 0.05])
         ax.set_xlim([min_x - 0.1, max_x + 0.1])  # making a more zoomed in version
         ax.set_ylim([min_y - 0.05, max_y + 0.05])
 
