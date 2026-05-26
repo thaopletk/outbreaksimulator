@@ -596,13 +596,12 @@ class Premises(Property):
         # report = f"DAY {convert_time_to_date(time)} - Property ID {self.id} ({self.type}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been reported possible infection.\n"
 
         self.clinical_report_outcome = True
+        self.status = "SP"  # suspect premises
 
-        if self.animal_type != "chicken":
-
-            report = f"Property ID {self.id} ({self.type}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.get_location()}, has been reported possible infection."
-        else:
+        if self.animal_type == "chicken":
             report = f"{self.type} (sim_id {self.id}) at location ({round(self.x,2)}, {round(self.y,2)}), {self.get_location()}, has been reported possible infection."
-            self.status = "SP"  # suspect premises
+        else:
+            report = f"Property ID {self.id} ({self.type}), {round(self.area,1)} ha {self.animal_type} property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.get_location()}, has been reported possible infection."
 
         return report
 
@@ -988,7 +987,7 @@ class Premises(Property):
         return num_chickens
 
     def get_num_eggs(self):
-        if self.type != "breeder" and self.type != "hatchery":
+        if self.animal_type == "chicken" and self.type != "breeder" and self.type != "hatchery":
             return self.eggs
         else:
             return 0
