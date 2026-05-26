@@ -791,3 +791,144 @@ def generate_jobs_QLD(folder_path, approx_data_csv, scheduled_date, action_numbe
 
     zones_df = pd.DataFrame(zone_rows, columns=zones_header)
     zones_df.to_csv(os.path.join(folder_path, f"zones_{action_number}.csv"), index=False)
+
+
+def generate_jobs_teams_FMD(folder_path, approx_data_csv, scheduled_date, action_number, strategy="national_standstill"):
+    """
+    strategy "national_standstill" -> just the early phase... ; surveillance of properties closest to existing IPs?
+    strategy "default"
+
+    """
+
+    approx_data = pd.read_csv(os.path.join(folder_path, approx_data_csv))
+
+    # "teams" is actually the number of jobs that can be done a day
+    teams = {
+        "DDD": 6,
+        "ContactTracing": 2,
+        "Surveillance": 100,
+    }
+
+    delays = {"ContactTracing": timedelta(days=2)}
+
+    if strategy == "national_standstill":
+        delays["DDD"] = timedelta(days=7)  # no DDD right away
+    else:
+        raise ValueError(f"strategy '{strategy}' not expected")
+
+    scheduled_date_object = dt.strptime(scheduled_date, "%d/%m/%Y")
+
+    # jobs
+    jobs_header = ["ID", "date_scheduled", "action", "specific_action", "detection_prob", "num", "Free text notes"]
+    jobs_rows = []
+
+    # top priority: IPs
+    IPs = approx_data[approx_data["status"] == "IP"]
+    IPs = IPs.sort_values("ip")
+
+    for i, row in IPs.iterrows():
+        # TODO: need to add in Disposal and Decontamination here
+        if teams["DDD"] > 0 and dt.strptime(row["last_PCR_date"], "%d/%m/%Y") + delays["DDD"] <= scheduled_date_object:
+            job_row = [row["sim_id"], scheduled_date, "Cull", "", "", row["total_animals"], "IP"]
+            jobs_rows.append(job_row)
+            teams["DDD"] -= 1
+
+        # contact tracing if not yet done
+        if teams["ContactTracing"] > 0 and pd.isna(row["last_conducted_contact_tracing"]):
+            if dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + delays["ContactTracing"] <= scheduled_date_object:
+                job_row = [row["sim_id"], scheduled_date, "ContactTracing", "", "", "", "IP"]
+                jobs_rows.append(job_row)
+                teams["ContactTracing"] -= 1
+
+    # SPs and DCPs and TPs are treated the same
+    for status in ["SP", "DCP", "TP"]:
+        SPs = approx_data[approx_data["status"] == status]  # suspect properties; all self-reported
+        SPs = SPs.sort_values("case_id")
+        for i, row in SPs.iterrows():
+            if pd.isna(row["last_surveillance_date"]) and teams["Surveillance"] > 0:
+                job_row = [row["sim_id"], scheduled_date, "ClinicalObservation", "", "", "", status]
+                jobs_rows.append(job_row)
+                job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", status]
+                jobs_rows.append(job_row)
+
+                teams["Surveillance"] -= 10  # in depth first investigation
+
+            else:  # if it's still an SP, then it's not an IP....treating it like a DCP with ~2 inspections per week
+                if teams["Surveillance"] > 0 and dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + timedelta(days=4) <= scheduled_date_object:
+                    job_row = [row["sim_id"], scheduled_date, "Surveillance", "Field Surveillance", "", "", status]
+                    jobs_rows.append(job_row)
+                    job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", status]
+                    jobs_rows.append(job_row)
+                    teams["Surveillance"] -= 1  # a less in-depth investigation
+
+    # ARPs and PORs are treated the same
+    for status in ["ARP", "POR"]:
+        properties = approx_data[approx_data["status"] == status]
+        properties = properties.sort_values("case_id")
+        for i, row in properties.iterrows():
+            if pd.isna(row["last_surveillance_date"]) and teams["Surveillance"] > 0:
+                job_row = [row["sim_id"], scheduled_date, "Surveillance", "Field Surveillance", "", "", status]
+                jobs_rows.append(job_row)
+                job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", status]
+                jobs_rows.append(job_row)
+
+                teams["Surveillance"] -= 1  # a less in-depth investigation
+            else:  # if it's still an SP, then it's not an IP....treating it like a DCP with ~2 inspections per week
+                if teams["Surveillance"] > 0 and dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + timedelta(days=7) <= scheduled_date_object:
+                    job_row = [row["sim_id"], scheduled_date, "Surveillance", "Field Surveillance", "", "", status]
+                    jobs_rows.append(job_row)
+                    job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", status]
+                    jobs_rows.append(job_row)
+                    teams["Surveillance"] -= 1  # a less in-depth investigation
+
+    UPs = approx_data[approx_data["status"] == "UP"]
+    UPs = UPs.sort_values("case_id")
+    # phone surveillance to determine info about it
+    for i, row in UPs.iterrows():
+        if pd.isna(row["last_surveillance_date"]) and teams["Surveillance"] > 0:
+            job_row = [row["sim_id"], scheduled_date, "Surveillance", "Field Surveillance", "", "", status]
+            jobs_rows.append(job_row)
+            job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", status]
+            jobs_rows.append(job_row)
+            teams["Surveillance"] -= 1
+
+    # zone jobs
+    zone_jobs_header = ["ID", "date_scheduled", "radius_km", "action", "zone_name", "zone_parameter", "Free text notes"]
+    zone_jobs_rows = []
+
+    # no zone jobs
+
+    zones_header = ["ID", "radius_km", "zone_type", "zone_parameter", "Free text notes"]
+    zone_rows = []
+    for status in ["IP", "RP"]:
+        properties = approx_data[approx_data["status"] == status]
+        for i, row in properties.iterrows():
+            zone_row = [row["sim_id"], 10, "RA", "", ""]
+            zone_rows.append(zone_row)
+
+            if strategy == "national_standstill":
+                zone_row = [row["sim_id"], 2000, "CA", "", ""]
+            else:
+                zone_row = [row["sim_id"], 50, "CA", "", ""]
+            zone_rows.append(zone_row)
+
+            zone_row = [row["sim_id"], 2000, "Enhanced Passive Surveillance", "", ""]
+            zone_rows.append(zone_row)
+
+    for status in ["SP", "TP", "DCP"]:
+        properties = approx_data[approx_data["status"] == status]
+        for i, row in properties.iterrows():
+            zone_row = [row["sim_id"], 0.2, "RA", "", "Quarantine"]
+            zone_rows.append(zone_row)
+
+    print(teams)
+
+    # and then save
+    jobs_df = pd.DataFrame(jobs_rows, columns=jobs_header)
+    jobs_df.to_csv(os.path.join(folder_path, f"jobs_{action_number}.csv"), index=False)
+
+    zone_jobs_df = pd.DataFrame(zone_jobs_rows, columns=zone_jobs_header)
+    zone_jobs_df.to_csv(os.path.join(folder_path, f"zone_jobs_{action_number}.csv"), index=False)
+
+    zones_df = pd.DataFrame(zone_rows, columns=zones_header)
+    zones_df.to_csv(os.path.join(folder_path, f"zones_{action_number}.csv"), index=False)
