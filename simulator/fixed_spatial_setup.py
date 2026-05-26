@@ -1773,7 +1773,7 @@ def FMD_VIC_setup_locations(
     LGA_gdf = spatial_functions.get_LGA_gdf()
 
     # TODO - replace the round polygons with the actual property polygons
-    vic_polygons = gpd.read_file(vic_polygons_shp_file)
+    # vic_polygons = gpd.read_file(vic_polygons_shp_file)
 
     herd_data = pd.read_csv(os.path.join(data_folder, "herd.csv"))
     herd_type = pd.read_csv(os.path.join(data_folder, "herd_type.csv"))
@@ -1845,17 +1845,17 @@ def FMD_VIC_setup_locations(
                 print(row)
                 raise ValueError(f"{LGA} doesn't exist")
 
-        if LGA not in [
-            # "South Gippsland",
-            # "Bass Coast",
-            # "Latrobe (Vic.)",
-            "Wellington",  # location of seeding property
-            "Wodonga",  # location of first detection
-            # "Baw Baw",
-            # "Cardinia",
-            # "Yarra Ranges",
-        ]:
-            continue
+        # if LGA not in [
+        #     "South Gippsland",
+        #     # "Bass Coast",
+        #     # "Latrobe (Vic.)",
+        #     "Wellington",  # location of seeding property
+        #     # "Wodonga",  # location of first detection
+        #     # "Baw Baw",
+        #     # "Cardinia",
+        #     # "Yarra Ranges",
+        # ]:
+        #     continue
 
         property_coordinates = [row["herd long"], row["herd lat"]]
         property_polygon = Polygon(
