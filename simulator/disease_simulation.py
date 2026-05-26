@@ -342,6 +342,7 @@ class DiseaseSimulation:
     def make_report(self, reported_property, converted_date, property_index):
         """Saves text in the combined narrative that a property reported"""
         OG_status = reported_property.status
+
         report = reported_property.report_suspicion(self.time)
         self.combined_narrative.append([self.time, converted_date, "report", property_index, report, ""])
         self.combined_narrative.append(
@@ -475,6 +476,7 @@ class DiseaseSimulation:
         outbreak_sim="LSD",
         max_spread_time=150,
         trucks_df=None,
+        max_infected_premises=1000000,
     ):
         """Run simulated outbreak, for undetected spread between (self.time (or time parameter if not NA)+1) and (stop_time) [inclusive], with no management
 
@@ -560,16 +562,20 @@ class DiseaseSimulation:
                 #         file,
                 #     )
 
+            total_infected = 0
+            for property_i in properties:
+                if property_i.exposure_date != "NA":
+                    total_infected += 1
+
+            if total_infected > max_infected_premises:
+                break
+
             if self.time == stop_time:
                 # check if we actually have a property available in the reporting region yet or not; if not, extend the stop  time
                 list_of_potential_reporting_properties = self.get_properties_in_reporting_region(
                     properties, reporting_region_check[0], reporting_region_check[1]
                 )
 
-                total_infected = 0
-                for property_i in properties:
-                    if property_i.exposure_date != "NA":
-                        total_infected += 1
                 if len(list_of_potential_reporting_properties) == 0 or total_infected < min_infected_premises:
                     if stop_time < max_spread_time:
                         stop_time += 1
@@ -1786,10 +1792,10 @@ class DiseaseSimulation:
                 if facility.status not in higher_priority_statuses:
                     # if it contains animals -> POR -> Premises of relevance
                     if (
-                        (facility.known_birds != "" and facility.known_birds > 0)
+                        facility.get_num_animals() > 0
+                        or (facility.animal_type == "chicken" and facility.known_birds != "" and facility.known_birds > 0)
                         or facility.get_num_eggs() > 0
                         or facility.get_num_fertilised_eggs() > 0
-                        or facility.get_num_animals() > 0
                     ):
                         OG_status = facility.status
 
@@ -2237,6 +2243,12 @@ class DiseaseSimulation:
         time_list = []
         stop_time = self.time + days_to_run_for
 
+        Australia_gdf = spatial_setup.get_Australia_shape()
+
+        VIC = Australia_gdf.loc[Australia_gdf["STE_NAME21"] == "Victoria", :]
+
+        VIC_shape = list(VIC["geometry"])[0]
+
         while self.time < stop_time:
             self.time += 1
             converted_date = premises.convert_time_to_date(self.time)
@@ -2316,6 +2328,8 @@ class DiseaseSimulation:
                 RA_geo_list.append(restricted_emergency_zone)
 
             restricted_area = unary_union(RA_geo_list)
+            if outbreak_sim == "FMD":
+                restricted_area = restricted_area.intersection(VIC_shape)
 
             CA_df = property_based_zones[property_based_zones["zone_type"] == "CA"]
             CA_geo_list = []
@@ -2332,6 +2346,9 @@ class DiseaseSimulation:
                 CA_geo_list.append(control_emergency_zone)
 
             control_area = unary_union(CA_geo_list)
+
+            if outbreak_sim == "FMD":
+                control_area = control_area.intersection(VIC_shape)
 
             self.controlzone["restricted area"] = restricted_area
             self.controlzone["control area"] = control_area
@@ -3143,4 +3160,7 @@ class DiseaseSimulation:
             zoomed_in=True,
         )
 
-        return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
+        if outbreak_sim == "HPAI":
+            return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
+        elif outbreak_sim == "FMD":
+            return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager, trucks_df
