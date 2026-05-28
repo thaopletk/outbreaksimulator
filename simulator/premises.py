@@ -765,7 +765,8 @@ class Premises(Property):
                                     self.cumulative_infections_by_animal_type[ani_type] = 1
                             anim.check_transition(params)
                             anim.update_clock()
-
+        elif self.animal_type == "milk":
+            pass
         else:
             super().infection_model(
                 params,
@@ -1054,7 +1055,7 @@ class Premises(Property):
             if self.type in ["abbatoir", "egg processing"]:
                 if number_infected == 0 and number_infectious == 0 and number_clinical == 0:
                     self.infection_status = 0
-        if self.animal_type in ["cattle", "sheep", "pigs"] or isinstance(self.animal_type, list):
+        elif self.animal_type in ["cattle", "sheep", "pigs", "milk"] or isinstance(self.animal_type, list):
             self.size = self.get_num_animals()
             self.number_infectious_by_animal_type = {}
             number_infected = 0

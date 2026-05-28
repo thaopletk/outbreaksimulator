@@ -1845,17 +1845,17 @@ def FMD_VIC_setup_locations(
                 print(row)
                 raise ValueError(f"{LGA} doesn't exist")
 
-        # if LGA not in [
-        #     "South Gippsland",
-        #     # "Bass Coast",
-        #     # "Latrobe (Vic.)",
-        #     "Wellington",  # location of seeding property
-        #     # "Wodonga",  # location of first detection
-        #     # "Baw Baw",
-        #     # "Cardinia",
-        #     # "Yarra Ranges",
-        # ]:
-        #     continue
+        if LGA not in [
+            # "South Gippsland",
+            # "Bass Coast",
+            # "Latrobe (Vic.)",
+            "Wellington",  # location of seeding property
+            "Wodonga",  # location of first detection
+            # "Baw Baw",
+            # "Cardinia",
+            # "Yarra Ranges",
+        ]:
+            continue
 
         property_coordinates = [row["herd long"], row["herd lat"]]
         property_polygon = Polygon(
@@ -2097,7 +2097,7 @@ def FMD_VIC_setup_locations(
         property_area = spatial_functions.calculate_area(property_polygon)
 
         premises_type = "milk_processing"
-        animal_type = "cattle"
+        animal_type = "milk"
 
         facility_coordinates.append(property_coordinates)
 

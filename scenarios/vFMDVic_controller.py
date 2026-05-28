@@ -6,7 +6,7 @@ import pandas as pd
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 
-# vFMDVic.setup(state="VIC", wind_radius=20)
+vFMDVic.setup(state="VIC", wind_radius=20)
 
 # total_infected, undetected_spread_properties_filename, undetected_spread_diseaseoutbreak_filename, undetected_spread_trucks_filename = (
 #     vFMDVic.run_seeding_undetected_spread(state="VIC", burn_in_time=0, create_download_folder=False, download_parent_folder=None, wind_radius=20)
@@ -58,4 +58,4 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 # then take a closer look at (1) the original FMD parameters to try and match them; and (2) the initial outbreak data to try and fit it; and (3) ABC method to more roughly fit it.
 
 
-vFMDVic.ABC(state="VIC", total_runs=20)
+vFMDVic.ABC(state="VIC", grid_size=5)

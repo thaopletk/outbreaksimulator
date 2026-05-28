@@ -1044,7 +1044,8 @@ def run_auto_actions(
 #     return total_infected
 
 
-def ABC(state="VIC", total_runs=100):
+def ABC(state="VIC", grid_size=5):
+    # total_runs=100,
     total_infected_aim = 18  # or something like this - double check
 
     successful_saves = 0
@@ -1054,68 +1055,81 @@ def ABC(state="VIC", total_runs=100):
     if not os.path.exists(folder_path_main_ABC_params):
         os.makedirs(folder_path_main_ABC_params)
 
-    for run in range(total_runs):
-        start_time = time.time()
-        # hmmm maybe rather than random, I should actually be stepping down/up in the parameter space
-        beta_wind = np.random.uniform(0.0001, 0.4)
-        beta_animal = np.random.uniform(0.01, 0.5)
-        pig_multiplier = np.random.uniform(1, 3)
-        sheep_multiplier = np.random.uniform(0.2, 1.2)
+    # for run in range(total_runs):
+    data_space = []
+    for beta_wind in np.linspace(0.0001, 0.4, grid_size):
+        for beta_animal in np.linspace(0.01, 0.5, grid_size):
+            for pig_multiplier in np.linspace(1, 3, grid_size):
+                for sheep_multiplier in np.linspace(0.2, 1.2, grid_size):
 
-        disease_parameters = {
-            "cattle": {
-                "beta_wind": beta_wind,
-                "beta_animal": beta_animal,
-                "latent_period": 2,
-                "infectious_period": 10,
-                "preclinical_period": 3,
-                "pre-clinical_period": 3,
-            },
-            "pigs": {
-                "beta_wind": beta_wind * pig_multiplier,
-                "beta_animal": beta_animal * pig_multiplier,
-                "latent_period": 1,
-                "infectious_period": 10,
-                "preclinical_period": 3,
-                "pre-clinical_period": 3,
-            },
-            "sheep": {
-                "beta_wind": beta_wind * sheep_multiplier,
-                "beta_animal": beta_animal * sheep_multiplier,
-                "latent_period": 5,
-                "infectious_period": 10,
-                "preclinical_period": 3,
-                "pre-clinical_period": 3,
-            },
-        }
+                    start_time = time.time()
+                    # hmmm maybe rather than random, I should actually be stepping down/up in the parameter space
+                    # beta_wind = np.random.uniform(0.0001, 0.4)
+                    # beta_animal = np.random.uniform(0.01, 0.5)
+                    # pig_multiplier = np.random.uniform(1, 3)
+                    # sheep_multiplier = np.random.uniform(0.2, 1.2)
 
-        print(disease_parameters)
+                    disease_parameters = {
+                        "cattle": {
+                            "beta_wind": beta_wind,
+                            "beta_animal": beta_animal,
+                            "latent_period": 2,
+                            "infectious_period": 10,
+                            "preclinical_period": 3,
+                            "pre-clinical_period": 3,
+                        },
+                        "pigs": {
+                            "beta_wind": beta_wind * pig_multiplier,
+                            "beta_animal": beta_animal * pig_multiplier,
+                            "latent_period": 1,
+                            "infectious_period": 10,
+                            "preclinical_period": 3,
+                            "pre-clinical_period": 3,
+                        },
+                        "sheep": {
+                            "beta_wind": beta_wind * sheep_multiplier,
+                            "beta_animal": beta_animal * sheep_multiplier,
+                            "latent_period": 5,
+                            "infectious_period": 10,
+                            "preclinical_period": 3,
+                            "pre-clinical_period": 3,
+                        },
+                    }
 
-        total_infected, undetected_spread_properties_filename, undetected_spread_diseaseoutbreak_filename, undetected_spread_trucks_filename = (
-            run_seeding_undetected_spread(
-                state="VIC",
-                burn_in_time=0,
-                create_download_folder=False,
-                download_parent_folder=None,
-                wind_radius=20,
-                ABC_mode=True,
-                disease_parameters=disease_parameters,
-                max_infected_premises=21,
-            )
-        )
+                    print(disease_parameters)
 
-        if total_infected > 10 and total_infected < 20:
-            # accept the parameters ; delete the runs ; and start again
-            with open(os.path.join(folder_path_main_ABC_params, f"disease_parameters_{successful_saves}.json"), "w") as f:
-                json.dump(disease_parameters, f)
+                    (
+                        total_infected,
+                        undetected_spread_properties_filename,
+                        undetected_spread_diseaseoutbreak_filename,
+                        undetected_spread_trucks_filename,
+                    ) = run_seeding_undetected_spread(
+                        state="VIC",
+                        burn_in_time=0,
+                        create_download_folder=False,
+                        download_parent_folder=None,
+                        wind_radius=20,
+                        ABC_mode=True,
+                        disease_parameters=disease_parameters,
+                        max_infected_premises=21,
+                    )
 
-            successful_saves += 1
+                    data_space.append([beta_wind, beta_animal, pig_multiplier, sheep_multiplier, total_infected])
 
-            os.rmdir(os.path.join(os.path.dirname(__file__), f"vFMD{state}", "ABC"))
+                    if total_infected > 10 and total_infected < 20:
+                        # accept the parameters ; delete the runs ; and start again
+                        with open(os.path.join(folder_path_main_ABC_params, f"disease_parameters_{successful_saves}.json"), "w") as f:
+                            json.dump(disease_parameters, f)
 
-        end_time = time.time()
-        execution_time = end_time - start_time
-        print(f"Execution time of an ABC run: {execution_time/60} minutes")
+                        successful_saves += 1
+
+                        os.rmdir(os.path.join(os.path.dirname(__file__), f"vFMD{state}", "ABC"))
+
+                    end_time = time.time()
+                    execution_time = end_time - start_time
+                    print(f"Execution time of an ABC run: {execution_time/60} minutes")
+    data_space = pd.DataFrame(data_space, columns=["beta_wind", "beta_animal", "pig_multiplier", "sheep_multiplier", "total_infected"])
+    data_space.to_csv(os.path.join(folder_path_main_ABC_params, f"data_space.csv"), index=False)
 
 
 # if __name__ == "__main__":
