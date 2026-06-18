@@ -755,6 +755,10 @@ class Premises(Property):
                 for ani_type in self.animals:
                     if self.animals[ani_type]["n"] > 0:
                         params = disease_parameters_by_animal_type[ani_type]
+                        if "objs" not in self.animals[ani_type]:
+                            # TODO technically some issue here, should figure out why this is happening
+                            animal_objs = [Animal(params) for _ in range(self.animals[ani_type]["n"])]
+                            self.animals[ani_type]["objs"] = animal_objs
                         for anim in self.animals[ani_type]["objs"]:
                             animal_inf = anim.infection_event(params, FOI)
                             if animal_inf:

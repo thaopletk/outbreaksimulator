@@ -439,10 +439,26 @@ def run_seeding_undetected_spread(
     properties_seeded_filename = os.path.join(folder_path_seed, f"properties_seeded")
 
     seed_herd_id = 125520
-
-    if not os.path.exists(properties_seeded_filename):
-        # seed property
-        unique_output = "day0"
+    unique_output = "day0"
+    if ABC_mode == False:
+        if not os.path.exists(properties_seeded_filename):
+            # seed property
+            properties, seed_property = FMD_functions.seed_FMD_infection(
+                seed_herd_id,
+                properties,
+                diseaseoutbreak.time,
+                xlims,
+                ylims,
+                folder_path_seed,
+                unique_output,
+            )
+            # and then resave the end state
+            with open(properties_seeded_filename, "wb") as file:
+                pickle.dump(properties, file)
+        else:
+            with open(properties_seeded_filename, "rb") as file:
+                properties = pickle.load(file)
+    else:
         properties, seed_property = FMD_functions.seed_FMD_infection(
             seed_herd_id,
             properties,
@@ -452,15 +468,6 @@ def run_seeding_undetected_spread(
             folder_path_seed,
             unique_output,
         )
-
-        if ABC_mode == False:
-            # and then resave the end state
-            with open(properties_seeded_filename, "wb") as file:
-                pickle.dump(properties, file)
-
-    else:
-        with open(properties_seeded_filename, "rb") as file:
-            properties = pickle.load(file)
 
     ###################################################
     # ---- Undetected spread -------------------------#
@@ -1057,10 +1064,10 @@ def ABC(state="VIC", grid_size=5):
 
     # for run in range(total_runs):
     data_space = []
-    for beta_wind in np.linspace(0.0001, 0.4, grid_size):
-        for beta_animal in np.linspace(0.01, 0.5, grid_size):
-            for pig_multiplier in np.linspace(1, 3, grid_size):
-                for sheep_multiplier in np.linspace(0.2, 1.2, grid_size):
+    for beta_wind in np.linspace(0.009, 0.012, grid_size):
+        for beta_animal in np.linspace(0.18, 0.22, grid_size):
+            for pig_multiplier in np.linspace(1.6, 1.7, grid_size):
+                for sheep_multiplier in np.linspace(0.15, 0.25, grid_size):
 
                     start_time = time.time()
                     # hmmm maybe rather than random, I should actually be stepping down/up in the parameter space
@@ -1123,7 +1130,7 @@ def ABC(state="VIC", grid_size=5):
 
                         successful_saves += 1
 
-                        os.rmdir(os.path.join(os.path.dirname(__file__), f"vFMD{state}", "ABC"))
+                    os.rmdir(os.path.join(os.path.dirname(__file__), f"vFMD{state}", "ABC"))
 
                     end_time = time.time()
                     execution_time = end_time - start_time

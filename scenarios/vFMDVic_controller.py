@@ -58,4 +58,4 @@ vFMDVic.setup(state="VIC", wind_radius=20)
 # then take a closer look at (1) the original FMD parameters to try and match them; and (2) the initial outbreak data to try and fit it; and (3) ABC method to more roughly fit it.
 
 
-vFMDVic.ABC(state="VIC", grid_size=5)
+vFMDVic.ABC(state="VIC", grid_size=6)

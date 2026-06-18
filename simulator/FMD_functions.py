@@ -935,7 +935,7 @@ def animal_movement(
         else:
             new_facility.animals[in_transit[truck_id]["cargo"]]["n"] += in_transit[truck_id]["n"]
 
-        if new_facility.check_if_animal_objects():
+        if "objs" in new_facility.animals[in_transit[truck_id]["cargo"]]:
             if "objs" not in in_transit[truck_id]:
                 in_transit[truck_id]["objs"] = [Animal(None) for _ in range(in_transit[truck_id]["n"])]
             new_facility.animals[in_transit[truck_id]["cargo"]]["objs"].extend(in_transit[truck_id]["objs"])
