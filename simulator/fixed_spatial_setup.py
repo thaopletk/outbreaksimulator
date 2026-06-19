@@ -2307,13 +2307,41 @@ def save_FMD_property_csv(properties, time, folder_path, unique_output):
             writer.writerow(row)
 
 
-def FMD_movement_network_setup(all_properties, max_movement_km=200, state="VIC"):
+def FMD_movement_network_setup(all_properties, max_movement_km=400, state="VIC"):
     """
     Sets up wind neighbours and movement neighbours
 
     :param all_properties: Description
-    :param max_movement_km: Description
+    :param max_movement_km: set to 400km
     """
+
+    # mapping for herd types
+    herd_type_dict = {
+        "beef extensive": 1,
+        "beef intensive": 2,
+        "feedlot": 3,
+        "mixed beef": 4,
+        "mixed sheep": 5,
+        "dairy": 6,
+        "pigs small": 7,
+        "pigs large": 8,
+        "sheep": 9,
+        "smallholder": 10,
+    }
+
+    # reading in data
+    data_folder = os.path.join(os.path.dirname(__file__), "..", "data", "FMDVIC")
+
+    # megaregions
+    megaregions = gpd.read_file(os.path.join(data_folder, "megaregions", "australian_mega_regions.shp"))
+
+    # movement parameters
+    # TODO there are more movement things that I can parameterise, consider doing it later if I have time.
+    movements_frequency = pd.read_csv(os.path.join(data_folder, "direct_movements_off_frequency.csv"))
+    season = "autumn"
+    movements_size = pd.read_csv(os.path.join(data_folder, "direct_movements_off_size.csv"))
+
+    # saleyard_parameters = pd.read_csv(os.path.join(data_folder, "sale.csv")) # hm not actually in the format that really matches this model
 
     # ensuring the ids match
     for p1 in range(0, len(all_properties)):
@@ -2322,6 +2350,48 @@ def FMD_movement_network_setup(all_properties, max_movement_km=200, state="VIC")
     for i, property_i in enumerate(all_properties):  # TODO: refactor this to not be hard coded
         property_i.allowed_movement = {}  # will ignore this original / old structure
 
+        # assigning general movement parameters
+        # property.movement_prop_animals  - [min, max] proportion of animals that can be moved at one time(Beta-PERT)
+        # property.movement_probability - daily probability of movement
+        if property_i.type in herd_type_dict.keys():
+            data_row = movements_size[movements_size["src herd type id"] == herd_type_dict[property_i.type]].iloc[0]
+            # the .item() converts it from an np float object to native python float
+            property_i.movement_prop_animals = [data_row["minimum"].item(), data_row["most likely"].item(), data_row["maximum"].item()]
+
+            # get megaregion
+            curr_farm = Point(property_i.x, property_i.y)
+            property_region = 0
+            for megaregion in [1, 2, 3, 4]:
+                region_only = megaregions.loc[megaregions["Mega_regio"] == megaregion, :]
+                region_shape = list(region_only["geometry"])[0]
+                if region_shape.contains(curr_farm):
+                    property_region = megaregion
+                    break
+
+            if property_region == 0:
+                raise ValueError("Property region shouldn't be 0")
+
+            data_row = movements_frequency[
+                (movements_frequency["src herd type id"] == herd_type_dict[property_i.type])
+                & (movements_frequency["src mega-region id"] == property_region)
+            ].iloc[0]
+
+            property_i.movement_probability = data_row[season]
+
+            # print(property_i.movement_prop_animals)
+            # print(property_i.movement_probability)
+
+        elif property_i.type in ["abbatoir", "export_facility", "milk_processing"]:
+            property_i.movement_prop_animals = 1
+            property_i.movement_probability = 1  # cleared daily
+            pass
+        elif property_i == "saleyard":
+            property_i.movement_prop_animals = 0.5  # made up ya
+            property_i.movement_probability = 1
+        else:
+            raise ValueError("Unexpected property type in FMD_movement_networks_setup")
+
+        # assigning where animals can move to.
         if property_i.type in ["beef extensive", "beef intensive", "mixed beef"]:
             property_i.allowed_movement_details = {
                 "cattle": {
@@ -2340,9 +2410,13 @@ def FMD_movement_network_setup(all_properties, max_movement_km=200, state="VIC")
                 # "cattle": {"age": 0, "property_types": ["abattoir"], "properties": []}, #NOTE: assuming just milk movements for simplicity at this point
                 "milk": {"property_types": ["milk_processing"], "properties": []},
             }
-        elif property_i.type in ["pigs small", "pigs large"]:  # hmm is this actually baby pigs vs adult pigs?
+        elif property_i.type in ["pigs small"]:  # small scale pigs, movements to other farms or saleyards
             property_i.allowed_movement_details = {
-                "pigs": {"age": 0, "property_types": ["pigs small", "pigs large", "abattoir", "saleyard", "feedlot"], "properties": []},
+                "pigs": {"age": 0, "property_types": ["pigs small", "pigs large", "saleyard", "feedlot"], "properties": []},
+            }
+        elif property_i.type in ["pigs large"]:  # large farms, movements typically to abbatoirs
+            property_i.allowed_movement_details = {
+                "pigs": {"age": 0, "property_types": ["abattoir"], "properties": []},
             }
         elif property_i.type == "smallholder":
             # get the animal type
