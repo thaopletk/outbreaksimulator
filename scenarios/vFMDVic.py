@@ -1130,7 +1130,15 @@ def ABC(state="VIC", grid_size=5):
 
                         successful_saves += 1
 
-                    os.rmdir(os.path.join(os.path.dirname(__file__), f"vFMD{state}", "ABC"))
+                    for filename in os.listdir(os.path.join(os.path.dirname(__file__), f"vFMD{state}", "ABC")):
+                        file_path = os.path.join(os.path.join(os.path.dirname(__file__), f"vFMD{state}", "ABC"), filename)
+                        try:
+                            if os.path.isfile(file_path) or os.path.islink(file_path):
+                                os.unlink(file_path)
+                            elif os.path.isdir(file_path):
+                                shutil.rmtree(file_path)
+                        except Exception as e:
+                            print("Failed to delete %s. Reason: %s" % (file_path, e))
 
                     end_time = time.time()
                     execution_time = end_time - start_time
