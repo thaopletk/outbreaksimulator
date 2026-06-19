@@ -2369,7 +2369,8 @@ def FMD_movement_network_setup(all_properties, max_movement_km=400, state="VIC")
                     break
 
             if property_region == 0:
-                raise ValueError("Property region shouldn't be 0")
+                print(f"Property region shouldn't be 0 ({property_i.x}, {property_i.y})")
+                property_region = 3  # some default one this is roughly Victoria...
 
             data_row = movements_frequency[
                 (movements_frequency["src herd type id"] == herd_type_dict[property_i.type])
@@ -2381,12 +2382,12 @@ def FMD_movement_network_setup(all_properties, max_movement_km=400, state="VIC")
             # print(property_i.movement_prop_animals)
             # print(property_i.movement_probability)
 
-        elif property_i.type in ["abbatoir", "export_facility", "milk_processing"]:
-            property_i.movement_prop_animals = 1
+        elif property_i.type in ["abattoir", "export_facility", "milk_processing"]:
+            property_i.movement_prop_animals = 1  # not relevant since these are dead ends anyway
             property_i.movement_probability = 1  # cleared daily
             pass
-        elif property_i == "saleyard":
-            property_i.movement_prop_animals = 0.5  # made up ya
+        elif property_i.type == "saleyard":
+            property_i.movement_prop_animals = [1, 5, 20]  # roughly from the sale.csv
             property_i.movement_probability = 1
         else:
             raise ValueError("Unexpected property type in FMD_movement_networks_setup")

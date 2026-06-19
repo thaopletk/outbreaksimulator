@@ -10,6 +10,7 @@ import simulator.fixed_spatial_setup as fixed_spatial_setup
 import numpy as np
 import random
 from FMD_modelling.class_definitions import Animal
+import betapert
 
 movement_record_header = [
     "day",
@@ -513,20 +514,21 @@ def animal_movement(
     movement_record = []
     number_of_movement_requests = 0
 
-    # this is the probability of movement every x days
-    x = 5
-    probability_of_movement = {
-        "beef extensive": x / 365,  # one year movement
-        "beef intensive": x / (7 * 30.5),  # movements every 7 months
-        "feedlot": x / 100,  # animals stay from 50 days minimum to 400 days; so proability as expected for 100 days
-        "mixed beef": x / (7 * 30.5),
-        "mixed sheep": x / 365,
-        "pigs small": x / (5 * 30),
-        "pigs large": x / (5 * 30),
-        "sheep": x / 365,
-        "smallholder": x / (6 * 30),
-        "saleyard": 1,  # daily movement allowed
-    }
+    # superseded by property_i.movement_probability
+    # # this is the probability of movement every x days
+    # x = 5
+    # probability_of_movement = {
+    #     "beef extensive": x / 365,  # one year movement
+    #     "beef intensive": x / (7 * 30.5),  # movements every 7 months
+    #     "feedlot": x / 100,  # animals stay from 50 days minimum to 400 days; so proability as expected for 100 days
+    #     "mixed beef": x / (7 * 30.5),
+    #     "mixed sheep": x / 365,
+    #     "pigs small": x / (5 * 30),
+    #     "pigs large": x / (5 * 30),
+    #     "sheep": x / 365,
+    #     "smallholder": x / (6 * 30),
+    #     "saleyard": 1,  # daily movement allowed
+    # }
 
     in_transit = {}  # needs to contain info about target facility, animal type, and animals (number, objs if relevant)
 
@@ -535,8 +537,8 @@ def animal_movement(
         if facility.culled_status or facility.status == "IP" or facility.status == "RP":
             continue
 
-        if facility.type not in ["dairy", "abattoir", "saleyard", "export_facility", "milk_processing"] and facility.id % x != day % x:
-            continue  # check non-dairy properties every ten days
+        # if facility.type not in ["dairy", "abattoir", "saleyard", "export_facility", "milk_processing"] and facility.id % x != day % x:
+        #     continue  # check non-dairy properties every ten days
 
         in_control_zone, in_reduced_movement_zone = in_zones(facility.polygon, controlzone, reduced_movement_zone)
 
@@ -552,8 +554,21 @@ def animal_movement(
             "smallholder",
             "saleyard",
         ]:
-            if np.random.rand() > probability_of_movement[facility.type]:
-                continue  # no movement
+            # some forced movements
+
+            if "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 125520 and day == 1:
+                pass  # movement should happen
+            elif "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 125520 and day == 2:
+                pass
+            elif "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 57712 and day == 19:
+                pass
+            elif "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 114447 and day == 21:
+                pass
+            elif "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 57712 and day == 25:
+                pass
+            else:
+                if np.random.rand() > facility.movement_probability:
+                    continue  # no movement
 
             # else: lets move!
             for animal_avail in facility.animals:
@@ -562,20 +577,84 @@ def animal_movement(
 
                 properties_to_move_to = facility.allowed_movement_details[animal_avail]["properties"]
 
-                targets_unrestricted_zones, targets_in_control_zones = find_targets(
-                    properties, properties_to_move_to, controlzone, movement_reduction_factor, all_movement_reduction_factor, reduced_movement_zone
-                )
+                target_index = None
+                if "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 125520 and day == 1:
+                    movement_possible = True
+                    # target herd id = 124711
+                    for i, property in enumerate(properties):
+                        if "herd_id" in property.FMD_extra_info:
+                            if property.FMD_extra_info["herd_id"] == 124711:
+                                target_index = i
+                elif "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 125520 and day == 2:
+                    movement_possible = True
+                    # target herd id = 114447 now
+                    for i, property in enumerate(properties):
+                        if "herd_id" in property.FMD_extra_info:
+                            if property.FMD_extra_info["herd_id"] == 114447:
+                                target_index = i
+                elif "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 57712 and day == 19:
+                    movement_possible = True
+                    # target herd id = 217444 now
+                    for i, property in enumerate(properties):
+                        if "herd_id" in property.FMD_extra_info:
+                            if property.FMD_extra_info["herd_id"] == 217444:
+                                target_index = i
+                elif "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 114447 and day == 21:
+                    movement_possible = True
+                    # target herd id = 111575 now
+                    for i, property in enumerate(properties):
+                        if "herd_id" in property.FMD_extra_info:
+                            if property.FMD_extra_info["herd_id"] == 111575:
+                                target_index = i
+                elif "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 57712 and day == 25:
+                    movement_possible = True
+                    # target herd id = 24636 now
+                    for i, property in enumerate(properties):
+                        if "herd_id" in property.FMD_extra_info:
+                            if property.FMD_extra_info["herd_id"] == 24636:
+                                target_index = i
+                else:
 
-                movement_possible, n_movement_request, target_index = pick_single_movement_target(
-                    facility,
-                    targets_unrestricted_zones,
-                    targets_in_control_zones,
-                    in_control_zone,
-                    movement_reduction_factor,
-                    in_reduced_movement_zone,
-                    animal_avail,
-                )
-                number_of_movement_requests += n_movement_request
+                    targets_unrestricted_zones, targets_in_control_zones = find_targets(
+                        properties,
+                        properties_to_move_to,
+                        controlzone,
+                        movement_reduction_factor,
+                        all_movement_reduction_factor,
+                        reduced_movement_zone,
+                    )
+
+                    movement_possible, n_movement_request, target_index = pick_single_movement_target(
+                        facility,
+                        targets_unrestricted_zones,
+                        targets_in_control_zones,
+                        in_control_zone,
+                        movement_reduction_factor,
+                        in_reduced_movement_zone,
+                        animal_avail,
+                    )
+                    number_of_movement_requests += n_movement_request
+                if movement_possible and target_index == None:
+                    print("unable to find specific target index")
+                    targets_unrestricted_zones, targets_in_control_zones = find_targets(
+                        properties,
+                        properties_to_move_to,
+                        controlzone,
+                        movement_reduction_factor,
+                        all_movement_reduction_factor,
+                        reduced_movement_zone,
+                    )
+
+                    movement_possible, n_movement_request, target_index = pick_single_movement_target(
+                        facility,
+                        targets_unrestricted_zones,
+                        targets_in_control_zones,
+                        in_control_zone,
+                        movement_reduction_factor,
+                        in_reduced_movement_zone,
+                        animal_avail,
+                    )
+                    number_of_movement_requests += n_movement_request
 
                 if movement_possible:
                     # go through truck dataframe
@@ -589,13 +668,24 @@ def animal_movement(
                     if len(available_trucks) == 0:
                         continue
 
+                    # facility.movement_prop_animals = [1,5,20] beta PERT distribution
+                    num_animals_to_move_ideally = betapert.pert.rvs(
+                        mini=facility.movement_prop_animals[0], mode=facility.movement_prop_animals[1], maxi=facility.movement_prop_animals[2]
+                    )
+                    if facility.type == "saleyard":
+                        num_animals_to_move_ideally = int(num_animals_to_move_ideally)  # this isn't a proportion
+                    else:
+                        num_animals_to_move_ideally = int(num_animals_to_move_ideally * facility.animals[animal_avail]["n"])  # and this is
+
+                    # print(num_animals_to_move_ideally)
+
                     if local_trucks:
                         # if local trucks on the property, just use all of them
-                        num_animals_to_move = min(total_capacity, facility.animals[animal_avail]["n"])
+                        num_animals_to_move = min(total_capacity, facility.animals[animal_avail]["n"], num_animals_to_move_ideally)
                     else:
                         max_trucks_to_use = int(np.random.randint(1, len(available_trucks) + 1))
                         sub_capacity = sum(truck_capacities[:max_trucks_to_use])
-                        num_animals_to_move = min(sub_capacity, facility.animals[animal_avail]["n"])
+                        num_animals_to_move = min(sub_capacity, facility.animals[animal_avail]["n"], num_animals_to_move_ideally)
 
                     # based on the number of animals to move, calculate which trucks are actually used and stop when that amount is reached
 
@@ -617,8 +707,34 @@ def animal_movement(
                         num_animals_to_move = num_animals_to_move - to_move
 
                         if "objs" in facility.animals[animal_avail]:
-                            in_transit[truck_id]["objs"] = facility.animals[animal_avail]["objs"][:to_move]
-                            facility.animals[animal_avail]["objs"] = facility.animals[animal_avail]["objs"][to_move:]
+                            if (
+                                ("herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 125520 and day == 1)
+                                or ("herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 125520 and day == 2)
+                                or ("herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 57712 and day == 19)
+                                or ("herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 114447 and day == 21)
+                                or ("herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 57712 and day == 25)
+                            ):
+                                sick_animal_moved_successfully = False
+                                # todo : make sure that you move at least one infected animal
+                                for i in range(len(facility.animals[animal_avail]["objs"])):
+                                    animal_temp = facility.animals[animal_avail]["objs"][i]
+                                    if animal_temp.infection_status != "susceptible":  # move this animal, break and remove it
+                                        sick_animal_moved_successfully = True
+                                        in_transit[truck_id]["objs"] = [animal_temp]
+                                        del facility.animals[animal_avail]["objs"][i]
+                                        break
+                                if sick_animal_moved_successfully:
+                                    # only need to move N-1
+                                    in_transit[truck_id]["objs"].extend(facility.animals[animal_avail]["objs"][: to_move - 1])
+                                    facility.animals[animal_avail]["objs"] = facility.animals[animal_avail]["objs"][to_move - 1 :]
+                                else:
+                                    print("Unable to find sick animal to move")
+                                    in_transit[truck_id]["objs"] = facility.animals[animal_avail]["objs"][:to_move]
+                                    facility.animals[animal_avail]["objs"] = facility.animals[animal_avail]["objs"][to_move:]
+
+                            else:
+                                in_transit[truck_id]["objs"] = facility.animals[animal_avail]["objs"][:to_move]
+                                facility.animals[animal_avail]["objs"] = facility.animals[animal_avail]["objs"][to_move:]
                             if len(facility.animals[animal_avail]["objs"]) == 0:
                                 del facility.animals[animal_avail]["objs"]
 
