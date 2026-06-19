@@ -40,7 +40,7 @@ def rounding_entities(val):
 geolocator = Nominatim(user_agent="http")
 
 
-def get_current_datetime(time, start_date=datetime.datetime(year=2026, month=1, day=1)):
+def get_current_datetime(time, start_date=datetime.datetime(year=2026, month=3, day=1)):
     if type(time) != int:
         time = int(np.floor(time))
         # TODO : here, I should allow for "morning" vs "afternoon" or some other time thing
