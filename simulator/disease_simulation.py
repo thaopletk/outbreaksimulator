@@ -477,6 +477,7 @@ class DiseaseSimulation:
         max_spread_time=150,
         trucks_df=None,
         max_infected_premises=1000000,
+        ABC_mode=False,
     ):
         """Run simulated outbreak, for undetected spread between (self.time (or time parameter if not NA)+1) and (stop_time) [inclusive], with no management
 
@@ -542,7 +543,7 @@ class DiseaseSimulation:
             for i, premise in enumerate(properties):
                 premise.update_counts()
 
-            if self.plotting:
+            if self.plotting and ABC_mode == False:
                 simulator.plot_current_state(  # TODO - simulator is a weird place to put plotting, probably...
                     properties,
                     self.time,
@@ -567,6 +568,9 @@ class DiseaseSimulation:
                 if property_i.exposure_date != "NA":
                     total_infected += 1
 
+            if self.time == 15 and total_infected > 7:
+                break
+
             if total_infected > max_infected_premises:
                 break
 
@@ -581,33 +585,34 @@ class DiseaseSimulation:
                         stop_time += 1
 
         # since we're not going to show the videos anyway, only saving plot data at the end to limit memory consumption
-        with open(os.path.join(self.folder_path, "plotting_data" + str(self.time)), "wb") as file:
-            pickle.dump(
-                [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
-                file,
+        if ABC_mode == False:
+            with open(os.path.join(self.folder_path, "plotting_data" + str(self.time)), "wb") as file:
+                pickle.dump(
+                    [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
+                    file,
+                )
+
+            # if self.plotting:
+            #     output.make_video(self.folder_path, "map_underlying")
+            #     output.make_video(self.folder_path, "map_apparent")
+
+            simulator.save_outbreak_state(
+                properties,
+                self.time,
+                self.folder_path,
+                self.unique_output,
+                total_culled_animals=0,
+                movement_records=self.movement_records,
+                job_manager=self.job_manager,
             )
 
-        # if self.plotting:
-        #     output.make_video(self.folder_path, "map_underlying")
-        #     output.make_video(self.folder_path, "map_apparent")
+            if outbreak_sim == "HPAI":
+                fixed_spatial_setup.save_chicken_property_csv(properties, self.time, self.folder_path, self.unique_output)
+            if outbreak_sim == "FMD":
+                fixed_spatial_setup.save_FMD_property_csv(properties, self.time, self.folder_path, self.unique_output)
+                trucks_df.to_csv(os.path.join(self.folder_path, f"trucks_df_{self.unique_output}.csv"))
 
-        simulator.save_outbreak_state(
-            properties,
-            self.time,
-            self.folder_path,
-            self.unique_output,
-            total_culled_animals=0,
-            movement_records=self.movement_records,
-            job_manager=self.job_manager,
-        )
-
-        if outbreak_sim == "HPAI":
-            fixed_spatial_setup.save_chicken_property_csv(properties, self.time, self.folder_path, self.unique_output)
-        if outbreak_sim == "FMD":
-            fixed_spatial_setup.save_FMD_property_csv(properties, self.time, self.folder_path, self.unique_output)
-            trucks_df.to_csv(os.path.join(self.folder_path, f"trucks_df_{self.unique_output}.csv"))
-
-        animal_movement.save_movement_record(self.folder_path, self.movement_records)
+            animal_movement.save_movement_record(self.folder_path, self.movement_records)
 
         return properties, self.movement_records, self.time, trucks_df
 

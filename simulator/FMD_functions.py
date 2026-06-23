@@ -257,6 +257,7 @@ def seed_FMD_infection(
     unique_output="",
     latent_period=7,
     disease_parameters=None,
+    ABC_mode=False,
 ):
     """Seeds an infection at a property within the bounds specified"""
     seed_property = 0  # default
@@ -296,19 +297,20 @@ def seed_FMD_infection(
     p.cumulative_infections = num_infected
     p.cumulative_infections_by_animal_type[p.animal_type] = num_infected
 
-    output.plot_map(
-        properties,
-        int_time,
-        xlims=xlims,
-        ylims=ylims,
-        folder_path=folder_path,
-        real_situation=True,
-        controlzone=None,
-        infectionpoly=None,
-        contacts_for_plotting={},  # contacts_for_plotting,  # hiding the contacts for plotting, to make things look clearer,,,, TODO in the real situation, these should be the actual movements, or something
-    )
+    if ABC_mode == False:
+        output.plot_map(
+            properties,
+            int_time,
+            xlims=xlims,
+            ylims=ylims,
+            folder_path=folder_path,
+            real_situation=True,
+            controlzone=None,
+            infectionpoly=None,
+            contacts_for_plotting={},  # contacts_for_plotting,  # hiding the contacts for plotting, to make things look clearer,,,, TODO in the real situation, these should be the actual movements, or something
+        )
 
-    fixed_spatial_setup.save_FMD_property_csv(properties, int_time, folder_path, unique_output)
+        fixed_spatial_setup.save_FMD_property_csv(properties, int_time, folder_path, unique_output)
 
     return properties, seed_property
 

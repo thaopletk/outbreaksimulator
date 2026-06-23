@@ -350,6 +350,7 @@ def run_seeding_undetected_spread(
     ABC_mode=False,
     disease_parameters=None,
     max_infected_premises=10000,
+    target_infected_properties=18,
 ):
     ###################################################
     # ---- Code run set up ---------------------------#
@@ -376,9 +377,10 @@ def run_seeding_undetected_spread(
         scenario_parameters = json.load(file)
 
     if ABC_mode == True:
-        folder_path_main = os.path.join(os.path.dirname(__file__), f"vFMD{state}", "ABC")
-        if not os.path.exists(folder_path_main):
-            os.makedirs(folder_path_main)
+        pass
+        # folder_path_main = os.path.join(os.path.dirname(__file__), f"vFMD{state}", "ABC")
+        # if not os.path.exists(folder_path_main):
+        #     os.makedirs(folder_path_main)
 
     else:
         with open(os.path.join(folder_path_main, "disease_parameters.json"), "r") as file:
@@ -433,8 +435,9 @@ def run_seeding_undetected_spread(
     ###################################################
 
     folder_path_seed = os.path.join(folder_path_main, "01_seed")
-    if not os.path.exists(folder_path_seed):
-        os.makedirs(folder_path_seed)
+    if ABC_mode == False:
+        if not os.path.exists(folder_path_seed):
+            os.makedirs(folder_path_seed)
 
     properties_seeded_filename = os.path.join(folder_path_seed, f"properties_seeded")
 
@@ -467,6 +470,7 @@ def run_seeding_undetected_spread(
             ylims,
             folder_path_seed,
             unique_output,
+            ABC_mode=ABC_mode,
         )
 
     ###################################################
@@ -476,13 +480,13 @@ def run_seeding_undetected_spread(
 
     random.seed(10)
     np.random.seed(10)
-    minimum_spread_time = diseaseoutbreak.time + 27
-    target_infected_properties = 18
+    minimum_spread_time = diseaseoutbreak.time + 28
 
     unique_output = f"02_undetected_spread"
     folder_path_undetected_spread = os.path.join(folder_path_main, unique_output)
-    if not os.path.exists(folder_path_undetected_spread):
-        os.makedirs(folder_path_undetected_spread)
+    if ABC_mode == False:
+        if not os.path.exists(folder_path_undetected_spread):
+            os.makedirs(folder_path_undetected_spread)
 
     undetected_spread_properties_filename = os.path.join(folder_path_undetected_spread, "properties_" + unique_output)
     undetected_spread_diseaseoutbreak_filename = os.path.join(folder_path_undetected_spread, "outbreakobject_" + unique_output)
@@ -492,7 +496,7 @@ def run_seeding_undetected_spread(
 
     total_infected = 0
 
-    if not os.path.exists(undetected_spread_properties_filename) or not os.path.exists(undetected_spread_diseaseoutbreak_filename):
+    if ABC_mode or not os.path.exists(undetected_spread_properties_filename) or not os.path.exists(undetected_spread_diseaseoutbreak_filename):
 
         diseaseoutbreak.set_plotting_parameters(
             xlims=xlims,
@@ -510,9 +514,10 @@ def run_seeding_undetected_spread(
             reporting_region_check=[reportingregion_x, reportingregion_y],
             min_infected_premises=target_infected_properties,
             outbreak_sim="FMD",
-            max_spread_time=30,
+            max_spread_time=minimum_spread_time,
             trucks_df=trucks_df,
             max_infected_premises=max_infected_premises,
+            ABC_mode=ABC_mode,
         )
 
         if ABC_mode == False:
@@ -530,11 +535,11 @@ def run_seeding_undetected_spread(
 
             FMD_functions.save_approx_known_data(properties, folder_path_undetected_spread, unique_output)
 
-        if create_download_folder:
-            if download_parent_folder != None:
-                v06_functions.create_separate_download_folder(folder_path_undetected_spread, download_parent_folder, unique_output)
-            else:
-                v06_functions.create_separate_download_folder(folder_path_undetected_spread, folder_path_main, "download_" + unique_output)
+            if create_download_folder:
+                if download_parent_folder != None:
+                    v06_functions.create_separate_download_folder(folder_path_undetected_spread, download_parent_folder, unique_output)
+                else:
+                    v06_functions.create_separate_download_folder(folder_path_undetected_spread, folder_path_main, "download_" + unique_output)
 
         total_infected = 0
         for property_i in properties:
@@ -557,7 +562,10 @@ def run_seeding_undetected_spread(
 
     print(f"Total number of infected premises: {total_infected}")
 
-    return total_infected, undetected_spread_properties_filename, undetected_spread_diseaseoutbreak_filename, undetected_spread_trucks_filename
+    if ABC_mode == False:
+        return total_infected, undetected_spread_properties_filename, undetected_spread_diseaseoutbreak_filename, undetected_spread_trucks_filename
+    else:
+        return total_infected, current_time
 
 
 def trigger_first_report(
@@ -1118,12 +1126,12 @@ def ABC(state="VIC", grid_size=5):
                         wind_radius=20,
                         ABC_mode=True,
                         disease_parameters=disease_parameters,
-                        max_infected_premises=21,
+                        max_infected_premises=total_infected_aim + 1,
                     )
 
                     data_space.append([beta_wind, beta_animal, pig_multiplier, sheep_multiplier, total_infected])
 
-                    if total_infected > 10 and total_infected < 20:
+                    if total_infected >= total_infected_aim - 1 and total_infected <= total_infected_aim + 1:
                         # accept the parameters ; delete the runs ; and start again
                         with open(os.path.join(folder_path_main_ABC_params, f"disease_parameters_{successful_saves}.json"), "w") as f:
                             json.dump(disease_parameters, f)
