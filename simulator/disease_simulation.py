@@ -2238,6 +2238,7 @@ class DiseaseSimulation:
         enhanced_reporting_factor=2,
         output_suffix="",
         trucks_df=None,
+        save_data=True,
     ):
 
         if time != None:
@@ -2709,6 +2710,10 @@ class DiseaseSimulation:
                             self.total_culled_animals += newly_culled_animals
                             self.daily_statistics[converted_date]["culled animals"] += newly_culled_animals
 
+                            extra_job_info = f"{newly_culled_animals} animals culled"
+                            if facility.infection_status == 0:
+                                extra_job_info += "; culling on property complete"
+
                         else:
                             raise ValueError(f"outbreak_sim {outbreak_sim} not expected - for culling procedures")
 
@@ -2842,9 +2847,11 @@ class DiseaseSimulation:
                     elif job_type == "Disposal":
                         facility.disposed_status = 1
                         facility.disposal_date = converted_date
+                        extra_job_info = ""
                     elif job_type == "Decontamination":
                         facility.decontaminated_status = 1
                         facility.decontamination_date = converted_date
+                        extra_job_info = ""
 
                         OG_status = facility.status
                         facility.status = "RP"
@@ -2858,6 +2865,8 @@ class DiseaseSimulation:
                                 properties[property_index].case_id,
                             ]
                         )
+                    else:
+                        raise ValueError(f"Unexpected job type {job_type}")
 
                     if job_type not in self.job_manager.jobs_queue[property_index]:
                         self.job_manager.jobs_queue[property_index][job_type] = {}
@@ -3088,66 +3097,70 @@ class DiseaseSimulation:
                 )
 
                 self.save_preprocessed_plotting_information(properties)
+        if save_data:
+            with open(os.path.join(self.folder_path, "plotting_data" + str(self.time)), "wb") as file:
+                # pickle.dump(
+                #     [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
+                #     file,
+                # )
+                pickle.dump(
+                    [self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
+                    file,
+                )
 
-        with open(os.path.join(self.folder_path, "plotting_data" + str(self.time)), "wb") as file:
-            pickle.dump(
-                [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
-                file,
+            simulator.save_outbreak_state(
+                properties,
+                self.time,
+                self.folder_path,
+                self.unique_output,
+                total_culled_animals=0,
+                movement_records=self.movement_records,
+                job_manager=self.job_manager,
             )
 
-        simulator.save_outbreak_state(
-            properties,
-            self.time,
-            self.folder_path,
-            self.unique_output,
-            total_culled_animals=0,
-            movement_records=self.movement_records,
-            job_manager=self.job_manager,
-        )
+            if outbreak_sim == "HPAI":
+                fixed_spatial_setup.save_chicken_property_csv(properties, self.time, self.folder_path, self.unique_output)
+            if outbreak_sim == "FMD":
+                fixed_spatial_setup.save_FMD_property_csv(properties, self.time, self.folder_path, self.unique_output)
+                trucks_df.to_csv(os.path.join(self.folder_path, f"trucks_df_{self.unique_output}.csv"))
 
-        if outbreak_sim == "HPAI":
-            fixed_spatial_setup.save_chicken_property_csv(properties, self.time, self.folder_path, self.unique_output)
-        if outbreak_sim == "FMD":
-            fixed_spatial_setup.save_FMD_property_csv(properties, self.time, self.folder_path, self.unique_output)
-            trucks_df.to_csv(os.path.join(self.folder_path, f"trucks_df_{self.unique_output}.csv"))
+            animal_movement.save_movement_record(self.folder_path, self.movement_records)
+            self.save_reports(properties, restricted_area, control_area, output_suffix=output_suffix)
+            self.job_manager.save_jobs_HPAI(self.folder_path, f"completed_jobs{output_suffix}.csv")
+            self.save_daily_statistics(output_suffix=output_suffix, outbreak_sim=outbreak_sim)
 
-        animal_movement.save_movement_record(self.folder_path, self.movement_records)
-        self.save_reports(properties, restricted_area, control_area, output_suffix=output_suffix)
-        self.job_manager.save_jobs_HPAI(self.folder_path, f"completed_jobs{output_suffix}.csv")
-        self.save_daily_statistics(output_suffix=output_suffix, outbreak_sim=outbreak_sim)
+            self.job_manager.calculate_resources_used(self.folder_path, output_suffix)
 
-        self.job_manager.calculate_resources_used(self.folder_path, output_suffix)
+            dates_list = [premises.convert_time_to_date(t) for t in range(self.first_detection_day, self.time + 1)]
+            # print(dates_list)
+            daily_notifs = [0] * len(dates_list)
 
-        dates_list = [premises.convert_time_to_date(t) for t in range(self.first_detection_day, self.time + 1)]
-        # print(dates_list)
-        daily_notifs = [0] * len(dates_list)
+            dates_list2 = [premises.convert_time_to_date(t) for t in range(0, self.time + 1)]
+            daily_exposures = [0] * len(dates_list2)
 
-        dates_list2 = [premises.convert_time_to_date(t) for t in range(0, self.time + 1)]
-        daily_exposures = [0] * len(dates_list2)
+            for property_i in properties:
+                notif_date = property_i.notification_date
+                if notif_date != "NA":
+                    index = dates_list.index(notif_date)
+                    daily_notifs[index] += 1
 
-        for property_i in properties:
-            notif_date = property_i.notification_date
-            if notif_date != "NA":
-                index = dates_list.index(notif_date)
-                daily_notifs[index] += 1
+                exposure_date = property_i.exposure_date
+                if exposure_date != "NA":
+                    index = dates_list2.index(exposure_date)
+                    daily_exposures[index] += 1
 
-            exposure_date = property_i.exposure_date
-            if exposure_date != "NA":
-                index = dates_list2.index(exposure_date)
-                daily_exposures[index] += 1
+            save_name = "daily_notifications"
+            output.plot_daily_notifications_over_time(dates_list, daily_notifs, self.folder_path, save_name)
 
-        save_name = "daily_notifications"
-        output.plot_daily_notifications_over_time(dates_list, daily_notifs, self.folder_path, save_name)
+            output.plot_total_notifs_over_time(dates_list, daily_notifs, self.folder_path, save_name="total_notifs")
 
-        output.plot_total_notifs_over_time(dates_list, daily_notifs, self.folder_path, save_name="total_notifs")
-
-        # Exposure plotting - this is the underlying
-        output.plot_daily_notifications_over_time(
-            dates_list2, daily_exposures, self.folder_path, save_name="daily_exposures", title="Daily new exposed premises"
-        )
-        output.plot_total_notifs_over_time(
-            dates_list2, daily_exposures, self.folder_path, save_name="total_exposures", title="Total exposed premises over time"
-        )
+            # Exposure plotting - this is the underlying
+            output.plot_daily_notifications_over_time(
+                dates_list2, daily_exposures, self.folder_path, save_name="daily_exposures", title="Daily new exposed premises"
+            )
+            output.plot_total_notifs_over_time(
+                dates_list2, daily_exposures, self.folder_path, save_name="total_exposures", title="Total exposed premises over time"
+            )
 
         output.plot_HPAI_outbreak_apparent(
             properties, restricted_area, control_area, enhanced_passive_surveillance_area, self.xlims, self.ylims, self.folder_path, self.time

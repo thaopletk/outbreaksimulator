@@ -1057,10 +1057,10 @@ def save_reports(
 
 def save_current_state(properties, time, folder_path, unique_output):
 
-    to_save = properties
+    # to_save = properties
 
-    with open(os.path.join(folder_path, "properties_" + str(time)), "wb") as file:
-        pickle.dump(to_save, file)
+    # with open(os.path.join(folder_path, "properties_" + str(time)), "wb") as file:
+    #     pickle.dump(to_save, file)
 
     # print output: all
     header = [

@@ -796,27 +796,77 @@ def generate_jobs_QLD(folder_path, approx_data_csv, scheduled_date, action_numbe
 def generate_jobs_teams_FMD(folder_path, approx_data_csv, scheduled_date, action_number, strategy="national_standstill"):
     """
     strategy "national_standstill" -> just the early phase... ; surveillance of properties closest to existing IPs?
+
+    pick CA size:
+    strategy "large_CA
+    strategy "small_CA"
+
+    pick focus if necessary (changing from default):
+    strategy "cull_focus"
+    strategy surveillance_focus"
+
+    if vaccination
+
     strategy "default"
 
     """
 
     approx_data = pd.read_csv(os.path.join(folder_path, approx_data_csv))
 
+    first_day = dt.strptime("28/03/2026", "%d/%m/%Y")
+    scheduled_date_object = dt.strptime(scheduled_date, "%d/%m/%Y")
+
+    delta = abs((scheduled_date_object - first_day).days)
+
+    # basic ramp-up
+    num_surveillance_teams = min(3 + int((50 - 3) * (delta) / 21), 50)
+    num_cull_teams = min(1 + int((25 - 1) * (delta) / 28), 25)
+    num_disposal_teams = min(5 + int((40 - 5) * (delta) / 30), 40)
+    num_decontamination_teams = min(10 + int((100 - 10) * (delta) / 25), 100)
+
     # "teams" is actually the number of jobs that can be done a day
     teams = {
-        "DDD": 6,
+        # "DDD": 0,
+        "Cull": num_cull_teams,
+        "Disposal": num_disposal_teams,
+        "Decontamination": num_decontamination_teams,
         "ContactTracing": 2,
-        "Surveillance": 100,
+        "Surveillance": num_surveillance_teams,
     }
 
     delays = {"ContactTracing": timedelta(days=2)}
 
-    if strategy == "national_standstill":
-        delays["DDD"] = timedelta(days=7)  # no DDD right away
-    else:
-        raise ValueError(f"strategy '{strategy}' not expected")
+    delays["Cull"] = timedelta(days=7)  # no DDD right away
+    delays["Disposal"] = timedelta(days=7)  # no DDD right away
+    delays["Decontamination"] = timedelta(days=7)  # no DDD right away
 
-    scheduled_date_object = dt.strptime(scheduled_date, "%d/%m/%Y")
+    if "cull_focus" in strategy:
+        initial_surv_teams = teams["Surveillance"]
+        teams["Surveillance"] = min(10, initial_surv_teams)
+        difference = initial_surv_teams - teams["Surveillance"]
+
+        teams["Cull"] += difference
+
+        # reducing delays
+        delays["Cull"] = timedelta(days=4)
+        delays["Disposal"] = timedelta(days=4)
+        delays["Decontamination"] = timedelta(days=4)
+
+    if "surveillance_focus" in strategy:
+        initial_cull_teams = teams["Cull"]
+        teams["Cull"] = min(10, initial_cull_teams)
+        difference1 = initial_cull_teams - teams["Cull"]
+
+        initial_disposal_teams = teams["Disposal"]
+        teams["Disposal"] = min(10, initial_disposal_teams)
+        difference2 = initial_disposal_teams - teams["Disposal"]
+
+        teams["Surveillance"] += difference1 + difference2
+
+    # if strategy == "national_standstill":
+    #     pass
+    # else:
+    #     raise ValueError(f"strategy '{strategy}' not expected")
 
     # jobs
     jobs_header = ["ID", "date_scheduled", "action", "specific_action", "detection_prob", "num", "Free text notes"]
@@ -827,11 +877,29 @@ def generate_jobs_teams_FMD(folder_path, approx_data_csv, scheduled_date, action
     IPs = IPs.sort_values("ip")
 
     for i, row in IPs.iterrows():
-        # TODO: need to add in Disposal and Decontamination here
-        if teams["DDD"] > 0 and dt.strptime(row["last_PCR_date"], "%d/%m/%Y") + delays["DDD"] <= scheduled_date_object:
-            job_row = [row["sim_id"], scheduled_date, "Cull", "", "", row["total_animals"], "IP"]
+
+        if teams["Cull"] > 0 and dt.strptime(row["last_PCR_date"], "%d/%m/%Y") + delays["Cull"] <= scheduled_date_object and row["total_animals"] > 0:
+            # job_row = [row["sim_id"], scheduled_date, "Cull", "", "", row["total_animals"], "IP"]
+            job_row = [row["sim_id"], scheduled_date, "Cull", "", "", 1000, "IP"]
             jobs_rows.append(job_row)
-            teams["DDD"] -= 1
+            teams["Cull"] -= 1
+        if (
+            teams["Disposal"] > 0
+            and row["total_animals"] == 0
+            and dt.strptime(row["last_cull_date"], "%d/%m/%Y") + delays["Disposal"] <= scheduled_date_object
+            and pd.isna(row["disposal_date"])
+        ):
+            job_row = [row["sim_id"], scheduled_date, "Disposal", "", "", "", "IP"]  # disposal is done right away
+            jobs_rows.append(job_row)
+            teams["Disposal"] -= 1
+        if (
+            teams["Decontamination"] > 0
+            and not pd.isna(row["disposal_date"])
+            and dt.strptime(row["disposal_date"], "%d/%m/%Y") + delays["Decontamination"] <= scheduled_date_object
+        ):
+            job_row = [row["sim_id"], scheduled_date, "Decontamination", "", "", "", "IP"]  # Decontamination is done right away
+            jobs_rows.append(job_row)
+            teams["Decontamination"] -= 1
 
         # contact tracing if not yet done
         if teams["ContactTracing"] > 0 and pd.isna(row["last_conducted_contact_tracing"]):
@@ -851,7 +919,7 @@ def generate_jobs_teams_FMD(folder_path, approx_data_csv, scheduled_date, action
                 job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", status]
                 jobs_rows.append(job_row)
 
-                teams["Surveillance"] -= 10  # in depth first investigation
+                teams["Surveillance"] -= 1  # in depth first investigation
 
             else:  # if it's still an SP, then it's not an IP....treating it like a DCP with ~2 inspections per week
                 if teams["Surveillance"] > 0 and dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + timedelta(days=4) <= scheduled_date_object:
@@ -859,7 +927,7 @@ def generate_jobs_teams_FMD(folder_path, approx_data_csv, scheduled_date, action
                     jobs_rows.append(job_row)
                     job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", status]
                     jobs_rows.append(job_row)
-                    teams["Surveillance"] -= 1  # a less in-depth investigation
+                    teams["Surveillance"] -= 0.5  # a less in-depth investigation
 
     # ARPs and PORs are treated the same
     for status in ["ARP", "POR"]:
@@ -872,14 +940,14 @@ def generate_jobs_teams_FMD(folder_path, approx_data_csv, scheduled_date, action
                 job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", status]
                 jobs_rows.append(job_row)
 
-                teams["Surveillance"] -= 1  # a less in-depth investigation
+                teams["Surveillance"] -= 0.5  # a less in-depth investigation
             else:  # if it's still an SP, then it's not an IP....treating it like a DCP with ~2 inspections per week
                 if teams["Surveillance"] > 0 and dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + timedelta(days=7) <= scheduled_date_object:
                     job_row = [row["sim_id"], scheduled_date, "Surveillance", "Field Surveillance", "", "", status]
                     jobs_rows.append(job_row)
                     job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", status]
                     jobs_rows.append(job_row)
-                    teams["Surveillance"] -= 1  # a less in-depth investigation
+                    teams["Surveillance"] -= 0.5  # a less in-depth investigation
 
     UPs = approx_data[approx_data["status"] == "UP"]
     UPs = UPs.sort_values("case_id")
@@ -903,13 +971,22 @@ def generate_jobs_teams_FMD(folder_path, approx_data_csv, scheduled_date, action
     for status in ["IP", "RP"]:
         properties = approx_data[approx_data["status"] == status]
         for i, row in properties.iterrows():
-            zone_row = [row["sim_id"], 10, "RA", "", ""]
-            zone_rows.append(zone_row)
 
             if strategy == "national_standstill":
+                zone_row = [row["sim_id"], 10, "RA", "", ""]
+                zone_rows.append(zone_row)
+
                 zone_row = [row["sim_id"], 2000, "CA", "", ""]
-            else:
+            elif "large_CA" in strategy:
+                zone_row = [row["sim_id"], 10, "RA", "", ""]
+                zone_rows.append(zone_row)
+
                 zone_row = [row["sim_id"], 50, "CA", "", ""]
+            elif "small_CA" in strategy:
+                zone_row = [row["sim_id"], 3, "RA", "", ""]
+                zone_rows.append(zone_row)
+
+                zone_row = [row["sim_id"], 10, "CA", "", ""]
             zone_rows.append(zone_row)
 
             zone_row = [row["sim_id"], 2000, "Enhanced Passive Surveillance", "", ""]

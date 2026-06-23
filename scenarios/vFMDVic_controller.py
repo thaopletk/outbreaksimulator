@@ -6,7 +6,7 @@ import pandas as pd
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 
-vFMDVic.setup(state="VIC", wind_radius=20)
+# vFMDVic.setup(state="VIC", wind_radius=20)
 
 # total_infected, undetected_spread_properties_filename, undetected_spread_diseaseoutbreak_filename, undetected_spread_trucks_filename = (
 #     vFMDVic.run_seeding_undetected_spread(state="VIC", burn_in_time=0, create_download_folder=False, download_parent_folder=None, wind_radius=20)
@@ -20,6 +20,70 @@ vFMDVic.setup(state="VIC", wind_radius=20)
 #     create_download_folder=False,
 #     download_parent_folder=None,
 # )
+
+
+# vFMDVic.run_auto_strategies(
+#     state="VIC",
+#     previous_unique_output = "03_outbreak_detection",
+#     previous_output_suffix_int=3,
+#     total_days_to_run_for=3,
+#     create_download_folder=False,
+#     download_parent_folder=None,
+#     download_folder_name=None,
+#     strategy="national_standstill",
+#     shapefile_path=None,
+# )
+
+
+# vFMDVic.run_auto_strategies(
+#     state="VIC",
+#     previous_unique_output = "04_national_standstill",
+#     previous_output_suffix_int=4,
+#     total_days_to_run_for=4,
+#     create_download_folder=False,
+#     download_parent_folder=None,
+#     download_folder_name=None,
+#     strategy="large_CA",
+#     shapefile_path=None,
+# )
+
+# vFMDVic.run_auto_strategies(
+#     state="VIC",
+#     previous_unique_output = "04_national_standstill",
+#     previous_output_suffix_int=4,
+#     total_days_to_run_for=4,
+#     create_download_folder=False,
+#     download_parent_folder=None,
+#     download_folder_name=None,
+#     strategy="small_CA",
+#     shapefile_path=None,
+# )
+
+
+vFMDVic.run_auto_strategies(
+    state="VIC",
+    previous_unique_output="05_large_CA",
+    previous_output_suffix_int=5,
+    total_days_to_run_for=28 - 7,  # 7 to 28
+    create_download_folder=False,
+    download_parent_folder=None,
+    download_folder_name=None,
+    strategy="large_CA_cull_focus",
+    shapefile_path=None,
+)
+
+vFMDVic.run_auto_strategies(
+    state="VIC",
+    previous_unique_output="05_large_CA",
+    previous_output_suffix_int=5,
+    total_days_to_run_for=28 - 7,  # 7 to 28
+    create_download_folder=False,
+    download_parent_folder=None,
+    download_folder_name=None,
+    strategy="large_CA_surveillance_focus",
+    shapefile_path=None,
+)
+
 
 # action_name = "actions_1"
 # vFMDVic.run_actions_excel(
@@ -52,6 +116,7 @@ vFMDVic.setup(state="VIC", wind_radius=20)
 #     create_download_folder=False,
 #     strategy = "national_standstill",
 # )
+
 
 # notes: I could split the undetected spread part out -- so I can conduct ABC on that part to adjust the parameters to spread more like what I want
 # notes for next steps:continue following the v0.6 and continue set up of properties.
