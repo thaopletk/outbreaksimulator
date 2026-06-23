@@ -39,7 +39,13 @@ def get_wind_direction_dict(time):
 
     """
     current_datetime = get_current_datetime(time)
-    if current_datetime >= datetime.datetime(year=2026, month=2, day=9):
+    if current_datetime >= datetime.datetime(year=2026, month=5, day=1):
+        dataset = f"climatedatastore_wind_2026-04-30-0900.nc"
+    elif current_datetime >= datetime.datetime(year=2026, month=3, day=1):
+        DAY = "{:02d}".format(current_datetime.day)
+        MONTH = "{:02d}".format(current_datetime.month)
+        dataset = f"climatedatastore_wind_2026-{MONTH}-{DAY}-0900.nc"
+    elif current_datetime >= datetime.datetime(year=2026, month=2, day=9):
         dataset = "climatedatastore_wind_2026-02-09-1300.nc"
     elif current_datetime >= datetime.datetime(year=2026, month=2, day=8):
         dataset = "climatedatastore_wind_2026-02-08-1200.nc"
