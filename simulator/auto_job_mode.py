@@ -863,14 +863,67 @@ def generate_jobs_teams_FMD(folder_path, approx_data_csv, scheduled_date, action
 
         teams["Surveillance"] += difference1 + difference2
 
+    # jobs
+    jobs_header = ["ID", "date_scheduled", "action", "specific_action", "detection_prob", "num", "Free text notes"]
+    jobs_rows = []
+
+    if "vaccination" in strategy:
+        # teams["Vaccination"] = min(1 + int((500) * (delta-28) / 35), 500)
+        # delays["Vaccination"] = timedelta(days=1)
+
+        # technically should probably reduce the number of teams in other areas
+        # actually not a full reduction, only a partial reduction
+        # to_reduce_others = min(int(teams["Vaccination"]/10),20)
+        initial_surv_capacity = teams["Surveillance"]
+        initial_cull_capacity = teams["Cull"]
+        initial_disposal_capacity = teams["Disposal"]
+        initial_decontam_capacity = teams["Decontamination"]
+
+        teams["Surveillance"] = int(initial_surv_capacity / 2)
+        teams["Cull"] = int(initial_cull_capacity / 2)
+        teams["Disposal"] = int(initial_disposal_capacity / 2)
+        teams["Decontamination"] = int(initial_decontam_capacity / 2)
+
+        teams["Vaccination"] = (
+            int(initial_surv_capacity / 2) + int(initial_cull_capacity / 2) + int(initial_disposal_capacity / 2) + int(initial_decontam_capacity / 2)
+        )
+
+        # for now, aim is to vaccinate PORs in a ring strategy
+        for enterprise in [
+            "feedlot",
+            "dairy",
+            "beef intensive",
+            "beef extensive",
+            "saleyard",
+            "mixed beef",
+            "mixed sheep",
+            "sheep",
+            "pigs small",
+            "pigs large",
+            "smallholder",
+        ]:  # ordered by priority
+            properties = approx_data[(approx_data["status"] == "POR") & (approx_data["enterprise"] == enterprise)]
+            for i, row in properties.iterrows():
+                if pd.isna(row["vaccinated_animals"]) or row["vaccinated_animals"] < row["total_animals"]:
+                    job_row = [row["sim_id"], scheduled_date, "Vaccination", "", "", 2000, "POR"]
+                    jobs_rows.append(job_row)
+                    teams["Vaccination"] -= 1
+
+                if teams["Vaccination"] <= 0:
+                    break
+
+        # then if there are vaccination teams left, then assign back
+        teams["Surveillance"] += int(teams["Vaccination"] / 4)
+        teams["Cull"] += int(teams["Vaccination"] / 4)
+        teams["Disposal"] += int(teams["Vaccination"] / 4)
+        teams["Decontamination"] += int(teams["Vaccination"] / 4)
+
+        teams["Vaccination"] = 0
+
     # if strategy == "national_standstill":
     #     pass
     # else:
     #     raise ValueError(f"strategy '{strategy}' not expected")
-
-    # jobs
-    jobs_header = ["ID", "date_scheduled", "action", "specific_action", "detection_prob", "num", "Free text notes"]
-    jobs_rows = []
 
     # top priority: IPs
     IPs = approx_data[approx_data["status"] == "IP"]

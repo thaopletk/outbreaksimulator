@@ -6,11 +6,11 @@ import pandas as pd
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 
-# vFMDVic.setup(state="VIC", wind_radius=20)
+vFMDVic.setup(state="VIC", wind_radius=20)
 
-# total_infected, undetected_spread_properties_filename, undetected_spread_diseaseoutbreak_filename, undetected_spread_trucks_filename = (
-#     vFMDVic.run_seeding_undetected_spread(state="VIC", burn_in_time=0, create_download_folder=False, download_parent_folder=None, wind_radius=20)
-# )
+total_infected, undetected_spread_properties_filename, undetected_spread_diseaseoutbreak_filename, undetected_spread_trucks_filename = (
+    vFMDVic.run_seeding_undetected_spread(state="VIC", burn_in_time=0, create_download_folder=False, download_parent_folder=None, wind_radius=20)
+)
 
 # vFMDVic.trigger_first_report(
 #     undetected_spread_properties_filename,
@@ -60,30 +60,55 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 # )
 
 
-vFMDVic.run_auto_strategies(
-    state="VIC",
-    previous_unique_output="05_large_CA",
-    previous_output_suffix_int=5,
-    total_days_to_run_for=28 - 7,  # 7 to 28
-    create_download_folder=False,
-    download_parent_folder=None,
-    download_folder_name=None,
-    strategy="large_CA_cull_focus",
-    shapefile_path=None,
-)
+# vFMDVic.run_auto_strategies(
+#     state="VIC",
+#     previous_unique_output="05_large_CA",
+#     previous_output_suffix_int=5,
+#     total_days_to_run_for=28 - 7,  # 7 to 28
+#     create_download_folder=False,
+#     download_parent_folder=None,
+#     download_folder_name=None,
+#     strategy="large_CA_cull_focus",
+#     shapefile_path=None,
+# )
 
-vFMDVic.run_auto_strategies(
-    state="VIC",
-    previous_unique_output="05_large_CA",
-    previous_output_suffix_int=5,
-    total_days_to_run_for=28 - 7,  # 7 to 28
-    create_download_folder=False,
-    download_parent_folder=None,
-    download_folder_name=None,
-    strategy="large_CA_surveillance_focus",
-    shapefile_path=None,
-)
+# vFMDVic.run_auto_strategies(
+#     state="VIC",
+#     previous_unique_output="05_large_CA",
+#     previous_output_suffix_int=5,
+#     total_days_to_run_for=28 - 7,  # 7 to 28
+#     create_download_folder=False,
+#     download_parent_folder=None,
+#     download_folder_name=None,
+#     strategy="large_CA_surveillance_focus",
+#     shapefile_path=None,
+# )
 
+
+# vFMDVic.run_auto_strategies(
+#     state="VIC",
+#     previous_unique_output="06_large_CA_cull_focus",
+#     previous_output_suffix_int=6,
+#     total_days_to_run_for=7,
+#     create_download_folder=False,
+#     download_parent_folder=None,
+#     download_folder_name=None,
+#     strategy="large_CA_cull_focus_vaccination",
+#     shapefile_path=None,
+# )
+
+# effectively no vaccination
+# vFMDVic.run_auto_strategies(
+#     state="VIC",
+#     previous_unique_output="06_large_CA_cull_focus",
+#     previous_output_suffix_int=6,
+#     total_days_to_run_for=7,
+#     create_download_folder=False,
+#     download_parent_folder=None,
+#     download_folder_name=None,
+#     strategy="large_CA_cull_focus",
+#     shapefile_path=None,
+# )
 
 # action_name = "actions_1"
 # vFMDVic.run_actions_excel(
