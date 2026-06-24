@@ -1059,7 +1059,22 @@ class Premises(Property):
             if self.type in ["abbatoir", "egg processing"]:
                 if number_infected == 0 and number_infectious == 0 and number_clinical == 0:
                     self.infection_status = 0
-        elif self.animal_type in ["cattle", "sheep", "pigs", "milk"] or isinstance(self.animal_type, list):
+        elif self.type in [
+            "beef extensive",
+            "beef intensive",
+            "feedlot",
+            "mixed beef",
+            "mixed sheep",
+            "dairy",
+            "pigs small",
+            "pigs large",
+            "sheep",
+            "smallholder",
+            "abattoir",
+            "saleyard",
+            "export_facility",
+            "milk_processing",
+        ]:
             self.size = self.get_num_animals()
             self.number_infectious_by_animal_type = {}
             number_infected = 0
@@ -1070,7 +1085,7 @@ class Premises(Property):
                 self.prop_infectious = 0
                 self.prop_clinical = 0
                 self.number_infected = 0
-                self.size = self.get_num_animals()
+                # self.size = self.get_num_animals()
             else:
                 # potential infection, check animals one by one
                 for ani_type, ani_info in self.animals.items():
@@ -1080,6 +1095,7 @@ class Premises(Property):
                                 number_infected += 1
                             elif ani.infection_status == "infectious":
                                 number_infected += 1
+                                number_infectious += 1
                                 if ani_type not in self.number_infectious_by_animal_type:
                                     self.number_infectious_by_animal_type[ani_type] = 1
                                 else:
@@ -1088,7 +1104,7 @@ class Premises(Property):
                             if ani.clinical_status == "clinical":
                                 number_clinical += 1
 
-                self.size = self.get_num_animals()
+                # self.size = self.get_num_animals()
                 if self.size > 0:
                     self.prop_infectious = number_infectious / self.size
                     self.prop_clinical = number_clinical / self.size
