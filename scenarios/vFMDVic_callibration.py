@@ -21,13 +21,19 @@ if not os.path.exists(folder_path_main_ABC_params):
 sim_id = int(sys.argv[1])
 
 # based on the sim_id number, pick a parameter set from a pre-constructed list
-grid_size = 5  # 625 runs
+grid_size = 5
+# animal_grid = 3
 parameters_list = []
-for beta_wind in np.linspace(0.009, 0.5, grid_size):
-    for beta_animal in np.linspace(0.05, 1.6, grid_size):
-        for pig_multiplier in np.linspace(2.1 / 1.6, 2.1 / 0.7, grid_size):
-            for sheep_multiplier in np.linspace(0.5 / 1.6, 0.5 / 0.7, grid_size):
-                parameters_list.append([beta_wind, beta_animal, pig_multiplier, sheep_multiplier])
+for beta_wind in np.linspace(0.01, 0.01185, grid_size):
+    # beta_animal = 3
+    for beta_animal in np.linspace(0.1, 50, 3):
+        pig_multiplier = (2.1 / 1.6 + 2.1 / 0.7) / 2
+        sheep_multiplier = (0.5 / 1.6 + 0.5 / 0.7) / 2
+        parameters_list.append([beta_wind, beta_animal, pig_multiplier, sheep_multiplier])
+
+        # for pig_multiplier in np.linspace(2.1 / 1.6, 2.1 / 0.7, grid_size):
+        #     for sheep_multiplier in np.linspace(0.5 / 1.6, 0.5 / 0.7, grid_size):
+        #         parameters_list.append([beta_wind, beta_animal, pig_multiplier, sheep_multiplier])
 
 beta_wind, beta_animal, pig_multiplier, sheep_multiplier = parameters_list[sim_id]
 
