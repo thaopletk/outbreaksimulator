@@ -270,7 +270,7 @@ def seed_FMD_infection(
 
     # seed this property
     p = properties[seed_property]
-    num_infected = min(10, p.animals[p.animal_type]["n"])
+    num_infected = 4  # min(10, p.animals[p.animal_type]["n"])
     p.init_animals(None)
 
     # TODO technically, to encapsulate this better, there should a function that allows you to infect a specific animal(s), and that will then update infection_status, prop_infections, cumulative_infections, and exposure_date, and anything else that may need to be updated
@@ -708,14 +708,16 @@ def animal_movement(
                         facility.animals[animal_avail]["n"] = facility.animals[animal_avail]["n"] - to_move
                         num_animals_to_move = num_animals_to_move - to_move
 
-                        if "objs" in facility.animals[animal_avail]:
-                            if (
-                                ("herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 125520 and day == 1)
-                                or ("herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 125520 and day == 2)
-                                or ("herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 57712 and day == 19)
-                                or ("herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 114447 and day == 21)
-                                or ("herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 57712 and day == 25)
-                            ):
+                        if (
+                            ("herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 125520 and day == 1)
+                            or ("herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 125520 and day == 2)
+                            or ("herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 57712 and day == 19)
+                            or ("herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 114447 and day == 21)
+                            or ("herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 57712 and day == 25)
+                        ):
+                            if "objs" not in facility.animals[animal_avail]:
+                                print("need a sick animal to move but there are no sick animals here!")
+                            else:
                                 sick_animal_moved_successfully = False
                                 # todo : make sure that you move at least one infected animal
                                 for i in range(len(facility.animals[animal_avail]["objs"])):
@@ -727,18 +729,19 @@ def animal_movement(
                                         break
                                 if sick_animal_moved_successfully:
                                     # only need to move N-1
+                                    print("Moved sick animal")
                                     in_transit[truck_id]["objs"].extend(facility.animals[animal_avail]["objs"][: to_move - 1])
                                     facility.animals[animal_avail]["objs"] = facility.animals[animal_avail]["objs"][to_move - 1 :]
                                 else:
                                     print("Unable to find sick animal to move")
                                     in_transit[truck_id]["objs"] = facility.animals[animal_avail]["objs"][:to_move]
                                     facility.animals[animal_avail]["objs"] = facility.animals[animal_avail]["objs"][to_move:]
-
-                            else:
+                        else:
+                            if "objs" in facility.animals[animal_avail]:
                                 in_transit[truck_id]["objs"] = facility.animals[animal_avail]["objs"][:to_move]
                                 facility.animals[animal_avail]["objs"] = facility.animals[animal_avail]["objs"][to_move:]
-                            if len(facility.animals[animal_avail]["objs"]) == 0:
-                                del facility.animals[animal_avail]["objs"]
+                                if len(facility.animals[animal_avail]["objs"]) == 0:
+                                    del facility.animals[animal_avail]["objs"]
 
                         row = [
                             day,
@@ -1022,7 +1025,7 @@ def animal_movement(
             # contaminate the truck
             FOI_ish = num_infectious_on_board * disease_parameters[in_transit[truck_id]["cargo"]]["beta_wind"] * truck_contanmination_infection_factor
             trucks_df.loc[trucks_df["truck_id"] == truck_id, "contamination"] += FOI_ish
-            print(f"infected animals on truck {truck_id}")
+            print(f"infectious animals on truck {truck_id}")
         else:  # see if the truck is contaminated and therefore can infect the animals
             existing_contamination = list(trucks_df[trucks_df["truck_id"] == truck_id].contamination)[0]
             if existing_contamination > 0:
