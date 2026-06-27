@@ -474,7 +474,7 @@ def pick_single_movement_target(
     return movement_possible, number_of_movement_requests, target_property_index
 
 
-def get_available_trucks(trucks_df, premise_index, target_index, item_to_move):
+def get_available_trucks(trucks_df, premise_index, target_index, item_to_move, must_return_truck=False):
     # item to move can be an animal or milk
 
     trucks_sub_df = trucks_df[
@@ -489,6 +489,19 @@ def get_available_trucks(trucks_df, premise_index, target_index, item_to_move):
         ]
         trucks_sub = list(trucks_sub_df.truck_id)
         local_trucks = False
+
+        if len(trucks_sub) == 0 and must_return_truck:
+            truck_found = False
+            # find nearby trucks nearby instead
+            i = 0
+            while truck_found == False:
+                i += 1
+                trucks_sub_df = trucks_df[
+                    (trucks_df["busy"] == False) & (trucks_df["cargo_type"] == item_to_move) & (trucks_df["home_property"] == premise_index - i)
+                ]
+                trucks_sub = list(trucks_sub_df.truck_id)
+                if len(trucks_sub) > 0:
+                    truck_found = True
 
     truck_capacities = list(trucks_sub_df.cargo_cap)
     total_capacity = sum(truck_capacities)
@@ -557,16 +570,19 @@ def animal_movement(
             "saleyard",
         ]:
             # some forced movements
+            forced = False
 
             if "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 125520 and day == 1:
+                print("herd id == 125520 and day == 1")  # this works
+                forced = True
                 pass  # movement should happen
             elif "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 125520 and day == 2:
-                pass
-            elif "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 57712 and day == 19:
+                print("herd id == 125520 and day == 2")  # this works
+                forced = True
                 pass
             elif "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 114447 and day == 21:
-                pass
-            elif "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 57712 and day == 25:
+                print("herd id == 114447 and day == 21")  # this works
+                forced = True
                 pass
             else:
                 if np.random.rand() > facility.movement_probability:
@@ -581,12 +597,14 @@ def animal_movement(
 
                 target_index = None
                 if "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 125520 and day == 1:
+                    # source - sim id is 38769
                     movement_possible = True
                     # target herd id = 124711
                     for i, property in enumerate(properties):
                         if "herd_id" in property.FMD_extra_info:
                             if property.FMD_extra_info["herd_id"] == 124711:
                                 target_index = i
+                                print("forced target index found")
                 elif "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 125520 and day == 2:
                     movement_possible = True
                     # target herd id = 114447 now
@@ -594,13 +612,8 @@ def animal_movement(
                         if "herd_id" in property.FMD_extra_info:
                             if property.FMD_extra_info["herd_id"] == 114447:
                                 target_index = i
-                elif "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 57712 and day == 19:
-                    movement_possible = True
-                    # target herd id = 217444 now
-                    for i, property in enumerate(properties):
-                        if "herd_id" in property.FMD_extra_info:
-                            if property.FMD_extra_info["herd_id"] == 217444:
-                                target_index = i
+                                print("forced target index found")
+
                 elif "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 114447 and day == 21:
                     movement_possible = True
                     # target herd id = 111575 now
@@ -608,13 +621,8 @@ def animal_movement(
                         if "herd_id" in property.FMD_extra_info:
                             if property.FMD_extra_info["herd_id"] == 111575:
                                 target_index = i
-                elif "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 57712 and day == 25:
-                    movement_possible = True
-                    # target herd id = 24636 now
-                    for i, property in enumerate(properties):
-                        if "herd_id" in property.FMD_extra_info:
-                            if property.FMD_extra_info["herd_id"] == 24636:
-                                target_index = i
+                                print("forced target index found")
+                                # sim id 24824, pig - not found for some reason?
                 else:
 
                     targets_unrestricted_zones, targets_in_control_zones = find_targets(
@@ -664,7 +672,7 @@ def animal_movement(
                     # first try to find a truck at the facility
                     # and if not possible, find a truck at the target facility
                     available_trucks, total_capacity, local_trucks, truck_capacities = get_available_trucks(
-                        trucks_df, premise_index, target_index, animal_avail
+                        trucks_df, premise_index, target_index, animal_avail, must_return_truck=forced
                     )
 
                     if len(available_trucks) == 0:
@@ -708,13 +716,7 @@ def animal_movement(
                         facility.animals[animal_avail]["n"] = facility.animals[animal_avail]["n"] - to_move
                         num_animals_to_move = num_animals_to_move - to_move
 
-                        if (
-                            ("herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 125520 and day == 1)
-                            or ("herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 125520 and day == 2)
-                            or ("herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 57712 and day == 19)
-                            or ("herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 114447 and day == 21)
-                            or ("herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 57712 and day == 25)
-                        ):
+                        if forced:
                             if "objs" not in facility.animals[animal_avail]:
                                 print("need a sick animal to move but there are no sick animals here!")
                             else:
@@ -722,7 +724,7 @@ def animal_movement(
                                 # todo : make sure that you move at least one infected animal
                                 for i in range(len(facility.animals[animal_avail]["objs"])):
                                     animal_temp = facility.animals[animal_avail]["objs"][i]
-                                    if animal_temp.infection_status != "susceptible":  # move this animal, break and remove it
+                                    if animal_temp.infection_status in ["exposed", "infectious"]:  # move this animal, break and remove it
                                         sick_animal_moved_successfully = True
                                         in_transit[truck_id]["objs"] = [animal_temp]
                                         del facility.animals[animal_avail]["objs"][i]
@@ -768,6 +770,101 @@ def animal_movement(
         elif facility.type == "dairy":
             # moving milk every 24 or 48 hours. just go daily for now for simplicity
             # get places to move milk to; assume no movement of cattle for simplicity
+
+            # do any forced movements first
+            if facility.FMD_extra_info["herd_id"] == 57712 and day in [19, 25]:
+                print("herd id == 57712 and day == 19 or 25")  # thtis doesn't work???
+                # should be 12501... dairy
+
+                if day == 25:
+                    # target herd id = 24636 now
+                    for i, property in enumerate(properties):
+                        if "herd_id" in property.FMD_extra_info:
+                            if property.FMD_extra_info["herd_id"] == 24636:
+                                target_index = i
+                                print("forced target index found")
+                elif day == 19:
+                    # target herd id = 217444 now
+                    for i, property in enumerate(properties):
+                        if "herd_id" in property.FMD_extra_info:
+                            if property.FMD_extra_info["herd_id"] == 217444:
+                                target_index = i
+                                print("forced target index found")
+
+                available_trucks, total_capacity, local_trucks, truck_capacities = get_available_trucks(
+                    trucks_df, premise_index, target_index, "cattle", must_return_truck=True
+                )
+
+                animal_avail = "cattle"
+
+                num_animals_to_move_ideally = betapert.pert.rvs(
+                    mini=facility.movement_prop_animals[0], mode=facility.movement_prop_animals[1], maxi=facility.movement_prop_animals[2]
+                )
+                num_animals_to_move_ideally = int(num_animals_to_move_ideally * facility.animals[animal_avail]["n"])
+
+                max_trucks_to_use = int(np.random.randint(1, len(available_trucks) + 1))
+                sub_capacity = sum(truck_capacities[:max_trucks_to_use])
+                num_animals_to_move = min(sub_capacity, facility.animals[animal_avail]["n"], num_animals_to_move_ideally)
+
+                trucks_used = []
+                for i in range(len(available_trucks)):
+                    truck_id = available_trucks[i]
+                    trucks_used.append(truck_id)
+                    cap = truck_capacities[i]
+
+                    # move the number of animals that is bounded by the truck capacity
+                    if cap < num_animals_to_move:
+                        to_move = cap
+                    else:
+                        to_move = num_animals_to_move
+
+                    # move the animals into a temporary dictionary probably, rather than the dataframe
+                    in_transit[truck_id] = {"cargo": animal_avail, "n": to_move, "target": target_index}
+                    facility.animals[animal_avail]["n"] = facility.animals["cattle"]["n"] - to_move
+                    num_animals_to_move = num_animals_to_move - to_move
+
+                    if "objs" not in facility.animals[animal_avail]:
+                        print("need a sick animal to move but there are no sick animals here!")
+                    else:
+                        sick_animal_moved_successfully = False
+                        # todo : make sure that you move at least one infected animal
+                        for i in range(len(facility.animals[animal_avail]["objs"])):
+                            animal_temp = facility.animals[animal_avail]["objs"][i]
+                            if animal_temp.infection_status != "susceptible":  # move this animal, break and remove it
+                                sick_animal_moved_successfully = True
+                                in_transit[truck_id]["objs"] = [animal_temp]
+                                del facility.animals[animal_avail]["objs"][i]
+                                break
+                        if sick_animal_moved_successfully:
+                            # only need to move N-1
+                            print("Moved sick animal")
+                            in_transit[truck_id]["objs"].extend(facility.animals[animal_avail]["objs"][: to_move - 1])
+                            facility.animals[animal_avail]["objs"] = facility.animals[animal_avail]["objs"][to_move - 1 :]
+                        else:
+                            print("Unable to find sick animal to move")
+                            in_transit[truck_id]["objs"] = facility.animals[animal_avail]["objs"][:to_move]
+                            facility.animals[animal_avail]["objs"] = facility.animals[animal_avail]["objs"][to_move:]
+
+                    row = [
+                        day,
+                        f"{date}",
+                        premise_index,
+                        target_index,
+                        animal_avail,
+                        in_transit[truck_id]["n"],
+                        facility.type,
+                        properties[target_index].type,
+                        truck_id,
+                        f"DAY {date} - moved {in_transit[truck_id]['n']} {animal_avail} from {facility.type} (sim_id {facility.id}) ({facility.region}) to {properties[target_index].type} (sim_id {properties[target_index].id}) ( {properties[target_index].region})",
+                    ]
+
+                    movement_record.append(row)
+
+                    if num_animals_to_move == 0:
+                        break
+                # tag those trucks as "busy"=True
+                mask = trucks_df["truck_id"].isin(trucks_used)
+                trucks_df["busy"][mask] = True
 
             properties_to_move_to = facility.allowed_movement_details["milk"]["properties"]
 
@@ -1013,6 +1110,7 @@ def animal_movement(
         # if the animals are infectious, then the truck should get a contamination level
         num_infectious_on_board = 0
         new_infections = 0
+        num_exposed = 0
         if "objs" in in_transit[truck_id]:
             for a in in_transit[truck_id]["objs"]:
                 if a.infection_status == "infectious":
@@ -1021,6 +1119,10 @@ def animal_movement(
                     # probably want some beta_wind based on the animal type, some kind of FOI here, for the contamination level
                     # alternatively, if the truck is already contaminated, then the animals could get sick...!
                     # TODO
+                if a.infection_status == "exposed":
+                    num_exposed += 1
+        if num_exposed > 0:
+            print(f"exposed animals on truck {truck_id}")
         if num_infectious_on_board > 0:  # won't be milk
             # contaminate the truck
             FOI_ish = num_infectious_on_board * disease_parameters[in_transit[truck_id]["cargo"]]["beta_wind"] * truck_contanmination_infection_factor
@@ -1061,7 +1163,9 @@ def animal_movement(
                 in_transit[truck_id]["objs"] = [Animal(None) for _ in range(in_transit[truck_id]["n"])]
             new_facility.animals[in_transit[truck_id]["cargo"]]["objs"].extend(in_transit[truck_id]["objs"])
         else:
-            if new_infections == 0 and num_infectious_on_board == 0 and "objs" in in_transit[truck_id]:  # nothing actually infected
+            if (
+                num_exposed == 0 and new_infections == 0 and num_infectious_on_board == 0 and "objs" in in_transit[truck_id]
+            ):  # nothing actually infected
                 del in_transit[truck_id]["objs"]
 
             if "objs" in in_transit[truck_id]:
