@@ -2293,6 +2293,7 @@ def save_FMD_property_csv(properties, time, folder_path, unique_output):
         "total",
         "data_source",
         "extra_info",
+        "num_infected_animals",
     ]
     file = os.path.join(folder_path, f"data_underlying{unique_output}.csv")
     with open(file, "w", newline="") as f:

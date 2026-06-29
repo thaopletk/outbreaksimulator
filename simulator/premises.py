@@ -1296,4 +1296,5 @@ class Premises(Property):
             self.get_num_animals(),
             self.data_source,
             self.FMD_extra_info,
+            self.number_infected,
         ]
