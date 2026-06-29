@@ -6,7 +6,7 @@ import pandas as pd
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 
-# vFMDVic.setup(state="VIC", wind_radius=20)
+vFMDVic.setup(state="VIC", wind_radius=20)
 
 total_infected, undetected_spread_properties_filename, undetected_spread_diseaseoutbreak_filename, undetected_spread_trucks_filename = (
     vFMDVic.run_seeding_undetected_spread(state="VIC", burn_in_time=0, create_download_folder=False, download_parent_folder=None, wind_radius=20)

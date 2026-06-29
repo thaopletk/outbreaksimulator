@@ -598,8 +598,14 @@ def animal_movement(
             for animal_avail in facility.animals:
                 if facility.animals[animal_avail]["n"] == 0:
                     continue
-
-                properties_to_move_to = facility.allowed_movement_details[animal_avail]["properties"]
+                try:
+                    properties_to_move_to = facility.allowed_movement_details[animal_avail]["properties"]
+                except Exception as e:
+                    print(e)
+                    print(facility.animals)
+                    print(facility.id)
+                    print(facility.allowed_movement_details)
+                    exit(1)
 
                 target_index = None
                 if "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 125520 and day == 1:

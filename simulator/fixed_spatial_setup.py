@@ -1868,6 +1868,8 @@ def FMD_VIC_setup_locations(
         animal_type = row["animal_type"]
         if animal_type == "other":
             animal_type = random.choices(["cattle", "sheep", "pigs"])[0]
+        if int(row["herd id"]) in [125520, 124711, 114447, 111575]:
+            animal_type = "cattle"
 
         if "beef" in premises_type:
             beef_coordinates.append(property_coordinates)
