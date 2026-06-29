@@ -687,6 +687,9 @@ def animal_movement(
                     else:
                         num_animals_to_move_ideally = int(num_animals_to_move_ideally * facility.animals[animal_avail]["n"])  # and this is
 
+                    if forced:
+                        num_animals_to_move_ideally = 2  # moving fewer...
+
                     # print(num_animals_to_move_ideally)
 
                     if local_trucks:

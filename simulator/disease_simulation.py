@@ -541,7 +541,7 @@ class DiseaseSimulation:
 
             # update counts of infected/clinical/etc animals on each farm
             for i, premise in enumerate(properties):
-                premise.update_counts()
+                premise.update_counts(self.time)
 
             if self.plotting and ABC_mode == False:
                 simulator.plot_current_state(  # TODO - simulator is a weird place to put plotting, probably...
@@ -3079,7 +3079,7 @@ class DiseaseSimulation:
 
             # update counts of infected/clinical/etc animals on each farm
             for i, premise in enumerate(properties):
-                premise.update_counts()
+                premise.update_counts(self.time)
 
             # then close off this day
             time_list.append(self.time)

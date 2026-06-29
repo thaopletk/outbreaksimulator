@@ -747,6 +747,18 @@ class Premises(Property):
                             else:
                                 pass  # pass  - no infection risk
         elif isinstance(self.animal_type, list) or self.animal_type in ["cattle", "pigs", "sheep"]:
+            forced = False
+            if time == 6 and "herd_id" in self.FMD_extra_info and self.FMD_extra_info["herd_id"] == 57712:
+                forced = True
+                print(f"target herd 57712 FOI: {FOI}")
+                if FOI == 0:
+                    print("target herd 57712 has no force of infection on it on day 6 ")
+            if time == 14 and "herd_id" in self.FMD_extra_info and self.FMD_extra_info["herd_id"] == 25435:
+                forced = True
+                print(f"target herd 25435 FOI: {FOI}")
+                if FOI == 0:
+                    print("target herd 25435 has no force of infection on it on day 14 ")
+
             if self.check_if_animal_objects() == False and FOI > 0:
                 # they could get infected
                 self.init_animals(None)
@@ -760,7 +772,12 @@ class Premises(Property):
                             animal_objs = [Animal(params) for _ in range(self.animals[ani_type]["n"])]
                             self.animals[ani_type]["objs"] = animal_objs
                         for anim in self.animals[ani_type]["objs"]:
-                            animal_inf = anim.infection_event(params, FOI)
+                            if forced == True:
+                                animal_inf = anim.infection_event(params, 1000000)
+                                forced = False  # to force it only once
+                            else:
+                                animal_inf = anim.infection_event(params, FOI)
+
                             if animal_inf:
                                 self.cumulative_infections += 1
                                 if ani_type in self.cumulative_infections_by_animal_type:
@@ -1012,7 +1029,7 @@ class Premises(Property):
         else:
             return 0
 
-    def update_counts(self):
+    def update_counts(self, current_time=0):
         if self.animal_type == "chicken":
             number_infected = 0
             number_infectious = 0
@@ -1121,6 +1138,12 @@ class Premises(Property):
                 if number_infected == 0 and number_infectious == 0 and number_clinical == 0:
                     if np.random.rand() < 0.8:
                         self.infection_status = 0
+
+            if self.infection_status == 1 and self.exposure_date == "NA":
+                self.exposure_date = convert_time_to_date(current_time)
+
+            if number_clinical > 0 and self.clinical_date == "NA":
+                self.clinical_date = convert_time_to_date(current_time)
 
         else:
             super.update_counts()
