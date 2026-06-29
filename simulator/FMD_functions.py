@@ -23,6 +23,8 @@ movement_record_header = [
     "facility_type_2",
     "truck_id",
     "report",
+    "from_herd_id",
+    "to_herd_id",
 ]
 
 
@@ -759,6 +761,8 @@ def animal_movement(
                             properties[target_index].type,
                             truck_id,
                             f"DAY {date} - moved {in_transit[truck_id]['n']} {animal_avail} from {facility.type} (sim_id {facility.id}) ({facility.region}) to {properties[target_index].type} (sim_id {properties[target_index].id}) ( {properties[target_index].region})",
+                            facility.FMD_extra_info["herd_id"] if "herd_id" in facility.FMD_extra_info else "NA",
+                            properties[target_index].FMD_extra_info["herd_id"] if "herd_id" in properties[target_index].FMD_extra_info else "NA",
                         ]
 
                         movement_record.append(row)
@@ -859,6 +863,8 @@ def animal_movement(
                         properties[target_index].type,
                         truck_id,
                         f"DAY {date} - moved {in_transit[truck_id]['n']} {animal_avail} from {facility.type} (sim_id {facility.id}) ({facility.region}) to {properties[target_index].type} (sim_id {properties[target_index].id}) ( {properties[target_index].region})",
+                        facility.FMD_extra_info["herd_id"] if "herd_id" in facility.FMD_extra_info else "NA",
+                        properties[target_index].FMD_extra_info["herd_id"] if "herd_id" in properties[target_index].FMD_extra_info else "NA",
                     ]
 
                     movement_record.append(row)
@@ -927,6 +933,8 @@ def animal_movement(
                         new_facility.type,
                         truck_id,
                         f"DAY {date} - moved {cap} L milk from {facility.type} (sim_id {facility.id}) ({facility.region}) to {new_facility.type} (sim_id {new_facility.id}) ( {new_facility.region})",
+                        facility.FMD_extra_info["herd_id"] if "herd_id" in facility.FMD_extra_info else "NA",
+                        properties[target_index].FMD_extra_info["herd_id"] if "herd_id" in properties[target_index].FMD_extra_info else "NA",
                     ]
 
                     movement_record.append(row)
@@ -986,6 +994,8 @@ def animal_movement(
                                 properties[target_index].type,
                                 -1,
                                 f"DAY {date} - slaughtered and moved {for_slaughter} {ani_type} from {facility.type} (sim_id {facility.id}) ({facility.region}) {properties[target_index].type} (sim_id {properties[target_index].id}) ( {properties[target_index].region})",
+                                facility.FMD_extra_info["herd_id"] if "herd_id" in facility.FMD_extra_info else "NA",
+                                properties[target_index].FMD_extra_info["herd_id"] if "herd_id" in properties[target_index].FMD_extra_info else "NA",
                             ]
 
                             if cargo not in properties[target_index].animals:
@@ -1016,6 +1026,8 @@ def animal_movement(
                             "meat distributor",
                             -1,
                             f"DAY {date} - slaughtered and moved {for_slaughter} {ani_type} from {facility.type} (sim_id {facility.id}) ({facility.region}) to meat distributor",
+                            facility.FMD_extra_info["herd_id"] if "herd_id" in facility.FMD_extra_info else "NA",
+                            "NA",
                         ]
 
                         movement_record.append(row)
@@ -1049,6 +1061,8 @@ def animal_movement(
                                 "overseas",
                                 -3,
                                 f"DAY {date} - live export of {facility.animals[cargo_type]['n']} {cargo_type} from {facility.type} (sim_id {facility.id}) ({facility.region}) to overseas (number exposed or infectious on board: {num_infectious_on_board})",
+                                facility.FMD_extra_info["herd_id"] if "herd_id" in facility.FMD_extra_info else "NA",
+                                "NA",
                             ]
 
                             movement_record.append(row)
@@ -1076,6 +1090,8 @@ def animal_movement(
                                 "overseas",
                                 -3,
                                 f"DAY {date} - export of {facility.animals[cargo_type]['n']} {cargo_type} from {facility.type} (sim_id {facility.id}) ({facility.region}) to overseas",
+                                facility.FMD_extra_info["herd_id"] if "herd_id" in facility.FMD_extra_info else "NA",
+                                "NA",
                             ]
 
                             movement_record.append(row)
@@ -1097,6 +1113,8 @@ def animal_movement(
                     "dairy foods distributor",
                     -4,
                     f"DAY {date} - milk transported from {facility.type} (sim_id {facility.id}) ({facility.region}) to dairy foods distributors",
+                    facility.FMD_extra_info["herd_id"] if "herd_id" in facility.FMD_extra_info else "NA",
+                    "NA",
                 ]
 
                 movement_record.append(row)
