@@ -574,18 +574,22 @@ def animal_movement(
             # some forced movements
             forced = False
 
-            if "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 125520 and day == 1:
-                print("herd id == 125520 and day == 1")  # this works
-                forced = True
-                pass  # movement should happen
-            elif "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 125520 and day == 2:
-                print("herd id == 125520 and day == 2")  # this works
-                forced = True
-                pass
-            elif "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 114447 and day == 21:
-                print("herd id == 114447 and day == 21")  # this works
-                forced = True
-                pass
+            if "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 125520:
+                if day == 1:
+                    print("herd id == 125520 and day == 1")
+                    forced = True
+                elif day == 2:
+                    print("herd id == 125520 and day == 2")
+                else:
+                    continue  # no movement on other days
+            elif "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 114447:
+                if day == 21:
+                    print("herd id == 114447 and day == 21")  # this works
+                    forced = True
+                else:
+                    continue  # no movements on other days
+            elif "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 25435:
+                continue  # no movements off the target property
             else:
                 if np.random.rand() > facility.movement_probability:
                     continue  # no movement
