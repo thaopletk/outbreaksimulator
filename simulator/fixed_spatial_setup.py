@@ -1883,6 +1883,8 @@ def FMD_VIC_setup_locations(
             other_coordinates.append(property_coordinates)  # small holders
 
         num_animals = int(row["herd size"])
+        if int(row["herd id"]) in [125520, 124711, 114447]:
+            num_animals += 5  # bumping up the number of animals, to hopefully cause more spread
 
         if LGA not in occupied_regions:
             occupied_regions[LGA] = [property_polygon]
