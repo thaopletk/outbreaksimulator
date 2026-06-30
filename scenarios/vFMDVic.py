@@ -562,6 +562,25 @@ def run_seeding_undetected_spread(
 
     print(f"Total number of infected premises: {total_infected}")
 
+    if ABC_mode:
+        first_report_herd_id = 25435
+
+        first_report_i = None
+        for i, property in enumerate(properties):
+            if "herd_id" in property.FMD_extra_info:
+                if first_report_herd_id == property.FMD_extra_info["herd_id"]:
+                    first_report_i = i
+                    break
+        if first_report_i != None:
+            # check if it's actually infected or not
+            if properties[first_report_i].clinical_date != "NA":
+                print("first detected herd successfully found and currently showing clinical signs")
+                pass  # good
+            elif properties[first_report_i].exposure_date != "NA":
+                print("first detected herd is exposed but no clinical signs")
+            else:
+                print("ideal first detected herd not actually infected")
+
     if ABC_mode == False:
         return total_infected, undetected_spread_properties_filename, undetected_spread_diseaseoutbreak_filename, undetected_spread_trucks_filename
     else:

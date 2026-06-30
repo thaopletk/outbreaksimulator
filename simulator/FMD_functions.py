@@ -580,6 +580,7 @@ def animal_movement(
                     forced = True
                 elif day == 2:
                     print("herd id == 125520 and day == 2")
+                    forced = True
                 else:
                     continue  # no movement on other days
             elif "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 114447:

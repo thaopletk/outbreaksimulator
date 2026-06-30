@@ -753,11 +753,11 @@ class Premises(Property):
                 print(f"target herd 57712 FOI: {FOI}")
                 if FOI == 0:
                     print("target herd 57712 has no force of infection on it on day 6 ")
-            if time == 14 and "herd_id" in self.FMD_extra_info and self.FMD_extra_info["herd_id"] == 25435:
+            if time >= 14 and "herd_id" in self.FMD_extra_info and self.FMD_extra_info["herd_id"] == 25435 and self.infection_status == 0:
                 forced = True
                 print(f"target herd 25435 FOI: {FOI}")
                 if FOI == 0:
-                    print("target herd 25435 has no force of infection on it on day 14 ")
+                    print(f"target herd 25435 has no force of infection on it on day {time} ")
 
             if self.check_if_animal_objects() == False and FOI > 0:
                 # they could get infected

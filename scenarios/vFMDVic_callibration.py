@@ -26,7 +26,7 @@ grid_size = 5
 parameters_list = []
 for beta_wind in np.linspace(0.01, 0.0145, grid_size):
     # beta_animal = 3
-    for beta_animal in np.linspace(0.1, 2, grid_size):
+    for beta_animal in np.linspace(0.1, 0.5, grid_size):
         pig_multiplier = (2.1 / 1.6 + 2.1 / 0.7) / 2
         sheep_multiplier = (0.5 / 1.6 + 0.5 / 0.7) / 2
         parameters_list.append([beta_wind, beta_animal, pig_multiplier, sheep_multiplier])

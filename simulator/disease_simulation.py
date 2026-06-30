@@ -568,7 +568,7 @@ class DiseaseSimulation:
                 if property_i.exposure_date != "NA":
                     total_infected += 1
 
-            if self.time == 15 and total_infected > 7:
+            if self.time == 15 and total_infected > 10:
                 break
 
             if total_infected > max_infected_premises:
@@ -802,7 +802,7 @@ class DiseaseSimulation:
                     print("first detected herd successfully found")
                     pass  # good
                 else:
-                    print("ideal first detected herd not actualy infected")
+                    print("ideal first detected herd not actually infected")
                     first_report_i = self.select_first_reported_property(properties, reportingregion_x, reportingregion_y)
             else:
                 print("ideal first detected herd not among the current properties")
