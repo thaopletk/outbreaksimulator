@@ -376,7 +376,7 @@ def run_seeding_undetected_spread(
     with open(os.path.join(folder_path_main, "scenario_parameters.json"), "r") as file:
         scenario_parameters = json.load(file)
 
-    if ABC_mode == True:
+    if ABC_mode == True or disease_parameters != None:
         pass
         # folder_path_main = os.path.join(os.path.dirname(__file__), f"vFMD{state}", "ABC")
         # if not os.path.exists(folder_path_main):
@@ -1181,6 +1181,7 @@ def run_auto_strategies(
             trucks_df=trucks_df,
             outbreak_sim="FMD",
             save_data=save_data,
+            strategy=strategy,
         )
 
         if running_day == total_days_to_run_for:

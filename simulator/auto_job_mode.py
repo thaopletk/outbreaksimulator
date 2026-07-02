@@ -795,6 +795,9 @@ def generate_jobs_QLD(folder_path, approx_data_csv, scheduled_date, action_numbe
 
 def generate_jobs_teams_FMD(folder_path, approx_data_csv, scheduled_date, action_number, strategy="national_standstill"):
     """
+
+    strategy "initial_investigation" - first day investigation; basically the default
+
     strategy "national_standstill" -> just the early phase... ; surveillance of properties closest to existing IPs?
 
     pick CA size:
@@ -1025,12 +1028,12 @@ def generate_jobs_teams_FMD(folder_path, approx_data_csv, scheduled_date, action
         properties = approx_data[approx_data["status"] == status]
         for i, row in properties.iterrows():
 
-            if strategy == "national_standstill":
-                zone_row = [row["sim_id"], 10, "RA", "", ""]
-                zone_rows.append(zone_row)
+            if strategy == "national_standstill" or "large_CA" in strategy:
+                #     zone_row = [row["sim_id"], 10, "RA", "", ""]
+                #     zone_rows.append(zone_row)
 
-                zone_row = [row["sim_id"], 2000, "CA", "", ""]
-            elif "large_CA" in strategy:
+                #     zone_row = [row["sim_id"], 2000, "CA", "", ""]
+                # elif "large_CA" in strategy:
                 zone_row = [row["sim_id"], 10, "RA", "", ""]
                 zone_rows.append(zone_row)
 

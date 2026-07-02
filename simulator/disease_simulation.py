@@ -2239,6 +2239,7 @@ class DiseaseSimulation:
         output_suffix="",
         trucks_df=None,
         save_data=True,
+        strategy=None,
     ):
 
         if time != None:
@@ -3042,38 +3043,51 @@ class DiseaseSimulation:
             controlzone_movement_restrictions = restricted_area
             movement_reduction_factor = 0.2  # 80% reduction / 20% chance of movement
 
-            if outbreak_sim == "HPAI":
-                movement_record, number_of_movement_requests = HPAI_functions.animal_movement(
-                    properties,
-                    day=self.time,
-                    controlzone=controlzone_movement_restrictions,
-                    reduced_movement_zone=control_area,
-                    movement_reduction_factor=movement_reduction_factor,
-                    all_movement_reduction_factor=0.8,  # reducing probability of movement in RA and CA
+            if strategy == "national_standstill":
+                self.combined_narrative.append(
+                    [
+                        self.time,
+                        converted_date,
+                        "movement",
+                        "",
+                        f"Victorian wide standstill in place.",
+                        "",
+                    ]
                 )
-            elif outbreak_sim == "FMD":
-                movement_record, number_of_movement_requests, trucks_df = FMD_functions.animal_movement(
-                    properties,
-                    day=self.time,
-                    controlzone=controlzone_movement_restrictions,
-                    reduced_movement_zone=control_area,
-                    movement_reduction_factor=movement_reduction_factor,
-                    all_movement_reduction_factor=0.8,
-                    trucks_df=trucks_df,
-                    disease_parameters=self.disease_parameters,
-                )
+            else:
+                if outbreak_sim == "HPAI":
+                    movement_record, number_of_movement_requests = HPAI_functions.animal_movement(
+                        properties,
+                        day=self.time,
+                        controlzone=controlzone_movement_restrictions,
+                        reduced_movement_zone=control_area,
+                        movement_reduction_factor=movement_reduction_factor,
+                        all_movement_reduction_factor=0.8,  # reducing probability of movement in RA and CA
+                    )
+                elif outbreak_sim == "FMD":
+                    movement_record, number_of_movement_requests, trucks_df = FMD_functions.animal_movement(
+                        properties,
+                        day=self.time,
+                        controlzone=controlzone_movement_restrictions,
+                        reduced_movement_zone=control_area,
+                        movement_reduction_factor=movement_reduction_factor,
+                        all_movement_reduction_factor=0.8,
+                        trucks_df=trucks_df,
+                        disease_parameters=self.disease_parameters,
+                    )
 
-            self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
-            self.combined_narrative.append(
-                [
-                    self.time,
-                    converted_date,
-                    "movement",
-                    "",
-                    f"There are {number_of_movement_requests} movement permit requests from premises within the control area",
-                    "",
-                ]
-            )
+                self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
+
+                self.combined_narrative.append(
+                    [
+                        self.time,
+                        converted_date,
+                        "movement",
+                        "",
+                        f"There are {number_of_movement_requests} movement permit requests from premises within the control area",
+                        "",
+                    ]
+                )
 
             self.controlzone["movement restrictions"] = controlzone_movement_restrictions  # this is for plotting purposes later
 
