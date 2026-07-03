@@ -1140,6 +1140,12 @@ def run_auto_strategies(
         if running_day == total_days_to_run_for:
             save_data = True
 
+        if strategy in ["large_CA", "small_CA"]:
+            random.seed(1)
+            np.random.seed(1)
+        else:
+            random.seed(1235)
+            np.random.seed(1116)
         # assign jobs
         scheduled_date = premises.convert_time_to_date(diseaseoutbreak.time + 1)
         auto_job_mode.generate_jobs_teams_FMD(folder_path, approx_data_csv, scheduled_date, running_day, strategy)
@@ -1156,8 +1162,6 @@ def run_auto_strategies(
         if EPS_factor != None:
             enhanced_reporting_factor = EPS_factor
 
-        random.seed(1235)
-        np.random.seed(1116)
         # adjust the plotting parameters for this new scenario
         diseaseoutbreak.set_plotting_parameters(
             xlims=xlims,
