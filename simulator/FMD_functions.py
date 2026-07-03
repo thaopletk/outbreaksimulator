@@ -402,7 +402,27 @@ def construct_trucks(properties):
     return trucks_df
 
 
+def movement_restriction_level(facility):
+    # "reduced movement zone" is the CA
+    # "control zone" is the RA
+
+    high_restrictions = False
+    medium_restrictions = False
+    if facility.status == "NA":
+        pass  # both are negative
+    if facility.status in ["RP", "IP", "SP", "DCP", "ARP", "TP"]:
+        high_restrictions = True  # effectively so
+        medium_restrictions = True
+    elif facility.status in ["POR"]:
+        medium_restrictions = True
+    else:
+        print(f"undefined status for movement restriction level: {facility.status}")
+
+    return high_restrictions, medium_restrictions
+
+
 def in_zones(facility_polygon, controlzone, reduced_movement_zone):
+
     in_control_zone = False
     if controlzone != None and facility_polygon.intersects(controlzone):
         in_control_zone = True
@@ -420,17 +440,20 @@ def find_targets(properties, properties_to_move_to, controlzone, movement_reduct
     targets_in_control_zones = []
     for property_index in properties_to_move_to:
         target_facility = properties[property_index]
+
         if target_facility == "IP" or target_facility == "RP":
             continue  # skip it
 
-        if controlzone != None and target_facility.polygon.intersects(controlzone):
+        high_restrictions, medium_restrictions = movement_restriction_level(target_facility)
+
+        if high_restrictions:
             if random.uniform(0, 1) < movement_reduction_factor * all_movement_reduction_factor:
                 # ILLEGAL MOVEMENT, aka with some probability, there will be movement without movement requests!
                 targets_unrestricted_zones.append(property_index)
             else:
                 targets_in_control_zones.append(property_index)
         else:
-            if reduced_movement_zone != None and target_facility.polygon.intersects(reduced_movement_zone):
+            if medium_restrictions:
                 if random.uniform(0, 1) < all_movement_reduction_factor:  # illegal or reduced movement
                     targets_unrestricted_zones.append(property_index)
                 else:
@@ -444,10 +467,11 @@ def pick_single_movement_target(
     facility,
     targets_unrestricted_zones,
     targets_in_control_zones,
-    in_control_zone,
+    high_restrictions,
     movement_reduction_factor,
-    in_reduced_movement_zone,
+    medium_restrictions,
     item_to_transport,
+    all_movement_reduction_factor,
 ):
     movement_possible = False
     number_of_movement_requests = 0
@@ -455,15 +479,13 @@ def pick_single_movement_target(
     if targets_unrestricted_zones == [] and targets_in_control_zones == []:
         pass
     else:
-        if in_control_zone and (random.uniform(0, 1) > movement_reduction_factor):
+        if high_restrictions and (random.uniform(0, 1) > movement_reduction_factor * all_movement_reduction_factor):
             # note permit request:  facility id[], type [], status [], requests to move [X animals] to [target facility]
-            if targets_unrestricted_zones != [] or targets_in_control_zones != []:  # i.e., there is a place it could have moved stuff
-                print(f"{facility.type} (sim_id {facility.id}) would like to transport {item_to_transport} but is inside restricted zone")
-                number_of_movement_requests = 1
-        elif in_reduced_movement_zone and (random.uniform(0, 1) > movement_reduction_factor):
-            if targets_unrestricted_zones != [] or targets_in_control_zones != []:  # i.e., there is a place it could have moved stuff
-                print(f"{facility.type} (sim_id {facility.id}) would like to transport {item_to_transport} but is inside control zone")
-                number_of_movement_requests = 1
+            print(f"{facility.type} (sim_id {facility.id}) would like to transport {item_to_transport} but is inside restricted zone")
+            number_of_movement_requests = 1
+        elif medium_restrictions and (random.uniform(0, 1) > all_movement_reduction_factor):
+            print(f"{facility.type} (sim_id {facility.id}) would like to transport {item_to_transport} but is inside control zone")
+            number_of_movement_requests = 1
         else:
             movement_possible = True
             if targets_unrestricted_zones != []:
@@ -557,7 +579,14 @@ def animal_movement(
         # if facility.type not in ["dairy", "abattoir", "saleyard", "export_facility", "milk_processing"] and facility.id % x != day % x:
         #     continue  # check non-dairy properties every ten days
 
-        in_control_zone, in_reduced_movement_zone = in_zones(facility.polygon, controlzone, reduced_movement_zone)
+        # in_control_zone, in_reduced_movement_zone = in_zones(facility.polygon, controlzone, reduced_movement_zone)
+        high_restrictions, medium_restrictions = movement_restriction_level(facility)
+
+        # I could do this to skip probability movements altogether, but it affects accounting for movement requests...
+        # if high_restrictions and random.uniform(0, 1) > movement_reduction_factor * all_movement_reduction_factor:
+        #     continue # skipping movement for this property
+        # if medium_restrictions and random.uniform(0, 1) > all_movement_reduction_factor:
+        #     continue # skipping movement for this property
 
         if facility.type in [
             "beef extensive",
@@ -651,10 +680,11 @@ def animal_movement(
                         facility,
                         targets_unrestricted_zones,
                         targets_in_control_zones,
-                        in_control_zone,
+                        high_restrictions,
                         movement_reduction_factor,
-                        in_reduced_movement_zone,
+                        medium_restrictions,
                         animal_avail,
+                        all_movement_reduction_factor,
                     )
                     number_of_movement_requests += n_movement_request
                 if movement_possible and target_index == None:
@@ -672,10 +702,11 @@ def animal_movement(
                         facility,
                         targets_unrestricted_zones,
                         targets_in_control_zones,
-                        in_control_zone,
+                        high_restrictions,
                         movement_reduction_factor,
-                        in_reduced_movement_zone,
+                        medium_restrictions,
                         animal_avail,
+                        all_movement_reduction_factor,
                     )
                     number_of_movement_requests += n_movement_request
 
@@ -896,10 +927,11 @@ def animal_movement(
                 facility,
                 targets_unrestricted_zones,
                 targets_in_control_zones,
-                in_control_zone,
+                high_restrictions,
                 movement_reduction_factor,
-                in_reduced_movement_zone,
-                facility.animal_type,
+                medium_restrictions,
+                animal_avail,
+                all_movement_reduction_factor,
             )
             number_of_movement_requests += n_movement_request
             if movement_possible:
@@ -978,10 +1010,11 @@ def animal_movement(
                             facility,
                             targets_unrestricted_zones,
                             targets_in_control_zones,
-                            in_control_zone,
+                            high_restrictions,
                             movement_reduction_factor,
-                            in_reduced_movement_zone,
-                            facility.animal_type,
+                            medium_restrictions,
+                            animal_avail,
+                            all_movement_reduction_factor,
                         )
                         number_of_movement_requests += n_movement_request
 
@@ -1048,7 +1081,7 @@ def animal_movement(
             for cargo_type in facility.animals:
                 if facility.animals[cargo_type]["n"] > 0:
                     if "meat" not in cargo_type:
-                        if in_control_zone or in_reduced_movement_zone:
+                        if high_restrictions or medium_restrictions:
                             print(
                                 f"{facility.type} (sim_id {facility.id}) would like to export {cargo_type} but is inside control/movement controlled area"
                             )
@@ -1083,10 +1116,10 @@ def animal_movement(
                                 del facility.animals[cargo_type]["objs"]
 
                     else:  # slaughtered meat
-                        if in_control_zone and (random.uniform(0, 1) > movement_reduction_factor):
+                        if high_restrictions and (random.uniform(0, 1) > movement_reduction_factor * all_movement_reduction_factor):
                             print(f"{facility.type} (sim_id {facility.id}) would like to export {cargo_type} but is inside restricted area")
                             number_of_movement_requests = 1
-                        elif in_reduced_movement_zone and (random.uniform(0, 1) > movement_reduction_factor):
+                        elif medium_restrictions and (random.uniform(0, 1) > all_movement_reduction_factor):
                             print(f"{facility.type} (sim_id {facility.id}) would like to export {cargo_type} but is inside control area")
                             number_of_movement_requests = 1
                         else:

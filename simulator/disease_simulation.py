@@ -15,6 +15,8 @@ import random
 import pandas as pd
 import itertools
 
+# import parq
+
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import numpy as np
 
@@ -440,11 +442,28 @@ class DiseaseSimulation:
     def calculate_FOI_for_each_property(self, properties, outbreak_sim="LSD", time=0):
         """Calculates the force of infection for each property, to be run at the start of each day (before movement occurs)"""
         FOI = list(np.zeros(len(properties)))
+
         for i, property_i in enumerate(properties):
             if not property_i.culled_status:
                 FOI[i] = SEIR.calculate_force_of_infection(
                     properties, i, self.vax_modifier, self.r_wind, self.beta_wind, self.beta_animal, outbreak_sim, time
                 )
+
+        # def calculate_FOI_individual(i):
+        #     property_i = properties[i]
+        #     if property_i.culled_status:
+        #         return 0
+        #     else:
+        #         return SEIR.calculate_force_of_infection(
+        #             properties, i, self.vax_modifier, self.r_wind, self.beta_wind, self.beta_animal, outbreak_sim, time
+        #         )
+        # job_inputs = [(i,) for i in range(len(properties))]
+        # result = parq.run(calculate_FOI_individual, job_inputs, n_proc=4, results=True)
+        # if result.success:
+        #     FOI = result.job_results.values()
+        # else:
+        #     raise ValueError("Parq run for calculate_FOI_for_each_property failed")
+
         return FOI
 
     def run_infection_model_for_each_property(self, properties, FOI, outbreak_sim):
