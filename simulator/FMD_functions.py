@@ -410,7 +410,7 @@ def movement_restriction_level(facility):
     medium_restrictions = False
     if facility.status == "NA" or facility.type in ["abattoir", "milk_processing"]:
         pass  # both are negative
-    if facility.status in ["RP", "IP", "SP", "DCP", "ARP", "TP"]:
+    elif facility.status in ["RP", "IP", "SP", "DCP", "ARP", "TP"]:
         high_restrictions = True  # effectively so
         medium_restrictions = True
     elif facility.status in ["POR"]:
@@ -564,38 +564,6 @@ def animal_movement(
         # in_control_zone, in_reduced_movement_zone = in_zones(facility.polygon, controlzone, reduced_movement_zone)
         high_restrictions, medium_restrictions = movement_restriction_level(facility)
 
-        # I could do this to skip probability movements altogether, but it affects accounting for movement requests...
-        if (high_restrictions and random.uniform(0, 1) > movement_reduction_factor * all_movement_reduction_factor) or (
-            medium_restrictions and random.uniform(0, 1) > all_movement_reduction_factor
-        ):
-            if (
-                facility.type
-                in [
-                    "beef extensive",
-                    "beef intensive",
-                    "feedlot",
-                    "mixed beef",
-                    "mixed sheep",
-                    "pigs small",
-                    "pigs large",
-                    "sheep",
-                    "smallholder",
-                    "saleyard",
-                ]
-                and facility.get_num_animals() > 0
-            ):
-                number_of_movement_requests += 1
-                print(f"{facility.type} (sim_id {facility.id}) would like to transport animals but is under movement controls")
-            elif facility.type == "dairy":
-                number_of_movement_requests += 1
-                print(f"{facility.type} (sim_id {facility.id}) would like to transport milk but is under movement controls")
-            elif facility.type == "export_facility":
-                number_of_movement_requests += 1
-                print(f"{facility.type} (sim_id {facility.id}) would like to transport animals and/or meat but is under movement controls")
-
-            continue
-            # else - other types just "pass"
-
         if facility.type in [
             "beef extensive",
             "beef intensive",
@@ -631,6 +599,14 @@ def animal_movement(
             else:
                 if np.random.rand() > facility.movement_probability:
                     continue  # no movement
+
+            if (high_restrictions and random.uniform(0, 1) > movement_reduction_factor * all_movement_reduction_factor) or (
+                medium_restrictions and random.uniform(0, 1) > all_movement_reduction_factor
+            ):
+                if facility.get_num_animals() > 0:
+                    number_of_movement_requests += 1
+                    # print(f"{facility.type} (sim_id {facility.id}) would like to transport animals but is under movement controls")
+                    continue
 
             # else: lets move!
             for animal_avail in facility.animals:
@@ -810,6 +786,13 @@ def animal_movement(
         elif facility.type == "dairy":
             # moving milk every 24 or 48 hours. just go daily for now for simplicity
             # get places to move milk to; assume no movement of cattle for simplicity
+
+            if (high_restrictions and random.uniform(0, 1) > movement_reduction_factor * all_movement_reduction_factor) or (
+                medium_restrictions and random.uniform(0, 1) > all_movement_reduction_factor
+            ):
+                number_of_movement_requests += 1
+                # print(f"{facility.type} (sim_id {facility.id}) would like to transport milk but is under movement controls")
+                continue
 
             # do any forced movements first
             if facility.FMD_extra_info["herd_id"] == 57712 and day in [19, 25]:
@@ -1055,6 +1038,16 @@ def animal_movement(
                         movement_record.append(row)
 
         elif facility.type == "export_facility":
+
+            if (high_restrictions and random.uniform(0, 1) > movement_reduction_factor * all_movement_reduction_factor) or (
+                medium_restrictions and random.uniform(0, 1) > all_movement_reduction_factor
+            ):
+                if facility.get_num_animals() > 0:
+                    number_of_movement_requests += 1
+                    # print(f"{facility.type} (sim_id {facility.id}) would like to transport animals and/or meat but is under movement controls")
+
+                    continue
+
             # sink
             for cargo_type in facility.animals:
                 if facility.animals[cargo_type]["n"] > 0:

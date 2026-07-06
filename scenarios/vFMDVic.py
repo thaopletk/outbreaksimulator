@@ -546,6 +546,13 @@ def run_seeding_undetected_spread(
             if property_i.exposure_date != "NA":
                 total_infected += 1
 
+        total_infected_properties_with_infected_animals = 0
+        total_infected_animals = 0
+        for property_i in properties:
+            if property_i.number_infected > 0:
+                total_infected_properties_with_infected_animals += 1
+                total_infected_animals += property_i.number_infected
+
     else:
         if ABC_mode == False:
             with open(undetected_spread_properties_filename, "rb") as file:
@@ -560,7 +567,16 @@ def run_seeding_undetected_spread(
                 if property_i.exposure_date != "NA":
                     total_infected += 1
 
+            total_infected_properties_with_infected_animals = 0
+            total_infected_animals = 0
+            for property_i in properties:
+                if property_i.number_infected > 0:
+                    total_infected_properties_with_infected_animals += 1
+                    total_infected_animals += property_i.number_infected
+
     print(f"Total number of infected premises: {total_infected}")
+    print(f"Total number of infected premises with infected animals: {total_infected_properties_with_infected_animals}")
+    print(f"Total number of infected animals: {total_infected_animals}")
 
     if ABC_mode:
         first_report_herd_id = 25435
@@ -584,7 +600,7 @@ def run_seeding_undetected_spread(
     if ABC_mode == False:
         return total_infected, undetected_spread_properties_filename, undetected_spread_diseaseoutbreak_filename, undetected_spread_trucks_filename
     else:
-        return total_infected, current_time
+        return total_infected, current_time, total_infected_properties_with_infected_animals, total_infected_animals
 
 
 def trigger_first_report(
@@ -1141,8 +1157,12 @@ def run_auto_strategies(
             save_data = True
 
         if strategy in ["large_CA", "small_CA"]:
-            random.seed(1)
-            np.random.seed(1)
+            random.seed(6131)
+            np.random.seed(1261653)
+        elif "surveillance_focus" in strategy or "cull_focus" in strategy:
+            random.seed(6131)
+            np.random.seed(1261653)
+            EPS_factor = 10
         else:
             random.seed(1235)
             np.random.seed(1116)

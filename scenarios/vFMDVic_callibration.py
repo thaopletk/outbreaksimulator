@@ -24,9 +24,9 @@ sim_id = int(sys.argv[1])
 grid_size = 5
 # animal_grid = 3
 parameters_list = []
-for beta_wind in np.linspace(0.001, 0.005, grid_size):
+for beta_wind in np.linspace(0.00001, 0.0001, grid_size):
     # beta_animal = 3
-    for beta_animal in np.linspace(0.01, 0.05, grid_size):
+    for beta_animal in np.linspace(1.01, 2.1, grid_size):
         pig_multiplier = (2.1 / 1.6 + 2.1 / 0.7) / 2
         sheep_multiplier = (0.5 / 1.6 + 0.5 / 0.7) / 2
         parameters_list.append([beta_wind, beta_animal, pig_multiplier, sheep_multiplier])
@@ -73,6 +73,8 @@ start_time = time.time()
 (
     total_infected,
     current_time,
+    total_infected_properties_with_infected_animals,
+    total_infected_animals,
 ) = vFMDVic.run_seeding_undetected_spread(
     state="VIC",
     burn_in_time=0,

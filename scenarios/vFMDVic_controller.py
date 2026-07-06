@@ -9,15 +9,17 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 # vFMDVic.setup(state="VIC", wind_radius=20)
 
-# state = "VIC"
-# folder_path_main = os.path.join(os.path.dirname(__file__), f"vFMD{state}")
+state = "VIC"
+folder_path_main = os.path.join(os.path.dirname(__file__), f"vFMD{state}")
 
-# with open(os.path.join(folder_path_main, "disease_parameters_19.json"), "r") as file:
-#     disease_parameters = json.load(file)
+with open(os.path.join(folder_path_main, "disease_parameters.json"), "r") as file:
+    disease_parameters = json.load(file)
 
-# total_infected, undetected_spread_properties_filename, undetected_spread_diseaseoutbreak_filename, undetected_spread_trucks_filename = (
-#     vFMDVic.run_seeding_undetected_spread(state="VIC", burn_in_time=0, create_download_folder=False, download_parent_folder=None, wind_radius=20,disease_parameters=disease_parameters)
-# )
+total_infected, undetected_spread_properties_filename, undetected_spread_diseaseoutbreak_filename, undetected_spread_trucks_filename = (
+    vFMDVic.run_seeding_undetected_spread(
+        state="VIC", burn_in_time=0, create_download_folder=False, download_parent_folder=None, wind_radius=20, disease_parameters=disease_parameters
+    )
+)
 
 # vFMDVic.trigger_first_report(
 #     undetected_spread_properties_filename,
@@ -54,17 +56,17 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 # )
 
 
-vFMDVic.run_auto_strategies(
-    state="VIC",
-    previous_unique_output="05_national_standstill",
-    previous_output_suffix_int=5,
-    total_days_to_run_for=4,
-    create_download_folder=False,
-    download_parent_folder=None,
-    download_folder_name=None,
-    strategy="large_CA",
-    shapefile_path=None,
-)
+# vFMDVic.run_auto_strategies(
+#     state="VIC",
+#     previous_unique_output="05_national_standstill",
+#     previous_output_suffix_int=5,
+#     total_days_to_run_for=4,
+#     create_download_folder=False,
+#     download_parent_folder=None,
+#     download_folder_name=None,
+#     strategy="large_CA",
+#     shapefile_path=None,
+# )
 
 # vFMDVic.run_auto_strategies(
 #     state="VIC",
@@ -93,6 +95,18 @@ vFMDVic.run_auto_strategies(
 
 # vFMDVic.run_auto_strategies(
 #     state="VIC",
+#     previous_unique_output="06_small_CA",
+#     previous_output_suffix_int=6,
+#     total_days_to_run_for=28 - 7,  # 7 to 28
+#     create_download_folder=False,
+#     download_parent_folder=None,
+#     download_folder_name=None,
+#     strategy="small_CA_cull_focus",
+#     shapefile_path=None,
+# )
+
+# vFMDVic.run_auto_strategies(
+#     state="VIC",
 #     previous_unique_output="06_large_CA",
 #     previous_output_suffix_int=6,
 #     total_days_to_run_for=28 - 7,  # 7 to 28
@@ -103,6 +117,18 @@ vFMDVic.run_auto_strategies(
 #     shapefile_path=None,
 # )
 
+
+# vFMDVic.run_auto_strategies(
+#     state="VIC",
+#     previous_unique_output="06_small_CA",
+#     previous_output_suffix_int=6,
+#     total_days_to_run_for=28 - 7,  # 7 to 28
+#     create_download_folder=False,
+#     download_parent_folder=None,
+#     download_folder_name=None,
+#     strategy="small_CA_surveillance_focus",
+#     shapefile_path=None,
+# )
 
 # vFMDVic.run_auto_strategies(
 #     state="VIC",

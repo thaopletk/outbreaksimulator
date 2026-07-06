@@ -2392,7 +2392,7 @@ class DiseaseSimulation:
             for i, row in property_jobs.iterrows():
 
                 if row["date_scheduled"] == converted_date or row["date_scheduled"] == converted_date_dt:
-                    print(row)
+                    # print(row)
                     job_type = row["action"]
                     property_index = int(row["ID"])
                     if job_type == "LabTesting":
@@ -2597,7 +2597,10 @@ class DiseaseSimulation:
                                     ]
                                 )
                             else:
-                                print(f"OG status of a property in negative surveillance job: {OG_status}")
+                                if OG_status in ["ARP", "POR"]:
+                                    pass
+                                else:
+                                    print(f"OG status of a property in negative surveillance job: {OG_status}")
 
                         extra_job_info = testing_report
                         job_type = row["specific_action"]

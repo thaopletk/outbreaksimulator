@@ -1,7 +1,7 @@
 {
     "cattle": {
         "beta_wind": 0.004,
-        "beta_animal": 0.1,
+        "beta_animal": 0.05,
         "latent_period": 2,
         "infectious_period": 10,
         "preclinical_period": 3,
@@ -9,7 +9,7 @@
     },
     "pigs": {
         "beta_wind": 0.008625,
-        "beta_animal": 0.2,
+        "beta_animal": 0.1078125,
         "latent_period": 1,
         "infectious_period": 10,
         "preclinical_period": 3,
