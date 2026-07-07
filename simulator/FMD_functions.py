@@ -84,6 +84,7 @@ def save_approx_known_data(properties, folder_path, unique_output="", output_suf
         "case_created_date",
         "disposal_date",
         "decontamination_date",
+        "start_DDD_date",
     ]
 
     data_rows_for_Biosecurity_Commons = []
@@ -167,6 +168,11 @@ def save_approx_known_data(properties, folder_path, unique_output="", output_suf
             except:
                 case_created_date = "NA"
 
+            if "start_DDD_date" in facility.custom_info:
+                start_DDD_date = facility.custom_info["start_DDD_date"]
+            else:
+                start_DDD_date = "NA"
+
             if facility.data_source != "":  # if something is actually known!
                 row = [
                     herd_id,
@@ -200,6 +206,7 @@ def save_approx_known_data(properties, folder_path, unique_output="", output_suf
                     case_created_date,
                     facility.disposal_date,
                     facility.decontamination_date,
+                    start_DDD_date,
                 ]
 
                 writer.writerow(row)
@@ -297,6 +304,7 @@ def seed_FMD_infection(
 
     # p.prop_infectious = num_infected / p.get_num_animals()
     p.cumulative_infections = num_infected
+    p.number_infected = num_infected
     p.cumulative_infections_by_animal_type[p.animal_type] = num_infected
 
     if ABC_mode == False:
@@ -586,13 +594,13 @@ def animal_movement(
                 elif day == 2:
                     print("herd id == 125520 and day == 2")
                     forced = True
-                else:
+                elif day < 30:
                     continue  # no movement on other days
             elif "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 114447:
                 if day == 21:
                     print("herd id == 114447 and day == 21")  # this works
                     forced = True
-                else:
+                elif day < 30:
                     continue  # no movements on other days
             elif "herd_id" in facility.FMD_extra_info and facility.FMD_extra_info["herd_id"] == 25435:
                 continue  # no movements off the target property
@@ -796,7 +804,7 @@ def animal_movement(
 
             # do any forced movements first
             if facility.FMD_extra_info["herd_id"] == 57712 and day in [19, 25]:
-                print("herd id == 57712 and day == 19 or 25")  # thtis doesn't work???
+                print("herd id == 57712 and day == 19 or 25")
                 # should be 12501... dairy
 
                 if day == 25:
