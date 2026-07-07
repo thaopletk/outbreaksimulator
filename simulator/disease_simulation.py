@@ -584,7 +584,7 @@ class DiseaseSimulation:
 
             total_infected = 0
             for property_i in properties:
-                if property_i.exposure_date != "NA":
+                if property_i.number_infected > 0:
                     total_infected += 1
 
             if self.time == 15 and total_infected > 10:
