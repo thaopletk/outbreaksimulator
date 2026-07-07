@@ -253,6 +253,7 @@ def plot_map(
                             )
 
     geometry_infected = []
+    geometry_contains_fomites = []
     geometry_confirmed_infected = []
     geometry_culled = []
     geometry_vaccinated = []
@@ -323,9 +324,11 @@ def plot_map(
             elif premise.reported_status == True:
                 geometry_confirmed_infected.append(curr_farm)
                 infected_coords.append(premise.coordinates)
-            elif premise.infection_status:
+            elif premise.infection_status and premise.number_infected > 0:
                 geometry_infected.append(curr_farm)
                 infected_coords.append(premise.coordinates)
+            elif premise.cumulative_infections > 0 and premise.number_infected == 0:
+                geometry_contains_fomites.append(curr_farm)
             elif premise.vaccination_status:
                 geometry_vaccinated.append(curr_farm)
             elif premise.status == "SP":
@@ -399,6 +402,7 @@ def plot_map(
         [geometry_selfreport, "grey", "s", "self-reported/SP", 70],
         [geometry_vaccinated, "#7852a4", "P", "vaccinated", 70],
         [geometry_undergoing_testing, "#ffa200", "d", "TP/DCP", 100],
+        [geometry_contains_fomites, "pink", "X", "contains fomites", 30],
         [geometry_infected, "purple", "x", "infected", 30],
         [geometry_confirmed_infected, "#ea4335", "X", "confirmed", 120],
         # [geometry_culled_on_suspicion, "black", "X", "culled on suspicion", 150],
@@ -412,7 +416,9 @@ def plot_map(
         [geometry_culled, "black", "X", "culled", 120],
     ]:
         if geometry == []:
-            if markerlabel == "infected" or markerlabel == "culled on suspicion, actually infected":  # only for the real situation case plotting
+            if (
+                markerlabel == "infected" or markerlabel == "culled on suspicion, actually infected" or markerlabel == "contains fomites"
+            ):  # only for the real situation case plotting
                 if real_situation == True:
                     geometry = [Point(xlims[0] - 0.1, ylims[0] - 0.1)]  # putting the point outside the limits
             else:
