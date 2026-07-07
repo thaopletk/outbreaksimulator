@@ -2240,6 +2240,19 @@ class DiseaseSimulation:
             zoomed_in=True,
         )
 
+        output.plot_HPAI_outbreak_apparent(
+            properties,
+            restricted_area,
+            control_area,
+            enhanced_passive_surveillance_area,
+            self.xlims,
+            self.ylims,
+            self.folder_path,
+            self.time,
+            zoomed_in=True,
+            show_hidden_infected_properties=True,
+        )
+
         return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
 
     def simulate_HPAI_outbreak_management(
@@ -2609,6 +2622,8 @@ class DiseaseSimulation:
                         num_animals_to_cull = int(row["num"])
 
                         facility = properties[property_index]
+                        if "start_DDD_date" not in facility.custom_info:
+                            facility.custom_info["start_DDD_date"] = converted_date
                         facility.custom_info["last_cull_date"] = converted_date
 
                         if outbreak_sim == "HPAI":
@@ -3174,6 +3189,8 @@ class DiseaseSimulation:
             dates_list2 = [premises.convert_time_to_date(t) for t in range(0, self.time + 1)]
             daily_exposures = [0] * len(dates_list2)
 
+            daily_current_infected_properties = [0] * len(dates_list2)
+
             for property_i in properties:
                 notif_date = property_i.notification_date
                 if notif_date != "NA":
@@ -3184,6 +3201,17 @@ class DiseaseSimulation:
                 if exposure_date != "NA":
                     index = dates_list2.index(exposure_date)
                     daily_exposures[index] += 1
+
+                    for z in range(index, len(daily_current_infected_properties)):
+                        daily_current_infected_properties[z] += 1
+                else:
+                    if "prior_exposure_clinical_stop_dates" in property_i.custom_info:
+                        for exposure_date, clinical_date, stop_date in property_i.custom_info["prior_exposure_clinical_stop_dates"]:
+                            index = dates_list2.index(exposure_date)
+                            daily_exposures[index] += 1
+
+                            for z in range(index, dates_list2.index(stop_date)):
+                                daily_current_infected_properties[z] += 1
 
             save_name = "daily_notifications"
             output.plot_daily_notifications_over_time(dates_list, daily_notifs, self.folder_path, save_name)
@@ -3196,6 +3224,14 @@ class DiseaseSimulation:
             )
             output.plot_total_notifs_over_time(
                 dates_list2, daily_exposures, self.folder_path, save_name="total_exposures", title="Total exposed premises over time"
+            )
+
+            output.plot_daily_notifications_over_time(
+                dates_list2,
+                daily_current_infected_properties,
+                self.folder_path,
+                save_name="current_infected_properties",
+                title="Current number of properties with infected animals",
             )
 
         output.plot_HPAI_outbreak_apparent(
@@ -3212,6 +3248,19 @@ class DiseaseSimulation:
             self.folder_path,
             self.time,
             zoomed_in=True,
+        )
+
+        output.plot_HPAI_outbreak_apparent(
+            properties,
+            restricted_area,
+            control_area,
+            enhanced_passive_surveillance_area,
+            self.xlims,
+            self.ylims,
+            self.folder_path,
+            self.time,
+            zoomed_in=True,
+            show_hidden_infected_properties=True,
         )
 
         if outbreak_sim == "HPAI":
