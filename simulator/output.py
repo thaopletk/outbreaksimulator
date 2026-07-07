@@ -1136,7 +1136,16 @@ def plot_infection_pressure(
 
 
 def plot_HPAI_outbreak_apparent(
-    properties, restricted_area, control_area, enhanced_passive_surveillance, xlims, ylims, folder_path, time, zoomed_in=False
+    properties,
+    restricted_area,
+    control_area,
+    enhanced_passive_surveillance,
+    xlims,
+    ylims,
+    folder_path,
+    time,
+    zoomed_in=False,
+    show_hidden_infected_properties=False,
 ):
     fig, ax = plt.subplots(1, 1, figsize=(30, 25))  # ,figsize=(10,12)
 
@@ -1222,6 +1231,10 @@ def plot_HPAI_outbreak_apparent(
     geometry_ZP = []
     geometry_other = []
 
+    if show_hidden_infected_properties:
+        geometry_infected_unknown = []
+        geometry_fomites = []
+
     max_x = 0
     min_x = 180
     min_y = 0
@@ -1259,6 +1272,12 @@ def plot_HPAI_outbreak_apparent(
             geometry_other.append(curr_farm)
             geometry_NA.append(curr_farm)
 
+        if show_hidden_infected_properties:
+            if premise.number_infected > 0 and premise.status not in ["IP", "RP"]:
+                geometry_infected_unknown.append(curr_farm)
+            if premise.number_infected == 0 and premise.cumulative_infections > 0 and premise.status not in ["IP", "RP"]:
+                geometry_fomites.append(curr_farm)
+
         if premise.status != "NA":
             if long > max_x:
                 max_x = long
@@ -1270,17 +1289,27 @@ def plot_HPAI_outbreak_apparent(
                 min_y = lat
 
     for geometry, colour, marker, markerlabel, markersize, edgecolour, alpha in [
-        [geometry_culled, "cornflowerblue", "P", "resolved premises", 110, "royalblue", 1],
-        [geometry_IP, "black", "X", "infected premises", 110, "black", 1],
-        [geometry_DCP, "#e72918", "v", "dangerous contact premises", 110, "#950000", 1],
-        # [geometry_DCP_AN, "#d38484ee", "v", "DCP-assessed negative", 100, "#df2929", 1],
-        [geometry_SP, "#ffa200", "v", "SP", 100, "#ff6600", 0.3],
-        [geomtry_TP, "#fffb00ef", "o", "TP", 70, "#cfa32a", 1],
-        [geometry_ARP, "#dc68ffed", "s", "ARP", 40, "#383838", 1],
-        [geometry_POR, "#fc1e4eeb", "s", "POR", 40, "#383838", 1],
-        [geometry_UP, "#1eddf7ec", "$?$", "UP", 50, "#00A2FF", 1],
-        [geometry_ZP, "#75778aeb", ".", "ZP", 40, "#3D3D3D", 0.5],
         [geometry_NA, "#444444eb", ".", "NA", 25, "#3D3D3D", 0.2],
+        [geometry_ZP, "#75778aeb", ".", "ZP", 40, "#3D3D3D", 0.5],
+        [geometry_UP, "#1eddf7ec", "$?$", "UP", 50, "#00A2FF", 1],
+        [geometry_POR, "#fc1e4eeb", "s", "POR", 40, "#383838", 1],
+        [geometry_ARP, "#dc68ffed", "s", "ARP", 40, "#383838", 1],
+        [geomtry_TP, "#fffb00ef", "o", "TP", 90, "#cfa32a", 1],
+        [geometry_SP, "#ffa200", "v", "SP", 110, "#ff6600", 0.3],
+        [geometry_DCP, "#e72918", "v", "dangerous contact premises", 150, "#950000", 1],
+        [geometry_IP, "black", "X", "infected premises", 150, "black", 1],
+        [geometry_culled, "cornflowerblue", "P", "resolved premises", 150, "royalblue", 1],
+        # [geometry_culled, "cornflowerblue", "P", "resolved premises", 110, "royalblue", 1],
+        # [geometry_IP, "black", "X", "infected premises", 110, "black", 1],
+        # [geometry_DCP, "#e72918", "v", "dangerous contact premises", 110, "#950000", 1],
+        # # [geometry_DCP_AN, "#d38484ee", "v", "DCP-assessed negative", 100, "#df2929", 1],
+        # [geometry_SP, "#ffa200", "v", "SP", 100, "#ff6600", 0.3],
+        # [geomtry_TP, "#fffb00ef", "o", "TP", 70, "#cfa32a", 1],
+        # [geometry_ARP, "#dc68ffed", "s", "ARP", 40, "#383838", 1],
+        # [geometry_POR, "#fc1e4eeb", "s", "POR", 40, "#383838", 1],
+        # [geometry_UP, "#1eddf7ec", "$?$", "UP", 50, "#00A2FF", 1],
+        # [geometry_ZP, "#75778aeb", ".", "ZP", 40, "#3D3D3D", 0.5],
+        # [geometry_NA, "#444444eb", ".", "NA", 25, "#3D3D3D", 0.2],
         # geometry_other = []
     ]:
         geo_df = gpd.GeoDataFrame(geometry=geometry)
@@ -1296,6 +1325,25 @@ def plot_HPAI_outbreak_apparent(
             edgecolor=edgecolour,
             alpha=alpha,
         )
+
+    if show_hidden_infected_properties:
+        for geometry, colour, marker, markerlabel, markersize, edgecolour, alpha in [
+            [geometry_fomites, "#d9fcde", "*", "premises with undetected fomites", 210, "#000000", 1],
+            [geometry_infected_unknown, "#00ff42", "*", "undetected infected premises", 210, "#0fbc3c", 1],
+        ]:
+            geo_df = gpd.GeoDataFrame(geometry=geometry)
+            geo_df.crs = {"init": "epsg:4326"}
+            # plot the marker
+            ax = geo_df.plot(
+                ax=ax,
+                markersize=markersize,
+                color=colour,
+                marker=marker,
+                label=markerlabel,
+                aspect=1,
+                edgecolor=edgecolour,
+                alpha=alpha,
+            )
 
     ax.set_xlim(xlims)
     ax.set_ylim(ylims)
@@ -1331,15 +1379,19 @@ def plot_HPAI_outbreak_apparent(
     #     fontsize=18,
     # )
 
-    ax.legend(fontsize=18)
+    ax.legend(fontsize=18, loc="lower left")
 
     file_name_ending = f"{time}.png"
 
     if not zoomed_in:
         file_name = os.path.join(folder_path, "nice_map_" + file_name_ending)
+        if show_hidden_infected_properties:
+            file_name = os.path.join(folder_path, "nice_map_hidden" + file_name_ending)
         plt.savefig(file_name, bbox_inches="tight")
     else:
         file_name = os.path.join(folder_path, "nice_map_zoomed_in" + file_name_ending)
+        if show_hidden_infected_properties:
+            file_name = os.path.join(folder_path, "nice_map_hidden_zoomed_in" + file_name_ending)
         plt.savefig(file_name, bbox_inches="tight")
 
     plt.close()
