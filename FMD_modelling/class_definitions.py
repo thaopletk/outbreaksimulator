@@ -160,6 +160,7 @@ class Animal:
         # infectious -> recovered
         elif self.infection_status == "infectious" and self.infection_clock > params["latent_period"] + params["infectious_period"]:
             self.infection_status = "recovered"
+            self.clinical_status = "recovered"
 
         # pre-clinical -> clinical
         if self.clinical_status == "pre-clinical" and self.clinical_clock > params["pre-clinical_period"]:
