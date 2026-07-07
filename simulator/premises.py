@@ -720,6 +720,8 @@ class Premises(Property):
             "infectious_period": infectious_period,
             "pre-clinical_period": preclinical_period,
         }
+        new_infections = 0
+        number_clinical = 0
 
         if self.animal_type == "chicken":
             # infection model for each animals # TODO : there should be more infection risk within the same shed
@@ -732,6 +734,7 @@ class Premises(Property):
                                 animal_inf = chicken.infection_event(params, FOI)
                                 if animal_inf:
                                     self.cumulative_infections += 1
+                                    new_infections += 1
                                 chicken.check_transition(params)
                                 chicken.update_clock()
                         else:
@@ -742,11 +745,15 @@ class Premises(Property):
                                     animal_inf = chicken.infection_event(params, FOI)
                                     if animal_inf:
                                         self.cumulative_infections += 1
+                                        new_infections += 1
                                     chicken.check_transition(params)
                                     chicken.update_clock()
+                                    if chicken.clinical_status == "clinical":
+                                        number_clinical += 1
                             else:
                                 pass  # pass  - no infection risk
         elif isinstance(self.animal_type, list) or self.animal_type in ["cattle", "pigs", "sheep"]:
+
             forced = False
             if time == 6 and "herd_id" in self.FMD_extra_info and self.FMD_extra_info["herd_id"] == 57712:
                 forced = True
@@ -780,12 +787,16 @@ class Premises(Property):
 
                             if animal_inf:
                                 self.cumulative_infections += 1
+                                new_infections += 1
                                 if ani_type in self.cumulative_infections_by_animal_type:
                                     self.cumulative_infections_by_animal_type[ani_type] += 1
                                 else:
                                     self.cumulative_infections_by_animal_type[ani_type] = 1
                             anim.check_transition(params)
                             anim.update_clock()
+
+                            if anim.clinical_status == "clinical":
+                                number_clinical += 1
         elif self.animal_type == "milk":
             pass
         else:
@@ -793,11 +804,13 @@ class Premises(Property):
                 params,
                 FOI,
             )
+            if self.infection_status == 1 and self.exposure_date == "NA":
+                self.exposure_date = convert_time_to_date(time)
 
-        if self.infection_status == 1 and self.exposure_date == "NA":
+        if new_infections > 0 and self.exposure_date == "NA":
             self.exposure_date = convert_time_to_date(time)
 
-        if self.prop_clinical > 0 and self.clinical_date == "NA":
+        if number_clinical > 0 and self.clinical_date == "NA":
             self.clinical_date = convert_time_to_date(time)
             # might need to change this, but for now, it should be the earliest date with clinical symptoms # TODO : however, what does this mean if infected animals were all moved off the property?
 
@@ -1094,6 +1107,7 @@ class Premises(Property):
         ]:
             self.size = self.get_num_animals()
             self.number_infectious_by_animal_type = {}
+            self.number_infected_by_animal_type = {}
             number_infected = 0
             number_infectious = 0
             number_clinical = 0
@@ -1110,6 +1124,10 @@ class Premises(Property):
                         for ani in ani_info["objs"]:
                             if ani.infection_status == "exposed":
                                 number_infected += 1
+                                if ani_type not in self.number_infected_by_animal_type:
+                                    self.number_infected_by_animal_type[ani_type] = 1
+                                else:
+                                    self.number_infected_by_animal_type[ani_type] += 1
                             elif ani.infection_status == "infectious":
                                 number_infected += 1
                                 number_infectious += 1
@@ -1117,6 +1135,11 @@ class Premises(Property):
                                     self.number_infectious_by_animal_type[ani_type] = 1
                                 else:
                                     self.number_infectious_by_animal_type[ani_type] += 1
+
+                                if ani_type not in self.number_infected_by_animal_type:
+                                    self.number_infected_by_animal_type[ani_type] = 1
+                                else:
+                                    self.number_infected_by_animal_type[ani_type] += 1
 
                             if ani.clinical_status == "clinical":
                                 number_clinical += 1
@@ -1134,16 +1157,49 @@ class Premises(Property):
                 if number_infected > 0:
                     self.infection_status = 1
 
+                # decay the cumulative infections
+                if self.cumulative_infections > self.number_infected:
+                    self.cumulative_infections = (self.cumulative_infections - self.number_infected) * np.exp(-1 / 14) + self.number_infected
+
+                    for ani_type in self.cumulative_infections_by_animal_type.keys():
+                        num_inf_ani_type = self.number_infected_by_animal_type[ani_type] if ani_type in self.number_infected_by_animal_type else 0
+                        self.cumulative_infections_by_animal_type[ani_type] = (
+                            self.cumulative_infections_by_animal_type[ani_type] - num_inf_ani_type
+                        ) * np.exp(-1 / 14) + num_inf_ani_type
+
             if self.type in ["abbatoir", "milk processing"]:
                 if number_infected == 0 and number_infectious == 0 and number_clinical == 0:
                     if np.random.rand() < 0.8:
                         self.infection_status = 0
 
-            if self.infection_status == 1 and self.exposure_date == "NA":
+            if self.infection_status == 1 and self.exposure_date == "NA" and self.number_infected > 0:
                 self.exposure_date = convert_time_to_date(current_time)
 
             if number_clinical > 0 and self.clinical_date == "NA":
                 self.clinical_date = convert_time_to_date(current_time)
+
+            if number_clinical > 0 and self.number_infected == 0:
+                raise ValueError("There are clinical animals but no infected animals????")
+
+            if self.infection_status == 1 and self.number_infected == 0:
+                if self.exposure_date != "NA":
+                    if "prior_exposure_clinical_stop_dates" not in self.custom_info:
+                        self.custom_info["prior_exposure_clinical_stop_dates"] = [
+                            (self.exposure_date, self.clinical_date, convert_time_to_date(current_time))
+                        ]
+                    else:
+                        self.custom_info["prior_exposure_clinical_stop_dates"].append(
+                            (self.exposure_date, self.clinical_date, convert_time_to_date(current_time))
+                        )
+                    self.exposure_date = "NA"
+                    self.clinical_date = "NA"
+
+                # clear the cumulative infections (fomites) if below some threshold
+                # and if so, set infectionstatus to 0
+                if self.cumulative_infections < 0.1:
+                    self.cumulative_infections = 0
+                    self.cumulative_infections_by_animal_type = {}
+                    self.infection_status = 0
 
         else:
             super.update_counts()
@@ -1297,4 +1353,5 @@ class Premises(Property):
             self.data_source,
             self.FMD_extra_info,
             self.number_infected,
+            self.custom_info,
         ]
