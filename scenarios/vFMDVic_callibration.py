@@ -24,9 +24,9 @@ sim_id = int(sys.argv[1])
 grid_size = 5
 # animal_grid = 3
 parameters_list = []
-for beta_wind in np.linspace(0.00001, 0.0001, grid_size):
+for beta_wind in [0.00042, 0.00045, 0.0005, 0.00055]:  # np.linspace(0.00038, 0.00052, grid_size):
     # beta_animal = 3
-    for beta_animal in np.linspace(1.01, 2.1, grid_size):
+    for beta_animal in [1.85, 1.9, 1.95, 2.00, 2.05]:  # np.linspace(1.7, 2.1, 10):
         pig_multiplier = (2.1 / 1.6 + 2.1 / 0.7) / 2
         sheep_multiplier = (0.5 / 1.6 + 0.5 / 0.7) / 2
         parameters_list.append([beta_wind, beta_animal, pig_multiplier, sheep_multiplier])
@@ -88,12 +88,16 @@ start_time = time.time()
 )
 
 # check if it was good. if so, save the parameter set (with sim id)
-if current_time == 28 and total_infected >= total_infected_aim - 1 and total_infected <= total_infected_aim + 1:
+if (
+    current_time == 28
+    and total_infected_properties_with_infected_animals >= total_infected_aim - 1
+    and total_infected_properties_with_infected_animals <= total_infected_aim + 1
+):
     with open(os.path.join(folder_path_main_ABC_params, f"disease_parameters_{sim_id}.json"), "w") as f:
         json.dump(disease_parameters, f)
 
 else:
-    print(f"total infected: {total_infected} after {current_time} days")
+    print(f"total infected: {total_infected}, after {current_time} days")
 
 
 end_time = time.time()
