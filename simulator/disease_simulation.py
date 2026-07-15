@@ -3080,7 +3080,7 @@ class DiseaseSimulation:
             controlzone_movement_restrictions = restricted_area
             movement_reduction_factor = 0.2  # 80% reduction / 20% chance of movement
 
-            if strategy == "national_standstill":
+            if "national_standstill" in strategy:
                 self.combined_narrative.append(
                     [
                         self.time,

@@ -1028,7 +1028,7 @@ def generate_jobs_teams_FMD(folder_path, approx_data_csv, scheduled_date, action
         properties = approx_data[approx_data["status"] == status]
         for i, row in properties.iterrows():
 
-            if strategy == "national_standstill" or "large_CA" in strategy:
+            if "national_standstill" in strategy or "large_CA" in strategy:
                 #     zone_row = [row["sim_id"], 10, "RA", "", ""]
                 #     zone_rows.append(zone_row)
 

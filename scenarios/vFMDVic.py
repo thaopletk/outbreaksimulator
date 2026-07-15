@@ -1156,14 +1156,36 @@ def run_auto_strategies(
         if running_day == total_days_to_run_for:
             save_data = True
 
-        if strategy in ["large_CA", "small_CA"]:
-            random.seed(6131)
-            np.random.seed(1261653)
+        if strategy in ["large_CA", "small_CA", "large_CA_1", "small_CA_1"]:
+            random.seed(31)
+            np.random.seed(53)
+
+            # small CA: 35 IPs, large CA: 34 IPs
+            # random.seed(6131)
+            # np.random.seed(1261653)
         elif "surveillance_focus" in strategy or "cull_focus" in strategy:
             random.seed(6131)
             np.random.seed(1261653)
+            EPS_factor = 20
+        elif "initial_investigation" in strategy:
+            random.seed(1235)
+            np.random.seed(1116)
+        elif "national_standstill" in strategy:
             EPS_factor = 10
+
+            #  24 IPs
+            random.seed(472)
+            np.random.seed(6092)
+
+            # # 26 IPS
+            # random.seed(12532)
+            # np.random.seed(11326)
+
+            # 27 IPs
+            # random.seed(125)
+            # np.random.seed(116)
         else:
+            EPS_factor = 10
             random.seed(1235)
             np.random.seed(1116)
         # assign jobs
@@ -1190,6 +1212,9 @@ def run_auto_strategies(
             folder_path=folder_path,
             unique_output=unique_output,
         )
+
+        if "national_standstill" in strategy:
+            diseaseoutbreak.clinical_reporting_threshold = 0.01  # reducing the reporting threshold
 
         properties, movement_records, current_time, total_culled_animals, job_manager, trucks_df = diseaseoutbreak.simulate_HPAI_outbreak_management(
             properties,
@@ -1234,7 +1259,16 @@ def run_auto_strategies(
         if property_i.exposure_date != "NA":
             total_infected += 1
 
+    total_infected_properties_with_infected_animals = 0
+    total_infected_animals = 0
+    for property_i in properties:
+        if property_i.number_infected > 0:
+            total_infected_properties_with_infected_animals += 1
+            total_infected_animals += property_i.number_infected
+
     print(f"Total number of infected premises: {total_infected}")
+    print(f"Total number of infected premises with infected animals: {total_infected_properties_with_infected_animals}")
+    print(f"Total number of infected animals: {total_infected_animals}")
 
     if create_download_folder:
         if download_parent_folder == None:

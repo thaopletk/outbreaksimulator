@@ -56,18 +56,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 # )
 
 
-# vFMDVic.run_auto_strategies(
-#     state="VIC",
-#     previous_unique_output="05_national_standstill",
-#     previous_output_suffix_int=5,
-#     total_days_to_run_for=4,
-#     create_download_folder=False,
-#     download_parent_folder=None,
-#     download_folder_name=None,
-#     strategy="large_CA",
-#     shapefile_path=None,
-# )
-
 vFMDVic.run_auto_strategies(
     state="VIC",
     previous_unique_output="05_national_standstill",
@@ -76,9 +64,21 @@ vFMDVic.run_auto_strategies(
     create_download_folder=False,
     download_parent_folder=None,
     download_folder_name=None,
-    strategy="small_CA",
+    strategy="large_CA_1",
     shapefile_path=None,
 )
+
+# vFMDVic.run_auto_strategies(
+#     state="VIC",
+#     previous_unique_output="05_national_standstill",
+#     previous_output_suffix_int=5,
+#     total_days_to_run_for=4,
+#     create_download_folder=False,
+#     download_parent_folder=None,
+#     download_folder_name=None,
+#     strategy="small_CA",
+#     shapefile_path=None,
+# )
 
 
 # vFMDVic.run_auto_strategies(
