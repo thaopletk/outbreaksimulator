@@ -1157,10 +1157,17 @@ def run_auto_strategies(
             save_data = True
 
         if strategy in ["large_CA", "small_CA", "large_CA_1", "small_CA_1"]:
+            EPS_factor = 10
+
+            # large CA: 29 IPs; small CA: 31 IPs.
             random.seed(31)
             np.random.seed(53)
 
-            # small CA: 35 IPs, large CA: 34 IPs
+            # # large CA: 37
+            # random.seed(1)
+            # np.random.seed(1)
+
+            # small CA: 35 IPs, large CA: 34 IPs - no EPS factor change
             # random.seed(6131)
             # np.random.seed(1261653)
         elif "surveillance_focus" in strategy or "cull_focus" in strategy:
