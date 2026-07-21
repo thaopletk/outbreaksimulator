@@ -93,17 +93,17 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 #     shapefile_path=None,
 # )
 
-# vFMDVic.run_auto_strategies(
-#     state="VIC",
-#     previous_unique_output="06_small_CA",
-#     previous_output_suffix_int=6,
-#     total_days_to_run_for=28 - 7,  # 7 to 28
-#     create_download_folder=False,
-#     download_parent_folder=None,
-#     download_folder_name=None,
-#     strategy="small_CA_cull_focus",
-#     shapefile_path=None,
-# )
+vFMDVic.run_auto_strategies(
+    state="VIC",
+    previous_unique_output="06_small_CA",
+    previous_output_suffix_int=6,
+    total_days_to_run_for=28 - 7,  # 7 to 28
+    create_download_folder=False,
+    download_parent_folder=None,
+    download_folder_name=None,
+    strategy="small_CA_cull_focus",
+    shapefile_path=None,
+)
 
 # vFMDVic.run_auto_strategies(
 #     state="VIC",
@@ -118,17 +118,17 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 # )
 
 
-vFMDVic.run_auto_strategies(
-    state="VIC",
-    previous_unique_output="06_small_CA",
-    previous_output_suffix_int=6,
-    total_days_to_run_for=28 - 7,  # 7 to 28
-    create_download_folder=False,
-    download_parent_folder=None,
-    download_folder_name=None,
-    strategy="small_CA_surveillance_focus",
-    shapefile_path=None,
-)
+# vFMDVic.run_auto_strategies(
+#     state="VIC",
+#     previous_unique_output="06_small_CA",
+#     previous_output_suffix_int=6,
+#     total_days_to_run_for=28 - 7,  # 7 to 28
+#     create_download_folder=False,
+#     download_parent_folder=None,
+#     download_folder_name=None,
+#     strategy="small_CA_surveillance_focus",
+#     shapefile_path=None,
+# )
 
 # vFMDVic.run_auto_strategies(
 #     state="VIC",
