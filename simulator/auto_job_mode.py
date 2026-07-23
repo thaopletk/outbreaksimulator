@@ -844,27 +844,34 @@ def generate_jobs_teams_FMD(folder_path, approx_data_csv, scheduled_date, action
     delays["Decontamination"] = timedelta(days=7)  # no DDD right away
 
     if "cull_focus" in strategy:
-        initial_surv_teams = teams["Surveillance"]
-        teams["Surveillance"] = min(10, initial_surv_teams)
-        difference = initial_surv_teams - teams["Surveillance"]
+        # initial_surv_teams = teams["Surveillance"]
+        # teams["Surveillance"] = min(10, initial_surv_teams)
+        # difference = initial_surv_teams - teams["Surveillance"]
 
-        teams["Cull"] += difference
+        # teams["Cull"] += difference
+        teams["Cull"] += 30
+        teams["Disposal"] += 20
+        teams["Decontamination"] += 20
 
         # reducing delays
         delays["Cull"] = timedelta(days=4)
         delays["Disposal"] = timedelta(days=4)
         delays["Decontamination"] = timedelta(days=4)
 
+        teams["Surveillance"] += 20
+
     if "surveillance_focus" in strategy:
-        initial_cull_teams = teams["Cull"]
-        teams["Cull"] = min(10, initial_cull_teams)
-        difference1 = initial_cull_teams - teams["Cull"]
+        # initial_cull_teams = teams["Cull"]
+        # teams["Cull"] = min(10, initial_cull_teams)
+        # difference1 = initial_cull_teams - teams["Cull"]
 
-        initial_disposal_teams = teams["Disposal"]
-        teams["Disposal"] = min(10, initial_disposal_teams)
-        difference2 = initial_disposal_teams - teams["Disposal"]
+        # initial_disposal_teams = teams["Disposal"]
+        # teams["Disposal"] = min(10, initial_disposal_teams)
+        # difference2 = initial_disposal_teams - teams["Disposal"]
 
-        teams["Surveillance"] += difference1 + difference2
+        # teams["Surveillance"] += difference1 + difference2
+
+        teams["Surveillance"] += 80
 
     # jobs
     jobs_header = ["ID", "date_scheduled", "action", "specific_action", "detection_prob", "num", "Free text notes"]

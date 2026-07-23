@@ -173,7 +173,7 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mort
             animal_type_i = properties[premise_index].animal_type
             if isinstance(animal_type_i, list):
                 C_i = properties[premise_index].cumulative_infections_by_animal_type
-                beta_C_i = sum([beta_wind[a_type] * C_i[a_type] for a_type in animal_type_i])
+                beta_C_i = sum([beta_wind[a_type] * C_i[a_type] if a_type in C_i else 0 for a_type in animal_type_i])
                 FOI += vector_val * (beta_C_i) * A_i / A_is
             else:
                 FOI += vector_val * beta_wind[animal_type_i] * C_i * A_i / A_is
@@ -279,7 +279,7 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mort
                     animal_type_j = properties[index].animal_type
                     if isinstance(animal_type_j, list):
                         C_j = properties[index].cumulative_infections_by_animal_type
-                        beta_C_j = sum([beta_wind[a_type] * C_j[a_type] for a_type in animal_type_j])
+                        beta_C_j = sum([beta_wind[a_type] * C_j[a_type] if a_type in C_j else 0 for a_type in animal_type_j])
                         FOI += vector_mortality_adjustment * vector_val_neighbour * beta_C_j * distance_modifier * A_ijs / A_js
                     else:
                         FOI += vector_mortality_adjustment * vector_val_neighbour * beta_wind[animal_type_j] * C_j * distance_modifier * A_ijs / A_js
