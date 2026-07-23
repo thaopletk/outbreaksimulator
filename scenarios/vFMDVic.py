@@ -1171,9 +1171,28 @@ def run_auto_strategies(
             # random.seed(6131)
             # np.random.seed(1261653)
         elif "surveillance_focus" in strategy or "cull_focus" in strategy:
-            random.seed(6131)
-            np.random.seed(1261653)
             EPS_factor = 20
+
+            random.seed(1331)
+            np.random.seed(3153)
+
+            # small CA 70 IPs, large CA like 96 IPS...
+            random.seed(113413)
+            np.random.seed(534522)
+
+            # small CA 100 ip;  large CA 47 IP
+            # after increasing resourcing; 75 IPs for small CA, 55 IPs for large CA...  [for culling focus]
+            # random.seed(31)
+            # np.random.seed(53)
+
+            # small CA cull focus: 76 IPs, large CA: 82 IPs ???
+            # random.seed(631)
+            # np.random.seed(1261)
+
+            # large CA surveillance: 82 IPs, smal lCA surveillance focus: 92 IPs..., small CA cull focus: 74 IPs... (before increase in teams)
+            # random.seed(6131)
+            # np.random.seed(1261653)
+
         elif "initial_investigation" in strategy:
             random.seed(1235)
             np.random.seed(1116)
