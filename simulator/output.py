@@ -1231,6 +1231,8 @@ def plot_HPAI_outbreak_apparent(
     geometry_ZP = []
     geometry_other = []
 
+    geometry_vaccinated = []
+
     if show_hidden_infected_properties:
         geometry_infected_unknown = []
         geometry_fomites = []
@@ -1271,6 +1273,9 @@ def plot_HPAI_outbreak_apparent(
             print(f"status wasn't expected: {premise.status}")
             geometry_other.append(curr_farm)
             geometry_NA.append(curr_farm)
+
+        if premise.vaccination_status:
+            geometry_vaccinated.append(curr_farm)
 
         if show_hidden_infected_properties:
             if premise.number_infected > 0 and premise.status not in ["IP", "RP"]:
@@ -1324,6 +1329,21 @@ def plot_HPAI_outbreak_apparent(
             aspect=1,
             edgecolor=edgecolour,
             alpha=alpha,
+        )
+
+    if geometry_vaccinated != []:
+        geo_df = gpd.GeoDataFrame(geometry=geometry_vaccinated)
+        geo_df.crs = {"init": "epsg:4326"}
+        # plot the marker
+        ax = geo_df.plot(
+            ax=ax,
+            markersize=110,
+            color="#7852a4",
+            marker="P",
+            label="Vaccinated",
+            aspect=1,
+            edgecolor="#7852a4",
+            alpha=1,
         )
 
     if show_hidden_infected_properties:

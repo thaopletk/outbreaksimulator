@@ -81,29 +81,29 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 # )
 
 
-vFMDVic.run_auto_strategies(
-    state="VIC",
-    previous_unique_output="06_large_CA",
-    previous_output_suffix_int=6,
-    total_days_to_run_for=28 - 7,  # 7 to 28
-    create_download_folder=False,
-    download_parent_folder=None,
-    download_folder_name=None,
-    strategy="large_CA_cull_focus",
-    shapefile_path=None,
-)
+# vFMDVic.run_auto_strategies(
+#     state="VIC",
+#     previous_unique_output="06_large_CA",
+#     previous_output_suffix_int=6,
+#     total_days_to_run_for=28 - 7,  # 7 to 28
+#     create_download_folder=False,
+#     download_parent_folder=None,
+#     download_folder_name=None,
+#     strategy="large_CA_cull_focus",
+#     shapefile_path=None,
+# )
 
-vFMDVic.run_auto_strategies(
-    state="VIC",
-    previous_unique_output="06_small_CA",
-    previous_output_suffix_int=6,
-    total_days_to_run_for=28 - 7,  # 7 to 28
-    create_download_folder=False,
-    download_parent_folder=None,
-    download_folder_name=None,
-    strategy="small_CA_cull_focus",
-    shapefile_path=None,
-)
+# vFMDVic.run_auto_strategies(
+#     state="VIC",
+#     previous_unique_output="06_small_CA",
+#     previous_output_suffix_int=6,
+#     total_days_to_run_for=28 - 7,  # 7 to 28
+#     create_download_folder=False,
+#     download_parent_folder=None,
+#     download_folder_name=None,
+#     strategy="small_CA_cull_focus",
+#     shapefile_path=None,
+# )
 
 # vFMDVic.run_auto_strategies(
 #     state="VIC",
@@ -132,9 +132,9 @@ vFMDVic.run_auto_strategies(
 
 # vFMDVic.run_auto_strategies(
 #     state="VIC",
-#     previous_unique_output="06_large_CA_cull_focus",
-#     previous_output_suffix_int=6,
-#     total_days_to_run_for=7,
+#     previous_unique_output="07_large_CA_cull_focus",
+#     previous_output_suffix_int=7,
+#     total_days_to_run_for=56,  # 8 weeks
 #     create_download_folder=False,
 #     download_parent_folder=None,
 #     download_folder_name=None,
@@ -143,17 +143,17 @@ vFMDVic.run_auto_strategies(
 # )
 
 # effectively no vaccination
-# vFMDVic.run_auto_strategies(
-#     state="VIC",
-#     previous_unique_output="06_large_CA_cull_focus",
-#     previous_output_suffix_int=6,
-#     total_days_to_run_for=7,
-#     create_download_folder=False,
-#     download_parent_folder=None,
-#     download_folder_name=None,
-#     strategy="large_CA_cull_focus",
-#     shapefile_path=None,
-# )
+vFMDVic.run_auto_strategies(
+    state="VIC",
+    previous_unique_output="07_large_CA_cull_focus",
+    previous_output_suffix_int=7,
+    total_days_to_run_for=56,
+    create_download_folder=False,
+    download_parent_folder=None,
+    download_folder_name=None,
+    strategy="large_CA_cull_focus",
+    shapefile_path=None,
+)
 
 # action_name = "actions_1"
 # vFMDVic.run_actions_excel(

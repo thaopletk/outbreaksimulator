@@ -865,6 +865,10 @@ def generate_jobs_teams_FMD(folder_path, approx_data_csv, scheduled_date, action
         # teams["Cull"] = min(10, initial_cull_teams)
         # difference1 = initial_cull_teams - teams["Cull"]
 
+        teams["Cull"] = max(1, teams["Cull"] - 20)
+        teams["Disposal"] = max(1, teams["Disposal"] - 20)
+        teams["Decontamination"] = max(1, teams["Decontamination"] - 20)
+
         # initial_disposal_teams = teams["Disposal"]
         # teams["Disposal"] = min(10, initial_disposal_teams)
         # difference2 = initial_disposal_teams - teams["Disposal"]

@@ -149,7 +149,7 @@ def save_approx_known_data(properties, folder_path, unique_output="", output_suf
                 last_cull_date = "NA"
 
             try:
-                culled_animals = facility.custom_info["culled_animals"]
+                culled_animals = facility.custom_info["cull_animals"]
             except:
                 culled_animals = "NA"
 
