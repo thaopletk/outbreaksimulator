@@ -2883,10 +2883,12 @@ class DiseaseSimulation:
                                     ]
                                 )
                     elif job_type == "Disposal":
+                        facility = properties[property_index]
                         facility.disposed_status = 1
                         facility.disposal_date = converted_date
                         extra_job_info = ""
                     elif job_type == "Decontamination":
+                        facility = properties[property_index]
                         facility.decontaminated_status = 1
                         facility.decontamination_date = converted_date
                         extra_job_info = ""
