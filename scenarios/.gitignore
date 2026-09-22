@@ -1,2 +1,5 @@
-outputs/2024*
-outputs/*
+*.png
+*.gif
+*.mp4
+*.csv
+*.pickle
