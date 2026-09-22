@@ -1,10 +1,10 @@
-import vFMDVic
+import scenarios.fmd.FMD_vic_functions as FMD_vic_functions
 import os
 import sys
 import pandas as pd
 import json
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 
 # vFMDVic.setup(state="VIC", wind_radius=20)
@@ -143,7 +143,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 # )
 
 # effectively no vaccination
-vFMDVic.run_auto_strategies(
+FMD_vic_functions.run_auto_strategies(
     state="VIC",
     previous_unique_output="07_large_CA_cull_focus",
     previous_output_suffix_int=7,

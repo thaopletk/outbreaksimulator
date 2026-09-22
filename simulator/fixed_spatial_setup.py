@@ -1757,9 +1757,10 @@ def FMD_VIC_setup_locations(
     output_filename,
     data_folder=os.path.join(os.path.dirname(__file__), "..", "data", "FMDVIC"),
     wind_radius=20,
-    vic_polygons_shp_file=os.path.join(
-        os.path.dirname(__file__), "..", "data", "Vicmap", "ll_gda2020", "esrishape", "whole_of_dataset", "victoria", "VMPROP", "PROPERTY_VIEW.shp"
-    ),
+    testing=False,
+    # vic_polygons_shp_file=os.path.join(
+    #     os.path.dirname(__file__), "..", "data", "Vicmap", "ll_gda2020", "esrishape", "whole_of_dataset", "victoria", "VMPROP", "PROPERTY_VIEW.shp"
+    # ),
 ):
     """
     Reads in provided farm (herd) locations and sizes
@@ -1845,17 +1846,18 @@ def FMD_VIC_setup_locations(
                 print(row)
                 raise ValueError(f"{LGA} doesn't exist")
 
-        # if LGA not in [
-        #     "South Gippsland",
-        #     "Bass Coast",
-        #     "Latrobe (Vic.)",
-        #     "Wellington",  # location of seeding property
-        #     "Wodonga",  # location of first detection
-        #     "Baw Baw",
-        #     "Cardinia",
-        #     "Yarra Ranges",
-        # ]:
-        #     continue
+        if testing:
+            if LGA not in [
+                "South Gippsland",
+                "Bass Coast",
+                "Latrobe (Vic.)",
+                "Wellington",  # location of seeding property
+                "Wodonga",  # location of first detection
+                "Baw Baw",
+                "Cardinia",
+                "Yarra Ranges",
+            ]:
+                continue
 
         property_coordinates = [row["herd long"], row["herd lat"]]
         property_polygon = Polygon(

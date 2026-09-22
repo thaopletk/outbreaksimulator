@@ -1,4 +1,4 @@
-"""vFMDVic | Script for running simulations for an FMD outbreak in Victoria"""
+"""vFMDVic | Script to support running simulations for an FMD outbreak in Victoria"""
 
 import os
 import sys
@@ -14,11 +14,9 @@ import geopandas as gpd
 import pandas as pd
 from shapely.ops import unary_union
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 import simulator.fixed_spatial_setup as fixed_spatial_setup
-import simulator.HPAI_functions as HPAI_functions
-import simulator.output as output
 import simulator.auto_job_mode as auto_job_mode
 import simulator.spatial_setup as spatial_setup
 import simulator.FMD_functions as FMD_functions
@@ -30,11 +28,7 @@ import simulator.management as management
 # import simulator.management as management
 import simulator.premises as premises
 
-import v06_functions
-
-# # ABC stuff
-# import arviz as az
-# import pymc as pm
+import simulator.v06_functions as v06_functions
 
 
 def x_y_ranges(state="VIC"):
@@ -65,14 +59,41 @@ def x_y_ranges(state="VIC"):
     return xrange, yrange, xlims, ylims
 
 
-def setup(state="VIC", wind_radius=20):
+def setup(main_folder_name="vFMDVIC", state="VIC", wind_radius=20, testing=False):
+    """
+    Generates properties and connections between properties based on wind (spatial dispersal) radius and movement patterns
+
+    Parameters
+    ----------
+    main_folder_name : str
+        folder name
+    state : str
+        "VIC" - used to obtain x/y limits for plotting
+    wind_radius: int
+        maximum wind/local-spatial dispersal in kilometers
+    testing: boolean
+        If False, then we generate the full number of properties; if True, then we only generate properties within a limited number of LGAs
+
+
+    Returns
+    -------
+    folder_path_main : str
+        Full filepath of the main folder
+    properties_filename : str
+        Full filepath of the output properties object (pickle'd)
+    trucks_filename : str
+        Full filepath of the output trucks object (pickle'd)
+
+    """
     ###################################################
     # ---- Code run set up ---------------------------#
     ###################################################
 
     xrange, yrange, xlims, ylims = x_y_ranges(state)
 
-    folder_path_main = os.path.join(os.path.dirname(__file__), f"vFMD{state}")
+    folder_path_main = os.path.join(os.path.dirname(__file__), main_folder_name)
+    if not os.path.exists(folder_path_main):
+        os.makedirs(folder_path_main)
 
     ###################################################
     # ---- Set up properties and locations -----------#
@@ -100,10 +121,9 @@ def setup(state="VIC", wind_radius=20):
                 pigs_coordinates,
                 facility_coordinates,
                 other_coordinates,
-            ) = fixed_spatial_setup.FMD_VIC_setup_locations(
-                output_filename,
-                wind_radius=wind_radius,
-            )
+            ) = fixed_spatial_setup.FMD_VIC_setup_locations(output_filename, wind_radius=wind_radius, testing=testing)
+        else:
+            raise ValueError("Non VIC version not yet implemented")
 
         end_time = time.time()
         execution_time = end_time - start_time
@@ -129,6 +149,8 @@ def setup(state="VIC", wind_radius=20):
                     facility_coordinates,
                     other_coordinates,
                 ) = pickle.load(file)
+        else:
+            raise ValueError("Non VIC version not yet implemented")
 
     # plot that actually shows the locations of different facilities (aside from backyard ones at the moment)
     if not os.path.exists(os.path.join(folder_path_main, f"property_locations_base_map.png")):
@@ -342,6 +364,7 @@ def run_burn_in_movement(
 
 
 def run_seeding_undetected_spread(
+    main_folder_name="vFMDVic",
     state="VIC",
     burn_in_time=0,
     create_download_folder=False,
@@ -352,13 +375,19 @@ def run_seeding_undetected_spread(
     max_infected_premises=10000,
     target_infected_properties=18,
 ):
+    """
+    Assumes that setup() has already been run.
+
+
+
+    """
     ###################################################
     # ---- Code run set up ---------------------------#
     ###################################################
 
     xrange, yrange, xlims, ylims = x_y_ranges(state)
 
-    folder_path_main = os.path.join(os.path.dirname(__file__), f"vFMD{state}")
+    folder_path_main = os.path.join(os.path.dirname(__file__), main_folder_name)
 
     properties_filename = os.path.join(folder_path_main, f"FMD_{state}_properties")
     with open(properties_filename, "rb") as file:
@@ -1431,26 +1460,3 @@ def ABC(state="VIC", grid_size=5):
                     print(f"Execution time of an ABC run: {execution_time/60} minutes")
     data_space = pd.DataFrame(data_space, columns=["beta_wind", "beta_animal", "pig_multiplier", "sheep_multiplier", "total_infected"])
     data_space.to_csv(os.path.join(folder_path_main_ABC_params, f"data_space.csv"), index=False)
-
-
-# if __name__ == "__main__":
-# # def ABC_pyMC():
-#     with pm.Model() as model_lv:
-#         # Priors
-#         cattle_wind = pm.HalfNormal("cattle_wind", 1.0)
-#         cattle_beta  = pm.HalfNormal("cattle_beta", 1.0)
-#         pigs_wind = pm.HalfNormal("pigs_wind", 1.0)
-#         pigs_beta = pm.HalfNormal("pigs_beta", 1.0)
-#         sheep_wind = pm.HalfNormal("sheep_wind", 1.0)
-#         sheep_beta = pm.HalfNormal("sheep_beta", 1.0)
-
-#         observed = 18
-#         # Likelihood (ABC). Epsilon is the initial tolerance
-#         sim = pm.Simulator("sim", undetected_spread_sim, params=(cattle_wind, cattle_beta, pigs_wind, pigs_beta, sheep_wind, sheep_beta), epsilon=10, observed=observed)
-#         # Inference
-#         samples = pm.sample_smc(draws=500, chains=4, threshold=0.3, correlation_threshold=0.1)
-#         # Convert to ArviZ InferenceData
-#         posterior = samples.posterior.stack(samples=("draw", "chain"))
-#         # post = posterior.to_pandas()
-
-#     az.summary(samples, hdi_prob=0.95)

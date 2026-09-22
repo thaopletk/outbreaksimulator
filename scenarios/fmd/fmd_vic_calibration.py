@@ -1,9 +1,23 @@
-import vFMDVic
+"""
+
+Code to run parameter calibration, so that the size of the simulated outbreak after 28 days has 18 properties infected - based on a pre-specified scenario.
+
+usage:
+
+python fmd_vic_calibration.py sim_id
+
+where sim_id is a number (integer) between 0 and the length of parameters_list
+
+Successful runs lead to saved parameter file in the folder ABC_params
+
+"""
+
+import scenarios.fmd.FMD_vic_functions as FMD_vic_functions
 import os
 import sys
 import pandas as pd
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 import numpy as np
 import shutil
 import time
@@ -11,7 +25,7 @@ import json
 
 total_infected_aim = 18
 state = "VIC"
-folder_path_main = os.path.join(os.path.dirname(__file__), f"vFMD{state}")
+folder_path_main = os.path.join(os.path.dirname(__file__), f"{state}")
 
 folder_path_main_ABC_params = os.path.join(folder_path_main, "ABC_params")
 if not os.path.exists(folder_path_main_ABC_params):
@@ -75,7 +89,8 @@ start_time = time.time()
     current_time,
     total_infected_properties_with_infected_animals,
     total_infected_animals,
-) = vFMDVic.run_seeding_undetected_spread(
+) = FMD_vic_functions.run_seeding_undetected_spread(
+    main_folder_name="VIC",
     state="VIC",
     burn_in_time=0,
     create_download_folder=False,
