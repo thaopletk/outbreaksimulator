@@ -73,21 +73,51 @@ def create_separate_download_folder(folder_path_of_run, download_folder_path_mai
                     shutil.copy(source_path, destination_path)
 
 
-def setup_to_outbreak_detection(state="NSW", burn_in_movement=10, testing=False, create_download_folder=False, download_parent_folder=None):
+def setup_to_outbreak_detection(
+    state="NSW", burn_in_movement=10, testing=False, create_download_folder=False, download_parent_folder=None, seed=None
+):
     ###################################################
     # ---- Code run set up ---------------------------#
     ###################################################
     xrange, yrange, xlims, ylims = x_y_ranges(state)
 
-    folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}")
+    if seed is not None:
+        folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}_{seed}")
+    else:
+        folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}")
+
+    if not os.path.exists(folder_path_main):
+        os.makedirs(folder_path_main)
+        folder_path_original = os.path.join(os.path.dirname(__file__), f"v06_{state}")
+
+        shutil.copyfile(os.path.join(folder_path_original, "disease_parameters.json"), os.path.join(folder_path_main, "disease_parameters.json"))
+        shutil.copyfile(
+            os.path.join(folder_path_original, "spatial_only_parameters.json"), os.path.join(folder_path_main, "spatial_only_parameters.json")
+        )
+        shutil.copyfile(os.path.join(folder_path_original, "job_parameters.json"), os.path.join(folder_path_main, "job_parameters.json"))
+        shutil.copyfile(os.path.join(folder_path_original, "scenario_parameters.json"), os.path.join(folder_path_main, "scenario_parameters.json"))
 
     suffix = ""
     if testing:
         suffix = "_test"
 
+    if seed is not None:
+        random.seed(seed)
+        np.random.seed(seed)
+
     ###################################################
     # ---- Set up properties and locations -----------#
     ###################################################
+
+    # parameters
+    with open(os.path.join(folder_path_main, "disease_parameters.json"), "r") as file:
+        disease_parameters = json.load(file)
+    with open(os.path.join(folder_path_main, f"spatial_only_parameters.json"), "r") as file:
+        spatial_only_parameters = json.load(file)
+    with open(os.path.join(folder_path_main, "job_parameters.json"), "r") as file:
+        job_parameters = json.load(file)
+    with open(os.path.join(folder_path_main, "scenario_parameters.json"), "r") as file:
+        scenario_parameters = json.load(file)
 
     # generates locations for properties, and makes them into property objects  (which contain information about what type of premises it is)
     output_filename = os.path.join(folder_path_main, f"HPAI_{state}_setup_locations{suffix}")
@@ -108,7 +138,7 @@ def setup_to_outbreak_detection(state="NSW", burn_in_movement=10, testing=False,
                 processing_chicken_meat_property_coordinates,
                 chicken_egg_property_coordinates,
                 processing_chicken_egg_property_coordinates,
-            ) = fixed_spatial_setup.HPAI_NSW_setup_locations(output_filename, testing)
+            ) = fixed_spatial_setup.HPAI_NSW_setup_locations(output_filename, testing, wind_radius=spatial_only_parameters["r_wind"])
         elif state == "QLD":
             (
                 ALL_coordinates,
@@ -335,16 +365,6 @@ def setup_to_outbreak_detection(state="NSW", burn_in_movement=10, testing=False,
     initial_movement_properties_filename = os.path.join(folder_path_burn_in_movement, "properties_" + unique_output)
     initial_movement_diseaseoutbreak_filename = os.path.join(folder_path_burn_in_movement, "outbreakobject_" + unique_output)
 
-    # parameters
-    with open(os.path.join(folder_path_main, "disease_parameters.json"), "r") as file:
-        disease_parameters = json.load(file)
-    with open(os.path.join(folder_path_main, f"spatial_only_parameters.json"), "r") as file:
-        spatial_only_parameters = json.load(file)
-    with open(os.path.join(folder_path_main, "job_parameters.json"), "r") as file:
-        job_parameters = json.load(file)
-    with open(os.path.join(folder_path_main, "scenario_parameters.json"), "r") as file:
-        scenario_parameters = json.load(file)
-
     spatial_only_parameters["n"] = len(properties)
 
     if not os.path.exists(initial_movement_properties_filename) or not os.path.exists(initial_movement_diseaseoutbreak_filename):
@@ -561,7 +581,10 @@ def setup_to_outbreak_detection(state="NSW", burn_in_movement=10, testing=False,
         with open(spread_diseaseoutbreak_filename, "rb") as file:
             diseaseoutbreak = pickle.load(file)
 
-    HPAI_functions.save_approx_known_data(properties, folder_path_first_report, unique_output="", output_suffix=output_suffix)
+    if seed is not None:
+        HPAI_functions.save_approx_known_data(properties, folder_path_first_report, unique_output=unique_output)
+    else:
+        HPAI_functions.save_approx_known_data(properties, folder_path_first_report, unique_output="", output_suffix=output_suffix)
 
     if create_download_folder:
         if download_parent_folder != None:
@@ -569,7 +592,10 @@ def setup_to_outbreak_detection(state="NSW", burn_in_movement=10, testing=False,
         else:
             create_separate_download_folder(folder_path_first_report, folder_path_main, "download_" + unique_output)
 
-    approx_data_filename = os.path.join(folder_path_first_report, "approx_known_data_01.csv")
+    if seed is not None:
+        approx_data_filename = os.path.join(folder_path_first_report, f"approx_known_data_{unique_output}.csv")
+    else:
+        approx_data_filename = os.path.join(folder_path_first_report, "approx_known_data_01.csv")
 
     return (
         folder_path_main,
@@ -1236,3 +1262,180 @@ def run_auto_actions_with_shapefile(
         previous_output_suffix = output_suffix
 
         running_day += 1
+
+
+def run_auto_strategies(
+    state,
+    previous_unique_output,
+    previous_output_suffix_int=1,
+    total_days_to_run_for=7,
+    create_download_folder=False,
+    download_parent_folder=None,
+    download_folder_name=None,
+    strategy="default",
+    shapefile_path=None,
+    seed=None,
+):
+    ###################################################
+    # ---- Code run set up ---------------------------#
+    ###################################################
+    if seed is not None:
+        folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}_{seed}")
+    else:
+        folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}")
+    xrange, yrange, xlims, ylims = x_y_ranges(state)
+
+    previous_folder = os.path.join(folder_path_main, previous_unique_output)
+    previous_output_suffix = f"_{previous_output_suffix_int:02d}"
+
+    # read in previous state
+    previous_spread_properties_filename = os.path.join(folder_path_main, previous_unique_output, "properties_" + previous_unique_output)
+    previous_spread_diseaseoutbreak_filename = os.path.join(folder_path_main, previous_unique_output, "outbreakobject_" + previous_unique_output)
+
+    with open(previous_spread_properties_filename, "rb") as file:
+        properties = pickle.load(file)
+    with open(previous_spread_diseaseoutbreak_filename, "rb") as file:
+        diseaseoutbreak = pickle.load(file)
+
+    RA_shape = None
+    CA_shape = None
+    EPS_shape = None
+    EPS_factor = None
+    if shapefile_path != None:
+        try:
+            shp_zones = gpd.read_file(shapefile_path)
+        except:
+            shp_zones = gpd.read_file(os.path.join(folder_path_main, shapefile_path))
+
+        # restricted area
+        try:
+            shp_zones_RA = shp_zones.loc[shp_zones["EMZ"] == "REZ", :]
+        except:
+            shp_zones_RA = shp_zones.loc[shp_zones["ZoneTitle"] == "Restricted Area", :]
+        RA_shape = list(shp_zones_RA["geometry"])[0]
+
+        # control area
+        try:
+            shp_zones_CA = shp_zones.loc[shp_zones["EMZ"] == "CEZ", :]
+        except:
+            shp_zones_CA = shp_zones.loc[shp_zones["ZoneTitle"] == "Control Area", :]
+        CA_shape = list(shp_zones_CA["geometry"])[0]
+
+        # enhanced passive surveillance area
+        try:
+            shp_zones_EPS = shp_zones.loc[shp_zones["EMZ_1"] == "Enhanced Passive Surveillance", :]
+            EPS_shape = list(shp_zones_EPS["geometry"])[0]  # enhanced passive surveillance shape, assuming it's the same as the RA for now
+        except:
+            shp_zones_EPS = None
+
+    days_to_run_for = 1
+
+    # get previous info
+    approx_data_csv = os.path.join(previous_folder, f"approx_known_data_{previous_unique_output}.csv")
+    # approx_data_csv = os.path.join(previous_folder, f"approx_known_data{previous_output_suffix}.csv")
+
+    # set up for new simulation portion
+    # set up new info
+    outputnumber = previous_output_suffix_int + 1
+    output_suffix = f"_{outputnumber:02d}"
+
+    unique_output = f"{outputnumber:02d}_{strategy}"
+    folder_path = os.path.join(folder_path_main, unique_output)
+
+    print(folder_path)
+
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
+    spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
+    spread_trucks_filename = os.path.join(folder_path, "trucks_df_" + unique_output)
+
+    running_day = 1
+    save_data = False
+    while running_day <= total_days_to_run_for:
+        if running_day == total_days_to_run_for:
+            save_data = True
+
+        # assign jobs
+        scheduled_date = premises.convert_time_to_date(diseaseoutbreak.time + 1)
+        auto_job_mode.generate_jobs_teams(folder_path, approx_data_csv, scheduled_date, running_day, strategy)
+
+        property_jobs = pd.read_csv(os.path.join(folder_path, f"jobs_{running_day}.csv"))
+        zones_based_jobs = pd.read_csv(os.path.join(folder_path, f"zone_jobs_{running_day}.csv"))
+        property_based_zones = pd.read_csv(os.path.join(folder_path, f"zones_{running_day}.csv"))
+
+        # construct zones
+        enhanced_passive_surveillance_area, enhanced_reporting_factor = get_enhanced_passive_surveillance_area(property_based_zones, properties)
+
+        if EPS_shape != None:
+            enhanced_passive_surveillance_area = unary_union([enhanced_passive_surveillance_area, EPS_shape])
+        if EPS_factor != None:
+            enhanced_reporting_factor = EPS_factor
+
+        # adjust the plotting parameters for this new scenario
+        random.seed(1235)
+        np.random.seed(1116)
+        diseaseoutbreak.set_plotting_parameters(
+            xlims=xlims,
+            ylims=ylims,
+            plotting=True,
+            folder_path=folder_path,
+            unique_output=unique_output,
+        )
+
+        properties, movement_records, current_time, total_culled_animals, job_manager = diseaseoutbreak.simulate_HPAI_outbreak_management(
+            properties,
+            property_jobs,
+            zones_based_jobs,
+            property_based_zones,
+            days_to_run_for,
+            restricted_emergency_zone=RA_shape,
+            control_emergency_zone=CA_shape,
+            enhanced_passive_surveillance_area=enhanced_passive_surveillance_area,
+            enhanced_reporting_factor=enhanced_reporting_factor,
+            output_suffix=output_suffix,
+        )
+
+        if running_day == total_days_to_run_for:
+            HPAI_functions.save_approx_known_data(properties, folder_path, unique_output=unique_output)
+            approx_data_csv = os.path.join(folder_path, f"approx_known_data_{unique_output}.csv")
+        else:
+            HPAI_functions.save_approx_known_data(properties, folder_path, unique_output="", output_suffix=f"{output_suffix}_{running_day}")
+            approx_data_csv = os.path.join(folder_path, f"approx_known_data{output_suffix}_{running_day}.csv")
+
+        running_day += 1
+
+    # and then resave the end state
+    with open(spread_properties_filename, "wb") as file:
+        pickle.dump(properties, file)
+
+    # and save the diseaseoutbreak object
+    with open(spread_diseaseoutbreak_filename, "wb") as file:
+        pickle.dump(diseaseoutbreak, file)
+
+    total_infected = 0
+    for property_i in properties:
+        if property_i.exposure_date != "NA":
+            total_infected += 1
+
+    total_infected_properties_with_infected_animals = 0
+    total_infected_animals = 0
+    for property_i in properties:
+        if property_i.number_infected > 0:
+            total_infected_properties_with_infected_animals += 1
+            total_infected_animals += property_i.number_infected
+
+    print(f"Total number of infected premises: {total_infected}")
+    print(f"Total number of infected premises with infected animals: {total_infected_properties_with_infected_animals}")
+    print(f"Total number of infected animals: {total_infected_animals}")
+
+    if create_download_folder:
+        if download_parent_folder == None:
+            download_parent_folder = folder_path_main
+        if download_folder_name == None:
+            download_folder_name = "download_" + unique_output
+
+        create_separate_download_folder(folder_path, download_parent_folder, download_folder_name)
+
+    return 0
