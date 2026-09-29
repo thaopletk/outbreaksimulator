@@ -165,6 +165,7 @@ def setup(main_folder_name="vFMDVIC", state="VIC", wind_radius=20, testing=False
             yrange,
             folder_path_main,
             plot_suffix="",
+            state=state,
         )
 
     output_filename = os.path.join(folder_path_main, f"FMD_{state}_all_properties")
@@ -217,6 +218,7 @@ def setup(main_folder_name="vFMDVIC", state="VIC", wind_radius=20, testing=False
                 "export_facility",
                 "milk_processing",
             ],
+            state=state,
         )
 
     if not os.path.exists(os.path.join(folder_path_main, f"approx_known_data_.csv")):
@@ -258,6 +260,7 @@ def setup(main_folder_name="vFMDVIC", state="VIC", wind_radius=20, testing=False
     #         contacts_for_plotting={},
     #         show_movement_neighbours=True,
     #         save_suffix="_neighbours",
+    #         state = state,
     #     )
 
     trucks_filename = os.path.join(folder_path_main, f"FMD_{state}_trucks_df")
