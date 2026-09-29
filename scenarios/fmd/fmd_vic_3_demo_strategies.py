@@ -1,25 +1,24 @@
-import scenarios.fmd.FMD_vic_functions as FMD_vic_functions
 import os
 import sys
 import pandas as pd
 import json
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
+import scenarios.fmd.FMD_vic_functions as FMD_vic_functions
 
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
-# vFMDVic.setup(state="VIC", wind_radius=20)
+state = "VIC"
+folder_path_main = os.path.join(os.path.dirname(__file__), f"{state}_test")
 
-# state = "VIC"
-# folder_path_main = os.path.join(os.path.dirname(__file__), f"vFMD{state}")
+with open(os.path.join(folder_path_main, "disease_parameters_9.json"), "r") as file:
+    disease_parameters = json.load(file)
 
-# with open(os.path.join(folder_path_main, "disease_parameters_9.json"), "r") as file:
-#     disease_parameters = json.load(file)
-
-# total_infected, undetected_spread_properties_filename, undetected_spread_diseaseoutbreak_filename, undetected_spread_trucks_filename = (
-#     vFMDVic.run_seeding_undetected_spread(
-#         state="VIC", burn_in_time=0, create_download_folder=False, download_parent_folder=None, wind_radius=20, disease_parameters=disease_parameters
-#     )
-# )
+total_infected, undetected_spread_properties_filename, undetected_spread_diseaseoutbreak_filename, undetected_spread_trucks_filename = (
+    FMD_vic_functions.run_seeding_undetected_spread(
+        state="VIC", burn_in_time=0, create_download_folder=False, download_parent_folder=None, wind_radius=20, disease_parameters=disease_parameters
+    )
+)
 
 # vFMDVic.trigger_first_report(
 #     undetected_spread_properties_filename,

@@ -12,12 +12,12 @@ Successful runs lead to saved parameter file in the folder ABC_params
 
 """
 
-import scenarios.fmd.FMD_vic_functions as FMD_vic_functions
 import os
 import sys
 import pandas as pd
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
+import scenarios.fmd.FMD_vic_functions as FMD_vic_functions
 import numpy as np
 import shutil
 import time
@@ -25,7 +25,7 @@ import json
 
 total_infected_aim = 18
 state = "VIC"
-folder_path_main = os.path.join(os.path.dirname(__file__), f"{state}")
+folder_path_main = os.path.join(os.path.dirname(__file__), f"{state}_test")
 
 folder_path_main_ABC_params = os.path.join(folder_path_main, "ABC_params")
 if not os.path.exists(folder_path_main_ABC_params):
@@ -90,7 +90,7 @@ start_time = time.time()
     total_infected_properties_with_infected_animals,
     total_infected_animals,
 ) = FMD_vic_functions.run_seeding_undetected_spread(
-    main_folder_name="VIC",
+    main_folder_name="VIC_test",
     state="VIC",
     burn_in_time=0,
     create_download_folder=False,

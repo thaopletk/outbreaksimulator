@@ -184,6 +184,7 @@ def plot_map_land_HPAI(
     ylims,
     folder_path,
     plot_suffix="",
+    state="",
 ):
     """Plot properties"""
 
@@ -232,7 +233,17 @@ def plot_map_land_HPAI(
     ax.set_xlim(xlims)
     ax.set_ylim(ylims)
 
-    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
+    # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
+    if state == "VIC":
+        ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_Mapnik.tif"))
+    elif state in ["NSW", "QLD"]:
+        ctx.add_basemap(
+            ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_Mapnik.tif")
+        )
+    else:
+        ctx.add_basemap(
+            ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_Mapnik.tif")
+        )
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
     points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
