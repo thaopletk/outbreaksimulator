@@ -639,6 +639,7 @@ def trigger_first_report(
     undetected_spread_properties_filename,
     undetected_spread_diseaseoutbreak_filename,
     undetected_spread_trucks_filename,
+    main_folder_name="vFMDVic",
     state="VIC",
     create_download_folder=False,
     download_parent_folder=None,
@@ -652,7 +653,7 @@ def trigger_first_report(
     reportingregion_x = xrange
     reportingregion_y = yrange
 
-    folder_path_main = os.path.join(os.path.dirname(__file__), f"vFMD{state}")
+    folder_path_main = os.path.join(os.path.dirname(__file__), main_folder_name)
 
     with open(undetected_spread_properties_filename, "rb") as file:
         properties = pickle.load(file)
@@ -1097,6 +1098,7 @@ def run_auto_actions(
 
 
 def run_auto_strategies(
+    main_folder_name,
     state,
     previous_unique_output,
     previous_output_suffix_int=1,
@@ -1111,7 +1113,7 @@ def run_auto_strategies(
     # ---- Code run set up ---------------------------#
     ###################################################
 
-    folder_path_main = os.path.join(os.path.dirname(__file__), f"vFMD{state}")
+    folder_path_main = os.path.join(os.path.dirname(__file__), main_folder_name)
     xrange, yrange, xlims, ylims = x_y_ranges(state)
 
     previous_folder = os.path.join(folder_path_main, previous_unique_output)
@@ -1289,6 +1291,7 @@ def run_auto_strategies(
             outbreak_sim="FMD",
             save_data=save_data,
             strategy=strategy,
+            state=state,
         )
 
         if running_day == total_days_to_run_for:

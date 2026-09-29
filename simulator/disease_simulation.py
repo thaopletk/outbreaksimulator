@@ -2272,6 +2272,7 @@ class DiseaseSimulation:
         trucks_df=None,
         save_data=True,
         strategy=None,
+        state="",
     ):
 
         if time != None:
@@ -3237,7 +3238,7 @@ class DiseaseSimulation:
             )
 
         output.plot_HPAI_outbreak_apparent(
-            properties, restricted_area, control_area, enhanced_passive_surveillance_area, self.xlims, self.ylims, self.folder_path, self.time
+            properties, restricted_area, control_area, enhanced_passive_surveillance_area, self.xlims, self.ylims, self.folder_path, self.time, state
         )
 
         output.plot_HPAI_outbreak_apparent(
@@ -3250,6 +3251,7 @@ class DiseaseSimulation:
             self.folder_path,
             self.time,
             zoomed_in=True,
+            state=state,
         )
 
         output.plot_HPAI_outbreak_apparent(
@@ -3263,6 +3265,7 @@ class DiseaseSimulation:
             self.time,
             zoomed_in=True,
             show_hidden_infected_properties=True,
+            state=state,
         )
 
         if outbreak_sim == "HPAI":

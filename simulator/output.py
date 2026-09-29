@@ -1453,7 +1453,11 @@ def plot_HPAI_outbreak_apparent(
 
     # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)  # source=ctx.providers.CartoDB.Positron
     if state == "VIC":
-        ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_Mapnik.tif"))
+        source = os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_Mapnik_10.tif")
+        if not os.path.exists(source):
+            source = os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_Mapnik.tif")
+            print("Go and consider downloading a higher resolution VIC_Mapnik_10.tif - in data/geotiles/download_geotiles.py")
+        ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=source)
     elif state in ["NSW", "QLD"]:
         ctx.add_basemap(
             ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_Mapnik.tif")
