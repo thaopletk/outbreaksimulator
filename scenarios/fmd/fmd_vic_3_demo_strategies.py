@@ -4,7 +4,7 @@ import pandas as pd
 import json
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
-import scenarios.fmd.FMD_vic_functions as FMD_vic_functions
+import scenarios.fmd.FMD_functions as FMD_functions
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -15,7 +15,7 @@ with open(os.path.join(folder_path_main, "disease_parameters_9.json"), "r") as f
     disease_parameters = json.load(file)
 
 total_infected, undetected_spread_properties_filename, undetected_spread_diseaseoutbreak_filename, undetected_spread_trucks_filename = (
-    FMD_vic_functions.run_seeding_undetected_spread(
+    FMD_functions.run_seeding_undetected_spread(
         main_folder_name=f"{state}_test",
         state="VIC",
         burn_in_time=0,
@@ -26,7 +26,7 @@ total_infected, undetected_spread_properties_filename, undetected_spread_disease
     )
 )
 
-FMD_vic_functions.trigger_first_report(
+FMD_functions.trigger_first_report(
     undetected_spread_properties_filename,
     undetected_spread_diseaseoutbreak_filename,
     undetected_spread_trucks_filename,
@@ -37,7 +37,7 @@ FMD_vic_functions.trigger_first_report(
 )
 
 
-FMD_vic_functions.run_auto_strategies(
+FMD_functions.run_auto_strategies(
     main_folder_name="VIC_test",
     state="VIC",
     previous_unique_output="03_outbreak_detection",
@@ -50,7 +50,7 @@ FMD_vic_functions.run_auto_strategies(
     shapefile_path=None,
 )
 
-FMD_vic_functions.run_auto_strategies(
+FMD_functions.run_auto_strategies(
     main_folder_name="VIC_test",
     state="VIC",
     previous_unique_output="04_initial_investigation",

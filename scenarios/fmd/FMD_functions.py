@@ -43,6 +43,9 @@ def x_y_ranges(state="VIC"):
     elif state == "VIC":
         xrange = [140.0, 151.0]
         yrange = [-39.5, -33.5]
+    elif state == "NT":
+        xrange = [128, 140.0]
+        yrange = [-27, -10]
     else:
         raise ValueError(f"{state} state not expected")
 
@@ -104,7 +107,7 @@ def setup(main_folder_name="vFMDVIC", state="VIC", wind_radius=20, testing=False
 
     if not os.path.exists(output_filename):
         start_time = time.time()
-        if state == "VIC":
+        if state == "VIC" or state == "NT":
             (
                 ALL_coordinates,
                 ALL_p_polygon,
@@ -121,16 +124,16 @@ def setup(main_folder_name="vFMDVIC", state="VIC", wind_radius=20, testing=False
                 pigs_coordinates,
                 facility_coordinates,
                 other_coordinates,
-            ) = fixed_spatial_setup.FMD_VIC_setup_locations(output_filename, wind_radius=wind_radius, testing=testing)
+            ) = fixed_spatial_setup.FMD_AADIS_setup_locations(output_filename, wind_radius=wind_radius, testing=testing, state=state)
         else:
-            raise ValueError("Non VIC version not yet implemented")
+            raise ValueError("Non VIC/NT version not yet implemented")
 
         end_time = time.time()
         execution_time = end_time - start_time
-        print(f"Execution time of fixed_spatial_setup.FMD_{state}_setup_locations(): {execution_time/60} minutes")
+        print(f"Execution time of fixed_spatial_setup.FMD_AADIS_setup_locations(): {execution_time/60} minutes")
 
     else:
-        if state == "VIC":
+        if state == "VIC" or state == "NT":
             with open(output_filename, "rb") as file:
                 (
                     ALL_coordinates,
@@ -150,7 +153,7 @@ def setup(main_folder_name="vFMDVIC", state="VIC", wind_radius=20, testing=False
                     other_coordinates,
                 ) = pickle.load(file)
         else:
-            raise ValueError("Non VIC version not yet implemented")
+            raise ValueError("Non VIC/NT version not yet implemented")
 
     # plot that actually shows the locations of different facilities (aside from backyard ones at the moment)
     if not os.path.exists(os.path.join(folder_path_main, f"property_locations_base_map.png")):

@@ -171,6 +171,16 @@ def get_Victoria_shape():
 
 
 @functools.lru_cache(maxsize=None)
+def get_NothernTerritory_shape():
+    Australia_gdf = get_Australia_shape()
+
+    NT_only = Australia_gdf.loc[Australia_gdf["STE_NAME21"] == "Northern Territory", :]
+    NTshape = list(NT_only["geometry"])[0]
+
+    return NTshape
+
+
+@functools.lru_cache(maxsize=None)
 def get_NT_and_WA_shape():
     Australia_gdf = get_Australia_shape()
 

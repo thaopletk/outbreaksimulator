@@ -1775,27 +1775,29 @@ def HPAI_movement_network_setup(
     return all_properties
 
 
-def FMD_VIC_setup_locations(
-    output_filename,
-    data_folder=os.path.join(os.path.dirname(__file__), "..", "data", "FMDVIC"),
-    wind_radius=20,
-    testing=False,
-    # vic_polygons_shp_file=os.path.join(
-    #     os.path.dirname(__file__), "..", "data", "Vicmap", "ll_gda2020", "esrishape", "whole_of_dataset", "victoria", "VMPROP", "PROPERTY_VIEW.shp"
-    # ),
+def FMD_AADIS_setup_locations(
+    output_filename, data_folder=os.path.join(os.path.dirname(__file__), "..", "data", "FMDVIC"), wind_radius=20, testing=False, state="VIC"
 ):
     """
-    Reads in provided farm (herd) locations and sizes
+    Reads in provided farm (herd) locations and sizes, based on AADIS data
 
     output_filename : location to save the processed data
     data_folder : folder that contains various data available for property set up
     wind_radius : max distance for wind dispersal of fomites
     """
 
-    Victoria_shape = spatial_setup.get_Victoria_shape()
+    if state == "VIC":
+        state_shape = spatial_setup.get_Victoria_shape()
+    elif state == "NT":
+        state_shape = spatial_setup.get_NothernTerritory_shape()
+    else:
+        raise ValueError(f"state {state} not yet implemented for FMD_AADIS_setup locaitons")
     LGA_gdf = spatial_functions.get_LGA_gdf()
 
     # TODO - replace the round polygons with the actual property polygons
+    # vic_polygons_shp_file=os.path.join(
+    #     os.path.dirname(__file__), "..", "data", "Vicmap", "ll_gda2020", "esrishape", "whole_of_dataset", "victoria", "VMPROP", "PROPERTY_VIEW.shp"
+    # )
     # vic_polygons = gpd.read_file(vic_polygons_shp_file)
 
     herd_data = pd.read_csv(os.path.join(data_folder, "herd.csv"))
@@ -1816,7 +1818,10 @@ def FMD_VIC_setup_locations(
 
     herd_data = pd.merge(herd_data, lga, on="lga id")
     # filter out things not in Victoria, State id = 2
-    herd_data = herd_data[herd_data["State id"] == 2]
+    if state == "VIC":
+        herd_data = herd_data[herd_data["State id"] == 2]
+    elif state == "NT":
+        herd_data = herd_data[herd_data["State id"] == 7]
 
     # various facilities
     abattoir_data = pd.read_csv(os.path.join(data_folder, "abattoir.csv"))
@@ -1856,19 +1861,28 @@ def FMD_VIC_setup_locations(
         region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == LGA, :]  # checking if the region name is actually standard or not lol
         if region_only.empty:
             if LGA == "Unincorporated":
-                LGA = LGA + " Vic"
-            elif LGA == "Colac-Otway":
+                if state == "VIC":
+                    LGA = LGA + " Vic"
+                elif state == "NT":
+                    LGA = LGA + " NT"
+            elif LGA == "Unincorporate":
+                if state == "NT":
+                    LGA = LGA + "d NT"
+            elif LGA == "Colac-Otway":  # VIC
                 LGA = "Colac Otway"
-            elif LGA == "Moreland":
+            elif LGA == "Moreland":  # VIC
                 LGA = "Merri-bek"
+            elif LGA == "Victoria-Daly":  # NT
+                LGA = "Victoria Daly"
             else:
-                LGA = LGA + " (Vic.)"
+                if state == "VIC":
+                    LGA = LGA + " (Vic.)"
             region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == LGA, :]  # checking if the region name is actually standard or not lol
             if region_only.empty:
                 print(row)
                 raise ValueError(f"{LGA} doesn't exist")
 
-        if testing:
+        if testing and state == "VIC":
             if LGA not in [
                 "South Gippsland",
                 "Bass Coast",
@@ -1879,6 +1893,9 @@ def FMD_VIC_setup_locations(
                 "Cardinia",
                 "Yarra Ranges",
             ]:
+                continue
+        if testing and state == "NT":
+            if "A" not in LGA or "B" not in LGA or "C" not in LGA or "D" not in LGA:
                 continue
 
         property_coordinates = [row["herd long"], row["herd lat"]]
@@ -1928,8 +1945,11 @@ def FMD_VIC_setup_locations(
         # new FMD specific
         ALL_extra_info.append({"herd_id": int(row["herd id"]), "farm_id": int(row["farm id"]), "saleyard_id": int(row["saleyard id"])})
 
-    VIC_LGAs = LGA_gdf.loc[LGA_gdf["STE_NAME21"] == "Victoria", :]
-    VIC_LGA_list = VIC_LGAs["LGA_NAME24"].tolist()
+    if state == "VIC":
+        state_LGAs = LGA_gdf.loc[LGA_gdf["STE_NAME21"] == "Victoria", :]
+    elif state == "NT":
+        state_LGAs = LGA_gdf.loc[LGA_gdf["STE_NAME21"] == "Northern Territory", :]
+    state_LGA_list = state_LGAs["LGA_NAME24"].tolist()
 
     for i, row in abattoir_data.iterrows():
         x_coord = row["longitude"]
@@ -1937,12 +1957,12 @@ def FMD_VIC_setup_locations(
 
         # check if it is in Victoria or not
         curr_farm = Point(x_coord, y_coord)
-        if not Victoria_shape.contains(curr_farm):
+        if not state_shape.contains(curr_farm):
             continue
 
         # Find the LGA
         farm_LGA = 0
-        for LGA in VIC_LGA_list:
+        for LGA in state_LGA_list:
             region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == LGA, :]
             region_shape = list(region_only["geometry"])[0]
             if region_shape != None and region_shape.contains(curr_farm):
@@ -1997,12 +2017,12 @@ def FMD_VIC_setup_locations(
 
         # check if it is in Victoria or not
         curr_farm = Point(x_coord, y_coord)
-        if not Victoria_shape.contains(curr_farm):
+        if not state_shape.contains(curr_farm):
             continue
 
         # Find the LGA
         farm_LGA = 0
-        for LGA in VIC_LGA_list:
+        for LGA in state_LGA_list:
             region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == LGA, :]
             region_shape = list(region_only["geometry"])[0]
             if region_shape != None and region_shape.contains(curr_farm):
@@ -2047,14 +2067,14 @@ def FMD_VIC_setup_locations(
         x_coord = row["longitude"]
         y_coord = row["latitude"]
 
-        # check if it is in Victoria or not
+        # check if it is in state or not
         curr_farm = Point(x_coord, y_coord)
-        if not Victoria_shape.contains(curr_farm):
+        if not state_shape.contains(curr_farm):
             continue
 
         # Find the LGA
         farm_LGA = 0
-        for LGA in VIC_LGA_list:
+        for LGA in state_LGA_list:
             region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == LGA, :]
             region_shape = list(region_only["geometry"])[0]
             if region_shape != None and region_shape.contains(curr_farm):
@@ -2101,12 +2121,12 @@ def FMD_VIC_setup_locations(
 
         # # check if it is in Victoria or not
         curr_farm = Point(x_coord, y_coord)
-        # if not Victoria_shape.contains(curr_farm):
-        #     continue
+        if not state_shape.contains(curr_farm):
+            continue
 
         # Find the LGA
         farm_LGA = 0
-        for LGA in VIC_LGA_list:
+        for LGA in state_LGA_list:
             region_only = LGA_gdf.loc[LGA_gdf["LGA_NAME24"] == LGA, :]
             region_shape = list(region_only["geometry"])[0]
             if region_shape != None and region_shape.contains(curr_farm):
