@@ -1,6 +1,9 @@
-# infectious animal disease Outbreak Simulator (iadOS)
+# Disease and decision outbreak simulator
 
-Infectious animal disease outbreak simulator for [Enhancing Models for Rapid Decision-Support in Emergency Animal Disease Outbreaks (HASTE)](https://ardc.edu.au/project/enhancing-models-for-rapid-decision-support-in-emergency-animal-disease-outbreaks/) project. The aim of this simulator is to simulate a realistic scenario and data that could be recorded during an emergency animal disease outbreak, which is then used as part of decision making.
+This is an infectious animal disease outbreak simulator developed as part of the [Enhancing Models for Rapid Decision-Support in Emergency Animal Disease Outbreaks (HASTE)](https://ardc.edu.au/project/enhancing-models-for-rapid-decision-support-in-emergency-animal-disease-outbreaks/) project. The aim of this simulator is to simulate a sufficiently realistic animal disease outbreak scenario and synthetic data that could be recorded during an emergency animal disease outbreak, which is then used as part of decision making and used by other mathematical modelling tools.
+
+This branch documents the version used to run simulation exercises based on a hypothetical **lumpy skin disease** outbreak in Eastern Australia.
+
 
 **Code written by Thao P. Le and Isobel Abell**
 (base code and FMD_modelling module written by Isobel Abell, and adapted by Thao P. Le)
@@ -11,9 +14,7 @@ Infectious animal disease outbreak simulator for [Enhancing Models for Rapid Dec
 
 **scenarios** folder: contains the code that calls the simulation code
 
-**tests** folder: contains some tests
-
-# Outbreak simulator workflow (v0.2)
+# Outbreak simulator workflow
 
 **The main steps**:
 1. Initiate map
