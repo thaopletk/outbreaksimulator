@@ -1,9 +1,19 @@
-# Disease and decision outbreak simulator
+# Disease and decision simulator
 
-This is an infectious animal disease outbreak simulator developed as part of the [Enhancing Models for Rapid Decision-Support in Emergency Animal Disease Outbreaks (HASTE)](https://ardc.edu.au/project/enhancing-models-for-rapid-decision-support-in-emergency-animal-disease-outbreaks/) project. The aim of this simulator is to simulate a sufficiently realistic animal disease outbreak scenario and synthetic data that could be recorded during an emergency animal disease outbreak, which is then used as part of decision making and used by other mathematical modelling tools.
+*Simulates disease outbreaks given management decisions, and outputs synthetic data for simulation workshops*
 
-This branch documents the version used to run simulation exercises based on a hypothetical **lumpy skin disease** outbreak in Eastern Australia.
+This is an infectious animal disease outbreak simulator developed as part of the [Enhancing Models for Rapid Decision-Support in Emergency Animal Disease Outbreaks (HASTE)](https://ardc.edu.au/project/enhancing-models-for-rapid-decision-support-in-emergency-animal-disease-outbreaks/) project. The aim of this simulator is to simulate a sufficiently realistic animal disease outbreak scenario and synthetic data that could be recorded during an emergency animal disease outbreak, which is then used as part of decision making and used by other mathematical modelling tools. The simulator supports branching decision-making through various save points.
 
+This repository branch documents the version used to run simulation exercises based on a hypothetical **lumpy skin disease** outbreak in Eastern Australia.
+
+**Key features**:
+- Disease spread via close contact, movements and generalised local spatial dispersal (for lumpy skin disease, it is intended to mimic local vector dispersal)
+- Animal movements between different types of premises
+- Multiple management options including movement restrictions, vaccination, depopulation, surveillance and laboratory testing
+- Data outputs at end of simulation periods allows return to previous time points and branching decision-making.
+
+**Code requirements**:
+- Python (3.12.10)
 
 **Code written by Thao P. Le and Isobel Abell**
 (base code and FMD_modelling module written by Isobel Abell, and adapted by Thao P. Le)
