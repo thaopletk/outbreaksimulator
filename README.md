@@ -24,7 +24,7 @@ This repository branch documents the version used to run simulation exercises ba
 
 **scenarios** folder: contains the code that calls the simulation code
 
-# Outbreak simulator workflow
+# Outbreak simulation workflow
 
 **The main steps**:
 1. Initiate map
@@ -33,7 +33,59 @@ This repository branch documents the version used to run simulation exercises ba
 4. Management stage: including default management (contract tracing local movement restrictions, clinical examination, lab testing and culling) and additional management options (large-scale movement restrictions, testing, vaccination, ring culling, and their combinations)
 5. Final outputs (total number of cases etc.)
 
-The main file that produced the outputs for the December 2024 Trial simulation exercise (v0.2) is [**maincontrol_trial.py**](scenarios/maincontrol_trial.py).
+
+# Technical notes and references
+
+### For Markdown syntax:
+
+[Markdown Cheat Sheet](https://www.markdownguide.org/cheat-sheet/)
+
+
+### Virtual environment
+
+Initiate virtual environment using the following if not yet created
+
+`python -m venv venv`
+
+Then activate (on Windows) with
+
+`. venv/Scripts/activate`
+
+And then you should be in the virtual environment!
+
+You can then deactivate with:
+
+`deactivate`
+
+### Running in the virtual environment
+
+```sh
+. venv/Scripts/activate
+pip install -r requirements.txt
+python scenarios/LSD_test.py
+```
+
+*Note that the requirements.txt is currently not up-to-date...*
+
+### Formatting
+
+Format using Black
+
+https://www.freecodecamp.org/news/auto-format-your-python-code-with-black/
+
+https://black.readthedocs.io/en/stable/getting_started.html 
+
+`pip install black`
+
+`black sample_code.py`
+
+To use it as a pre-commit hook, also run:
+
+`pip install pre-commit`
+
+`pre-commit install`
+
+
 
 ![Diagram of the steps of the outbreak simulator: initiate map, seed infection, run time forward until first report, default management (contract tracing local movement restrictions, clinical examination, lab testing and culling) and additional management options (large-scale movement restrictions, testing, vaccination, ring culling, and their combinations), and final outputs (total number of cases etc.) ](images/outbreaksimulator_workflow.png)
 
