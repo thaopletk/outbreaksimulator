@@ -1,0 +1,4 @@
+{
+    "clinical_reporting_threshold": 0.05,
+    "prob_report": 0.7
+}
