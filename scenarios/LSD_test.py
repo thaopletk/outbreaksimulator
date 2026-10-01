@@ -1,7 +1,4 @@
-""" v0.3 Trial
-
-This script controls and run different elements and steps, testing the expanded version of the code post v0.2 
-
+""" Complete run of a lumpy skin disease outbreak simulation
 
 """
 
@@ -16,11 +13,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import simulator.simulator as simulator
 import simulator.output as output
 import simulator.disease_simulation as disease_simulation
-import simulator.management as management
-import simulator.premises as premises
-import simulator.spatial_functions as spatial_functions
 
-folder_path_main = os.path.join(os.path.dirname(__file__), "outputs", "v03_trial")
+folder_path_main = os.path.join(os.path.dirname(__file__), "LSD_test")
 folder_path_seed = os.path.join(folder_path_main, "01_seed")
 
 # step 1: make main folder if it doesn't exist
@@ -28,9 +22,8 @@ if not os.path.exists(folder_path_main):
     os.makedirs(folder_path_main)
 
 # step 2: initiate the full proper map, including with different property types
-# parameters
+# parameters. For the test, we use the "small" version of the spatial parameters (generates fewer properties)
 small_ver = "_small"
-small_ver = ""  # for running on the cluster
 
 with open(os.path.join(folder_path_main, f"spatial_only_parameters{small_ver}.json"), "r") as file:
     spatial_only_parameters = json.load(file)  # has the total number of properties, hence the {small_ver}
@@ -52,7 +45,7 @@ ylims = [
     round(spatial_only_parameters["yrange"][1], 1) + 0.05,
 ]
 
-# area for first report
+# area for first report - Northern NSW
 reportingregion_x = [140, 155]
 reportingregion_y = [-32, -29]
 
@@ -105,16 +98,8 @@ if not os.path.exists(os.path.join(folder_path_main, "map_underlying0.png")):
 if not os.path.exists(os.path.join(folder_path_main, "animal_density.png")):
     output.plot_animal_density(properties, xlims, ylims, folder_path=folder_path_main)
 
-# if not os.path.exists(os.path.join(folder_path_main, "animals.png")):
-#     output.plot_animals(properties, xlims, ylims, folder_path=folder_path_main)
-# if not os.path.exists(os.path.join(folder_path_main, "animal_density_hist2D.png")):
-#     output.plot_animal_density_hist2d(properties, xlims, ylims, folder_path=folder_path_main)
-
-
 # step 3:  initial seeding of a property
 # the initial seeding will occur in Northern Queensland
-# COULD TODO: make seeding occur either near a major port
-# to get something near major cities, I should get their lat/long positions, (either hard code or download something from ABS), and allow spread to a wind-radius around those cities.
 
 time = 0
 if not os.path.exists(folder_path_seed):
@@ -160,8 +145,7 @@ folder_path_undetected_spread = os.path.join(folder_path_main, unique_output)
 if not os.path.exists(folder_path_undetected_spread):
     os.makedirs(folder_path_undetected_spread)
 
-# TODO could change this so that it runs until there are X number of infected properties in each of the main states or territories
-stop_time = 21  # 28
+stop_time = 21  
 first_detection_day = stop_time + 1
 
 undetected_spread_properties_filename = os.path.join(folder_path_undetected_spread, "properties_" + unique_output)
@@ -170,8 +154,8 @@ undetected_spread_diseaseoutbreak_filename = os.path.join(
 )
 
 
-random.seed(1234)  # past seeds: 14, 102
-np.random.seed(3562)  # past seeds: 15, 124
+random.seed(1234)  
+np.random.seed(3562)
 
 if not os.path.exists(undetected_spread_properties_filename) or not os.path.exists(
     undetected_spread_diseaseoutbreak_filename
@@ -193,8 +177,6 @@ if not os.path.exists(undetected_spread_properties_filename) or not os.path.exis
         folder_path=folder_path_undetected_spread,
         unique_output=unique_output,
     )
-
-    # print(diseaseoutbreak.job_manager.jobs_queue)
 
     properties, movement_records, time = diseaseoutbreak.simulate_outbreak_spread_only(
         properties=properties,
@@ -257,8 +239,6 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
 
     first_detection_day = diseaseoutbreak.time + 1
 
-    # print(diseaseoutbreak.job_manager.jobs_queue)
-
     properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_first_two_days(
         properties, reportingregion_x, reportingregion_y
     )
@@ -276,8 +256,6 @@ else:
     with open(spread_diseaseoutbreak_filename, "rb") as file:
         diseaseoutbreak = pickle.load(file)
 
-# TODO - to actually get the first detection date, get the first/smaller number of file in the simulate-first-two-days folder...
-
 
 # step 6
 # about two weeks of simulation
@@ -285,17 +263,7 @@ unique_output = "04_two_weeks"
 folder_path = os.path.join(folder_path_main, unique_output)
 days_to_run_for = 14
 
-management_parameters = [  # TODO - currently not used...could actually implement it...
-    {"type": "movement_restriction", "radius_km": 5, "convex": False},
-    {"type": "conditional_movement", "radius_km": 80, "convex": False, "probability_reduction": 0.1},
-    {"type": "ring_surveillance", "radius_km": 80, "convex": False},
-]
-# jobs_resourcing = {
-#     "LabTesting": [10, 15, 20],
-#     "ClinicalObservation": [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130],
-#     "Cull": [10],
-#     "ContactTracing": [100],
-# }  # TODO - currently not used...could actually implement it...
+management_parameters = []  # TODO - currently not used...could actually implement it... or delete
 
 if not os.path.exists(folder_path):
     os.makedirs(folder_path)
