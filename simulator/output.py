@@ -1,8 +1,8 @@
-""" Data visualisation and pickle outputs
+"""Data visualisation and pickle outputs
 
-    Based on FMD_modelling plotting_code.py, but adapted for "real locations" (i.e. spatially located).
+Based on FMD_modelling plotting_code.py, but adapted for "real locations" (i.e. spatially located).
 
-    This script produces output plots (static, gifs and mp4 animations) of the outbreak.
+This script produces output plots (static, gifs and mp4 animations) of the outbreak.
 
 """
 
@@ -120,12 +120,47 @@ def plot_map_land(property_polygons, property_polygons_puffed, xlims, ylims, fol
     fig, ax = plt.subplots(1, 1, figsize=(20, 20))  # ,figsize=(10,12)
 
     for poly in property_polygons_puffed:
-        plot_polygon(ax, poly, facecolor="tomato", edgecolor="maroon", alpha=0.01)
+        plot_polygon(ax, poly, facecolor="orange", edgecolor="orange", alpha=0.02)
 
     for poly in property_polygons:
         plot_polygon(ax, poly, facecolor="tomato", edgecolor="maroon", alpha=1)
 
-    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
+    # random points put far away -- in order to create the legend
+    random_point = Point(xlims[0] - 0.2, ylims[0] - 0.2)
+    geo_df = gpd.GeoDataFrame(geometry=[random_point])
+    geo_df.crs = {"init": "epsg:4326"}
+    # plot the marker
+    ax = geo_df.plot(
+        ax=ax,
+        markersize=200,
+        color="tomato",
+        marker="s",
+        label="properties",
+        aspect=1,
+        edgecolor="maroon",
+        alpha=1,
+    )
+
+    ax = geo_df.plot(
+        ax=ax,
+        markersize=200,
+        color="orange",
+        marker="o",
+        label="infection discs around properties",
+        aspect=1,
+        edgecolor="orange",
+        alpha=0.5,
+    )
+
+    ax.set_xlim(xlims)
+    ax.set_ylim(ylims)
+
+    ctx.add_basemap(
+        ax,
+        crs={"init": "epsg:4326"},
+        source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_Mapnik.tif"),
+        attribution="© OpenStreetMap contributors",
+    )
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
     points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
@@ -138,17 +173,13 @@ def plot_map_land(property_polygons, property_polygons_puffed, xlims, ylims, fol
             location="lower right",
         )
     )
+    # ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5, fontsize=18)
+    ax.legend(fontsize=20)
 
-    ax.set_title("Map", fontsize=18)
+    ax.set_title("Property map", fontsize=18)
 
     ax.set_ylabel("latitude", fontsize=16)
     ax.set_xlabel("longitude", fontsize=16)
-
-    ax.set_xlim(xlims)
-    ax.set_ylim(ylims)
-
-    # ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
-    #       fancybox=True, shadow=True, ncol=5,fontsize=18)
 
     ax.tick_params(axis="x", labelsize=14)
     ax.tick_params(axis="y", labelsize=14)
@@ -398,9 +429,7 @@ def plot_map(
         [geometry_culled, "black", "X", "culled", 120],
     ]:
         if geometry == []:
-            if (
-                markerlabel == "infected" or markerlabel == "culled on suspicion, actually infected"
-            ):  # only for the real situation case plotting
+            if markerlabel == "infected" or markerlabel == "culled on suspicion, actually infected":  # only for the real situation case plotting
                 if real_situation == True:
                     geometry = [Point(xlims[0] - 0.1, ylims[0] - 0.1)]  # putting the point outside the limits
             else:
@@ -565,9 +594,7 @@ def plot_animals(
         property_polygon = premise.polygon
         lat = premise.y  # y
         lon = premise.x  # x
-        puff_p1 = geodesic_polygon_buffer(
-            lat, lon, property_polygon, 50
-        )  # mild expansion 10 km to make it look more full
+        puff_p1 = geodesic_polygon_buffer(lat, lon, property_polygon, 50)  # mild expansion 10 km to make it look more full
 
         num_animals = max(int(len(premise.animals) / 50), 2)
         # Generates random points inside polygon
