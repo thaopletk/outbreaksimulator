@@ -1,8 +1,8 @@
-""" Premises class definition 
+"""Premises class definition
 
-    The premises class describes farms (or other properties), with attributes such as location and size
+The premises class describes farms (or other properties), with attributes such as location and size
 
-    Expands upon the Property class from FMD_Modelling
+Expands upon the Property class from FMD_Modelling
 
 """
 
@@ -17,9 +17,9 @@ from FMD_modelling.class_definitions import Property, Animal
 import datetime
 import itertools
 from simulator.spatial_functions import calculate_area
+import time
 
-
-geolocator = Nominatim(user_agent="http")
+geolocator = Nominatim(user_agent="myGeocoder")
 
 
 def convert_time_to_date(time, start_date=datetime.datetime(year=2026, month=1, day=1), return_string="%d/%m/%Y"):
@@ -69,7 +69,6 @@ class Premises(Property):
 
     id_iter = itertools.count()
     notified_iter = itertools.count(start=1)  # IP (infected properties) should start from 1
-    # geolocator = Nominatim(user_agent="http")
 
     # area in hectares
     def __init__(
@@ -132,17 +131,47 @@ class Premises(Property):
 
         self.x, self.y = self.coordinates
 
-        self.location = geolocator.reverse(f"{self.y},{self.x}")
-        self.address = self.location.raw["address"]
-        self.state = self.address.get("state", "")
-        if self.state == "":
-            self.state = self.address.get("territory", "")
+        self.location = None
+        self.address = None
+        self.state = None
+        # self.find_location()
+        # self.location = geolocator.reverse(f"{self.y},{self.x}")
+        # self.address = self.location.raw["address"]
+        # self.state = self.address.get("state", "")
+        # if self.state == "":
+        #     self.state = self.address.get("territory", "")
 
         self.undergoing_testing = False
         self.day_of_last_lab_test = None
         self.clinical_report_outcome = None  # otherwise, true or false
 
-    #
+    def find_location(self):
+        try:
+            self.location = geolocator.reverse(f"{self.y},{self.x}")
+            self.address = self.location.raw["address"]
+            self.state = self.address.get("state", "")
+            if self.state == "":
+                self.state = self.address.get("territory", "")
+            print("successful address found")
+            time.sleep(1.0)
+        except Exception as e:
+            print(e)
+
+    def get_location(self):
+        if self.location == None:
+            self.find_location()
+        return self.location
+
+    def get_address(self):
+        if self.address == None:
+            self.find_location()
+        return self.address
+
+    def get_state(self):
+        if self.state == None:
+            self.find_location()
+        return self.state
+
     def vaccinate(self, time):
         self.vaccination_status = 1
         self.vacc_date = convert_time_to_date(time)
@@ -189,7 +218,7 @@ class Premises(Property):
         # self.reported_status = False # no change
         self.culled_on_suspicion = True
 
-        report = f"DAY {self.removal_date} - Property ID {self.id}, {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, is within the ring culling zone.\nA total of {self.size} animal(s) have been culled.\n"
+        report = f"DAY {self.removal_date} - Property ID {self.id}, {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.get_location()}, is within the ring culling zone.\nA total of {self.size} animal(s) have been culled.\n"
 
         return report, self.size
 
@@ -202,7 +231,7 @@ class Premises(Property):
 
         culled_animals = self.size
 
-        report = f"DAY {self.notification_date} - IP {self.ip} (ID {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been found infected. A total of {culled_animals} animal(s) will be culled."
+        report = f"DAY {self.notification_date} - IP {self.ip} (ID {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.get_location()}, has been found infected. A total of {culled_animals} animal(s) will be culled."
 
         return report
 
@@ -217,7 +246,7 @@ class Premises(Property):
         report = ""
         culled_animals = self.size
 
-        report = f"DAY {convert_time_to_date(time)} - IP {self.ip} (ID {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been depopulated.\nA total of {culled_animals} animal(s) have been culled."
+        report = f"DAY {convert_time_to_date(time)} - IP {self.ip} (ID {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.get_location()}, has been depopulated.\nA total of {culled_animals} animal(s) have been culled."
 
         return report, culled_animals
 
@@ -232,11 +261,11 @@ class Premises(Property):
         return False
 
     def report_suspicion(self, time):
-        # report = f"DAY {convert_time_to_date(time)} - Property ID {self.id} ({self.type}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been reported possible infection.\n"
+        # report = f"DAY {convert_time_to_date(time)} - Property ID {self.id} ({self.type}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.get_location()}, has been reported possible infection.\n"
         # TODO ! there should be some kind of status change here...
         self.clinical_report_outcome = True
 
-        report = f"Property ID {self.id} ({self.type}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been reported possible infection."
+        report = f"Property ID {self.id} ({self.type}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.get_location()}, has been reported possible infection."
 
         return report
 
@@ -261,7 +290,7 @@ class Premises(Property):
             culled_animals = self.size
             report += self.report_only(time)
 
-            report = f"DAY {self.notification_date} - IP {self.ip} (ID {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.location}, has been reported infected.\nA total of {culled_animals} animal(s) have been culled.\n"
+            report = f"DAY {self.notification_date} - IP {self.ip} (ID {self.id}), {round(self.area,1)} ha cattle property at location (x,y)=({round(self.x,2)}, {round(self.y,2)}), {self.get_location()}, has been reported infected.\nA total of {culled_animals} animal(s) have been culled.\n"
 
         return report, culled_animals
 
@@ -312,9 +341,7 @@ class Premises(Property):
         else:
             weights = [i / sum(weights) for i in weights]
 
-        move_to_types_list = np.random.choice(
-            property_types_to_move_to, size=num_properties_to_move_to, replace=True, p=weights
-        )
+        move_to_types_list = np.random.choice(property_types_to_move_to, size=num_properties_to_move_to, replace=True, p=weights)
 
         return move_to_types_list
 
