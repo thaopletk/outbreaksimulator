@@ -737,6 +737,8 @@ class Premises(Property):
                                     new_infections += 1
                                 chicken.check_transition(params)
                                 chicken.update_clock()
+                                if chicken.clinical_status == "clinical":
+                                    number_clinical += 1
                         else:
                             if FOI > 0:  # i.e., they can get infected
                                 # convert to animal objects
@@ -1248,6 +1250,7 @@ class Premises(Property):
             self.get_num_eggs(),
             self.get_num_fertilised_eggs(),
             self.data_source,
+            self.number_infected,
         ]
 
     def accepting_chickens(self):

@@ -846,6 +846,7 @@ def save_chicken_property_csv(properties, time, folder_path, unique_output):
         "eggs",
         "fertilised eggs",
         "data_source",
+        "infected_birds",
     ]
     file = os.path.join(folder_path, f"data_underlying_{unique_output}.csv")
     with open(file, "w", newline="") as f:

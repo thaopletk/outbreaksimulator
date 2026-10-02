@@ -1,4 +1,11 @@
-"""v06 | Script with functions to run simulation (I guess I could put this into simulator.py or something)"""
+"""v06 | Script with functions to run HPAI simulations
+
+TODO: should put this into simulator.py
+and retire unused functions within simulator.py
+
+or at least rename "v06_functions" file name to something that makes more sense
+
+"""
 
 import os
 import sys
@@ -74,28 +81,54 @@ def create_separate_download_folder(folder_path_of_run, download_folder_path_mai
 
 
 def setup_to_outbreak_detection(
-    state="NSW", burn_in_movement=10, testing=False, create_download_folder=False, download_parent_folder=None, seed=None
+    state="NSW",
+    burn_in_movement=10,
+    testing=False,
+    create_download_folder=False,
+    download_parent_folder=None,
+    seed=None,
+    main_folder_name=None,
+    base_folder_path=os.path.join(os.path.dirname(__file__), "..", "scenarios", "hpai"),
 ):
+    """
+    HPAI setup
+
+    """
     ###################################################
     # ---- Code run set up ---------------------------#
     ###################################################
     xrange, yrange, xlims, ylims = x_y_ranges(state)
 
-    if seed is not None:
-        folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}_{seed}")
+    if main_folder_name is not None:
+        folder_path_main = os.path.join(base_folder_path, main_folder_name)
+    elif seed is not None:
+        folder_path_main = os.path.join(base_folder_path, f"v06_{state}_{seed}")
     else:
-        folder_path_main = os.path.join(os.path.dirname(__file__), f"v06_{state}")
+        folder_path_main = os.path.join(base_folder_path, f"v06_{state}")
 
     if not os.path.exists(folder_path_main):
         os.makedirs(folder_path_main)
-        folder_path_original = os.path.join(os.path.dirname(__file__), f"v06_{state}")
+        folder_path_original = base_folder_path
+        try:
+            shutil.copyfile(os.path.join(folder_path_original, "disease_parameters.json"), os.path.join(folder_path_main, "disease_parameters.json"))
+            shutil.copyfile(
+                os.path.join(folder_path_original, "spatial_only_parameters.json"), os.path.join(folder_path_main, "spatial_only_parameters.json")
+            )
+            shutil.copyfile(os.path.join(folder_path_original, "job_parameters.json"), os.path.join(folder_path_main, "job_parameters.json"))
+            shutil.copyfile(
+                os.path.join(folder_path_original, "scenario_parameters.json"), os.path.join(folder_path_main, "scenario_parameters.json")
+            )
 
-        shutil.copyfile(os.path.join(folder_path_original, "disease_parameters.json"), os.path.join(folder_path_main, "disease_parameters.json"))
-        shutil.copyfile(
-            os.path.join(folder_path_original, "spatial_only_parameters.json"), os.path.join(folder_path_main, "spatial_only_parameters.json")
-        )
-        shutil.copyfile(os.path.join(folder_path_original, "job_parameters.json"), os.path.join(folder_path_main, "job_parameters.json"))
-        shutil.copyfile(os.path.join(folder_path_original, "scenario_parameters.json"), os.path.join(folder_path_main, "scenario_parameters.json"))
+        except Exception as e:
+            folder_path_original = os.path.join(base_folder_path, f"v06_{state}")
+            shutil.copyfile(os.path.join(folder_path_original, "disease_parameters.json"), os.path.join(folder_path_main, "disease_parameters.json"))
+            shutil.copyfile(
+                os.path.join(folder_path_original, "spatial_only_parameters.json"), os.path.join(folder_path_main, "spatial_only_parameters.json")
+            )
+            shutil.copyfile(os.path.join(folder_path_original, "job_parameters.json"), os.path.join(folder_path_main, "job_parameters.json"))
+            shutil.copyfile(
+                os.path.join(folder_path_original, "scenario_parameters.json"), os.path.join(folder_path_main, "scenario_parameters.json")
+            )
 
     suffix = ""
     if testing:
@@ -389,7 +422,7 @@ def setup_to_outbreak_detection(
 
         # print(diseaseoutbreak.job_manager.jobs_queue)
 
-        properties, movement_records, current_time = diseaseoutbreak.simulate_outbreak_spread_only(
+        properties, movement_records, current_time, trucks_df_unused = diseaseoutbreak.simulate_outbreak_spread_only(
             properties=properties,
             stop_time=minimum_spread_time,
             reporting_region_check=[xrange, yrange],
@@ -497,7 +530,7 @@ def setup_to_outbreak_detection(
 
         # print(diseaseoutbreak.job_manager.jobs_queue)
 
-        properties, movement_records, current_time = diseaseoutbreak.simulate_outbreak_spread_only(
+        properties, movement_records, current_time, trucks_df_unused = diseaseoutbreak.simulate_outbreak_spread_only(
             properties=properties,
             stop_time=minimum_spread_time,
             reporting_region_check=[reportingregion_x, reportingregion_y],
@@ -565,7 +598,7 @@ def setup_to_outbreak_detection(
         )
 
         properties, movement_records, current_time, total_culled_animals, job_manager = diseaseoutbreak.simulate_first_report(
-            properties, reportingregion_x, reportingregion_y, output_suffix=output_suffix
+            properties, reportingregion_x, reportingregion_y, output_suffix=output_suffix, outbreak_sim="HPAI"
         )
 
         # and then resave the end state
