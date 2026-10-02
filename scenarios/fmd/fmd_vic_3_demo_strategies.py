@@ -62,7 +62,7 @@ FMD_functions.run_auto_strategies(
 )
 
 
-# FMD_vic_functions.run_auto_strategies(
+# FMD_functions.run_auto_strategies(
 #     main_folder_name="VIC_test",
 #     state="VIC",
 #     previous_unique_output="05_national_standstill",
@@ -75,7 +75,7 @@ FMD_functions.run_auto_strategies(
 #     shapefile_path=None,
 # )
 
-# FMD_vic_functions.run_auto_strategies(
+# FMD_functions.run_auto_strategies(
 #     main_folder_name="VIC_test",
 #     state="VIC",
 #     previous_unique_output="05_national_standstill",
@@ -89,7 +89,7 @@ FMD_functions.run_auto_strategies(
 # )
 
 
-# FMD_vic_functions.run_auto_strategies(
+# FMD_functions.run_auto_strategies(
 #     main_folder_name="VIC_test",
 #     state="VIC",
 #     previous_unique_output="06_large_CA",
@@ -102,7 +102,7 @@ FMD_functions.run_auto_strategies(
 #     shapefile_path=None,
 # )
 
-# FMD_vic_functions.run_auto_strategies(
+# FMD_functions.run_auto_strategies(
 #     main_folder_name="VIC_test",
 #     state="VIC",
 #     previous_unique_output="06_small_CA",
@@ -115,7 +115,7 @@ FMD_functions.run_auto_strategies(
 #     shapefile_path=None,
 # )
 
-# FMD_vic_functions.run_auto_strategies(
+# FMD_functions.run_auto_strategies(
 #     main_folder_name="VIC_test",
 #     state="VIC",
 #     previous_unique_output="06_large_CA",
@@ -129,7 +129,7 @@ FMD_functions.run_auto_strategies(
 # )
 
 
-# FMD_vic_functions.run_auto_strategies(
+# FMD_functions.run_auto_strategies(
 #     main_folder_name="VIC_test",
 #     state="VIC",
 #     previous_unique_output="06_small_CA",
@@ -142,7 +142,7 @@ FMD_functions.run_auto_strategies(
 #     shapefile_path=None,
 # )
 
-# FMD_vic_functions.run_auto_strategies(
+# FMD_functions.run_auto_strategies(
 #     main_folder_name="VIC_test",
 #     state="VIC",
 #     previous_unique_output="07_large_CA_cull_focus",
@@ -156,7 +156,7 @@ FMD_functions.run_auto_strategies(
 # )
 
 # effectively no vaccination
-# FMD_vic_functions.run_auto_strategies(
+# FMD_functions.run_auto_strategies(
 #     main_folder_name="VIC_test",
 #     state="VIC",
 #     previous_unique_output="07_large_CA_cull_focus",
