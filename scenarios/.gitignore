@@ -1,2 +1,5 @@
-outputs/2024*
-outputs/*
+*
+
+!*.py
+
+!*.json
