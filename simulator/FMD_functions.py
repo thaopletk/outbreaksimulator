@@ -271,11 +271,20 @@ def seed_FMD_infection(
     """Seeds an infection at a property within the bounds specified"""
     seed_property = 0  # default
 
+    viable_properties = []
     for i, property in enumerate(properties):
-        if "herd_id" in property.FMD_extra_info:
-            if seed_herd_id == property.FMD_extra_info["herd_id"]:
-                seed_property = i
-                break
+        # VIC case
+        if seed_herd_id is not None:
+            if "herd_id" in property.FMD_extra_info:
+                if seed_herd_id == property.FMD_extra_info["herd_id"]:
+                    seed_property = i
+                    break
+        else:
+            if property.type not in ["abattoir", "smallholder", "export_facility"]:
+                viable_properties.append(i)
+
+    if viable_properties != []:
+        seed_property = random.choice(viable_properties)
 
     # seed this property
     p = properties[seed_property]

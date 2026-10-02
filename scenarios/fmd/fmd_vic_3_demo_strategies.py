@@ -2,9 +2,7 @@ import os
 import sys
 import pandas as pd
 import json
-
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
-import scenarios.fmd.FMD_functions as FMD_functions
+import FMD_functions
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 

@@ -39,8 +39,12 @@ def rounding_entities(val):
 
 geolocator = Nominatim(user_agent="http")
 
+start_year = 2026
+start_month = 3
+start_day = 1
 
-def get_current_datetime(time, start_date=datetime.datetime(year=2026, month=3, day=1)):
+
+def get_current_datetime(time, start_date=datetime.datetime(year=start_year, month=start_month, day=start_day)):
     if type(time) != int:
         time = int(np.floor(time))
         # TODO : here, I should allow for "morning" vs "afternoon" or some other time thing
@@ -48,7 +52,7 @@ def get_current_datetime(time, start_date=datetime.datetime(year=2026, month=3, 
     return current_date
 
 
-def convert_time_to_date(time, start_date=datetime.datetime(year=2026, month=3, day=1), return_string="%d/%m/%Y"):
+def convert_time_to_date(time, start_date=datetime.datetime(year=start_year, month=start_month, day=start_day), return_string="%d/%m/%Y"):
     """Converts outbreak days (0, 1, 2...) to fake dates, started at some specified date (day 0).
     Parameters
     ----------
@@ -70,7 +74,7 @@ def convert_time_to_date(time, start_date=datetime.datetime(year=2026, month=3, 
     return current_date.strftime(return_string)
 
 
-def convert_date_to_time(date, start_date=datetime.datetime(year=2026, month=1, day=1)):
+def convert_date_to_time(date, start_date=datetime.datetime(year=start_year, month=start_month, day=start_day)):
     d1 = datetime.datetime.strptime(date, "%d/%m/%Y")
     return abs((d1 - start_date).days)
 

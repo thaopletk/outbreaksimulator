@@ -62,7 +62,7 @@ def x_y_ranges(state="VIC"):
     return xrange, yrange, xlims, ylims
 
 
-def setup(main_folder_name="vFMDVIC", state="VIC", wind_radius=20, testing=False):
+def setup(main_folder_name="vFMDVIC", state="VIC", wind_radius=20, testing=False, max_movement_km=200):
     """
     Generates properties and connections between properties based on wind (spatial dispersal) radius and movement patterns
 
@@ -234,7 +234,7 @@ def setup(main_folder_name="vFMDVIC", state="VIC", wind_radius=20, testing=False
 
         properties = fixed_spatial_setup.FMD_movement_network_setup(
             all_properties,
-            max_movement_km=200,  # 200km max movement
+            max_movement_km=max_movement_km,  # 200km max movement
             state=state,
         )
 
@@ -380,6 +380,7 @@ def run_seeding_undetected_spread(
     disease_parameters=None,
     max_infected_premises=10000,
     target_infected_properties=18,
+    infection_seeding_random_seed=None,
 ):
     """
     Assumes that setup() has already been run.
@@ -406,9 +407,18 @@ def run_seeding_undetected_spread(
     start_time = 0
 
     # parameters
-    with open(os.path.join(folder_path_main, "job_parameters.json"), "r") as file:
+    base_folder_path = os.path.join(os.path.dirname(__file__))
+
+    job_parameter_file = os.path.join(folder_path_main, "job_parameters.json")
+    if not os.path.exists(job_parameter_file):
+        shutil.copyfile(os.path.join(base_folder_path, "job_parameters.json"), os.path.join(folder_path_main, "job_parameters.json"))
+    with open(job_parameter_file, "r") as file:
         job_parameters = json.load(file)
-    with open(os.path.join(folder_path_main, "scenario_parameters.json"), "r") as file:
+
+    scenario_parameter_file = os.path.join(folder_path_main, "scenario_parameters.json")
+    if not os.path.exists(scenario_parameter_file):
+        shutil.copyfile(os.path.join(base_folder_path, "scenario_parameters.json"), os.path.join(folder_path_main, "scenario_parameters.json"))
+    with open(scenario_parameter_file, "r") as file:
         scenario_parameters = json.load(file)
 
     if ABC_mode == True or disease_parameters != None:
@@ -418,7 +428,11 @@ def run_seeding_undetected_spread(
         #     os.makedirs(folder_path_main)
 
     else:
-        with open(os.path.join(folder_path_main, "disease_parameters.json"), "r") as file:
+        disease_paramter_file = os.path.join(folder_path_main, "disease_parameters.json")
+        if not os.path.exists(disease_paramter_file):
+            shutil.copyfile(os.path.join(base_folder_path, "disease_parameters.json"), os.path.join(folder_path_main, "disease_parameters.json"))
+
+        with open(disease_paramter_file, "r") as file:
             disease_parameters = json.load(file)
 
     spatial_only_parameters = {
@@ -476,7 +490,16 @@ def run_seeding_undetected_spread(
 
     properties_seeded_filename = os.path.join(folder_path_seed, f"properties_seeded")
 
-    seed_herd_id = 125520
+    if state == "VIC":
+        seed_herd_id = 125520
+    elif infection_seeding_random_seed is not None:
+        random.seed(infection_seeding_random_seed)
+        np.random.seed(infection_seeding_random_seed)
+        seed_herd_id = None
+    else:
+        random.seed(1)
+        np.random.seed(1)
+        seed_herd_id = None
     unique_output = "day0"
     if ABC_mode == False:
         if not os.path.exists(properties_seeded_filename):
