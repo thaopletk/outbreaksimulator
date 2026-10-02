@@ -60,6 +60,22 @@ def less_rounding_entities(val):
     return math.floor(val / 10000) * 10000
 
 
+def Mapnik_basemap(state):
+    """
+    Pre-downloaded base maps for different states
+
+    """
+    if state == "VIC":
+        source = os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_Mapnik.tif")
+    elif state in ["NSW", "QLD"]:
+        source = os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_Mapnik.tif")
+    elif state == "NT":
+        source = os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "NT_Mapnik.tif")
+    else:
+        source = os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_Mapnik.tif")
+    return source
+
+
 # def fixed_spatial_setup(xrange, yrange, folder_path_main, disease="FMD", AADIS=True):
 
 #     if disease == "FMD" and AADIS == True:
@@ -234,27 +250,12 @@ def plot_map_land_HPAI(
     ax.set_ylim(ylims)
 
     # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
-    if state == "VIC":
-        ctx.add_basemap(
-            ax,
-            crs={"init": "epsg:4326"},
-            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_Mapnik.tif"),
-            attribution="© OpenStreetMap contributors",
-        )
-    elif state in ["NSW", "QLD"]:
-        ctx.add_basemap(
-            ax,
-            crs={"init": "epsg:4326"},
-            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_Mapnik.tif"),
-            attribution="© OpenStreetMap contributors",
-        )
-    else:
-        ctx.add_basemap(
-            ax,
-            crs={"init": "epsg:4326"},
-            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_Mapnik.tif"),
-            attribution="© OpenStreetMap contributors",
-        )
+    ctx.add_basemap(
+        ax,
+        crs={"init": "epsg:4326"},
+        source=Mapnik_basemap(state),
+        attribution="© OpenStreetMap contributors",
+    )
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
     points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
@@ -332,27 +333,12 @@ def plot_map_land_HPAI_2(
     ax.set_ylim(ylims)
 
     # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
-    if state == "VIC":
-        ctx.add_basemap(
-            ax,
-            crs={"init": "epsg:4326"},
-            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_Mapnik.tif"),
-            attribution="© OpenStreetMap contributors",
-        )
-    elif state in ["NSW", "QLD"]:
-        ctx.add_basemap(
-            ax,
-            crs={"init": "epsg:4326"},
-            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_Mapnik.tif"),
-            attribution="© OpenStreetMap contributors",
-        )
-    else:
-        ctx.add_basemap(
-            ax,
-            crs={"init": "epsg:4326"},
-            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_Mapnik.tif"),
-            attribution="© OpenStreetMap contributors",
-        )
+    ctx.add_basemap(
+        ax,
+        crs={"init": "epsg:4326"},
+        source=Mapnik_basemap(state),
+        attribution="© OpenStreetMap contributors",
+    )
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
     points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
@@ -2298,27 +2284,13 @@ def plot_map_land_FMD(
     ax.set_ylim(ylims)
 
     # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
-    if state == "VIC":
-        ctx.add_basemap(
-            ax,
-            crs={"init": "epsg:4326"},
-            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_Mapnik.tif"),
-            attribution="© OpenStreetMap contributors",
-        )
-    elif state in ["NSW", "QLD"]:
-        ctx.add_basemap(
-            ax,
-            crs={"init": "epsg:4326"},
-            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_Mapnik.tif"),
-            attribution="© OpenStreetMap contributors",
-        )
-    else:
-        ctx.add_basemap(
-            ax,
-            crs={"init": "epsg:4326"},
-            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_Mapnik.tif"),
-            attribution="© OpenStreetMap contributors",
-        )
+
+    ctx.add_basemap(
+        ax,
+        crs={"init": "epsg:4326"},
+        source=Mapnik_basemap(state),
+        attribution="© OpenStreetMap contributors",
+    )
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
     points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
