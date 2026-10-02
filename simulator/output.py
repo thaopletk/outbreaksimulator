@@ -1537,6 +1537,10 @@ def plot_HPAI_outbreak_apparent(
         print([min_y - 0.05, max_y + 0.05])
         ax.set_xlim([min_x - 0.1, max_x + 0.1])  # making a more zoomed in version
         ax.set_ylim([min_y - 0.05, max_y + 0.05])
+    elif zoomed_in and min_x == max_x:
+        # basically means there is only one property
+        ax.set_xlim([min_x - 0.2, max_x + 0.2])
+        ax.set_ylim([min_y - 0.1, max_y + 0.1])
 
     # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)  # source=ctx.providers.CartoDB.Positron
     if state == "VIC":
