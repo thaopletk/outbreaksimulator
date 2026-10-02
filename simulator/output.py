@@ -592,17 +592,24 @@ def plot_animal_density(
     # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)
     if state == "VIC":
         ctx.add_basemap(
-            ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_CartoDBPositron.tif")
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_CartoDBPositron.tif"),
+            attribution="© OpenStreetMap contributors, © CARTO",
         )
     elif state in ["NSW", "QLD"]:
         ctx.add_basemap(
             ax,
             crs={"init": "epsg:4326"},
             source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_CartoDBPositron.tif"),
+            attribution="© OpenStreetMap contributors, © CARTO",
         )
     else:
         ctx.add_basemap(
-            ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_CartoDBPositron.tif")
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_CartoDBPositron.tif"),
+            attribution="© OpenStreetMap contributors, © CARTO",
         )
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
@@ -670,17 +677,24 @@ def plot_animals(properties, xlims, ylims, folder_path, state=""):
     # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)
     if state == "VIC":
         ctx.add_basemap(
-            ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_CartoDBPositron.tif")
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_CartoDBPositron.tif"),
+            attribution="© OpenStreetMap contributors, © CARTO",
         )
     elif state in ["NSW", "QLD"]:
         ctx.add_basemap(
             ax,
             crs={"init": "epsg:4326"},
             source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_CartoDBPositron.tif"),
+            attribution="© OpenStreetMap contributors, © CARTO",
         )
     else:
         ctx.add_basemap(
-            ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_CartoDBPositron.tif")
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_CartoDBPositron.tif"),
+            attribution="© OpenStreetMap contributors, © CARTO",
         )
     # Stadia.StamenTonerLite
 
@@ -748,17 +762,24 @@ def plot_animal_density_hist2d(properties, xlims, ylims, folder_path, state=""):
     # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)
     if state == "VIC":
         ctx.add_basemap(
-            ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_CartoDBPositron.tif")
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_CartoDBPositron.tif"),
+            attribution="© OpenStreetMap contributors, © CARTO",
         )
     elif state in ["NSW", "QLD"]:
         ctx.add_basemap(
             ax,
             crs={"init": "epsg:4326"},
             source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_CartoDBPositron.tif"),
+            attribution="© OpenStreetMap contributors, © CARTO",
         )
     else:
         ctx.add_basemap(
-            ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_CartoDBPositron.tif")
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_CartoDBPositron.tif"),
+            attribution="© OpenStreetMap contributors, © CARTO",
         )
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
