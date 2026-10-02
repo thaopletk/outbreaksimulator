@@ -75,14 +75,25 @@ def plot_property_coordinates(property_coordinates, xlims, ylims, folder_path, f
 
     # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
     if state == "VIC":
-        ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_Mapnik.tif"))
+        ctx.add_basemap(
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_Mapnik.tif"),
+            attribution="© OpenStreetMap contributors",
+        )
     elif state in ["NSW", "QLD"]:
         ctx.add_basemap(
-            ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_Mapnik.tif")
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_Mapnik.tif"),
+            attribution="© OpenStreetMap contributors",
         )
     else:
         ctx.add_basemap(
-            ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_Mapnik.tif")
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_Mapnik.tif"),
+            attribution="© OpenStreetMap contributors",
         )
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
@@ -130,15 +141,26 @@ def plot_map_land(property_polygons, property_polygons_puffed, xlims, ylims, fol
 
     # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
     if state == "VIC":
-        ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_Mapnik.tif"))
+        ctx.add_basemap(
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_Mapnik.tif"),
+            attribution="© OpenStreetMap contributors",
+        )
     elif state in ["NSW", "QLD"]:
         ctx.add_basemap(
-            ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_Mapnik.tif")
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_Mapnik.tif"),
+            attribution="© OpenStreetMap contributors",
         )
     else:
         ctx.add_basemap(
-            ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_Mapnik.tif")
-        )
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_Mapnik.tif"),
+            attribution="© OpenStreetMap contributors",
+        ),
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
     points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
@@ -446,14 +468,25 @@ def plot_map(
 
     # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
     if state == "VIC":
-        ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_Mapnik.tif"))
+        ctx.add_basemap(
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_Mapnik.tif"),
+            attribution="© OpenStreetMap contributors",
+        )
     elif state in ["NSW", "QLD"]:
         ctx.add_basemap(
-            ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_Mapnik.tif")
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_Mapnik.tif"),
+            attribution="© OpenStreetMap contributors",
         )
     else:
         ctx.add_basemap(
-            ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_Mapnik.tif")
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_Mapnik.tif"),
+            attribution="© OpenStreetMap contributors",
         )
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
@@ -801,14 +834,25 @@ def plot_initial_report(properties, time, xlims, ylims, folder_path, contacts_fo
 
     # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
     if state == "VIC":
-        ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_Mapnik.tif"))
+        ctx.add_basemap(
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_Mapnik.tif"),
+            attribution="© OpenStreetMap contributors",
+        )
     elif state in ["NSW", "QLD"]:
         ctx.add_basemap(
-            ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_Mapnik.tif")
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_Mapnik.tif"),
+            attribution="© OpenStreetMap contributors",
         )
     else:
         ctx.add_basemap(
-            ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_Mapnik.tif")
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_Mapnik.tif"),
+            attribution="© OpenStreetMap contributors",
         )
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
@@ -929,14 +973,25 @@ def plot_simex(
 
     # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
     if state == "VIC":
-        ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_Mapnik.tif"))
+        ctx.add_basemap(
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_Mapnik.tif"),
+            attribution="© OpenStreetMap contributors",
+        )
     elif state in ["NSW", "QLD"]:
         ctx.add_basemap(
-            ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_Mapnik.tif")
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_Mapnik.tif"),
+            attribution="© OpenStreetMap contributors",
         )
     else:
         ctx.add_basemap(
-            ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_Mapnik.tif")
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_Mapnik.tif"),
+            attribution="© OpenStreetMap contributors",
         )
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
@@ -1168,14 +1223,25 @@ def plot_infection_pressure(time, xlims, ylims, folder_path, state=""):
 
     # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
     if state == "VIC":
-        ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_Mapnik.tif"))
+        ctx.add_basemap(
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_Mapnik.tif"),
+            attribution="© OpenStreetMap contributors",
+        )
     elif state in ["NSW", "QLD"]:
         ctx.add_basemap(
-            ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_Mapnik.tif")
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_Mapnik.tif"),
+            attribution="© OpenStreetMap contributors",
         )
     else:
         ctx.add_basemap(
-            ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_Mapnik.tif")
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_Mapnik.tif"),
+            attribution="© OpenStreetMap contributors",
         )
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
@@ -1460,11 +1526,17 @@ def plot_HPAI_outbreak_apparent(
         ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=source)
     elif state in ["NSW", "QLD"]:
         ctx.add_basemap(
-            ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_Mapnik.tif")
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_Mapnik.tif"),
+            attribution="© OpenStreetMap contributors",
         )
     else:
         ctx.add_basemap(
-            ax, crs={"init": "epsg:4326"}, source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_Mapnik.tif")
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_Mapnik.tif"),
+            attribution="© OpenStreetMap contributors",
         )
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
