@@ -5,3 +5,4 @@ venv/
 .vscode/
 /figure_gen/properties*
 /figure_gen/**/*.png
+.history
