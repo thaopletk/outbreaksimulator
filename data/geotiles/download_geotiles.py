@@ -12,9 +12,10 @@ with open(os.path.join(os.path.dirname(__file__), "keys.json"), "r") as file:
 #     "CartoDB": { "API_key": "KEY" }
 # }
 
-state = "VIC"
+# state = "VIC"
 # state = "EasternAustralia"
 # state = "Australia"
+state = "NT"
 
 if state == "NSW":
     # Boundaries for NSW
@@ -33,6 +34,9 @@ elif state == "EasternAustralia":
 elif state == "Australia":
     xrange = [110, 155]
     yrange = [-45, -10]
+elif state == "NT":
+    xrange = [128, 140.0]
+    yrange = [-27, -10]
 else:
     raise ValueError(f"{state} state not expected")
 
