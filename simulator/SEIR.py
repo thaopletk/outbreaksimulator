@@ -111,13 +111,27 @@ def get_wind_direction_dict(time):
     return wind_direction_dict
 
 
+# for warning if property locations are outside the saved wind data information
+wind_direction_warning = False
+
+
 def get_wind_direction(coordinates, time):
+    """
+    Returns the u and v components of the wind at coordinates
+    """
+    global wind_direction_warning
     wind_direction_dict = get_wind_direction_dict(time)
 
     rounded_coords = (roundPartial(coordinates[0], 0.25), roundPartial(coordinates[1], 0.25))
-
-    u10 = wind_direction_dict[rounded_coords][0]["u10"]
-    v10 = wind_direction_dict[rounded_coords][0]["v10"]
+    if rounded_coords in wind_direction_dict:
+        u10 = wind_direction_dict[rounded_coords][0]["u10"]
+        v10 = wind_direction_dict[rounded_coords][0]["v10"]
+    else:
+        if wind_direction_warning == False:
+            print("Coordinates are outside of available wind direction data - download more wind data!")
+            wind_direction_warning = True
+        u10 = np.random.uniform(-10, 10)
+        v10 = np.random.uniform(-10, 10)
 
     return u10, v10
 
