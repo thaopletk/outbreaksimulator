@@ -1,6 +1,4 @@
-""" Complete run of a lumpy skin disease outbreak simulation
-
-"""
+"""Complete run of a lumpy skin disease outbreak simulation"""
 
 import sys
 import os
@@ -56,9 +54,7 @@ np.random.seed(11)
 
 
 if not os.path.exists(properties_filename):
-    property_setup_info = simulator.property_setup_v03(
-        folder_path_main, spatial_only_parameters, properties_specific_parameters
-    )
+    property_setup_info = simulator.property_setup_v03(folder_path_main, spatial_only_parameters, properties_specific_parameters)
 
     (
         properties,
@@ -70,13 +66,12 @@ if not os.path.exists(properties_filename):
         property_polygons_puffed,
         property_areas,
     ) = property_setup_info
-
-
 else:
     # load properties
     with open(properties_filename, "rb") as file:
         properties = pickle.load(file)
 
+exit(1)
 
 # plot the neighbours (not wind-neighbours)
 if not os.path.exists(os.path.join(folder_path_main, "map_underlying0.png")):
@@ -145,21 +140,17 @@ folder_path_undetected_spread = os.path.join(folder_path_main, unique_output)
 if not os.path.exists(folder_path_undetected_spread):
     os.makedirs(folder_path_undetected_spread)
 
-stop_time = 21  
+stop_time = 21
 first_detection_day = stop_time + 1
 
 undetected_spread_properties_filename = os.path.join(folder_path_undetected_spread, "properties_" + unique_output)
-undetected_spread_diseaseoutbreak_filename = os.path.join(
-    folder_path_undetected_spread, "outbreakobject_" + unique_output
-)
+undetected_spread_diseaseoutbreak_filename = os.path.join(folder_path_undetected_spread, "outbreakobject_" + unique_output)
 
 
-random.seed(1234)  
+random.seed(1234)
 np.random.seed(3562)
 
-if not os.path.exists(undetected_spread_properties_filename) or not os.path.exists(
-    undetected_spread_diseaseoutbreak_filename
-):
+if not os.path.exists(undetected_spread_properties_filename) or not os.path.exists(undetected_spread_diseaseoutbreak_filename):
 
     # initiate various things that start from empty:
     diseaseoutbreak = disease_simulation.DiseaseSimulation(
@@ -290,10 +281,8 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
     )
 
     # TODO not 100% satisfactorily complete
-    properties, movement_records, time, total_culled_animals, job_manager = (
-        diseaseoutbreak.simulate_outbreak_management(
-            properties, management_parameters, days_to_run_for, resource_setting="default"
-        )
+    properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_outbreak_management(
+        properties, management_parameters, days_to_run_for, resource_setting="default"
     )
 
     # and then resave the end state
@@ -342,10 +331,8 @@ def run_specific_branch(
             unique_output=unique_output,
         )
 
-        properties, movement_records, time, total_culled_animals, job_manager = (
-            diseaseoutbreak.simulate_outbreak_management(
-                properties, management_parameters, days_to_run_for, resource_setting, vaccination
-            )
+        properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_outbreak_management(
+            properties, management_parameters, days_to_run_for, resource_setting, vaccination
         )
 
         # and then resave the end state

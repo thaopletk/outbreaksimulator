@@ -1,6 +1,6 @@
-""" v0.3 Trial
+"""v0.3 Trial
 
-This script controls and run different elements and steps, testing the expanded version of the code post v0.2 
+This script controls and run different elements and steps, testing the expanded version of the code post v0.2
 
 
 """
@@ -17,9 +17,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import simulator.simulator as simulator
 import simulator.output as output
 import simulator.disease_simulation as disease_simulation
-import simulator.management as management
-import simulator.premises as premises
-import simulator.spatial_functions as spatial_functions
 
 folder_path_main = os.path.join(os.path.dirname(__file__), "outputs", "v03_trial")
 folder_path_seed = os.path.join(folder_path_main, "01_seed")
@@ -64,9 +61,7 @@ np.random.seed(11)
 
 
 if not os.path.exists(properties_filename):
-    property_setup_info = simulator.property_setup_v03(
-        folder_path_main, spatial_only_parameters, properties_specific_parameters
-    )
+    property_setup_info = simulator.property_setup_v03(folder_path_main, spatial_only_parameters, properties_specific_parameters)
 
     (
         properties,
@@ -169,13 +164,9 @@ stop_time = 21  # 28
 first_detection_day = stop_time + 1
 
 undetected_spread_properties_filename = os.path.join(folder_path_undetected_spread, "properties_" + unique_output)
-undetected_spread_diseaseoutbreak_filename = os.path.join(
-    folder_path_undetected_spread, "outbreakobject_" + unique_output
-)
+undetected_spread_diseaseoutbreak_filename = os.path.join(folder_path_undetected_spread, "outbreakobject_" + unique_output)
 
-if not os.path.exists(undetected_spread_properties_filename) or not os.path.exists(
-    undetected_spread_diseaseoutbreak_filename
-):
+if not os.path.exists(undetected_spread_properties_filename) or not os.path.exists(undetected_spread_diseaseoutbreak_filename):
 
     # initiate various things that start from empty:
     diseaseoutbreak = disease_simulation.DiseaseSimulation(
