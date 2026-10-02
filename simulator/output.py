@@ -34,6 +34,42 @@ import PIL
 PIL.Image.ANTIALIAS = PIL.Image.LANCZOS
 
 
+def Mapnik_basemap(state):
+    """
+    Pre-downloaded base maps for different states
+
+    """
+    if state == "VIC":
+        source = os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_Mapnik.tif")
+    elif state == "NSW":
+        source = os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "NSW_Mapnik.tif")
+    elif state == "QLD":
+        source = os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "QLD_Mapnik.tif")
+    elif state == "SA":
+        source = os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "SA_Mapnik.tif")
+    else:
+        source = os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_Mapnik.tif")
+    return source
+
+
+def Carto_basemap(state):
+    """
+    Pre-downloaded base maps for different states
+
+    """
+    if state == "VIC":
+        source = os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_CartoDBPositron.tif")
+    elif state == "NSW":
+        source = os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "NSW_CartoDBPositron.tif")
+    elif state == "QLD":
+        source = os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "QLD_CartoDBPositron.tif")
+    elif state == "SA":
+        source = os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "SA_CartoDBPositron.tif")
+    else:
+        source = os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_CartoDBPositron.tif")
+    return source
+
+
 def plot_polygon(ax, poly, **kwargs):
     """Plot a polygon
 
@@ -53,14 +89,7 @@ def plot_polygon(ax, poly, **kwargs):
     return collection
 
 
-def plot_property_coordinates(
-    property_coordinates,
-    xlims,
-    ylims,
-    folder_path,
-    file_name="base_map.png",
-    colour="orange",
-):
+def plot_property_coordinates(property_coordinates, xlims, ylims, folder_path, file_name="base_map.png", colour="orange", state=""):
     """Plot properties' coordinates (centers) only"""
 
     fig, ax = plt.subplots(1, 1, figsize=(20, 15))  # ,figsize=(10,12)
@@ -80,7 +109,12 @@ def plot_property_coordinates(
     geo_df.crs = {"init": "epsg:4326"}
     ax = geo_df.plot(ax=ax, markersize=markersize, color=colour, marker=marker, label=markerlabel)
 
-    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
+    ctx.add_basemap(
+        ax,
+        crs={"init": "epsg:4326"},
+        source=Mapnik_basemap(state),
+        attribution="© OpenStreetMap contributors",
+    )
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
     points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
@@ -115,7 +149,7 @@ def plot_property_coordinates(
     plt.close()
 
 
-def plot_map_land(property_polygons, property_polygons_puffed, xlims, ylims, folder_path):
+def plot_map_land(property_polygons, property_polygons_puffed, xlims, ylims, folder_path, state=""):
     """Plot property boundaries"""
     fig, ax = plt.subplots(1, 1, figsize=(20, 20))  # ,figsize=(10,12)
 
@@ -158,7 +192,7 @@ def plot_map_land(property_polygons, property_polygons_puffed, xlims, ylims, fol
     ctx.add_basemap(
         ax,
         crs={"init": "epsg:4326"},
-        source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_Mapnik.tif"),
+        source=Mapnik_basemap(state),
         attribution="© OpenStreetMap contributors",
     )
 
@@ -206,6 +240,7 @@ def plot_map(
     show_movement_neighbours=False,
     xylabels=False,
     save_suffix="",
+    state="",
 ):
     """Plot map during an outbreak
 
@@ -441,7 +476,15 @@ def plot_map(
         # plot the marker
         ax = geo_df.plot(ax=ax, markersize=markersize, color=colour, marker=marker, label=markerlabel, aspect=1)
 
-    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
+    ax.set_xlim(xlims)
+    ax.set_ylim(ylims)
+
+    ctx.add_basemap(
+        ax,
+        crs={"init": "epsg:4326"},
+        source=Mapnik_basemap(state),
+        attribution="© OpenStreetMap contributors",
+    )
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
     points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
@@ -466,9 +509,6 @@ def plot_map(
         ax.set_xlabel("longitude", fontsize=16)
         ax.tick_params(axis="x", labelsize=14)
         ax.tick_params(axis="y", labelsize=14)
-
-    ax.set_xlim(xlims)
-    ax.set_ylim(ylims)
 
     ax.legend(
         loc="upper center",
@@ -498,6 +538,7 @@ def plot_animal_density(
     xlims,
     ylims,
     folder_path,
+    state="",
 ):
     """Aim: to plot a map of animal density across space"""
 
@@ -540,7 +581,22 @@ def plot_animal_density(
 
     fig.colorbar(pcm, ax=ax)
 
-    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)
+    # random point to force correct dimensions
+    random_point = Point(xlims[0] - 0.2, ylims[0] - 0.2)
+    geo_df = gpd.GeoDataFrame(geometry=[random_point])
+    geo_df.crs = {"init": "epsg:4326"}
+    # plot the marker
+    ax = geo_df.plot(
+        ax=ax,
+        markersize=1,
+        color="tomato",
+        marker="s",
+        aspect=1,
+        edgecolor="maroon",
+        alpha=1,
+    )
+
+    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=Carto_basemap(state), attribution="© OpenStreetMap contributors, © CARTO")
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
     points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
@@ -569,146 +625,6 @@ def plot_animal_density(
     ax.tick_params(axis="y", labelsize=14)
 
     file_name = "animal_density.png"
-
-    file_name = os.path.join(folder_path, file_name)
-
-    plt.savefig(file_name, bbox_inches="tight")
-
-    plt.close()
-
-
-def plot_animals(
-    properties,
-    xlims,
-    ylims,
-    folder_path,
-):
-    """Aim: to plot a map of animal density across space - just plot the dots (i.e., the individual cows) directly here"""
-
-    fig, ax = plt.subplots(1, 1, figsize=(20, 15))
-
-    x = []
-    y = []
-
-    for index, premise in enumerate(properties):
-        property_polygon = premise.polygon
-        lat = premise.y  # y
-        lon = premise.x  # x
-        puff_p1 = geodesic_polygon_buffer(lat, lon, property_polygon, 50)  # mild expansion 10 km to make it look more full
-
-        num_animals = max(int(len(premise.animals) / 50), 2)
-        # Generates random points inside polygon
-        animal_points = pointpats.random.poisson(puff_p1, size=num_animals)
-        # what format is this in? an array of points?
-        x.extend(animal_points[:, 0])
-        y.extend(animal_points[:, 1])
-
-    geometry = [Point(long, lat) for long, lat in zip(x, y)]
-
-    geo_df = gpd.GeoDataFrame(geometry=geometry)
-    geo_df.crs = {"init": "epsg:4326"}
-    # plot the marker
-    ax = geo_df.plot(ax=ax, markersize=40, color="orange", marker="s", alpha=0.1)  # , label=markerlabel) # no label
-
-    # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
-    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)
-    # Stadia.StamenTonerLite
-
-    # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
-    points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
-    points = points.to_crs(32619)  # Projected WGS 84 - meters
-    distance_meters = points[0].distance(points[1])
-    ax.add_artist(
-        ScaleBar(
-            distance_meters,
-            box_alpha=0.1,
-            location="lower right",
-        )
-    )
-
-    ax.set_title("Cattle distribution", fontsize=18)
-
-    ax.set_ylabel("latitude", fontsize=16)
-    ax.set_xlabel("longitude", fontsize=16)
-
-    ax.set_xlim(xlims)
-    ax.set_ylim(ylims)
-
-    # ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
-    #       fancybox=True, shadow=True, ncol=5,fontsize=18)
-
-    ax.tick_params(axis="x", labelsize=14)
-    ax.tick_params(axis="y", labelsize=14)
-
-    file_name = "animals.png"
-
-    file_name = os.path.join(folder_path, file_name)
-
-    plt.savefig(file_name, bbox_inches="tight")
-
-    plt.close()
-
-
-def plot_animal_density_hist2d(
-    properties,
-    xlims,
-    ylims,
-    folder_path,
-):
-    """Aim: to plot a map of animal density across space"""
-
-    fig, ax = plt.subplots(1, 1, figsize=(20, 15))
-
-    x = []
-    y = []
-
-    for index, premise in enumerate(properties):
-        property_polygon = premise.polygon
-        num_animals = len(premise.animals)
-        # Generates random points inside polygon
-        animal_points = pointpats.random.poisson(property_polygon, size=num_animals)
-        # what format is this in? an array of points?
-        x.extend(animal_points[:, 0])
-        y.extend(animal_points[:, 1])
-
-    pcm = ax.hist2d(x, y, bins=(50, 50), cmap="YlOrRd")
-    Australiashape = spatial_setup.Australia_shape()
-
-    Australiashape = shapely.plotting.patch_from_polygon(Australiashape)
-    ax.add_patch(Australiashape)
-
-    pcm[3].set_clip_path(Australiashape)
-    fig.colorbar(pcm[3], ax=ax)
-
-    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)
-
-    # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
-    points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
-    points = points.to_crs(32619)  # Projected WGS 84 - meters
-    distance_meters = points[0].distance(points[1])
-    ax.add_artist(
-        ScaleBar(
-            distance_meters,
-            box_alpha=0.1,
-            location="lower right",
-        )
-    )
-
-    ax.set_title("Animal density map", fontsize=18)
-
-    ax.set_ylabel("latitude", fontsize=16)
-    ax.set_xlabel("longitude", fontsize=16)
-
-    ax.set_xlim(xlims)
-    ax.set_ylim(ylims)
-
-    # ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
-    #       fancybox=True, shadow=True, ncol=5,fontsize=18)
-
-    ax.tick_params(axis="x", labelsize=14)
-    ax.tick_params(axis="y", labelsize=14)
-
-    file_name = "animal_density_hist2D.png"
 
     file_name = os.path.join(folder_path, file_name)
 
