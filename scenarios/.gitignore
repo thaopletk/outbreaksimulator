@@ -1,5 +1,7 @@
 *
 
+*.pickle
+
 !*.py
 
 !*.json
