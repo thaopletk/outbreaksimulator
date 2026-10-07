@@ -43,9 +43,9 @@ ylims = [
     round(spatial_only_parameters["yrange"][1], 1) + 0.05,
 ]
 
-# area for first report - Northern NSW
-reportingregion_x = [140, 155]
-reportingregion_y = [-32, -29]
+# area for first report - anywhere allowed
+reportingregion_x = xlims
+reportingregion_y = ylims
 
 properties_filename = os.path.join(folder_path_main, "properties_init")
 
@@ -71,7 +71,6 @@ else:
     with open(properties_filename, "rb") as file:
         properties = pickle.load(file)
 
-exit(1)
 
 # plot the neighbours (not wind-neighbours)
 if not os.path.exists(os.path.join(folder_path_main, "map_underlying0.png")):
@@ -88,10 +87,10 @@ if not os.path.exists(os.path.join(folder_path_main, "map_underlying0.png")):
         show_movement_neighbours=True,
     )
 
-
 # plot the animal density
 if not os.path.exists(os.path.join(folder_path_main, "animal_density.png")):
     output.plot_animal_density(properties, xlims, ylims, folder_path=folder_path_main)
+
 
 # step 3:  initial seeding of a property
 # the initial seeding will occur in Northern Queensland
@@ -106,8 +105,8 @@ with open(os.path.join(folder_path_main, "disease_parameters.json"), "r") as fil
 
 properties_seeded_filename = os.path.join(folder_path_seed, "properties_0")
 
-northQLDx = [141, 146]
-northQLDy = [-17, -10]
+northx = [141, 146]
+northy = [-30, -20]
 
 
 random.seed(12)
@@ -117,8 +116,8 @@ if not os.path.exists(properties_seeded_filename):
     unique_output = "day0"
 
     properties, seed_property = simulator.seed_infection_within_bound(
-        northQLDx,
-        northQLDy,
+        northx,
+        northy,
         properties,
         time,
         xlims,
@@ -133,6 +132,7 @@ else:
     with open(properties_seeded_filename, "rb") as file:
         properties = pickle.load(file)
 
+
 # step 4:  simulate undetected spread ~ 28 days)
 unique_output = "02_undetected_spread"
 folder_path_undetected_spread = os.path.join(folder_path_main, unique_output)
@@ -140,7 +140,7 @@ folder_path_undetected_spread = os.path.join(folder_path_main, unique_output)
 if not os.path.exists(folder_path_undetected_spread):
     os.makedirs(folder_path_undetected_spread)
 
-stop_time = 21
+stop_time = 21  # minimum days of undetected spread
 first_detection_day = stop_time + 1
 
 undetected_spread_properties_filename = os.path.join(folder_path_undetected_spread, "properties_" + unique_output)
@@ -170,10 +170,7 @@ if not os.path.exists(undetected_spread_properties_filename) or not os.path.exis
     )
 
     properties, movement_records, time = diseaseoutbreak.simulate_outbreak_spread_only(
-        properties=properties,
-        time=time,
-        stop_time=stop_time,
-        reporting_region_check=[reportingregion_x, reportingregion_y],
+        properties=properties, time=time, stop_time=stop_time, reporting_region_check=[reportingregion_x, reportingregion_y], min_total_infected=15
     )
 
     first_detection_day = time + 1
@@ -191,17 +188,12 @@ if not os.path.exists(undetected_spread_properties_filename) or not os.path.exis
         if property_i.exposure_date != "NA":
             total_infected += 1
 
-    if total_infected > 110 or total_infected < 50:
-        raise ValueError("Total number of infected premises at time of detection is too high/low, run again!")
-
-
 else:
 
     with open(undetected_spread_properties_filename, "rb") as file:
         properties = pickle.load(file)
     with open(undetected_spread_diseaseoutbreak_filename, "rb") as file:
         diseaseoutbreak = pickle.load(file)
-
 
 # Step 5: trigger the first report in northern NSW and initial actions
 # the early time processes
@@ -254,8 +246,6 @@ unique_output = "04_two_weeks"
 folder_path = os.path.join(folder_path_main, unique_output)
 days_to_run_for = 14
 
-management_parameters = []  # TODO - currently not used...could actually implement it... or delete
-
 if not os.path.exists(folder_path):
     os.makedirs(folder_path)
 
@@ -268,8 +258,7 @@ outbreak_step_6_filenames = [
 
 random.seed(17)
 np.random.seed(18)
-# random.seed(3532)
-# np.random.seed(124)
+
 if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
     # adjust the plotting parameters for this new scenario
     diseaseoutbreak.set_plotting_parameters(
@@ -280,9 +269,8 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
         unique_output=unique_output,
     )
 
-    # TODO not 100% satisfactorily complete
     properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_outbreak_management(
-        properties, management_parameters, days_to_run_for, resource_setting="default"
+        properties, days_to_run_for, resource_setting="default"
     )
 
     # and then resave the end state
@@ -309,7 +297,6 @@ def run_specific_branch(
     diseaseoutbreak_filename,
     folder_path_local,
     unique_output,
-    management_parameters,
     days_to_run_for,
     resource_setting,
     vaccination=False,
@@ -332,7 +319,7 @@ def run_specific_branch(
         )
 
         properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_outbreak_management(
-            properties, management_parameters, days_to_run_for, resource_setting, vaccination
+            properties, days_to_run_for, resource_setting, vaccination
         )
 
         # and then resave the end state
@@ -349,7 +336,6 @@ days_to_run_for = 14
 
 outbreak_step_7_filenames = []
 
-management_parameters = []  # dummy parameters because they're not actually used right now
 
 # NOTE this could be parallellised, or run as multiple jobs on the cluster.
 for properties_filename, diseaseoutbreak_filename, identifier in outbreak_step_6_filenames:
@@ -376,7 +362,6 @@ for properties_filename, diseaseoutbreak_filename, identifier in outbreak_step_6
             diseaseoutbreak_filename,
             folder_path_local,
             unique_output,
-            management_parameters,
             days_to_run_for,
             resource_setting,
         )
@@ -386,8 +371,6 @@ for properties_filename, diseaseoutbreak_filename, identifier in outbreak_step_6
 days_to_run_for = 28
 
 outbreak_step_8_filenames = []
-
-management_parameters = []  # dummy parameters because they're not actually used right now
 
 # NOTE this could be parallellised, or run as multiple jobs on the cluster.
 for properties_filename, diseaseoutbreak_filename, step7_resource_setting in outbreak_step_7_filenames:
@@ -413,7 +396,6 @@ for properties_filename, diseaseoutbreak_filename, step7_resource_setting in out
                 diseaseoutbreak_filename,
                 folder_path_local,
                 unique_output,
-                management_parameters,
                 days_to_run_for,
                 resource_setting,
                 vaccination,

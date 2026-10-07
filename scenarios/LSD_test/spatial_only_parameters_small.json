@@ -1,7 +1,7 @@
 {
-    "n": 150,
+    "n": 500,
     "r_wind": 200,
-    "xrange": [128, 155],
-    "yrange": [-45, -8],
+    "xrange": [ 135, 155 ],
+    "yrange": [ -40, -20 ],
     "average_property_ha": 13000
 }

@@ -1,11 +1,11 @@
 """Disease Simulator
 
-    Creates a DiseaseSimulator object to run spread simulation
+Creates a DiseaseSimulator object to run spread simulation
 
-    Typical workflow involves calling:
-    * init
-    * set_plotting_parameters
-    * simulator function of choice... making sure to reset set_plotting_parameters for different parts
+Typical workflow involves calling:
+* init
+* set_plotting_parameters
+* simulator function of choice... making sure to reset set_plotting_parameters for different parts
 
 """
 
@@ -237,9 +237,7 @@ class DiseaseSimulation:
 
     def add_lab_testing_after_observation_job(self, property_i, property_index, converted_date):
         """Schedules lab testing (with reduced testing delay), and adds this note into the combined narrative"""
-        report, scheduled_successful = self.job_manager.schedule_lab_testing_after_observation(
-            property_index, self.time
-        )
+        report, scheduled_successful = self.job_manager.schedule_lab_testing_after_observation(property_index, self.time)
 
         self.combined_narrative.append([self.time, converted_date, "test", property_index, report])
         if scheduled_successful:
@@ -287,22 +285,17 @@ class DiseaseSimulation:
         FOI = list(np.zeros(len(properties)))
         for i, property_i in enumerate(properties):
             if not property_i.culled_status:
-                FOI[i] = SEIR.calculate_force_of_infection(
-                    properties, i, self.vax_modifier, self.r_wind, self.beta_wind, self.beta_animal
-                )
+                FOI[i] = SEIR.calculate_force_of_infection(properties, i, self.vax_modifier, self.r_wind, self.beta_wind, self.beta_animal)
         return FOI
 
     def run_infection_model_for_each_property(self, properties, FOI):
         """Runs the infection model for each property, i.e., advances infection stages and checks if properties become infected or not"""
         for i, property_i in enumerate(properties):
-            property_i.infection_model(
-                self.latent_period, self.infectious_period, self.preclinical_period, FOI[i], self.time
-            )
+            property_i.infection_model(self.latent_period, self.infectious_period, self.preclinical_period, FOI[i], self.time)
         return properties
 
-    # TODO: technically, it may be possible to just run a different simulate_outbreak_spread function, but just set the probability of reporting to zero, or to modularise things further (the code parts that are repeated across different functions)
     def simulate_outbreak_spread_only(
-        self, properties, time=None, stop_time=7, reporting_region_check=[[140, 155], [-32, -29]]
+        self, properties, time=None, stop_time=7, reporting_region_check=[[140, 155], [-32, -29]], min_total_infected=70
     ):
         """Run simulated outbreak, for undetected spread between (self.time (or time parameter if not NA)+1) and (stop_time) [inclusive], with no management
 
@@ -334,18 +327,11 @@ class DiseaseSimulation:
             # movement of animals
             controlzone_movement_restrictions = None
 
-            # movement_record = animal_movement.animal_movement(
-            #     properties, day=self.time, controlzone=controlzone_movement_restrictions
-            # )
-            # self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
-
             if self.time % 2 == 0:
                 movement_record = animal_movement.extra_southward_movement(properties, day=self.time)
                 self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
             else:
-                movement_record = animal_movement.animal_movement(
-                    properties, day=self.time, controlzone=controlzone_movement_restrictions
-                )
+                movement_record = animal_movement.animal_movement(properties, day=self.time, controlzone=controlzone_movement_restrictions)
                 self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
 
             # update counts of infected/clinical/etc animals on each farm
@@ -353,23 +339,17 @@ class DiseaseSimulation:
                 premise.update_counts()
 
             if self.plotting:
-                simulator.plot_current_state(  # TODO - simulator is a weird place to put plotting, probably...
+                output.plot_map(
                     properties,
                     self.time,
-                    self.xlims,
-                    self.ylims,
-                    self.folder_path,
-                    self.controlzone,
+                    xlims=self.xlims,
+                    ylims=self.ylims,
+                    folder_path=self.folder_path,
+                    real_situation=True,
+                    controlzone=self.controlzone,
                     infectionpoly=False,
-                    contacts_for_plotting=self.contacts_for_plotting,
+                    contacts_for_plotting={},
                 )
-
-                # # should also save things for plotting: i.e., everything that I had used to actually plot
-                # with open(os.path.join(self.folder_path, "plotting_data" + str(self.time)), "wb") as file:
-                #     pickle.dump(
-                #         [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
-                #         file,
-                #     )
 
             if self.time == stop_time:
                 # check if we actually have a property available in the reporting region yet or not; if not, extend the stop  time
@@ -381,7 +361,7 @@ class DiseaseSimulation:
                 for property_i in properties:
                     if property_i.exposure_date != "NA":
                         total_infected += 1
-                if len(list_of_potential_reporting_properties) == 0 or total_infected < 70:
+                if len(list_of_potential_reporting_properties) == 0 or total_infected < min_total_infected:
                     stop_time += 1
 
         # since we're not going to show the videos anyway, only saving plot data at the end to limit memory consumption
@@ -390,10 +370,6 @@ class DiseaseSimulation:
                 [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
                 file,
             )
-
-        # if self.plotting:
-        #     output.make_video(self.folder_path, "map_underlying")
-        #     output.make_video(self.folder_path, "map_apparent")
 
         simulator.save_outbreak_state(
             properties,
@@ -415,12 +391,7 @@ class DiseaseSimulation:
         for i, property_i in enumerate(properties):
             if property_i.clinical_date != "NA":
                 x, y = property_i.coordinates
-                if (
-                    x >= reportingregion_x[0]
-                    and x <= reportingregion_x[1]
-                    and y >= reportingregion_y[0]
-                    and y <= reportingregion_y[1]
-                ):
+                if x >= reportingregion_x[0] and x <= reportingregion_x[1] and y >= reportingregion_y[0] and y <= reportingregion_y[1]:
                     list_of_potential_reporting_properties.append(i)
         return list_of_potential_reporting_properties
 
@@ -444,9 +415,7 @@ class DiseaseSimulation:
 
         """
 
-        list_of_potential_reporting_properties = self.get_properties_in_reporting_region(
-            properties, reportingregion_x, reportingregion_y
-        )
+        list_of_potential_reporting_properties = self.get_properties_in_reporting_region(properties, reportingregion_x, reportingregion_y)
 
         if len(list_of_potential_reporting_properties) == 0:
             raise RuntimeError("No clinically infected properties found within the wanted reporting region")
@@ -520,16 +489,10 @@ class DiseaseSimulation:
         self.job_manager.jobs_queue[reported_property.id]["LabTesting"][str(self.time)] = ["complete", converted_date]
 
         # general movements of animals
-        controlzone_movement_restrictions = unary_union(
-            self.job_manager.local_movement_restrictions
-        )  # because it is definite not empty []
-        self.controlzone["movement restrictions"] = (
-            controlzone_movement_restrictions  # this is for plotting purposes later
-        )
+        controlzone_movement_restrictions = unary_union(self.job_manager.local_movement_restrictions)  # because it is definite not empty []
+        self.controlzone["movement restrictions"] = controlzone_movement_restrictions  # this is for plotting purposes later
 
-        movement_record = animal_movement.animal_movement(
-            properties, day=self.time, controlzone=controlzone_movement_restrictions
-        )
+        movement_record = animal_movement.animal_movement(properties, day=self.time, controlzone=controlzone_movement_restrictions)
         self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
 
         # update counts
@@ -538,9 +501,7 @@ class DiseaseSimulation:
 
         # Contact tracing, movement restrictions on dangerous properties, clinical checkup will be arranged for the next day
         # this could just be a list of the dangerous properties
-        contact_tracing_report, traced_property_indices = management.contact_tracing(
-            properties, first_report_i, self.movement_records, self.time
-        )
+        contact_tracing_report, traced_property_indices = management.contact_tracing(properties, first_report_i, self.movement_records, self.time)
         self.combined_narrative.append([self.time, converted_date, "tracing", first_report_i, contact_tracing_report])
         # add this as a job to the job queue for completeness
         self.job_manager.jobs_queue[reported_property.id]["ContactTracing"][str(self.time)] = [
@@ -549,9 +510,7 @@ class DiseaseSimulation:
         ]
         self.contacts_for_plotting[first_report_i] = traced_property_indices
         for t_i in traced_property_indices:
-            self.combined_narrative.append(
-                [self.time, converted_date, "tracing", t_i, "This property has been identified as a TP"]
-            )
+            self.combined_narrative.append([self.time, converted_date, "tracing", t_i, "This property has been identified as a TP"])
             self.add_local_movement_restriction(properties[t_i], converted_date)
 
         # Then close off this day
@@ -620,9 +579,7 @@ class DiseaseSimulation:
         )  # because it is definite not none [] ; and currently there are only local movement restrictions
         self.controlzone["movement restrictions"] = controlzone_movement_restrictions
 
-        movement_record = animal_movement.animal_movement(
-            properties, day=self.time, controlzone=controlzone_movement_restrictions
-        )
+        movement_record = animal_movement.animal_movement(properties, day=self.time, controlzone=controlzone_movement_restrictions)
         self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
 
         # update counts
@@ -733,9 +690,7 @@ class DiseaseSimulation:
         if self.folder_path == "":
             raise Warning("Default folder path hasn't changed - recommend that set_plotting_parameters() be run first")
 
-        properties, first_report_i, traced_property_indices = self.simulate_first_day(
-            properties, reportingregion_x, reportingregion_y
-        )
+        properties, first_report_i, traced_property_indices = self.simulate_first_day(properties, reportingregion_x, reportingregion_y)
 
         properties = self.simulate_second_day(properties, first_report_i, traced_property_indices)
 
@@ -815,9 +770,7 @@ class DiseaseSimulation:
         controlzone_large_movement_restrictions = spatial_setup.Australia_shape()
         controlzone_movement_restrictions = controlzone_large_movement_restrictions
 
-        self.controlzone["movement restrictions"] = (
-            controlzone_movement_restrictions  # this is for plotting purposes later
-        )
+        self.controlzone["movement restrictions"] = controlzone_movement_restrictions  # this is for plotting purposes later
 
         time_list = []
         stop_time = self.time + days_to_run_for
@@ -842,8 +795,8 @@ class DiseaseSimulation:
             properties = self.run_infection_model_for_each_property(properties, FOI)
 
             # go through job queue
-            new_combined_narrative, local_movement_restrictions, newly_culled_animals, contacts_for_plotting, stats = (
-                self.job_manager.run_jobs(self.time, properties, self.movement_records, converted_date)
+            new_combined_narrative, local_movement_restrictions, newly_culled_animals, contacts_for_plotting, stats = self.job_manager.run_jobs(
+                self.time, properties, self.movement_records, converted_date
             )
 
             self.combined_narrative.extend(new_combined_narrative)
@@ -866,8 +819,8 @@ class DiseaseSimulation:
 
             # and then go through job queue again in 0.5 time,
 
-            new_combined_narrative, local_movement_restrictions, newly_culled_animals, contacts_for_plotting, stats = (
-                self.job_manager.run_jobs(self.time + 0.5, properties, self.movement_records, converted_date)
+            new_combined_narrative, local_movement_restrictions, newly_culled_animals, contacts_for_plotting, stats = self.job_manager.run_jobs(
+                self.time + 0.5, properties, self.movement_records, converted_date
             )
             self.combined_narrative.extend(new_combined_narrative)
             self.contacts_for_plotting.update(contacts_for_plotting)
@@ -937,7 +890,6 @@ class DiseaseSimulation:
     def simulate_outbreak_management(
         self,
         properties,
-        management_parameters,
         days_to_run_for,
         resource_setting="default",
         vaccination=False,
@@ -949,8 +901,6 @@ class DiseaseSimulation:
         ----------
         properties
             list of all the premises objects
-        management_parameters : list of dicts
-            dictionaries in list define the management type and associated parameters
         days_to_run_for : int
             number of days to run this particular set of management strategies
         resource_setting : string
@@ -1000,11 +950,7 @@ class DiseaseSimulation:
             for i, premise in enumerate(properties):
                 # also need to add in DCPs. This could either be: (1) properties with positive clinical result (well, at least), or more broadly could be (2) any properties currently on the contact tracing list/undergoing testing
                 # to get the properties currently undergoing contact tracing or testing, I would need to go through the job queue, and find active jobs, and find the properties currently under active management
-                if (
-                    premise.reported_status == True
-                    or premise.clinical_report_outcome == True
-                    or premise.status == "DCP"
-                ):
+                if premise.reported_status == True or premise.clinical_report_outcome == True or premise.status == "DCP":
                     source_indices.append(i)
 
             # list_of_premises = self.job_manager.get_premises_under_active_jobs()
@@ -1107,38 +1053,9 @@ class DiseaseSimulation:
                         report, scheduled_successful = self.job_manager.schedule_vaccination(i, self.time)
                         self.combined_narrative.append([time, converted_date, "vaccination", i, report])
 
-            # TODO: prioritise jobs based on zoning
-
-            # for management_policy in management_parameters:
-            #     if management_policy["type"] == "national_standstill":
-            #         controlzone_large_movement_restrictions = (
-            #             spatial_setup.Australia_shape()
-            #         )  # TODO...should just read this once rather than multiple times?
-            #     elif management_policy["type"] == "movement_restriction":
-            #         controlzone_large_movement_restrictions = management.define_control_zone_polygons(
-            #             properties,
-            #             source_indices,
-            #             management_policy["radius_km"],
-            #             convex=management_policy["convex"],
-            #         )
-            #     elif management_policy["type"] == "conditional_movement":
-            #         # TODO
-            #         pass  #    {"type": "conditional_movement", "radius_km": 80, "convex": False, "probability_reduction": 0.1},
-            #     elif management_policy["type"] == "ring_surveillance":
-            #         # TODO
-            #         pass  #  {"type": "ring_surveillance", "radius_km": 80, "convex": False},
-            #     else:
-            #         raise ValueError(
-            #             f"Management policy type {management_policy['type']} doesn't exist, or is not yet implemented"
-            #         )
-
-            # TODO need to go through job queue, and prioritise tasks
-
             # go through job queue
-            new_combined_narrative, local_movement_restrictions, newly_culled_animals, contacts_for_plotting, stats = (
-                self.job_manager.run_jobs(
-                    self.time, properties, self.movement_records, converted_date, resource_setting=resource_setting
-                )
+            new_combined_narrative, local_movement_restrictions, newly_culled_animals, contacts_for_plotting, stats = self.job_manager.run_jobs(
+                self.time, properties, self.movement_records, converted_date, resource_setting=resource_setting
             )
             self.combined_narrative.extend(new_combined_narrative)
             self.contacts_for_plotting = contacts_for_plotting
@@ -1161,53 +1078,46 @@ class DiseaseSimulation:
             # define movement control zones, and conduct animal movement where possible
             controlzone_movement_restrictions = controlzone_large_movement_restrictions
             # movement of animals
-            if not self.check_if_national_standstill(management_parameters):
-                if self.job_manager.local_movement_restrictions != []:
-                    if controlzone_movement_restrictions == None:
-                        controlzone_movement_restrictions = unary_union(self.job_manager.local_movement_restrictions)
-                    else:
-                        controlzone_movement_restrictions = unary_union(
-                            [
-                                controlzone_movement_restrictions,
-                                unary_union(self.job_manager.local_movement_restrictions),
-                            ]
-                        )
+            if self.job_manager.local_movement_restrictions != []:
+                if controlzone_movement_restrictions == None:
+                    controlzone_movement_restrictions = unary_union(self.job_manager.local_movement_restrictions)
+                else:
+                    controlzone_movement_restrictions = unary_union(
+                        [
+                            controlzone_movement_restrictions,
+                            unary_union(self.job_manager.local_movement_restrictions),
+                        ]
+                    )
 
-                # run animal movements
-                # includes reduced movements in certain areas
-                # TODO: add in illegal movement
-                # TODO: add in a low probability of unreported movement (i.e., movement that can't be traced)
-                if resource_setting == "default" or resource_setting == "low":
-                    movement_reduction_factor = 0.2  # 80% reduction / 20% chance of movement
-                elif resource_setting == "high":
-                    movement_reduction_factor = 0.05  # 95% reduction / 5% chance of movement
+            # run animal movements
+            # includes reduced movements in certain areas
+            if resource_setting == "default" or resource_setting == "low":
+                movement_reduction_factor = 0.2  # 80% reduction / 20% chance of movement
+            elif resource_setting == "high":
+                movement_reduction_factor = 0.05  # 95% reduction / 5% chance of movement
 
-                movement_record = animal_movement.animal_movement(
-                    properties,
-                    day=self.time,
-                    controlzone=controlzone_movement_restrictions,
-                    reduced_movement_zone=control_area,
-                    movement_reduction_factor=movement_reduction_factor,
-                    all_movement_reduction_factor=0.8,  # reducing probability of overall movement
-                )
-                self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
-
-            self.controlzone["movement restrictions"] = (
-                controlzone_movement_restrictions  # this is for plotting purposes later
+            movement_record = animal_movement.animal_movement(
+                properties,
+                day=self.time,
+                controlzone=controlzone_movement_restrictions,
+                reduced_movement_zone=control_area,
+                movement_reduction_factor=movement_reduction_factor,
+                all_movement_reduction_factor=0.8,  # reducing probability of overall movement
             )
+            self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
+
+            self.controlzone["movement restrictions"] = controlzone_movement_restrictions  # this is for plotting purposes later
             # update counts of infected/clinical/etc animals on each farm (important too if any animals have moved locations)
             for i, premise in enumerate(properties):
                 premise.update_counts()
 
             # and then go through job queue again in 0.5 time,
-            new_combined_narrative, local_movement_restrictions, newly_culled_animals, contacts_for_plotting, stats = (
-                self.job_manager.run_jobs(
-                    self.time + 0.5,
-                    properties,
-                    self.movement_records,
-                    converted_date,
-                    resource_setting=resource_setting,
-                )
+            new_combined_narrative, local_movement_restrictions, newly_culled_animals, contacts_for_plotting, stats = self.job_manager.run_jobs(
+                self.time + 0.5,
+                properties,
+                self.movement_records,
+                converted_date,
+                resource_setting=resource_setting,
             )
             self.combined_narrative.extend(new_combined_narrative)
             self.contacts_for_plotting.update(contacts_for_plotting)
@@ -1361,12 +1271,8 @@ class DiseaseSimulation:
                 index = dates_list.index(notif_date)
                 daily_notifs_by_state[property_i.state][index] += 1
         for state in daily_notifs_by_state.keys():
-            output.plot_daily_notifications_over_time(
-                dates_list, daily_notifs_by_state[state], self.folder_path, "daily_notifs_" + state
-            )
-            output.plot_total_notifs_over_time(
-                dates_list, daily_notifs_by_state[state], self.folder_path, save_name="total_notifs_" + state
-            )
+            output.plot_daily_notifications_over_time(dates_list, daily_notifs_by_state[state], self.folder_path, "daily_notifs_" + state)
+            output.plot_total_notifs_over_time(dates_list, daily_notifs_by_state[state], self.folder_path, save_name="total_notifs_" + state)
 
         return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
 
@@ -1447,9 +1353,7 @@ class DiseaseSimulation:
                             difference = controlzone_ring_culling
 
                         for property_i in properties:
-                            if not (
-                                property_i.reported_status or property_i.culled_status
-                            ) and property_i.polygon.intersects(difference):
+                            if not (property_i.reported_status or property_i.culled_status) and property_i.polygon.intersects(difference):
                                 premise_report, culled_animals = property_i.cull_without_reporting(self.time)
                                 self.total_culled_animals += culled_animals
                                 self.other_reports += premise_report
@@ -1473,9 +1377,7 @@ class DiseaseSimulation:
                     #     difference = controlzone_ring_testing
 
                     for i, premise in enumerate(properties):
-                        if not (premise.reported_status or premise.culled_status) and premise.polygon.intersects(
-                            controlzone_ring_testing
-                        ):
+                        if not (premise.reported_status or premise.culled_status) and premise.polygon.intersects(controlzone_ring_testing):
                             if premise.day_of_last_lab_test == None or (
                                 self.time - premise.day_of_last_lab_test > 13
                             ):  # at least two weeks between testing
@@ -1486,9 +1388,7 @@ class DiseaseSimulation:
                                     "type": management.jobtype.ClinicalObservation,
                                     "property_i": i,
                                 }
-                                testing_report, positive = self.job_manager.conduct_clinicalobservation(
-                                    properties, job, self.time
-                                )
+                                testing_report, positive = self.job_manager.conduct_clinicalobservation(properties, job, self.time)
                                 self.testing_reports += testing_report
                                 self.combined_narrative += testing_report
 
@@ -1530,9 +1430,7 @@ class DiseaseSimulation:
                         difference = controlzone_ring_vaccination
 
                     for premise in properties:
-                        if not (premise.reported_status or premise.culled_status) and premise.polygon.intersects(
-                            difference
-                        ):
+                        if not (premise.reported_status or premise.culled_status) and premise.polygon.intersects(difference):
                             premise.vaccinate(self.time)
 
                     self.controlzone["ring vaccination"] = controlzone_ring_vaccination

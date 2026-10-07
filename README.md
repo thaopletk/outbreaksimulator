@@ -26,6 +26,15 @@ This repository branch documents the version used to run simulation exercises ba
 
 # Outbreak simulation workflow
 
+
+**IMPORTANT**: first, you need to download various datasets that are too large to be included in this repository into the **/data** folder 
+1. `data/clum_50m_2023_v2`: Catchment scale land use data - "Catchment Scale Land Use of Australia v2" https://www.agriculture.gov.au/abares/aclump/land-use/catchment-scale-land-use-and-commodities-update-2023#downloads
+- direct download link: https://www.agriculture.gov.au/sites/default/files/documents/clum_50m_2023_v2.zip
+2. `data/SAL_2021_AUST_GDA2020_SHP`: suburbs and localities information for Australia, 2021 version, found on https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs/edition-3-july-2021-june-2026/access-and-downloads/digital-boundary-files
+- direct download link: https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs/edition-3-july-2021-june-2026/access-and-downloads/digital-boundary-files/SAL_2021_AUST_GDA2020_SHP.zip
+
+
+
 **The main steps**:
 1. Initiate map
 2. Seed infection
