@@ -34,6 +34,11 @@ This repository branch documents the version used to run simulation exercises ba
 - direct download link: https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs/edition-3-july-2021-june-2026/access-and-downloads/digital-boundary-files/SAL_2021_AUST_GDA2020_SHP.zip
 
 
+**LSD test run (smaller run)**
+
+1. Run `scenarios\LSD_test.py`
+
+
 
 **The main steps**:
 1. Initiate map

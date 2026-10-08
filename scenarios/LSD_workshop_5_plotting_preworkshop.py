@@ -23,8 +23,7 @@ import geopandas as gpd
 import contextily as ctx
 from matplotlib_scalebar.scalebar import ScaleBar
 
-
-folder_path_main = os.path.join(os.path.dirname(__file__), "outputs", "v03_trial")
+folder_path_main = os.path.join(os.path.dirname(__file__), "LSD_workshop")
 
 undetected_spread_version = 49
 detected_spread_version = 12
@@ -155,13 +154,14 @@ for geometry, colour, marker, markerlabel, markersize, edgecolour in [
     geo_df = gpd.GeoDataFrame(geometry=geometry)
     geo_df.crs = {"init": "epsg:4326"}
     # plot the marker
-    ax = geo_df.plot(
-        ax=ax, markersize=markersize, color=colour, marker=marker, label=markerlabel, aspect=1, edgecolor=edgecolour
-    )
+    ax = geo_df.plot(ax=ax, markersize=markersize, color=colour, marker=marker, label=markerlabel, aspect=1, edgecolor=edgecolour)
 
 ctx.add_basemap(
-    ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron
-)  # source=ctx.providers.OpenStreetMap.Mapnik
+    ax,
+    crs={"init": "epsg:4326"},
+    source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_CartoDBPositron.tif"),
+    attribution="© OpenStreetMap contributors, © CARTO",
+)
 
 
 # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html

@@ -65,7 +65,7 @@ def save_special_data_file(folder_path, filename, properties, culled, confirmed_
                     premise.removal_date,
                     premise.recovery_date,
                     premise.vacc_date,
-                    premise.location,
+                    premise.get_location(),
                     premise.coordinates[0],
                     premise.coordinates[1],
                     premise.area,
@@ -84,7 +84,7 @@ def save_special_data_file(folder_path, filename, properties, culled, confirmed_
                     premise.removal_date,
                     premise.recovery_date,
                     premise.vacc_date,
-                    premise.location,
+                    premise.get_location(),
                     premise.coordinates[0],
                     premise.coordinates[1],
                     premise.area,
@@ -101,7 +101,7 @@ def save_special_data_file(folder_path, filename, properties, culled, confirmed_
                     premise.removal_date,
                     premise.recovery_date,
                     premise.vacc_date,
-                    premise.location,
+                    premise.get_location(),
                     premise.coordinates[0],
                     premise.coordinates[1],
                     premise.area,
@@ -135,25 +135,19 @@ def calculate_new_statuses(folder_path, properties, diseaseoutbreak):
         if premise.culled_status == True:
             culled.append(index)
 
-            contact_tracing_report, traced_property_indices = management.contact_tracing(
-                properties, index, diseaseoutbreak.movement_records, time
-            )
+            contact_tracing_report, traced_property_indices = management.contact_tracing(properties, index, diseaseoutbreak.movement_records, time)
             TPs.extend(traced_property_indices)
 
         elif premise.reported_status == True:
             confirmed_infected.append(index)
 
-            contact_tracing_report, traced_property_indices = management.contact_tracing(
-                properties, index, diseaseoutbreak.movement_records, time
-            )
+            contact_tracing_report, traced_property_indices = management.contact_tracing(properties, index, diseaseoutbreak.movement_records, time)
             TPs.extend(traced_property_indices)
 
         elif premise.clinical_report_outcome == True or premise.status == "DCP" or index in self_reported_list:
             DCP.append(index)
 
-            contact_tracing_report, traced_property_indices = management.contact_tracing(
-                properties, index, diseaseoutbreak.movement_records, time
-            )
+            contact_tracing_report, traced_property_indices = management.contact_tracing(properties, index, diseaseoutbreak.movement_records, time)
             TPs.extend(traced_property_indices)
 
     TPs = list(set(TPs))
@@ -200,9 +194,7 @@ with open(diseaseoutbreak_filename, "rb") as file:
     diseaseoutbreak = pickle.load(file)
 
 
-culled, confirmed_infected, DCP, TPs_undergoing_testing = calculate_new_statuses(
-    folder_path, properties, diseaseoutbreak
-)
+culled, confirmed_infected, DCP, TPs_undergoing_testing = calculate_new_statuses(folder_path, properties, diseaseoutbreak)
 
 save_special_data_file(folder_path, "1", properties, culled, confirmed_infected, DCP, TPs_undergoing_testing)
 
@@ -214,9 +206,7 @@ day = 96
 
 for resource_setting in ["high", "low"]:
 
-    unique_output = (
-        f"{undetected_spread_version}_{detected_spread_version}_05_two_weeks_{two_weeks_version}_{resource_setting}"
-    )
+    unique_output = f"{undetected_spread_version}_{detected_spread_version}_05_two_weeks_{two_weeks_version}_{resource_setting}"
     folder_path = os.path.join(folder_path_main, unique_output)
 
     #############################################
@@ -230,10 +220,6 @@ for resource_setting in ["high", "low"]:
     with open(diseaseoutbreak_filename, "rb") as file:
         diseaseoutbreak = pickle.load(file)
 
-    culled, confirmed_infected, DCP, TPs_undergoing_testing = calculate_new_statuses(
-        folder_path, properties, diseaseoutbreak
-    )
+    culled, confirmed_infected, DCP, TPs_undergoing_testing = calculate_new_statuses(folder_path, properties, diseaseoutbreak)
 
-    save_special_data_file(
-        folder_path, "2_" + resource_setting, properties, culled, confirmed_infected, DCP, TPs_undergoing_testing
-    )
+    save_special_data_file(folder_path, "2_" + resource_setting, properties, culled, confirmed_infected, DCP, TPs_undergoing_testing)

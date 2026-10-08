@@ -1,7 +1,6 @@
-"""v0.3 Trial
+"""Simulated lumpy skin disease outbreak
 
-This script controls and run different elements and steps, testing the expanded version of the code post v0.2
-
+-- Full version. Files are separated assuming piece-wise runs on a computing cluster.
 
 """
 
@@ -18,7 +17,7 @@ import simulator.simulator as simulator
 import simulator.output as output
 import simulator.disease_simulation as disease_simulation
 
-folder_path_main = os.path.join(os.path.dirname(__file__), "outputs", "v03_trial")
+folder_path_main = os.path.join(os.path.dirname(__file__), "LSD_workshop")
 folder_path_seed = os.path.join(folder_path_main, "01_seed")
 
 # step 1: make main folder if it doesn't exist
@@ -27,11 +26,9 @@ if not os.path.exists(folder_path_main):
 
 # step 2: initiate the full proper map, including with different property types
 # parameters
-small_ver = "_small"
-small_ver = ""  # for running on the cluster
 
-with open(os.path.join(folder_path_main, f"spatial_only_parameters{small_ver}.json"), "r") as file:
-    spatial_only_parameters = json.load(file)  # has the total number of properties, hence the {small_ver}
+with open(os.path.join(folder_path_main, f"spatial_only_parameters.json"), "r") as file:
+    spatial_only_parameters = json.load(file)
 with open(os.path.join(folder_path_main, f"properties_specific_parameters.json"), "r") as file:
     properties_specific_parameters = json.load(file)
 with open(os.path.join(folder_path_main, "job_parameters.json"), "r") as file:
@@ -50,7 +47,7 @@ ylims = [
     round(spatial_only_parameters["yrange"][1], 1) + 0.05,
 ]
 
-# area for first report
+# area for first detection/report (northern NSW)
 reportingregion_x = [140, 155]
 reportingregion_y = [-32, -29]
 
@@ -62,7 +59,6 @@ np.random.seed(11)
 
 if not os.path.exists(properties_filename):
     property_setup_info = simulator.property_setup_v03(folder_path_main, spatial_only_parameters, properties_specific_parameters)
-
     (
         properties,
         property_coordinates,
@@ -74,12 +70,32 @@ if not os.path.exists(properties_filename):
         property_areas,
     ) = property_setup_info
 
-
 else:
     # load properties
     with open(properties_filename, "rb") as file:
         properties = pickle.load(file)
 
+# TO REMOVE THIS ####################
+if not os.path.exists(os.path.join(folder_path_main, "base_map.png")):
+    spatial_only_filename = os.path.join(folder_path_main, "spatial_only_setup.pickle")
+    with open(spatial_only_filename, "rb") as file:
+        (
+            property_coordinates,
+            adjacency_matrix,
+            neighbour_pairs,
+            neighbourhoods,
+            property_polygons,
+            property_polygons_puffed,
+            property_areas,
+        ) = pickle.load(file)
+    output.plot_map_land(
+        property_polygons,
+        property_polygons_puffed,
+        spatial_only_parameters["xrange"],
+        spatial_only_parameters["yrange"],
+        folder_path_main,
+    )
+####################
 
 # plot the neighbours (not wind-neighbours)
 if not os.path.exists(os.path.join(folder_path_main, "map_underlying0.png")):
@@ -101,16 +117,9 @@ if not os.path.exists(os.path.join(folder_path_main, "map_underlying0.png")):
 if not os.path.exists(os.path.join(folder_path_main, "animal_density.png")):
     output.plot_animal_density(properties, xlims, ylims, folder_path=folder_path_main)
 
-# if not os.path.exists(os.path.join(folder_path_main, "animals.png")):
-#     output.plot_animals(properties, xlims, ylims, folder_path=folder_path_main)
-# if not os.path.exists(os.path.join(folder_path_main, "animal_density_hist2D.png")):
-#     output.plot_animal_density_hist2d(properties, xlims, ylims, folder_path=folder_path_main)
-
-
+exit(1)
 # step 3:  initial seeding of a property
 # the initial seeding will occur in Northern Queensland
-# COULD TODO: make seeding occur either near a major port
-# to get something near major cities, I should get their lat/long positions, (either hard code or download something from ABS), and allow spread to a wind-radius around those cities.
 
 time = 0
 if not os.path.exists(folder_path_seed):
@@ -122,6 +131,7 @@ with open(os.path.join(folder_path_main, "disease_parameters.json"), "r") as fil
 
 properties_seeded_filename = os.path.join(folder_path_seed, "properties_0")
 
+# initial seeding location
 northQLDx = [141, 146]
 northQLDy = [-17, -10]
 
@@ -159,8 +169,8 @@ folder_path_undetected_spread = os.path.join(folder_path_main, unique_output)
 if not os.path.exists(folder_path_undetected_spread):
     os.makedirs(folder_path_undetected_spread)
 
-# TODO could change this so that it runs until there are X number of infected properties in each of the main states or territories
-stop_time = 21  # 28
+
+stop_time = 21
 first_detection_day = stop_time + 1
 
 undetected_spread_properties_filename = os.path.join(folder_path_undetected_spread, "properties_" + unique_output)
