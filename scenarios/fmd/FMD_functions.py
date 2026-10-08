@@ -9,6 +9,7 @@ import numpy as np
 import shutil
 import time
 import geopandas as gpd
+import datetime
 
 # import subprocess
 import pandas as pd
@@ -292,6 +293,9 @@ def run_burn_in_movement(
     yrange,
     create_download_folder,
     download_parent_folder,
+    start_year,
+    start_month,
+    start_day,
 ):
     random.seed(10)
     np.random.seed(10)
@@ -318,6 +322,9 @@ def run_burn_in_movement(
             spatial_only_parameters=spatial_only_parameters,
             job_parameters=job_parameters,
             scenario_parameters=scenario_parameters,
+            start_year=start_year,
+            start_month=start_month,
+            start_day=start_day,
         )
 
         diseaseoutbreak.set_plotting_parameters(
@@ -381,6 +388,9 @@ def run_seeding_undetected_spread(
     max_infected_premises=10000,
     target_infected_properties=18,
     infection_seeding_random_seed=None,
+    start_year=2026,
+    start_month=3,
+    start_day=1,
 ):
     """
     Assumes that setup() has already been run.
@@ -393,6 +403,7 @@ def run_seeding_undetected_spread(
     ###################################################
 
     xrange, yrange, xlims, ylims = x_y_ranges(state)
+    start_date = datetime.datetime(year=start_year, month=start_month, day=start_day)
 
     folder_path_main = os.path.join(os.path.dirname(__file__), main_folder_name)
 
@@ -467,6 +478,9 @@ def run_seeding_undetected_spread(
             yrange,
             create_download_folder,
             download_parent_folder,
+            start_year,
+            start_month,
+            start_day,
         )
     else:
         # initiate various things that start from empty:
@@ -477,6 +491,9 @@ def run_seeding_undetected_spread(
             spatial_only_parameters=spatial_only_parameters,
             job_parameters=job_parameters,
             scenario_parameters=scenario_parameters,
+            start_year=start_year,
+            start_month=start_month,
+            start_day=start_day,
         )
 
     ###################################################
@@ -505,13 +522,7 @@ def run_seeding_undetected_spread(
         if not os.path.exists(properties_seeded_filename):
             # seed property
             properties, seed_property = FMD_functions.seed_FMD_infection(
-                seed_herd_id,
-                properties,
-                diseaseoutbreak.time,
-                xlims,
-                ylims,
-                folder_path_seed,
-                unique_output,
+                seed_herd_id, properties, diseaseoutbreak.time, xlims, ylims, folder_path_seed, unique_output, start_date=start_date
             )
             # and then resave the end state
             with open(properties_seeded_filename, "wb") as file:
@@ -529,6 +540,7 @@ def run_seeding_undetected_spread(
             folder_path_seed,
             unique_output,
             ABC_mode=ABC_mode,
+            start_date=start_date,
         )
 
     ###################################################
@@ -948,6 +960,7 @@ def run_auto_actions(
     download_folder_name=None,
     strategy="default",
     shapefile_path=None,
+    start_date=datetime.datetime(year=2026, month=3, day=1),
 ):
     ###################################################
     # ---- Code run set up ---------------------------#
@@ -1028,7 +1041,7 @@ def run_auto_actions(
         spread_trucks_filename = os.path.join(folder_path, "trucks_df_" + unique_output)
 
         # assign jobs
-        scheduled_date = premises.convert_time_to_date(diseaseoutbreak.time + 1)
+        scheduled_date = premises.convert_time_to_date(diseaseoutbreak.time + 1, start_date)
         if (
             not os.path.exists(os.path.join(folder_path, f"jobs_{action_number}.csv"))
             or not os.path.exists(os.path.join(folder_path, f"zone_jobs_{action_number}.csv"))
@@ -1134,6 +1147,7 @@ def run_auto_strategies(
     download_folder_name=None,
     strategy="default",
     shapefile_path=None,
+    start_date=datetime.datetime(year=2026, month=3, day=1),
 ):
     ###################################################
     # ---- Code run set up ---------------------------#
@@ -1275,7 +1289,7 @@ def run_auto_strategies(
             random.seed(1235)
             np.random.seed(1116)
         # assign jobs
-        scheduled_date = premises.convert_time_to_date(diseaseoutbreak.time + 1)
+        scheduled_date = premises.convert_time_to_date(diseaseoutbreak.time + 1, start_date)
         auto_job_mode.generate_jobs_teams_FMD(folder_path, approx_data_csv, scheduled_date, running_day, strategy)
 
         property_jobs = pd.read_csv(os.path.join(folder_path, f"jobs_{running_day}.csv"))

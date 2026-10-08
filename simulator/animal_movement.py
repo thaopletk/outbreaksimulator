@@ -1,7 +1,7 @@
-""" Animal movement code
+"""Animal movement code
 
-    Adapted from the animal_movement_code.py in the FMD_modelling module
-    (Adapted to add more control over movements and output movements that had occured for contact tracting purposes)
+Adapted from the animal_movement_code.py in the FMD_modelling module
+(Adapted to add more control over movements and output movements that had occured for contact tracting purposes)
 
 """
 
@@ -14,7 +14,7 @@ import os
 import csv
 import pandas as pd
 import random
-
+import datetime
 
 movement_record_header = [
     "day",
@@ -37,6 +37,7 @@ def animal_movement(
     reduced_movement_zone=None,
     movement_reduction_factor=0.2,
     all_movement_reduction_factor=1.0,
+    start_date=datetime.datetime(year=2026, month=3, day=1),
 ):
     """Conduct animal movements between properties that are allowed to move
 
@@ -51,7 +52,7 @@ def animal_movement(
     """
     added_animals = []
 
-    date = convert_time_to_date(day)
+    date = convert_time_to_date(day, start_date)
 
     # rows of day, converted date, moving from property index, to property index, number of animals moved, a narrative report (locations, number of animals moved),
     movement_record = []
@@ -75,9 +76,7 @@ def animal_movement(
     for premise_index in indices_that_can_move:
         property_p = properties[premise_index]
         if property_p.movement_flag(day):
-            allowed_movement_neighbours, total_num_allowed = property_p.calculate_allowed_movement_neighbours(
-                indices_that_can_move
-            )
+            allowed_movement_neighbours, total_num_allowed = property_p.calculate_allowed_movement_neighbours(indices_that_can_move)
 
             # if there's somewhere to move the animals
             if total_num_allowed > 0:
@@ -101,19 +100,13 @@ def animal_movement(
                 num_animals_moved_to_each_property = [int(x) for x in num_animals_moved_to_each_property]
 
                 # choose some random properties to move to, based on their movement probabilities
-                move_to_types_list = property_p.calculate_where_to_move(
-                    num_properties_to_move_to, allowed_movement_neighbours
-                )
+                move_to_types_list = property_p.calculate_where_to_move(num_properties_to_move_to, allowed_movement_neighbours)
 
-                moving_to_premises_indices = [
-                    np.random.choice(allowed_movement_neighbours[ptype]) for ptype in move_to_types_list
-                ]
+                moving_to_premises_indices = [np.random.choice(allowed_movement_neighbours[ptype]) for ptype in move_to_types_list]
                 if len(set(moving_to_premises_indices)) != len(moving_to_premises_indices):
                     warnings.warn("There are duplicate indices, this should probably be changed")
 
-                for moving_to_premise_index, number_animals in zip(
-                    moving_to_premises_indices, num_animals_moved_to_each_property
-                ):
+                for moving_to_premise_index, number_animals in zip(moving_to_premises_indices, num_animals_moved_to_each_property):
 
                     row = [
                         day,
@@ -143,7 +136,7 @@ def animal_movement(
     return movement_record
 
 
-def extra_southward_movement(properties, day):
+def extra_southward_movement(properties, day, start_date=datetime.datetime(year=2026, month=3, day=1)):
     """Conduct extra southward movements of infected animals between properties
     Purpose is to hopefully speed up spread of disease from Queensland southward
 
@@ -155,7 +148,7 @@ def extra_southward_movement(properties, day):
     """
     added_animals = []
 
-    date = convert_time_to_date(day)
+    date = convert_time_to_date(day, start_date)
 
     # rows of day, converted date, moving from property index, to property index, number of animals moved, a narrative report (locations, number of animals moved),
     movement_record = []
@@ -164,21 +157,14 @@ def extra_southward_movement(properties, day):
     indices_that_can_move = []
     for premise_index in range(len(properties)):
         site = properties[premise_index]
-        if (
-            not site.culled_status
-            and site.clinical_report_outcome == None
-            and site.undergoing_testing == False
-            and site.prop_infectious > 0
-        ):
+        if not site.culled_status and site.clinical_report_outcome == None and site.undergoing_testing == False and site.prop_infectious > 0:
             indices_that_can_move.append(premise_index)
 
     # take animals out first, then add them to other properties later
     for premise_index in indices_that_can_move:
         property_p = properties[premise_index]
         if random.uniform(0, 1) < 0.7:
-            allowed_movement_neighbours, total_num_allowed = property_p.calculate_allowed_movement_neighbours(
-                indices_that_can_move
-            )
+            allowed_movement_neighbours, total_num_allowed = property_p.calculate_allowed_movement_neighbours(indices_that_can_move)
 
             # then, only select southern neighbours
             allowed_southern_neighbours = {}
@@ -233,19 +219,13 @@ def extra_southward_movement(properties, day):
                 num_animals_moved_to_each_property = [int(x) for x in num_animals_moved_to_each_property]
 
                 # choose some random properties to move to, based on their movement probabilities
-                move_to_types_list = property_p.calculate_where_to_move(
-                    num_properties_to_move_to, allowed_movement_neighbours
-                )
+                move_to_types_list = property_p.calculate_where_to_move(num_properties_to_move_to, allowed_movement_neighbours)
 
-                moving_to_premises_indices = [
-                    np.random.choice(allowed_movement_neighbours[ptype]) for ptype in move_to_types_list
-                ]
+                moving_to_premises_indices = [np.random.choice(allowed_movement_neighbours[ptype]) for ptype in move_to_types_list]
                 if len(set(moving_to_premises_indices)) != len(moving_to_premises_indices):
                     warnings.warn("There are duplicate indices, this should probably be changed")
 
-                for moving_to_premise_index, number_animals in zip(
-                    moving_to_premises_indices, num_animals_moved_to_each_property
-                ):
+                for moving_to_premise_index, number_animals in zip(moving_to_premises_indices, num_animals_moved_to_each_property):
 
                     row = [
                         day,
