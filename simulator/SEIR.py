@@ -32,14 +32,21 @@ def roundPartial(value, resolution):
 
 
 @functools.lru_cache(maxsize=None)
-def get_wind_direction_dict(time):
+def get_wind_direction_dict(time, start_date):
     """Wind direction
 
     Data downloaded from https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels?tab=download
 
     """
-    current_datetime = get_current_datetime(time)
-    if current_datetime >= datetime.datetime(year=2026, month=5, day=1):
+    current_datetime = get_current_datetime(time, start_date)
+    if current_datetime >= datetime.datetime(year=2026, month=7, day=1):
+        if current_datetime.year == 2026 and current_datetime.month == 7:
+            day = "{:02d}".format(current_datetime.day)
+            dataset = f"climatedatastore_wind_2026-07-{day}-0900.nc"
+        else:
+            dataset = f"climatedatastore_wind_2026-07-31-0900.nc"
+
+    elif current_datetime >= datetime.datetime(year=2026, month=5, day=1):
         dataset = f"climatedatastore_wind_2026-04-30-0900.nc"
     elif current_datetime >= datetime.datetime(year=2026, month=3, day=1):
         DAY = "{:02d}".format(current_datetime.day)
@@ -115,12 +122,12 @@ def get_wind_direction_dict(time):
 wind_direction_warning = False
 
 
-def get_wind_direction(coordinates, time):
+def get_wind_direction(coordinates, time, start_date):
     """
     Returns the u and v components of the wind at coordinates
     """
     global wind_direction_warning
-    wind_direction_dict = get_wind_direction_dict(time)
+    wind_direction_dict = get_wind_direction_dict(time, start_date)
 
     rounded_coords = (roundPartial(coordinates[0], 0.25), roundPartial(coordinates[1], 0.25))
     if rounded_coords in wind_direction_dict:
@@ -129,6 +136,7 @@ def get_wind_direction(coordinates, time):
     else:
         if wind_direction_warning == False:
             print("Coordinates are outside of available wind direction data - download more wind data!")
+            print(rounded_coords)
             wind_direction_warning = True
         u10 = np.random.uniform(-10, 10)
         v10 = np.random.uniform(-10, 10)
@@ -153,7 +161,16 @@ def vector_val_HPAI(premise_coordinates):
     return vector_val
 
 
-def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mortality_rate=0.04, outbreak_sim="LSD", time=0):
+def wind_dispersal_FOI(
+    properties,
+    premise_index,
+    r_wind,
+    beta_wind,
+    vector_mortality_rate=0.04,
+    outbreak_sim="LSD",
+    time=0,
+    start_date=datetime.datetime(year=2026, month=3, day=1),
+):
     """Adapted from FMD modelling code
 
     In order to change the definition of circle creation
@@ -203,7 +220,7 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mort
             if outbreak_sim in ["HPAI", "FMD"]:
                 # check if the neighbouring property is along the correct wind direction
                 neighbour = properties[index]
-                u10, v10 = get_wind_direction(neighbour.coordinates, time)
+                u10, v10 = get_wind_direction(neighbour.coordinates, time, start_date)
 
                 x0, y0 = neighbour.coordinates
                 minx, miny, maxx, maxy = neighbour.puffed_poly.bounds
@@ -251,7 +268,7 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mort
                     # also, if this neighbouring property has already been culled, then calculate how long they have been culled, and implement a basic death rate for the vectors
                     vector_mortality_adjustment = 1
                     if properties[index].culled_status:
-                        days_since_culled = convert_date_to_time(properties[index].removal_date)
+                        days_since_culled = convert_date_to_time(properties[index].removal_date, start_date)
                         vector_mortality_adjustment = 0.1 * np.exp(-vector_mortality_rate * days_since_culled)
 
                     elif properties[index].reported_status or properties[index].clinical_report_outcome == True:
@@ -262,7 +279,7 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mort
                     vector_val_neighbour = vector_val_HPAI(properties[index].coordinates)
                     vector_mortality_adjustment = 1
                     if properties[index].culled_status:
-                        days_since_culled = convert_date_to_time(properties[index].removal_date)
+                        days_since_culled = convert_date_to_time(properties[index].removal_date, start_date)
                         vector_mortality_adjustment = 0.1 * np.exp(-days_since_culled)
 
                         if properties[index].decontaminated_status:
@@ -303,7 +320,17 @@ def wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, vector_mort
     return FOI
 
 
-def calculate_force_of_infection(properties, premise_index, vax_modifier, r_wind, beta_wind, beta_animal, outbreak_sim="LSD", time=0):
+def calculate_force_of_infection(
+    properties,
+    premise_index,
+    vax_modifier,
+    r_wind,
+    beta_wind,
+    beta_animal,
+    outbreak_sim="LSD",
+    time=0,
+    start_date=datetime.datetime(year=2026, month=3, day=1),
+):
     """Calculate the force of infection
     Adapted from the FOI calculations from the FMD modelling code
     Reason: due to the differing units...
@@ -332,7 +359,7 @@ def calculate_force_of_infection(properties, premise_index, vax_modifier, r_wind
             outdoor_modifier = 1.1
 
     # wind / fomite transmission
-    FOI_wind = wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, outbreak_sim=outbreak_sim, time=time)
+    FOI_wind = wind_dispersal_FOI(properties, premise_index, r_wind, beta_wind, outbreak_sim=outbreak_sim, time=time, start_date=start_date)
 
     # animal-to-animal transmission
     if properties[premise_index].prop_infectious > 0:

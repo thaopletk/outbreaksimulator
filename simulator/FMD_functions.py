@@ -11,6 +11,7 @@ import numpy as np
 import random
 from FMD_modelling.class_definitions import Animal
 import betapert
+import datetime
 
 movement_record_header = [
     "day",
@@ -267,6 +268,7 @@ def seed_FMD_infection(
     latent_period=7,
     disease_parameters=None,
     ABC_mode=False,
+    start_date=datetime.datetime(year=2026, month=3, day=1),
 ):
     """Seeds an infection at a property within the bounds specified"""
     seed_property = 0  # default
@@ -299,7 +301,7 @@ def seed_FMD_infection(
     #     latent_period = disease_parameters[p.animal_type]["latent_period"]
     #     p.exposure_date = premises.convert_time_to_date(int_time - latent_period)
 
-    p.exposure_date = premises.convert_time_to_date(int_time)
+    p.exposure_date = premises.convert_time_to_date(int_time, start_date)
 
     for seed_animal in range(num_infected):
         p.animals[p.animal_type]["objs"][seed_animal].infection_status = "exposed"
@@ -327,6 +329,7 @@ def seed_FMD_infection(
             controlzone=None,
             infectionpoly=None,
             contacts_for_plotting={},  # contacts_for_plotting,  # hiding the contacts for plotting, to make things look clearer,,,, TODO in the real situation, these should be the actual movements, or something
+            start_date=start_date,
         )
 
         fixed_spatial_setup.save_FMD_property_csv(properties, int_time, folder_path, unique_output)
@@ -548,9 +551,10 @@ def animal_movement(
     disease_parameters={},
     truck_contanmination_infection_factor=0.5,
     truck_cleaning=0.2,
+    start_date=datetime.datetime(year=2026, month=3, day=1),
 ):
 
-    date = premises.convert_time_to_date(day)
+    date = premises.convert_time_to_date(day, start_date)
 
     movement_record = []
     number_of_movement_requests = 0

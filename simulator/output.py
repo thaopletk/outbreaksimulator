@@ -21,6 +21,7 @@ import geopandas as gpd
 import contextily as ctx
 import pickle
 from moviepy.editor import ImageSequenceClip
+import datetime
 
 import pointpats
 from scipy.stats import gaussian_kde
@@ -212,6 +213,7 @@ def plot_map(
     xylabels=False,
     save_suffix="",
     state="",
+    start_date=datetime.datetime(year=2026, month=3, day=1),
 ):
     """Plot map during an outbreak
 
@@ -489,7 +491,7 @@ def plot_map(
 
     # ax.set_title("Outbreak day " + str(time), fontsize=18)
     # ax.set_title(convert_time_to_date(time), fontsize=18)
-    ax.text(xlims[0] + 0.002, ylims[1] - 1.5, convert_time_to_date(time), size=18, color="black")
+    ax.text(xlims[0] + 0.002, ylims[1] - 1.5, convert_time_to_date(time, start_date), size=18, color="black")
 
     if xylabels == False:
         ax.axis("off")

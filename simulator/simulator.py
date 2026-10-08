@@ -30,6 +30,7 @@ from iteround import saferound
 from shapely.ops import transform, unary_union
 from simulator.spatial_functions import quick_distance_haversine
 import time
+import datetime
 
 
 def calculate_num_property_types(num, proportion_dict):
@@ -983,6 +984,7 @@ def plot_current_state(
     infectionpoly=False,
     contacts_for_plotting={},
     apparent_situation_plot=True,
+    start_date=datetime.datetime(year=2026, month=3, day=1),
 ):
     """Plots the map for the "apparent" state (known be decision-makers) and the true underlying state (includes undetected infected properties)"""
 
@@ -996,6 +998,7 @@ def plot_current_state(
         controlzone=controlzone,
         infectionpoly=infectionpoly,
         contacts_for_plotting={},  # contacts_for_plotting,  # hiding the contacts for plotting, to make things look clearer,,,, TODO in the real situation, these should be the actual movements, or something
+        start_date=start_date,
     )
     if apparent_situation_plot:
         output.plot_map(
@@ -1008,6 +1011,7 @@ def plot_current_state(
             controlzone=controlzone,
             infectionpoly=infectionpoly,
             contacts_for_plotting={},  # contacts_for_plotting, # not plotting them to make it easier to see what's happening...
+            start_date=start_date,
         )
 
 

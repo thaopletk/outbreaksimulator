@@ -44,7 +44,7 @@ start_month = 3
 start_day = 1
 
 
-def get_current_datetime(time, start_date=datetime.datetime(year=start_year, month=start_month, day=start_day)):
+def get_current_datetime(time, start_date):  # =datetime.datetime(year=start_year, month=start_month, day=start_day)):
     if type(time) != int:
         time = int(np.floor(time))
         # TODO : here, I should allow for "morning" vs "afternoon" or some other time thing
@@ -52,7 +52,9 @@ def get_current_datetime(time, start_date=datetime.datetime(year=start_year, mon
     return current_date
 
 
-def convert_time_to_date(time, start_date=datetime.datetime(year=start_year, month=start_month, day=start_day), return_string="%d/%m/%Y"):
+def convert_time_to_date(
+    time, start_date, return_string="%d/%m/%Y"
+):  # =datetime.datetime(year=start_year, month=start_month, day=start_day), return_string="%d/%m/%Y"):
     """Converts outbreak days (0, 1, 2...) to fake dates, started at some specified date (day 0).
     Parameters
     ----------
@@ -74,7 +76,7 @@ def convert_time_to_date(time, start_date=datetime.datetime(year=start_year, mon
     return current_date.strftime(return_string)
 
 
-def convert_date_to_time(date, start_date=datetime.datetime(year=start_year, month=start_month, day=start_day)):
+def convert_date_to_time(date, start_date):  # =datetime.datetime(year=start_year, month=start_month, day=start_day)):
     d1 = datetime.datetime.strptime(date, "%d/%m/%Y")
     return abs((d1 - start_date).days)
 
@@ -551,9 +553,9 @@ class Premises(Property):
 
         return report, self.size
 
-    def report_only(self, time, IP_num=None):
+    def report_only(self, time, start_date, IP_num=None):
         report = ""
-        self.notification_date = convert_time_to_date(time)
+        self.notification_date = convert_time_to_date(time, start_date)
         self.status = "IP"
         if IP_num == None:
             self.ip = next(Premises.notified_iter)
@@ -718,7 +720,16 @@ class Premises(Property):
 
         return 0
 
-    def infection_model(self, latent_period=0, infectious_period=0, preclinical_period=0, FOI=0, time=0, disease_parameters_by_animal_type=None):
+    def infection_model(
+        self,
+        latent_period=0,
+        infectious_period=0,
+        preclinical_period=0,
+        FOI=0,
+        time=0,
+        start_date=datetime.datetime(year=2026, month=3, day=1),
+        disease_parameters_by_animal_type=None,
+    ):
         params = {
             "latent_period": latent_period,
             "infectious_period": infectious_period,
@@ -778,7 +789,7 @@ class Premises(Property):
 
             if self.check_if_animal_objects() == True:
                 for ani_type in self.animals:
-                    if self.animals[ani_type]["n"] > 0:
+                    if "meat" not in ani_type and self.animals[ani_type]["n"] > 0:
                         params = disease_parameters_by_animal_type[ani_type]
                         if "objs" not in self.animals[ani_type]:
                             # TODO technically some issue here, should figure out why this is happening
@@ -811,13 +822,13 @@ class Premises(Property):
                 FOI,
             )
             if self.infection_status == 1 and self.exposure_date == "NA":
-                self.exposure_date = convert_time_to_date(time)
+                self.exposure_date = convert_time_to_date(time, start_date)
 
         if new_infections > 0 and self.exposure_date == "NA":
-            self.exposure_date = convert_time_to_date(time)
+            self.exposure_date = convert_time_to_date(time, start_date)
 
         if number_clinical > 0 and self.clinical_date == "NA":
-            self.clinical_date = convert_time_to_date(time)
+            self.clinical_date = convert_time_to_date(time, start_date)
             # might need to change this, but for now, it should be the earliest date with clinical symptoms # TODO : however, what does this mean if infected animals were all moved off the property?
 
     def return_output_row(self, RTM=False):
@@ -1048,7 +1059,7 @@ class Premises(Property):
         else:
             return 0
 
-    def update_counts(self, current_time=0):
+    def update_counts(self, current_time=0, start_date=datetime.datetime(year=2026, month=3, day=1)):
         if self.animal_type == "chicken":
             number_infected = 0
             number_infectious = 0
@@ -1179,10 +1190,10 @@ class Premises(Property):
                         self.infection_status = 0
 
             if self.infection_status == 1 and self.exposure_date == "NA" and self.number_infected > 0:
-                self.exposure_date = convert_time_to_date(current_time)
+                self.exposure_date = convert_time_to_date(current_time, start_date)
 
             if number_clinical > 0 and self.clinical_date == "NA":
-                self.clinical_date = convert_time_to_date(current_time)
+                self.clinical_date = convert_time_to_date(current_time, start_date)
 
             if number_clinical > 0 and self.number_infected == 0:
                 raise ValueError("There are clinical animals but no infected animals????")
@@ -1191,11 +1202,11 @@ class Premises(Property):
                 if self.exposure_date != "NA":
                     if "prior_exposure_clinical_stop_dates" not in self.custom_info:
                         self.custom_info["prior_exposure_clinical_stop_dates"] = [
-                            (self.exposure_date, self.clinical_date, convert_time_to_date(current_time))
+                            (self.exposure_date, self.clinical_date, convert_time_to_date(current_time, start_date))
                         ]
                     else:
                         self.custom_info["prior_exposure_clinical_stop_dates"].append(
-                            (self.exposure_date, self.clinical_date, convert_time_to_date(current_time))
+                            (self.exposure_date, self.clinical_date, convert_time_to_date(current_time, start_date))
                         )
                     self.exposure_date = "NA"
                     self.clinical_date = "NA"

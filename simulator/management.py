@@ -54,7 +54,7 @@ def define_control_zone_polygons(properties, source_indices, radius_km, convex=F
 
 
 # TODO should move this into the job manager, I guess?
-def contact_tracing(properties, property_index, movement_records, time):
+def contact_tracing(properties, property_index, movement_records, time, start_date):
     """Contact tracing
 
     Parameters
@@ -68,7 +68,7 @@ def contact_tracing(properties, property_index, movement_records, time):
 
     """
 
-    contact_tracing_report = f"DAY {convert_time_to_date(time)} - contact tracing report compiled for movements to/from {properties[property_index].type} (sim_id: {properties[property_index].id}, case_id: {properties[property_index].case_id} {properties[property_index].status}) in {properties[property_index].get_state()}\n"
+    contact_tracing_report = f"DAY {convert_time_to_date(time,start_date)} - contact tracing report compiled for movements to/from {properties[property_index].type} (sim_id: {properties[property_index].id}, case_id: {properties[property_index].case_id} {properties[property_index].status}) in {properties[property_index].get_state()}\n"
     traced_property_indices = []
 
     properties_found = False
@@ -102,14 +102,14 @@ def contact_tracing(properties, property_index, movement_records, time):
     return contact_tracing_report, traced_property_indices
 
 
-def test_property(properties, property_index, time, test_sensitivity, test_type="Lab test"):
+def test_property(properties, property_index, time, start_date, test_sensitivity, test_type="Lab test"):
     """Conducts a test on a property (could be lab or clinical - the test_sensitivity and test_type can be changed as wished)"""
     # TODO should move this into the job manager, I guess?
 
     positive = False
     premise = properties[property_index]
 
-    testing_report = f"DAY {convert_time_to_date(time)} - {test_type} report for {premise.type} (property sim_id {property_index}, case_id {premise.case_id} {premise.status}) ({premise.region}): "
+    testing_report = f"DAY {convert_time_to_date(time,start_date)} - {test_type} report for {premise.type} (property sim_id {property_index}, case_id {premise.case_id} {premise.status}) ({premise.region}): "
 
     if premise.culled_status:
         testing_report += (
@@ -154,14 +154,14 @@ class JobManager:
 
         self.jobs_queue = {i: {job_type: {} for job_type in job_types} for i in range(n)}
 
-    def save_jobs_queue(self, folder_path, save_name="jobs_queue.csv"):
+    def save_jobs_queue(self, folder_path, start_date, save_name="jobs_queue.csv"):
 
         header = ["day_scheduled", "date_scheduled", "property", "job_type", "status", "completion_date"]
         jobs = []
         for property_index in self.jobs_queue.keys():
             for job_type in self.jobs_queue[property_index].keys():
                 for day, status in self.jobs_queue[property_index][job_type].items():
-                    jobs.append([day, convert_time_to_date(float(day)), property_index, job_type, status[0], status[1]])
+                    jobs.append([day, convert_time_to_date(float(day), start_date), property_index, job_type, status[0], status[1]])
         # order by the date
         jobs.sort(key=lambda x: x[0])
         # convert to dataframe
@@ -170,7 +170,7 @@ class JobManager:
 
         jobs_df.to_csv(os.path.join(folder_path, save_name), index=False)
 
-    def save_jobs_HPAI(self, folder_path, save_name="jobs_queue.csv"):
+    def save_jobs_HPAI(self, folder_path, start_date, save_name="jobs_queue.csv"):
 
         header = ["day_scheduled", "date_scheduled", "property", "job_type", "status", "completion_date", "extra_info"]
         jobs = []
@@ -180,7 +180,7 @@ class JobManager:
                     jobs.append(
                         [
                             day,
-                            convert_time_to_date(float(day)),
+                            convert_time_to_date(float(day), start_date),
                             property_index,
                             job_type,
                             status[0],
@@ -196,22 +196,24 @@ class JobManager:
 
         jobs_df.to_csv(os.path.join(folder_path, save_name), index=False)
 
-    def conduct_labtesting(self, properties, property_index, time):
+    def conduct_labtesting(self, properties, property_index, time, start_date):
         testing_report, positive = test_property(
             properties,
             property_index,
             time,
+            start_date,
             self.lab_test_sensitivity,
             test_type="lab test",
         )
 
         return testing_report, positive
 
-    def conduct_clinicalobservation(self, properties, property_index, time):
+    def conduct_clinicalobservation(self, properties, property_index, time, start_date):
         testing_report, positive = test_property(
             properties,
             property_index,
             time,
+            start_date,
             self.clinical_test_sensitivity,
             test_type="clinical observation",
         )
