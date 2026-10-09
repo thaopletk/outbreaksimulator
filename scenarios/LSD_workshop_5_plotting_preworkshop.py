@@ -12,13 +12,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import simulator.spatial_setup as spatial_setup
 import simulator.management as management
-import simulator.premises as premises
-import simulator.SEIR as SEIR
 import simulator.output as output
-import simulator.animal_movement as animal_movement
 import simulator.spatial_functions as spatial_functions
-from shapely.ops import transform, unary_union
-from shapely.geometry import Polygon, Point, LineString, MultiPolygon, MultiPoint
+from shapely.geometry import Point
 import geopandas as gpd
 import contextily as ctx
 from matplotlib_scalebar.scalebar import ScaleBar

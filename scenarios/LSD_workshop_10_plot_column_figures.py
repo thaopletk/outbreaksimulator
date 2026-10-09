@@ -47,9 +47,7 @@ def plot_time_series_columns(
         y_spacing = int(5 * np.ceil((y_scale / max_y_ticks) / 5))
 
     x_ticks = list(range(x_scale))
-    x_tick_labels = [
-        convert_time_to_date(x, dt.datetime(year=2026, month=3, day=9), "%d/%m") for x in x_ticks[::x_spacing]
-    ]
+    x_tick_labels = [convert_time_to_date(x, dt.datetime(year=2026, month=3, day=9), "%d/%m") for x in x_ticks[::x_spacing]]
 
     # Set up figure
     fig, ax = plt.subplots(1, 1, figsize=(10, 6))
@@ -107,7 +105,7 @@ def main(filename):
     print(os.path.basename(filename))
     folder = f"figures_{os.path.basename(filename).split('.')[0]}"
     os.makedirs(folder, exist_ok=True)
-    # folder = os.path.join(os.path.dirname(__file__),"outputs", "v03_trial")
+    # folder = os.path.join(os.path.dirname(__file__),"LSD_workshop")
 
     # Get relevant data into a DataFrame
     print("Plotting column graphs... ", end="")

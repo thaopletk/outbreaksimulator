@@ -27,8 +27,7 @@ import pandas as pd
 # from matplotlib.patches import Rectangle
 from matplotlib.path import Path
 
-
-folder_path_main = os.path.join(os.path.dirname(__file__), "outputs", "v03_trial")
+folder_path_main = os.path.join(os.path.dirname(__file__), "LSD_workshop")
 
 undetected_spread_version = 49
 detected_spread_version = 12
@@ -242,25 +241,19 @@ for two_weeks_resource_setting, resource_setting, final_vaccination, final_versi
         if premise.culled_status == True:
             geometry_culled.append(curr_farm)
 
-            contact_tracing_report, traced_property_indices = management.contact_tracing(
-                properties, index, diseaseoutbreak.movement_records, time
-            )
+            contact_tracing_report, traced_property_indices = management.contact_tracing(properties, index, diseaseoutbreak.movement_records, time)
             TPs.extend(traced_property_indices)
 
         elif premise.reported_status == True:
             geometry_confirmed_infected.append(curr_farm)
 
-            contact_tracing_report, traced_property_indices = management.contact_tracing(
-                properties, index, diseaseoutbreak.movement_records, time
-            )
+            contact_tracing_report, traced_property_indices = management.contact_tracing(properties, index, diseaseoutbreak.movement_records, time)
             TPs.extend(traced_property_indices)
 
         elif premise.clinical_report_outcome == True or premise.status == "DCP" or index in self_reported_list:
             geometry_DCP.append(curr_farm)
 
-            contact_tracing_report, traced_property_indices = management.contact_tracing(
-                properties, index, diseaseoutbreak.movement_records, time
-            )
+            contact_tracing_report, traced_property_indices = management.contact_tracing(properties, index, diseaseoutbreak.movement_records, time)
             TPs.extend(traced_property_indices)
         elif premise.infection_status:
             geometry_infected.append(curr_farm)
@@ -352,9 +345,7 @@ for two_weeks_resource_setting, resource_setting, final_vaccination, final_versi
             alpha=alpha,
         )
 
-    ctx.add_basemap(
-        ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron
-    )  # source=ctx.providers.OpenStreetMap.Mapnik
+    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)  # source=ctx.providers.OpenStreetMap.Mapnik
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
     points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees

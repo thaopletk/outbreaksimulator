@@ -25,8 +25,7 @@ from matplotlib_scalebar.scalebar import ScaleBar
 import pandas as pd
 from matplotlib.path import Path
 
-
-folder_path_main = os.path.join(os.path.dirname(__file__), "outputs", "v03_trial")
+folder_path_main = os.path.join(os.path.dirname(__file__), "LSD_Workshop")
 
 undetected_spread_version = 49
 detected_spread_version = 12
@@ -37,9 +36,7 @@ day = 96
 
 for resource_setting in ["high", "low"]:
 
-    unique_output = (
-        f"{undetected_spread_version}_{detected_spread_version}_05_two_weeks_{two_weeks_version}_{resource_setting}"
-    )
+    unique_output = f"{undetected_spread_version}_{detected_spread_version}_05_two_weeks_{two_weeks_version}_{resource_setting}"
     folder_path = os.path.join(folder_path_main, unique_output)
 
     #############################################
@@ -218,25 +215,19 @@ for resource_setting in ["high", "low"]:
         if premise.culled_status == True:
             geometry_culled.append(curr_farm)
 
-            contact_tracing_report, traced_property_indices = management.contact_tracing(
-                properties, index, diseaseoutbreak.movement_records, time
-            )
+            contact_tracing_report, traced_property_indices = management.contact_tracing(properties, index, diseaseoutbreak.movement_records, time)
             TPs.extend(traced_property_indices)
 
         elif premise.reported_status == True:
             geometry_confirmed_infected.append(curr_farm)
 
-            contact_tracing_report, traced_property_indices = management.contact_tracing(
-                properties, index, diseaseoutbreak.movement_records, time
-            )
+            contact_tracing_report, traced_property_indices = management.contact_tracing(properties, index, diseaseoutbreak.movement_records, time)
             TPs.extend(traced_property_indices)
 
         elif premise.clinical_report_outcome == True or premise.status == "DCP" or index in self_reported_list:
             geometry_DCP.append(curr_farm)
 
-            contact_tracing_report, traced_property_indices = management.contact_tracing(
-                properties, index, diseaseoutbreak.movement_records, time
-            )
+            contact_tracing_report, traced_property_indices = management.contact_tracing(properties, index, diseaseoutbreak.movement_records, time)
             TPs.extend(traced_property_indices)
 
         elif premise.undergoing_testing == True:
@@ -291,9 +282,7 @@ for resource_setting in ["high", "low"]:
             alpha=alpha,
         )
 
-    ctx.add_basemap(
-        ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron
-    )  # source=ctx.providers.OpenStreetMap.Mapnik
+    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)  # source=ctx.providers.OpenStreetMap.Mapnik
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
     points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
@@ -421,9 +410,7 @@ for resource_setting in ["high", "low"]:
             alpha=alpha,
         )
 
-    ctx.add_basemap(
-        ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron
-    )  # source=ctx.providers.OpenStreetMap.Mapnik
+    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)  # source=ctx.providers.OpenStreetMap.Mapnik
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
     points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees

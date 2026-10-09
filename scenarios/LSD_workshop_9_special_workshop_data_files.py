@@ -172,7 +172,7 @@ def calculate_new_statuses(folder_path, properties, diseaseoutbreak):
     return culled, confirmed_infected, DCP, TPs_undergoing_testing
 
 
-folder_path_main = os.path.join(os.path.dirname(__file__), "outputs", "v03_trial")
+folder_path_main = os.path.join(os.path.dirname(__file__), "LSD_workshop")
 
 undetected_spread_version = 49
 detected_spread_version = 12

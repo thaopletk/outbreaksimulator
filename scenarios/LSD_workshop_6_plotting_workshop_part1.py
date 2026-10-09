@@ -5,19 +5,12 @@ import pickle
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import numpy as np
-
-# from shapely.geometry import Point
-# import csv
-# import math
 import matplotlib.pyplot as plt
 import simulator.spatial_setup as spatial_setup
 import simulator.management as management
-import simulator.premises as premises
-import simulator.SEIR as SEIR
+
 import simulator.output as output
-import simulator.animal_movement as animal_movement
 import simulator.spatial_functions as spatial_functions
-from shapely.ops import transform, unary_union
 from shapely.geometry import Polygon, Point, LineString, MultiPolygon, MultiPoint
 import geopandas as gpd
 import contextily as ctx
@@ -27,8 +20,7 @@ import pandas as pd
 # from matplotlib.patches import Rectangle
 from matplotlib.path import Path
 
-
-folder_path_main = os.path.join(os.path.dirname(__file__), "outputs", "v03_trial")
+folder_path_main = os.path.join(os.path.dirname(__file__), "LSD_workshop")
 
 undetected_spread_version = 49
 detected_spread_version = 12
@@ -60,8 +52,6 @@ self_reported_list = [int(x) for x in self_reported_list]
 
 print(self_reported_list)
 
-# xlims = [137, xlims[1]]
-# ylims = [-37, ylims[1]]
 
 #############################################
 newcontrolzone = {}
@@ -110,12 +100,6 @@ newcontrolzone["control area"] = control_area
 
 fig, ax = plt.subplots(1, 1, figsize=(20, 15))  # ,figsize=(10,12)
 
-# colour_dictionary = {
-#     "restricted area": {"face": "#cc0000", "edge": "#660000"},
-#     "control area": {"face": "#ffcc00", "edge": "#cc6600"},
-#     "additional movement restrictions": {"face": "#8585ad", "edge": "#3d3d5c"},
-# }
-
 colour_dictionary = {
     "restricted area": {"face": "#e07b7b", "edge": "#660000"},
     "control area": {"face": "#fce27b", "edge": "#cc6600"},
@@ -141,29 +125,6 @@ for control_type in ["additional movement restrictions", "control area", "restri
         )
 
 for control_type in ["restricted area", "control area", "additional movement restrictions"]:
-
-    # geometry = [Point(xlims[0] - 0.1, ylims[0] - 0.1)]  # putting the point outside the limits
-    # # add a fake point to ensure the legend is there
-    # geo_df = gpd.GeoDataFrame(geometry=geometry)
-    # geo_df.crs = {"init": "epsg:4326"}
-    # # plot the marker
-    # ax = geo_df.plot(
-    #     ax=ax,
-    #     markersize=100,
-    #     color=colour_dictionary[control_type]["face"],
-    #     marker="s",
-    #     label=control_type,
-    #     edgecolor=colour_dictionary[control_type]["edge"],
-    #     aspect=1,
-    #     alpha=0.5,
-    # )
-    # ax.add_patch(Rectangle((xlims[0] - 1, ylims[0] - 1), 0.9, 0.5,
-    #          edgecolor = colour_dictionary[control_type]["edge"],
-    #          facecolor = colour_dictionary[control_type]["face"],
-    #          fill=True,
-    #          label=control_type,
-    #          alpha=0.5,
-    #          lw=0.05))
 
     verts = [
         (-1, -0.5),  # left, bottom
@@ -212,25 +173,19 @@ for index, premise in enumerate(properties):
     if premise.culled_status == True:
         geometry_culled.append(curr_farm)
 
-        contact_tracing_report, traced_property_indices = management.contact_tracing(
-            properties, index, diseaseoutbreak.movement_records, time
-        )
+        contact_tracing_report, traced_property_indices = management.contact_tracing(properties, index, diseaseoutbreak.movement_records, time)
         TPs.extend(traced_property_indices)
 
     elif premise.reported_status == True:
         geometry_confirmed_infected.append(curr_farm)
 
-        contact_tracing_report, traced_property_indices = management.contact_tracing(
-            properties, index, diseaseoutbreak.movement_records, time
-        )
+        contact_tracing_report, traced_property_indices = management.contact_tracing(properties, index, diseaseoutbreak.movement_records, time)
         TPs.extend(traced_property_indices)
 
     elif premise.clinical_report_outcome == True or premise.status == "DCP" or index in self_reported_list:
         geometry_DCP.append(curr_farm)
 
-        contact_tracing_report, traced_property_indices = management.contact_tracing(
-            properties, index, diseaseoutbreak.movement_records, time
-        )
+        contact_tracing_report, traced_property_indices = management.contact_tracing(properties, index, diseaseoutbreak.movement_records, time)
         TPs.extend(traced_property_indices)
 
     elif premise.undergoing_testing == True:
@@ -263,8 +218,6 @@ for index in TPs:
 print(f"TPs_undergoing_testing: {len(TPs_undergoing_testing)}")
 print(f"TPs_false_result: {len(TPs_false_result)}")
 
-# TODO - change these markers potentially
-# TODO - add in the legend for the control and restricted areas (unless I use photoshop / powerpoint)
 for geometry, colour, marker, markerlabel, markersize, edgecolour, alpha in [
     [geometry_culled, "cornflowerblue", "P", "resolved premises", 110, "royalblue", 1],
     [geometry_confirmed_infected, "black", "X", "infected premises", 110, "black", 1],
@@ -287,9 +240,7 @@ for geometry, colour, marker, markerlabel, markersize, edgecolour, alpha in [
         alpha=alpha,
     )
 
-ctx.add_basemap(
-    ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron
-)  # source=ctx.providers.OpenStreetMap.Mapnik
+ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)  # source=ctx.providers.OpenStreetMap.Mapnik
 
 
 # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
@@ -310,14 +261,6 @@ ax.axis("off")
 ax.set_xlim(xlims)
 ax.set_ylim(ylims)
 
-# ax.legend(
-#     loc="upper center",
-#     bbox_to_anchor=(0.5, 0.0),
-#     fancybox=True,
-#     shadow=True,
-#     ncol=2,
-#     fontsize=18,
-# )
 
 ax.legend(
     fontsize=18,
@@ -354,29 +297,6 @@ for control_type in ["additional movement restrictions", "control area", "restri
         )
 
 for control_type in ["restricted area", "control area", "additional movement restrictions"]:
-
-    # geometry = [Point(xlims[0] - 0.1, ylims[0] - 0.1)]  # putting the point outside the limits
-    # # add a fake point to ensure the legend is there
-    # geo_df = gpd.GeoDataFrame(geometry=geometry)
-    # geo_df.crs = {"init": "epsg:4326"}
-    # # plot the marker
-    # ax = geo_df.plot(
-    #     ax=ax,
-    #     markersize=100,
-    #     color=colour_dictionary[control_type]["face"],
-    #     marker="s",
-    #     label=control_type,
-    #     edgecolor=colour_dictionary[control_type]["edge"],
-    #     aspect=1,
-    #     alpha=0.5,
-    # )
-    # ax.add_patch(Rectangle((xlims[0] - 1, ylims[0] - 1), 0.9, 0.5,
-    #          edgecolor = colour_dictionary[control_type]["edge"],
-    #          facecolor = colour_dictionary[control_type]["face"],
-    #          fill=True,
-    #          label=control_type,
-    #          alpha=0.5,
-    #          lw=0.05))
 
     verts = [
         (-1, -0.5),  # left, bottom
@@ -431,9 +351,7 @@ for geometry, colour, marker, markerlabel, markersize, edgecolour, alpha in [
         alpha=alpha,
     )
 
-ctx.add_basemap(
-    ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron
-)  # source=ctx.providers.OpenStreetMap.Mapnik
+ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)  # source=ctx.providers.OpenStreetMap.Mapnik
 
 
 # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
