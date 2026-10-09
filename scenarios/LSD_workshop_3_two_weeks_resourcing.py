@@ -2,6 +2,13 @@
 
 Runs the two branching decisions - high and low resourcing
 
+submit as
+python LSD_workshop_3_two_weeks_resourcing.py initialspreadseed twoweeks_version second_twoweeks_version second_twoweeks_resource_setting
+
+initialspreadseed = sys.argv[1]  # the undetected initial spread version
+twoweeks_version = sys.argv[2]  # version for outbreak detection and two weeks of spread
+second_twoweeks_version = sys.argv[3]
+second_twoweeks_resource_setting = sys.argv[4]  # high or low
 
 """
 

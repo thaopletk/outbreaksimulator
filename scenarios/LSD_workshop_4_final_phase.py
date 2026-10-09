@@ -2,6 +2,18 @@
 
 Runs the four branching decisions - high resourcing and vaccination, high resourcing and no vaccination, low resourcing and vaccination and low resourcing and no vaccination
 
+submit as:
+
+python LSD_workshop_4_final_phase.py undetected_version twoweeks_version second_twoweeks_version second_twoweeks_resource_setting phase_three_version resource_setting phase_three_vaccination
+
+undetected_version = sys.argv[1]  # the undetected spread version
+twoweeks_version = sys.argv[2]  # version for outbreak detection and two weeks of spread
+second_twoweeks_version = sys.argv[3]  # version for the second two-weeks of spread (weeks 3 and 4)
+second_twoweeks_resource_setting = sys.argv[4]  # high or low
+phase_three_version = sys.argv[5]
+resource_setting = sys.argv[6]  # high or low
+phase_three_vaccination = sys.argv[7]  # True or False
+
 
 """
 

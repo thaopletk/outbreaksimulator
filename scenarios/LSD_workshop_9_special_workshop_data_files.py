@@ -1,3 +1,9 @@
+"""
+
+Runs special data outputs for the workshop. Note hard-coded parameters selecting particular versions of the simulation output
+
+"""
+
 import sys
 import os
 import json

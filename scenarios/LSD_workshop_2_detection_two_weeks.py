@@ -2,6 +2,11 @@
 
 Runs detection and initial two week spread
 
+submit as:
+python LSD_workshop_2_detection_two_weeks.py initialspreadseed twoweeks_version
+
+initialspreadseed = sys.argv[1]  # the version from 1_initial_spread
+twoweeks_version = int(sys.argv[2]) # controls RNG for the detection+two weeks spread
 
 """
 

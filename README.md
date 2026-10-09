@@ -15,8 +15,10 @@ This repository branch documents the version used to run simulation exercises ba
 **Code requirements**:
 - Python (3.12.10)
 
-**Code written by Thao P. Le and Isobel Abell**
-(base code and FMD_modelling module written by Isobel Abell, and adapted by Thao P. Le)
+**Code written by Thao P. Le, Isobel Abell and Martin Cyster**
+Base code and FMD_modelling module written by Isobel Abell, adapted by Thao P. Le, with column plots plotting support from Martin Cyster.
+
+**data** folder: contains various map data
 
 **FMD_modelling** folder: submodule containing infectious disease spread code
 
@@ -36,24 +38,26 @@ This repository branch documents the version used to run simulation exercises ba
 
 **LSD test run (smaller run)**
 
-1. Run `scenarios\LSD_test.py`
+Run `scenarios\LSD_test.py`
 
+**LSD main run**
+
+Run the `LSD_workshop_*.py` files in turn. Some slurm scripts are provided as examples, starting with
+- `slurm_venv_setup.py`
+- `slurm_LSD_workshop_1_initial_spread.sh`
+- `slurm_LSD_workshop_2_deteciton_two_weeks.sh`
 
 
 **The main steps**:
-1. Initiate map
-2. Seed infection
-3. Undetected spread: Run time forward until first report
+The model procedes through these setps:
+1. Initiates the map, including property locations and sizes, and setting up neighbouring relationships
+2. Seeds the infection
+3. Undetected spread: Runs undetected spread until first report
 4. Management stage: including default management (contract tracing local movement restrictions, clinical examination, lab testing and culling) and additional management options (large-scale movement restrictions, testing, vaccination, ring culling, and their combinations)
 5. Final outputs (total number of cases etc.)
 
 
 # Technical notes and references
-
-### For Markdown syntax:
-
-[Markdown Cheat Sheet](https://www.markdownguide.org/cheat-sheet/)
-
 
 ### Virtual environment
 
@@ -79,8 +83,6 @@ pip install -r requirements.txt
 python scenarios/LSD_test.py
 ```
 
-*Note that the requirements.txt is currently not up-to-date...*
-
 ### Formatting
 
 Format using Black
@@ -98,27 +100,3 @@ To use it as a pre-commit hook, also run:
 `pip install pre-commit`
 
 `pre-commit install`
-
-
-
-![Diagram of the steps of the outbreak simulator: initiate map, seed infection, run time forward until first report, default management (contract tracing local movement restrictions, clinical examination, lab testing and culling) and additional management options (large-scale movement restrictions, testing, vaccination, ring culling, and their combinations), and final outputs (total number of cases etc.) ](images/outbreaksimulator_workflow.png)
-
-<!--# Planned outbreak simulator
-
- 
-![Diagram of the planned outbreak simulator, including disease dynamics, spread, simulation code, spatial arrangement, management](images/outbreak_simulator_model_diagram.png) -->
-
-<!-- # Current state
-
-![Diagram of the current state of the outbreak simulator, including disease dynamics, spread, simulation code, spatial arrangement, management](images/outbreak_simulator_model_current_status.png)
-
-
-(note that this management process png is no longer up to date...)
-![Diagram of the current state of management](images/management_process.png)
-
-# Example outputs
-
-![Example of a generated base map](images/base_map.png)
-
-![Example (snapshot) of an outbreak](images/simulation_snapshot.png)
- -->

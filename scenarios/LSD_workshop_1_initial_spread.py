@@ -2,6 +2,11 @@
 
 -- Full version. Files are separated assuming piece-wise runs on a computing cluster.
 
+submit as
+python LSD_workshop_1_initial_spread.py initialspreadseed
+
+where initialspreadseed is an integer that controls RNG seed
+
 """
 
 import sys
