@@ -1,6 +1,6 @@
-""" v0.3 Trial
+"""Simulated lumpy skin disease outbreak
 
-This script controls and run different elements and steps, testing the expanded version of the code post v0.2 
+Runs detection and initial two week spread
 
 
 """
@@ -20,11 +20,11 @@ import simulator.management as management
 import simulator.premises as premises
 import simulator.spatial_functions as spatial_functions
 
-folder_path_main = os.path.join(os.path.dirname(__file__), "outputs", "v03_trial")
+folder_path_main = os.path.join(os.path.dirname(__file__), "LSD_workshop")
 
-small_ver = ""
-with open(os.path.join(folder_path_main, f"spatial_only_parameters{small_ver}.json"), "r") as file:
-    spatial_only_parameters = json.load(file)  # has the total number of properties, hence the {small_ver}
+
+with open(os.path.join(folder_path_main, f"spatial_only_parameters.json"), "r") as file:
+    spatial_only_parameters = json.load(file)
 with open(os.path.join(folder_path_main, f"properties_specific_parameters.json"), "r") as file:
     properties_specific_parameters = json.load(file)
 with open(os.path.join(folder_path_main, "job_parameters.json"), "r") as file:
@@ -47,13 +47,11 @@ ylims = [
 reportingregion_x = [140, 155]
 reportingregion_y = [-32, -29]
 
-version = sys.argv[1]  # "7"
+version = sys.argv[1]  # the version from 1_initial_spread
 unique_output = f"02_undetected_spread_{version}"
 folder_path_undetected_spread = os.path.join(folder_path_main, unique_output)
 undetected_spread_properties_filename = os.path.join(folder_path_undetected_spread, "properties_" + unique_output)
-undetected_spread_diseaseoutbreak_filename = os.path.join(
-    folder_path_undetected_spread, "outbreakobject_" + unique_output
-)
+undetected_spread_diseaseoutbreak_filename = os.path.join(folder_path_undetected_spread, "outbreakobject_" + unique_output)
 
 with open(undetected_spread_properties_filename, "rb") as file:
     properties = pickle.load(file)
@@ -110,26 +108,11 @@ else:
     with open(spread_diseaseoutbreak_filename, "rb") as file:
         diseaseoutbreak = pickle.load(file)
 
-# TODO - to actually get the first detection date, get the first/smaller number of file in the simulate-first-two-days folder...
-
-
 # step 6
 # about two weeks of simulation
 unique_output = f"{version}_04_two_weeks_{sys.argv[2]}"
 folder_path = os.path.join(folder_path_main, unique_output)
 days_to_run_for = 14
-
-management_parameters = [  # TODO - currently not used...could actually implement it...
-    {"type": "movement_restriction", "radius_km": 5, "convex": False},
-    {"type": "conditional_movement", "radius_km": 80, "convex": False, "probability_reduction": 0.1},
-    {"type": "ring_surveillance", "radius_km": 80, "convex": False},
-]
-# jobs_resourcing = {
-#     "LabTesting": [10, 15, 20],
-#     "ClinicalObservation": [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130],
-#     "Cull": [10],
-#     "ContactTracing": [100],
-# }  # TODO - currently not used...could actually implement it...
 
 if not os.path.exists(folder_path):
     os.makedirs(folder_path)
@@ -153,10 +136,8 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
     )
 
     # TODO not 100% satisfactorily complete
-    properties, movement_records, time, total_culled_animals, job_manager = (
-        diseaseoutbreak.simulate_outbreak_management(
-            properties, management_parameters, days_to_run_for, resource_setting="default"
-        )
+    properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_outbreak_management(
+        properties, days_to_run_for, resource_setting="default"
     )
 
     # and then resave the end state

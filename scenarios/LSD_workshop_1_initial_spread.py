@@ -75,26 +75,7 @@ else:
     with open(properties_filename, "rb") as file:
         properties = pickle.load(file)
 
-# TO REMOVE THIS ####################
-if not os.path.exists(os.path.join(folder_path_main, "base_map.png")):
-    spatial_only_filename = os.path.join(folder_path_main, "spatial_only_setup.pickle")
-    with open(spatial_only_filename, "rb") as file:
-        (
-            property_coordinates,
-            adjacency_matrix,
-            neighbour_pairs,
-            neighbourhoods,
-            property_polygons,
-            property_polygons_puffed,
-            property_areas,
-        ) = pickle.load(file)
-    output.plot_map_land(
-        property_polygons,
-        property_polygons_puffed,
-        spatial_only_parameters["xrange"],
-        spatial_only_parameters["yrange"],
-        folder_path_main,
-    )
+
 ####################
 
 # plot the neighbours (not wind-neighbours)
@@ -117,7 +98,6 @@ if not os.path.exists(os.path.join(folder_path_main, "map_underlying0.png")):
 if not os.path.exists(os.path.join(folder_path_main, "animal_density.png")):
     output.plot_animal_density(properties, xlims, ylims, folder_path=folder_path_main)
 
-exit(1)
 # step 3:  initial seeding of a property
 # the initial seeding will occur in Northern Queensland
 
@@ -222,6 +202,6 @@ if not os.path.exists(undetected_spread_properties_filename) or not os.path.exis
     print(f"Total number of infected premises: {total_infected}")
 
     if total_infected > 50 and total_infected < 110:
-        command = ["sbatch", "--parsable", f"--export=VER={sys.argv[1]}", "detection_two_weeks.sh"]
+        command = ["sbatch", "--parsable", f"--export=VER={sys.argv[1]}", "slurm_LSD_workshop_2_detection_two_weeks.sh"]
         out = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         print(out)

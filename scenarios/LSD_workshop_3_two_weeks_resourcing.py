@@ -1,6 +1,6 @@
-""" v0.3 Trial
+"""Simulated lumpy skin disease outbreak
 
-This script controls and run different elements and steps, testing the expanded version of the code post v0.2 
+Runs the two branching decisions - high and low resourcing
 
 
 """
@@ -20,11 +20,11 @@ import simulator.management as management
 import simulator.premises as premises
 import simulator.spatial_functions as spatial_functions
 
-folder_path_main = os.path.join(os.path.dirname(__file__), "outputs", "v03_trial")
+folder_path_main = os.path.join(os.path.dirname(__file__), "LSD_workshop")
 
-small_ver = ""
-with open(os.path.join(folder_path_main, f"spatial_only_parameters{small_ver}.json"), "r") as file:
-    spatial_only_parameters = json.load(file)  # has the total number of properties, hence the {small_ver}
+
+with open(os.path.join(folder_path_main, f"spatial_only_parameters.json"), "r") as file:
+    spatial_only_parameters = json.load(file)
 with open(os.path.join(folder_path_main, f"properties_specific_parameters.json"), "r") as file:
     properties_specific_parameters = json.load(file)
 with open(os.path.join(folder_path_main, "job_parameters.json"), "r") as file:
@@ -74,7 +74,6 @@ def run_specific_branch(
     diseaseoutbreak_filename,
     folder_path_local,
     unique_output,
-    management_parameters,
     days_to_run_for,
     resource_setting,
     vaccination=False,
@@ -96,10 +95,8 @@ def run_specific_branch(
             unique_output=unique_output,
         )
 
-        properties, movement_records, time, total_culled_animals, job_manager = (
-            diseaseoutbreak.simulate_outbreak_management(
-                properties, management_parameters, days_to_run_for, resource_setting, vaccination
-            )
+        properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_outbreak_management(
+            properties, days_to_run_for, resource_setting, vaccination
         )
 
         # and then resave the end state
@@ -122,8 +119,6 @@ days_to_run_for = 14
 
 outbreak_step_7_filenames = []
 
-management_parameters = []  # dummy parameters because they're not actually used right now
-
 for properties_filename, diseaseoutbreak_filename, identifier in outbreak_step_6_filenames:
     unique_output = f"{undetected_version}_{twoweeks_version}_05_two_weeks_{local_ver}_{resource_setting}"
     print(unique_output)
@@ -145,7 +140,6 @@ for properties_filename, diseaseoutbreak_filename, identifier in outbreak_step_6
         diseaseoutbreak_filename,
         folder_path_local,
         unique_output,
-        management_parameters,
         days_to_run_for,
         resource_setting,
     )

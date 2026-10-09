@@ -1,6 +1,6 @@
-""" v0.3 Trial
+"""Simulated lumpy skin disease outbreak
 
-This script controls and run different elements and steps, testing the expanded version of the code post v0.2 
+Runs the four branching decisions - high resourcing and vaccination, high resourcing and no vaccination, low resourcing and vaccination and low resourcing and no vaccination
 
 
 """
@@ -20,11 +20,10 @@ import simulator.management as management
 import simulator.premises as premises
 import simulator.spatial_functions as spatial_functions
 
-folder_path_main = os.path.join(os.path.dirname(__file__), "outputs", "v03_trial")
+folder_path_main = os.path.join(os.path.dirname(__file__), "LSD_workshop")
 
-small_ver = ""
-with open(os.path.join(folder_path_main, f"spatial_only_parameters{small_ver}.json"), "r") as file:
-    spatial_only_parameters = json.load(file)  # has the total number of properties, hence the {small_ver}
+with open(os.path.join(folder_path_main, f"spatial_only_parameters.json"), "r") as file:
+    spatial_only_parameters = json.load(file)
 with open(os.path.join(folder_path_main, f"properties_specific_parameters.json"), "r") as file:
     properties_specific_parameters = json.load(file)
 with open(os.path.join(folder_path_main, "job_parameters.json"), "r") as file:
@@ -52,9 +51,7 @@ twoweeks_version = sys.argv[2]  # version for outbreak detection and two weeks o
 second_twoweeks_version = sys.argv[3]  # version for the second two-weeks of spread (weeks 3 and 4)
 second_twoweeks_resource_setting = sys.argv[4]  # high or low
 
-unique_output = (
-    f"{undetected_version}_{twoweeks_version}_05_two_weeks_{second_twoweeks_version}_{second_twoweeks_resource_setting}"
-)
+unique_output = f"{undetected_version}_{twoweeks_version}_05_two_weeks_{second_twoweeks_version}_{second_twoweeks_resource_setting}"
 
 folder_path_local = os.path.join(folder_path_main, unique_output)
 properties_filename = os.path.join(folder_path_local, "properties_" + unique_output)
@@ -82,7 +79,6 @@ def run_specific_branch(
     diseaseoutbreak_filename,
     folder_path_local,
     unique_output,
-    management_parameters,
     days_to_run_for,
     resource_setting,
     vaccination=False,
@@ -115,10 +111,8 @@ def run_specific_branch(
 
             diseaseoutbreak.job_manager = new_job_manager
 
-        properties, movement_records, time, total_culled_animals, job_manager = (
-            diseaseoutbreak.simulate_outbreak_management(
-                properties, management_parameters, days_to_run_for, resource_setting, vaccination
-            )
+        properties, movement_records, time, total_culled_animals, job_manager = diseaseoutbreak.simulate_outbreak_management(
+            properties, days_to_run_for, resource_setting, vaccination
         )
 
         # and then resave the end state
@@ -139,7 +133,6 @@ def run_specific_branch(
 # STEP 8: phase 3, high/low resource status with vaccination or no vaccination
 days_to_run_for = 60  # 28
 
-management_parameters = []  # dummy parameters because they're not actually used right now
 
 # NOTE this could be parallellised, or run as multiple jobs on the cluster.
 
@@ -161,7 +154,6 @@ run_specific_branch(
     diseaseoutbreak_filename,
     folder_path_local,
     unique_output,
-    management_parameters,
     days_to_run_for,
     resource_setting,
     vaccination,
