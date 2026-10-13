@@ -503,9 +503,9 @@ class Premises(Property):
         return
 
     #
-    def vaccinate(self, time):
+    def vaccinate(self, time, start_date):
         self.vaccination_status = 1
-        self.vacc_date = convert_time_to_date(time)
+        self.vacc_date = convert_time_to_date(time, start_date)
 
         return 0
 
