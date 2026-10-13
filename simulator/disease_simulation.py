@@ -2891,7 +2891,7 @@ class DiseaseSimulation:
                             daily_stat_text = "vaccinated animals"
 
                         if num_animals_to_vaccinate >= total_animals:
-                            properties[property_index].vaccinate(self.time)
+                            properties[property_index].vaccinate(self.time, self.start_date)
                             if dict_text in properties[property_index].custom_info:
                                 properties[property_index].custom_info[dict_text] += total_animals
                             else:
@@ -3154,6 +3154,7 @@ class DiseaseSimulation:
                         reduced_movement_zone=control_area,
                         movement_reduction_factor=movement_reduction_factor,
                         all_movement_reduction_factor=0.8,  # reducing probability of movement in RA and CA
+                        start_date=self.start_date,
                     )
                 elif outbreak_sim == "FMD":
                     movement_record, number_of_movement_requests, trucks_df = FMD_functions.animal_movement(
@@ -3165,6 +3166,7 @@ class DiseaseSimulation:
                         all_movement_reduction_factor=0.8,
                         trucks_df=trucks_df,
                         disease_parameters=self.disease_parameters,
+                        start_date=self.start_date,
                     )
 
                 self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
