@@ -20,6 +20,13 @@ module load texlive
 
 python3 scenarios/LSD_workshop_2_detection_two_weeks.py $VER $SLURM_ARRAY_TASK_ID
 
+python3 scenarios/LSD_workshop_5_plotting_preworkshop.py $VER $SLURM_ARRAY_TASK_ID
+
+python3 scenarios/LSD_workshop_6_plotting_workshop_part1.py $VER $SLURM_ARRAY_TASK_ID
+
+python3 scenarios/LSD_workshop_10_plot_column_figures.py scenarios/LSD_workshop/${VER}_04_two_weeks_${SLURM_ARRAY_TASK_ID}/properties_${VER}_04_two_weeks_${SLURM_ARRAY_TASK_ID}
+
+
 
 END=$(date "+%s")
 echo -e "\n"
