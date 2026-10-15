@@ -681,7 +681,18 @@ def trigger_first_report(
     state="VIC",
     create_download_folder=False,
     download_parent_folder=None,
+    random_seed=15,
+    np_random_seed=16,
+    first_report_herd_id=25435,
 ):
+    """
+
+
+    first_report_herd_id
+        25435 is for AgVic run
+        try this herd first, otherwise I'll just trigger any other report
+
+    """
     ###################################################
     # ---- Code run set up ---------------------------#
     ###################################################
@@ -704,9 +715,6 @@ def trigger_first_report(
     # ---- Trigger first report ----------------------#
     ###################################################
 
-    # try this herd first, otherwise I'll just trigger any other report
-    first_report_herd_id = 25435
-
     # trigger first report and stop / output
     unique_output = "03_outbreak_detection"
     folder_path_first_report = os.path.join(folder_path_main, unique_output)
@@ -720,8 +728,8 @@ def trigger_first_report(
 
     output_suffix = "_01"
 
-    random.seed(15)
-    np.random.seed(16)
+    random.seed(random_seed)
+    np.random.seed(np_random_seed)
     if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_diseaseoutbreak_filename):
 
         # adjust the plotting parameters for this new scenario
@@ -799,7 +807,7 @@ def get_enhanced_passive_surveillance_area(property_based_zones, properties):
         EPS_geo_list.append(enhanced_passive_surveillance_area)
         if isinstance(row["zone_parameter"], float):
             enhanced_reporting_factor = row["zone_parameter"]
-        elif row["zone_parameter"].isnull() and enhanced_reporting_factor == 1:
+        elif (row["zone_parameter"] == "" or row["zone_parameter"].isnull()) and enhanced_reporting_factor == 1:
             enhanced_reporting_factor = 2
         else:
             pass
@@ -1148,7 +1156,17 @@ def run_auto_strategies(
     strategy="default",
     shapefile_path=None,
     start_date=datetime.datetime(year=2026, month=3, day=1),
+    random_seed=None,
+    np_random_seed=None,
+    EPS_factor=None,
+    save_output_data=True,
 ):
+    """
+
+    random_seed and np_random_seed need to be not None at the same time if using; and EPS_factor should ideally also be nonzero in that case
+
+
+    """
     ###################################################
     # ---- Code run set up ---------------------------#
     ###################################################
@@ -1174,7 +1192,7 @@ def run_auto_strategies(
     RA_shape = None
     CA_shape = None
     EPS_shape = None
-    EPS_factor = None
+
     if shapefile_path != None:
         try:
             shp_zones = gpd.read_file(shapefile_path)
@@ -1208,93 +1226,72 @@ def run_auto_strategies(
     approx_data_csv = os.path.join(previous_folder, f"approx_known_data_{previous_unique_output}.csv")
 
     # set up for new simulation portion
-    # set up new info
+    # set up new info - for saving reasons
     outputnumber = previous_output_suffix_int + 1
     output_suffix = f"_{outputnumber:02d}"
 
     unique_output = f"{outputnumber:02d}_{strategy}"
     folder_path = os.path.join(folder_path_main, unique_output)
 
-    print(folder_path)
-
-    if not os.path.exists(folder_path):
-        os.makedirs(folder_path)
-
     spread_properties_filename = os.path.join(folder_path, "properties_" + unique_output)
     spread_diseaseoutbreak_filename = os.path.join(folder_path, "outbreakobject_" + unique_output)
     spread_trucks_filename = os.path.join(folder_path, "trucks_df_" + unique_output)
+    if save_output_data:
+        print(folder_path)
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+
+    else:
+        pass
+        # # dummy folder path
+        # folder_path = folder_path_main
+        # unique_output = ""  # dummy unique output - no outputs actually occuring
 
     running_day = 1
     save_data = False
+    approx_known_data_df = None
     while running_day <= total_days_to_run_for:
-        if running_day == total_days_to_run_for:
+        if running_day == total_days_to_run_for and save_output_data:
             save_data = True
 
-        if strategy in ["large_CA", "small_CA", "large_CA_1", "small_CA_1"]:
-            EPS_factor = 10
-
-            # large CA: 29 IPs; small CA: 31 IPs.
-            random.seed(31)
-            np.random.seed(53)
-
-            # # large CA: 37
-            # random.seed(1)
-            # np.random.seed(1)
-
-            # small CA: 35 IPs, large CA: 34 IPs - no EPS factor change
-            # random.seed(6131)
-            # np.random.seed(1261653)
-        elif "surveillance_focus" in strategy or "cull_focus" in strategy:
-            EPS_factor = 20
-
-            # random.seed(1331)
-            # np.random.seed(3153)
-
-            # small CA 70 IPs, large CA like 96 IPS...
-            # random.seed(113413)
-            # np.random.seed(534522)
-
-            # small CA 100 ip;  large CA 47 IP
-            # after increasing resourcing; 75 IPs for small CA, 55 IPs for large CA...  [for culling focus]
-            random.seed(31)
-            np.random.seed(53)
-
-            # small CA cull focus: 76 IPs, large CA: 82 IPs ???
-            # random.seed(631)
-            # np.random.seed(1261)
-
-            # large CA surveillance: 82 IPs, smal lCA surveillance focus: 92 IPs..., small CA cull focus: 74 IPs... (before increase in teams)
-            # random.seed(6131)
-            # np.random.seed(1261653)
-
-        elif "initial_investigation" in strategy:
-            random.seed(1235)
-            np.random.seed(1116)
-        elif "national_standstill" in strategy:
-            EPS_factor = 10
-
-            #  24 IPs
-            random.seed(472)
-            np.random.seed(6092)
-
-            # # 26 IPS
-            # random.seed(12532)
-            # np.random.seed(11326)
-
-            # 27 IPs
-            # random.seed(125)
-            # np.random.seed(116)
+        if random_seed is not None and np_random_seed is not None:
+            random.seed(random_seed)
+            np.random.seed(np_random_seed)
         else:
-            EPS_factor = 10
-            random.seed(1235)
-            np.random.seed(1116)
+            # setup for AgVic Run
+            if strategy in ["large_CA", "small_CA", "large_CA_1", "small_CA_1"]:
+                EPS_factor = 10
+                random.seed(31)
+                np.random.seed(53)
+
+            elif "surveillance_focus" in strategy or "cull_focus" in strategy:
+                EPS_factor = 20
+
+                random.seed(31)
+                np.random.seed(53)
+
+            elif "initial_investigation" in strategy:
+                random.seed(1235)
+                np.random.seed(1116)
+            elif "national_standstill" in strategy:
+                EPS_factor = 10
+
+                random.seed(472)
+                np.random.seed(6092)
+
+            else:
+                EPS_factor = 10
+                random.seed(1235)
+                np.random.seed(1116)
         # assign jobs
         scheduled_date = premises.convert_time_to_date(diseaseoutbreak.time + 1, start_date)
-        auto_job_mode.generate_jobs_teams_FMD(folder_path, approx_data_csv, scheduled_date, running_day, strategy)
+        property_jobs, zones_based_jobs, property_based_zones = auto_job_mode.generate_jobs_teams_FMD(
+            folder_path, approx_data_csv, scheduled_date, running_day, strategy, save_output_data, approx_known_data_df
+        )
 
-        property_jobs = pd.read_csv(os.path.join(folder_path, f"jobs_{running_day}.csv"))
-        zones_based_jobs = pd.read_csv(os.path.join(folder_path, f"zone_jobs_{running_day}.csv"))
-        property_based_zones = pd.read_csv(os.path.join(folder_path, f"zones_{running_day}.csv"))
+        # property_jobs = pd.read_csv(os.path.join(folder_path, f"jobs_{running_day}.csv"))
+        # zones_based_jobs = pd.read_csv(os.path.join(folder_path, f"zone_jobs_{running_day}.csv"))
+        # property_based_zones = pd.read_csv(os.path.join(folder_path, f"zones_{running_day}.csv"))
 
         # construct zones
         enhanced_passive_surveillance_area, enhanced_reporting_factor = get_enhanced_passive_surveillance_area(property_based_zones, properties)
@@ -1308,7 +1305,7 @@ def run_auto_strategies(
         diseaseoutbreak.set_plotting_parameters(
             xlims=xlims,
             ylims=ylims,
-            plotting=True,
+            plotting=save_output_data,
             folder_path=folder_path,
             unique_output=unique_output,
         )
@@ -1332,28 +1329,37 @@ def run_auto_strategies(
             save_data=save_data,
             strategy=strategy,
             state=state,
+            save_plots=save_output_data,
         )
 
-        if running_day == total_days_to_run_for:
-            FMD_functions.save_approx_known_data(properties, folder_path, unique_output=unique_output)
-            approx_data_csv = os.path.join(folder_path, f"approx_known_data_{unique_output}.csv")
+        if save_output_data:
+            if running_day == total_days_to_run_for:
+                FMD_functions.save_approx_known_data(properties, folder_path, unique_output=unique_output)
+                approx_data_csv = os.path.join(folder_path, f"approx_known_data_{unique_output}.csv")
+            else:
+                FMD_functions.save_approx_known_data(properties, folder_path, unique_output="", output_suffix=f"{output_suffix}_{running_day}")
+                approx_data_csv = os.path.join(folder_path, f"approx_known_data{output_suffix}_{running_day}.csv")
         else:
-            FMD_functions.save_approx_known_data(properties, folder_path, unique_output="", output_suffix=f"{output_suffix}_{running_day}")
-            approx_data_csv = os.path.join(folder_path, f"approx_known_data{output_suffix}_{running_day}.csv")
+            approx_known_data_df = FMD_functions.save_approx_known_data(properties, folder_path, save_output=False)
+            approx_known_data_df = approx_known_data_df.replace("NA", np.nan)
+            # print(approx_known_data_df)
+            approx_data_csv = None
 
         running_day += 1
 
-    # and then resave the end state
-    with open(spread_properties_filename, "wb") as file:
-        pickle.dump(properties, file)
+    ############ finished running, now save ###############
+    if save_output_data:
+        # and then resave the end state
+        with open(spread_properties_filename, "wb") as file:
+            pickle.dump(properties, file)
 
-    # and save the diseaseoutbreak object
-    with open(spread_diseaseoutbreak_filename, "wb") as file:
-        pickle.dump(diseaseoutbreak, file)
+        # and save the diseaseoutbreak object
+        with open(spread_diseaseoutbreak_filename, "wb") as file:
+            pickle.dump(diseaseoutbreak, file)
 
-    # and save the trucks
-    with open(spread_trucks_filename, "wb") as file:
-        pickle.dump(trucks_df, file)
+        # and save the trucks
+        with open(spread_trucks_filename, "wb") as file:
+            pickle.dump(trucks_df, file)
 
     total_infected = 0
     for property_i in properties:
@@ -1367,9 +1373,15 @@ def run_auto_strategies(
             total_infected_properties_with_infected_animals += 1
             total_infected_animals += property_i.number_infected
 
+    total_confirmed_IPs = 0
+    for property_i in properties:
+        if property_i.ip != "NA":
+            total_confirmed_IPs += 1
+
     print(f"Total number of infected premises: {total_infected}")
     print(f"Total number of infected premises with infected animals: {total_infected_properties_with_infected_animals}")
     print(f"Total number of infected animals: {total_infected_animals}")
+    print(f"Total number of confirmed IPs: {total_confirmed_IPs}")
 
     if create_download_folder:
         if download_parent_folder == None:
@@ -1379,7 +1391,7 @@ def run_auto_strategies(
 
         v06_functions.create_separate_download_folder(folder_path, download_parent_folder, download_folder_name)
 
-    return 0
+    return total_infected_properties_with_infected_animals, total_confirmed_IPs
 
 
 # def undetected_spread_sim(rng, cattle_wind, cattle_beta, pigs_wind, pigs_beta, sheep_wind, sheep_beta,size=None):
