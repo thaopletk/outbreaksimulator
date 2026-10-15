@@ -943,19 +943,12 @@ class DiseaseSimulation:
             # run infection model for each property
             properties = self.run_infection_model_for_each_property(properties, FOI)
 
-            # TODO enact any management, before animal movements, so that we can calculate control zones I guess
-            # schedule all tasks, and then will prioritise later
-
             source_indices = []
             for i, premise in enumerate(properties):
                 # also need to add in DCPs. This could either be: (1) properties with positive clinical result (well, at least), or more broadly could be (2) any properties currently on the contact tracing list/undergoing testing
                 # to get the properties currently undergoing contact tracing or testing, I would need to go through the job queue, and find active jobs, and find the properties currently under active management
                 if premise.reported_status == True or premise.clinical_report_outcome == True or premise.status == "DCP":
                     source_indices.append(i)
-
-            # list_of_premises = self.job_manager.get_premises_under_active_jobs()
-            # source_indices.extend(list_of_premises)
-            # source_indices = list(set(source_indices))
 
             # Get current control/etc zones
             # Restricted area: highly restricted
@@ -982,7 +975,6 @@ class DiseaseSimulation:
                 100,  # 100 km
                 convex=False,
             )
-            # TODO: idk if I should include Queensland into the controlzone too or not ah.
 
             if resource_setting in ["default", "high"]:
                 # I want to do this buffer but it keeps breaking my laptop
@@ -1007,8 +999,6 @@ class DiseaseSimulation:
                 high_priority_surveillance_zone = control_area
 
             self.controlzone["surveillance area"] = high_priority_surveillance_zone
-
-            # TODO expand more zones to match LGA and other boundaries?
 
             # assign new jobs - i.e. surveillance based on the control zones
             for i, premise in enumerate(properties):
@@ -1154,12 +1144,6 @@ class DiseaseSimulation:
                     infectionpoly=False,
                     contacts_for_plotting=self.contacts_for_plotting,
                 )
-                # # should also save things for plotting: i.e., everything that I had used to actually plot
-                # with open(os.path.join(self.folder_path, "plotting_data" + str(self.time)), "wb") as file:
-                #     pickle.dump(
-                #         [properties, self.time, self.xlims, self.ylims, self.controlzone, self.contacts_for_plotting],
-                #         file,
-                #     )
 
         with open(os.path.join(self.folder_path, "plotting_data" + str(self.time)), "wb") as file:
             pickle.dump(
