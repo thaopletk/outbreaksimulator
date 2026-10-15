@@ -849,22 +849,25 @@ class DiseaseSimulation:
 
         # forcing a property to report
         if outbreak_sim == "FMD":
-            first_report_i = None
-            for i, property in enumerate(properties):
-                if "herd_id" in property.FMD_extra_info:
-                    if first_report_herd_id == property.FMD_extra_info["herd_id"]:
-                        first_report_i = i
-                        break
-            if first_report_i != None:
-                # check if it's actually infected or not
-                if properties[first_report_i].clinical_date != "NA":
-                    print("first detected herd successfully found")
-                    pass  # good
+            if first_report_herd_id is not None:
+                first_report_i = None
+                for i, property in enumerate(properties):
+                    if "herd_id" in property.FMD_extra_info:
+                        if first_report_herd_id == property.FMD_extra_info["herd_id"]:
+                            first_report_i = i
+                            break
+                if first_report_i != None:
+                    # check if it's actually infected or not
+                    if properties[first_report_i].clinical_date != "NA":
+                        print("first detected herd successfully found")
+                        pass  # good
+                    else:
+                        print("ideal first detected herd not actually infected")
+                        first_report_i = self.select_first_reported_property(properties, reportingregion_x, reportingregion_y)
                 else:
-                    print("ideal first detected herd not actually infected")
+                    print("ideal first detected herd not among the current properties")
                     first_report_i = self.select_first_reported_property(properties, reportingregion_x, reportingregion_y)
             else:
-                print("ideal first detected herd not among the current properties")
                 first_report_i = self.select_first_reported_property(properties, reportingregion_x, reportingregion_y)
         else:
             first_report_i = self.select_first_reported_property(properties, reportingregion_x, reportingregion_y)
@@ -2317,6 +2320,7 @@ class DiseaseSimulation:
         save_data=True,
         strategy=None,
         state="",
+        save_plots=True,  # this is about the plots per day
     ):
 
         if time != None:
@@ -3290,45 +3294,45 @@ class DiseaseSimulation:
                 save_name="current_infected_properties",
                 title="Current number of properties with infected animals",
             )
+        if save_plots:
+            output.plot_HPAI_outbreak_apparent(
+                properties,
+                restricted_area,
+                control_area,
+                enhanced_passive_surveillance_area,
+                self.xlims,
+                self.ylims,
+                self.folder_path,
+                self.time,
+                state=state,
+            )
 
-        output.plot_HPAI_outbreak_apparent(
-            properties,
-            restricted_area,
-            control_area,
-            enhanced_passive_surveillance_area,
-            self.xlims,
-            self.ylims,
-            self.folder_path,
-            self.time,
-            state=state,
-        )
+            output.plot_HPAI_outbreak_apparent(
+                properties,
+                restricted_area,
+                control_area,
+                enhanced_passive_surveillance_area,
+                self.xlims,
+                self.ylims,
+                self.folder_path,
+                self.time,
+                zoomed_in=True,
+                state=state,
+            )
 
-        output.plot_HPAI_outbreak_apparent(
-            properties,
-            restricted_area,
-            control_area,
-            enhanced_passive_surveillance_area,
-            self.xlims,
-            self.ylims,
-            self.folder_path,
-            self.time,
-            zoomed_in=True,
-            state=state,
-        )
-
-        output.plot_HPAI_outbreak_apparent(
-            properties,
-            restricted_area,
-            control_area,
-            enhanced_passive_surveillance_area,
-            self.xlims,
-            self.ylims,
-            self.folder_path,
-            self.time,
-            zoomed_in=True,
-            show_hidden_infected_properties=True,
-            state=state,
-        )
+            output.plot_HPAI_outbreak_apparent(
+                properties,
+                restricted_area,
+                control_area,
+                enhanced_passive_surveillance_area,
+                self.xlims,
+                self.ylims,
+                self.folder_path,
+                self.time,
+                zoomed_in=True,
+                show_hidden_infected_properties=True,
+                state=state,
+            )
 
         if outbreak_sim == "HPAI":
             return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager
