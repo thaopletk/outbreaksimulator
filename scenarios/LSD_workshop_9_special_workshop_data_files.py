@@ -6,28 +6,11 @@ Runs special data outputs for the workshop. Note hard-coded parameters selecting
 
 import sys
 import os
-import json
 import pickle
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-import numpy as np
 
-# from shapely.geometry import Point
-# import csv
-# import math
-import matplotlib.pyplot as plt
-import simulator.spatial_setup as spatial_setup
 import simulator.management as management
-import simulator.premises as premises
-import simulator.SEIR as SEIR
-import simulator.output as output
-import simulator.animal_movement as animal_movement
-import simulator.spatial_functions as spatial_functions
-from shapely.ops import transform, unary_union
-from shapely.geometry import Polygon, Point, LineString, MultiPolygon, MultiPoint
-import geopandas as gpd
-import contextily as ctx
-from matplotlib_scalebar.scalebar import ScaleBar
 import pandas as pd
 import csv
 
@@ -180,8 +163,8 @@ def calculate_new_statuses(folder_path, properties, diseaseoutbreak):
 
 folder_path_main = os.path.join(os.path.dirname(__file__), "LSD_workshop")
 
-undetected_spread_version = 49
-detected_spread_version = 12
+undetected_spread_version = int(sys.argv[1])
+detected_spread_version = int(sys.argv[2])
 
 
 unique_output = f"{undetected_spread_version}_04_two_weeks_{detected_spread_version}"
@@ -189,16 +172,14 @@ folder_path = os.path.join(folder_path_main, unique_output)
 
 #############################################
 # read in relevant data--
-day = 82
+diseaseoutbreak_filename = os.path.join(folder_path, f"outbreakobject_{unique_output}")
+with open(diseaseoutbreak_filename, "rb") as file:
+    diseaseoutbreak = pickle.load(file)
+day = diseaseoutbreak.time
 
 plotting_data_name = os.path.join(folder_path, f"plotting_data{day}")
 with open(plotting_data_name, "rb") as file:
     properties, time, xlims, ylims, controlzone, contacts_for_plotting = pickle.load(file)
-
-diseaseoutbreak_filename = os.path.join(folder_path, f"outbreakobject_{unique_output}")
-with open(diseaseoutbreak_filename, "rb") as file:
-    diseaseoutbreak = pickle.load(file)
-
 
 culled, confirmed_infected, DCP, TPs_undergoing_testing = calculate_new_statuses(folder_path, properties, diseaseoutbreak)
 
@@ -206,26 +187,25 @@ save_special_data_file(folder_path, "1", properties, culled, confirmed_infected,
 
 
 #############################################
-two_weeks_version = 8
 
-day = 96
+two_weeks_version = int(sys.argv[3])
 
-for resource_setting in ["high", "low"]:
+resource_setting = sys.argv[4]
 
-    unique_output = f"{undetected_spread_version}_{detected_spread_version}_05_two_weeks_{two_weeks_version}_{resource_setting}"
-    folder_path = os.path.join(folder_path_main, unique_output)
+unique_output = f"{undetected_spread_version}_{detected_spread_version}_05_two_weeks_{two_weeks_version}_{resource_setting}"
+folder_path = os.path.join(folder_path_main, unique_output)
 
-    #############################################
-    # read in relevant data--
+#############################################
+# read in relevant data--
+diseaseoutbreak_filename = os.path.join(folder_path, f"outbreakobject_{unique_output}")
+with open(diseaseoutbreak_filename, "rb") as file:
+    diseaseoutbreak = pickle.load(file)
+day = diseaseoutbreak.time
 
-    plotting_data_name = os.path.join(folder_path, f"plotting_data{day}")
-    with open(plotting_data_name, "rb") as file:
-        properties, time, xlims, ylims, controlzone, contacts_for_plotting = pickle.load(file)
+plotting_data_name = os.path.join(folder_path, f"plotting_data{day}")
+with open(plotting_data_name, "rb") as file:
+    properties, time, xlims, ylims, controlzone, contacts_for_plotting = pickle.load(file)
 
-    diseaseoutbreak_filename = os.path.join(folder_path, f"outbreakobject_{unique_output}")
-    with open(diseaseoutbreak_filename, "rb") as file:
-        diseaseoutbreak = pickle.load(file)
+culled, confirmed_infected, DCP, TPs_undergoing_testing = calculate_new_statuses(folder_path, properties, diseaseoutbreak)
 
-    culled, confirmed_infected, DCP, TPs_undergoing_testing = calculate_new_statuses(folder_path, properties, diseaseoutbreak)
-
-    save_special_data_file(folder_path, "2_" + resource_setting, properties, culled, confirmed_infected, DCP, TPs_undergoing_testing)
+save_special_data_file(folder_path, "2_" + resource_setting, properties, culled, confirmed_infected, DCP, TPs_undergoing_testing)

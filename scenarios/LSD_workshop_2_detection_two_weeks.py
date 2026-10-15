@@ -18,12 +18,8 @@ import random
 import numpy as np
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-import simulator.simulator as simulator
-import simulator.output as output
-import simulator.disease_simulation as disease_simulation
-import simulator.management as management
-import simulator.premises as premises
-import simulator.spatial_functions as spatial_functions
+
+import subprocess
 
 folder_path_main = os.path.join(os.path.dirname(__file__), "LSD_workshop")
 
@@ -160,7 +156,26 @@ if not os.path.exists(spread_properties_filename) or not os.path.exists(spread_d
 
     print(f"Total number of infected premises: {total_infected}")
 
-# else:
+else:
+    command = [
+        "sbatch",
+        "--parsable",
+        f"--export=UNDETECTEDVER={sys.argv[1]},DETECTIONVER={sys.argv[2]},RESOURCING=high",
+        "slurm_LSD_workshop_3_two_weeks_resourcing.sh",
+    ]
+    out = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    print(out)
+
+    command = [
+        "sbatch",
+        "--parsable",
+        f"--export=UNDETECTEDVER={sys.argv[1]},DETECTIONVER={sys.argv[2]},RESOURCING=low",
+        "slurm_LSD_workshop_3_two_weeks_resourcing.sh",
+    ]
+    out = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    print(out)
+
+
 #     with open(spread_properties_filename, "rb") as file:
 #         properties = pickle.load(file)
 #     with open(spread_diseaseoutbreak_filename, "rb") as file:

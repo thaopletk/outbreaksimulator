@@ -25,12 +25,8 @@ import random
 import numpy as np
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-import simulator.simulator as simulator
-import simulator.output as output
-import simulator.disease_simulation as disease_simulation
 import simulator.management as management
-import simulator.premises as premises
-import simulator.spatial_functions as spatial_functions
+import subprocess
 
 folder_path_main = os.path.join(os.path.dirname(__file__), "LSD_workshop")
 

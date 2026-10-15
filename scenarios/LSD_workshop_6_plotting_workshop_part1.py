@@ -28,8 +28,8 @@ from matplotlib.path import Path
 
 folder_path_main = os.path.join(os.path.dirname(__file__), "LSD_workshop")
 
-undetected_spread_version = 49
-detected_spread_version = 12
+undetected_spread_version = int(sys.argv[1])
+detected_spread_version = int(sys.argv[2])
 
 
 unique_output = f"{undetected_spread_version}_04_two_weeks_{detected_spread_version}"
@@ -37,15 +37,16 @@ folder_path = os.path.join(folder_path_main, unique_output)
 
 #############################################
 # read in relevant data--
-day = 82
+diseaseoutbreak_filename = os.path.join(folder_path, f"outbreakobject_{unique_output}")
+with open(diseaseoutbreak_filename, "rb") as file:
+    diseaseoutbreak = pickle.load(file)
+
+day = diseaseoutbreak.time
 
 plotting_data_name = os.path.join(folder_path, f"plotting_data{day}")
 with open(plotting_data_name, "rb") as file:
     properties, time, xlims, ylims, controlzone, contacts_for_plotting = pickle.load(file)
 
-diseaseoutbreak_filename = os.path.join(folder_path, f"outbreakobject_{unique_output}")
-with open(diseaseoutbreak_filename, "rb") as file:
-    diseaseoutbreak = pickle.load(file)
 
 narrative = pd.read_csv(os.path.join(folder_path, "combinated_narrative.csv"))
 
@@ -120,15 +121,36 @@ for control_type in ["additional movement restrictions", "control area", "restri
     print(control_type)
     zone = zone.difference(NT_WA)
 
-    for subpoly in zone.geoms:
+    try:
         output.plot_polygon(
             ax,
-            subpoly,
+            zone,
             facecolor=colour_dictionary[control_type]["face"],
             edgecolor=colour_dictionary[control_type]["edge"],
             alpha=1,
             label=control_type,
         )
+    except:
+        try:
+            for subpoly in zone:
+                output.plot_polygon(
+                    ax,
+                    subpoly,
+                    facecolor=colour_dictionary[control_type]["face"],
+                    edgecolor=colour_dictionary[control_type]["edge"],
+                    alpha=1,
+                    label=control_type,
+                )
+        except:
+            for subpoly in zone.geoms:
+                output.plot_polygon(
+                    ax,
+                    subpoly,
+                    facecolor=colour_dictionary[control_type]["face"],
+                    edgecolor=colour_dictionary[control_type]["edge"],
+                    alpha=1,
+                    label=control_type,
+                )
 
 for control_type in ["restricted area", "control area", "additional movement restrictions"]:
 
@@ -246,7 +268,12 @@ for geometry, colour, marker, markerlabel, markersize, edgecolour, alpha in [
         alpha=alpha,
     )
 
-ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)  # source=ctx.providers.OpenStreetMap.Mapnik
+ctx.add_basemap(
+    ax,
+    crs={"init": "epsg:4326"},
+    source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_CartoDBPositron.tif"),
+    attribution="© OpenStreetMap contributors, © CARTO",
+)
 
 
 # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
@@ -292,15 +319,37 @@ for control_type in ["additional movement restrictions", "control area", "restri
     print(control_type)
     zone = zone.difference(NT_WA)
 
-    for subpoly in zone.geoms:
+    try:
         output.plot_polygon(
             ax,
-            subpoly,
+            zone,
             facecolor=colour_dictionary[control_type]["face"],
             edgecolor=colour_dictionary[control_type]["edge"],
             alpha=1,
             label=control_type,
         )
+    except:
+        try:
+            for subpoly in zone:
+                output.plot_polygon(
+                    ax,
+                    subpoly,
+                    facecolor=colour_dictionary[control_type]["face"],
+                    edgecolor=colour_dictionary[control_type]["edge"],
+                    alpha=1,
+                    label=control_type,
+                )
+        except:
+            for subpoly in zone.geoms:
+                output.plot_polygon(
+                    ax,
+                    subpoly,
+                    facecolor=colour_dictionary[control_type]["face"],
+                    edgecolor=colour_dictionary[control_type]["edge"],
+                    alpha=1,
+                    label=control_type,
+                )
+
 
 for control_type in ["restricted area", "control area", "additional movement restrictions"]:
 
@@ -357,7 +406,12 @@ for geometry, colour, marker, markerlabel, markersize, edgecolour, alpha in [
         alpha=alpha,
     )
 
-ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)  # source=ctx.providers.OpenStreetMap.Mapnik
+ctx.add_basemap(
+    ax,
+    crs={"init": "epsg:4326"},
+    source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_CartoDBPositron.tif"),
+    attribution="© OpenStreetMap contributors, © CARTO",
+)
 
 
 # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html

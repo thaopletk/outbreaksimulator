@@ -20,12 +20,8 @@ import random
 import numpy as np
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-import simulator.simulator as simulator
-import simulator.output as output
-import simulator.disease_simulation as disease_simulation
-import simulator.management as management
-import simulator.premises as premises
-import simulator.spatial_functions as spatial_functions
+
+import subprocess
 
 folder_path_main = os.path.join(os.path.dirname(__file__), "LSD_workshop")
 
@@ -150,3 +146,40 @@ for properties_filename, diseaseoutbreak_filename, identifier in outbreak_step_6
         days_to_run_for,
         resource_setting,
     )
+
+
+command = [
+    "sbatch",
+    "--parsable",
+    f"--export=UNDETECTEDVER={sys.argv[1]},DETECTIONVER={sys.argv[2]},TWOWEEKSVER={sys.argv[3]},TWOWEEKSRESOURCING={sys.argv[4]},RESOURCING=high,VACCINATION=True",
+    "slurm_LSD_workshop_4_final_phase.sh",
+]
+out = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+print(out)
+
+command = [
+    "sbatch",
+    "--parsable",
+    f"--export=UNDETECTEDVER={sys.argv[1]},DETECTIONVER={sys.argv[2]},TWOWEEKSVER={sys.argv[3]},TWOWEEKSRESOURCING={sys.argv[4]},RESOURCING=high,VACCINATION=False",
+    "slurm_LSD_workshop_4_final_phase.sh",
+]
+out = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+print(out)
+
+command = [
+    "sbatch",
+    "--parsable",
+    f"--export=UNDETECTEDVER={sys.argv[1]},DETECTIONVER={sys.argv[2]},TWOWEEKSVER={sys.argv[3]},TWOWEEKSRESOURCING={sys.argv[4]},RESOURCING=low,VACCINATION=True",
+    "slurm_LSD_workshop_4_final_phase.sh",
+]
+out = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+print(out)
+
+command = [
+    "sbatch",
+    "--parsable",
+    f"--export=UNDETECTEDVER={sys.argv[1]},DETECTIONVER={sys.argv[2]},TWOWEEKSVER={sys.argv[3]},TWOWEEKSRESOURCING={sys.argv[4]},RESOURCING=low,VACCINATION=False",
+    "slurm_LSD_workshop_4_final_phase.sh",
+]
+out = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+print(out)

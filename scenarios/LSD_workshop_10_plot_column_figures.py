@@ -26,6 +26,7 @@ def plot_time_series_columns(
     save_name=None,
     max_x_ticks=5,
     max_y_ticks=5,
+    start_date=dt.datetime(year=2026, month=3, day=9),
     **kwargs,
 ):
     # Check maximum values along each axis
@@ -47,7 +48,7 @@ def plot_time_series_columns(
         y_spacing = int(5 * np.ceil((y_scale / max_y_ticks) / 5))
 
     x_ticks = list(range(x_scale))
-    x_tick_labels = [convert_time_to_date(x, dt.datetime(year=2026, month=3, day=9), "%d/%m") for x in x_ticks[::x_spacing]]
+    x_tick_labels = [convert_time_to_date(x, start_date, "%d/%m") for x in x_ticks[::x_spacing]]
 
     # Set up figure
     fig, ax = plt.subplots(1, 1, figsize=(10, 6))
@@ -103,9 +104,8 @@ def main(filename):
         raise e
 
     print(os.path.basename(filename))
-    folder = f"figures_{os.path.basename(filename).split('.')[0]}"
+    folder = os.path.join(os.path.dirname(__file__), "LSD_workshop", f"figures_{os.path.basename(filename).split('.')[0]}")
     os.makedirs(folder, exist_ok=True)
-    # folder = os.path.join(os.path.dirname(__file__),"LSD_workshop")
 
     # Get relevant data into a DataFrame
     print("Plotting column graphs... ", end="")
@@ -113,7 +113,7 @@ def main(filename):
     states_list = [ii.address["state"] for ii in properties if ii.notification_date != "NA"]
     notification_list = [ii.notification_date for ii in properties if ii.notification_date != "NA"]
     date_series = pd.to_datetime(notification_list, format="%d/%m/%Y")
-    start_date = pd.to_datetime("2026-03-09")
+    start_date = min(date_series)
     days_from_start = (date_series - start_date).days
     df = pd.DataFrame(
         {
@@ -142,6 +142,7 @@ def main(filename):
             save=True,
             folder_path=folder,
             save_name=f"daily_state_{state.lower().replace(' ', '_')}",
+            start_date=start_date,
         )
 
         plot_time_series_columns(
@@ -153,6 +154,7 @@ def main(filename):
             save=True,
             folder_path=folder,
             save_name=f"total_state_{state.lower().replace(' ', '_')}",
+            start_date=start_date,
         )
 
         if ii == 0:
@@ -170,6 +172,7 @@ def main(filename):
         save=True,
         folder_path=folder,
         save_name=f"daily_all_stacked",
+        start_date=start_date,
     )
     plot_time_series_columns(
         x_values,
@@ -180,6 +183,7 @@ def main(filename):
         save=True,
         folder_path=folder,
         save_name=f"daily_all_combined",
+        start_date=start_date,
     )
     plot_time_series_columns(
         x_values,
@@ -190,6 +194,7 @@ def main(filename):
         save=True,
         folder_path=folder,
         save_name=f"total_all_stacked",
+        start_date=start_date,
     )
     plot_time_series_columns(
         x_values,
@@ -200,6 +205,7 @@ def main(filename):
         save=True,
         folder_path=folder,
         save_name=f"total_all_combined",
+        start_date=start_date,
     )
     print("done.")
 
