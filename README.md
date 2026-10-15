@@ -45,8 +45,8 @@ Run `scenarios\LSD_test.py`
 Run the `LSD_workshop_*.py` files in turn. Some slurm scripts are provided as examples, starting with
 - `slurm_venv_setup.py`
 - `slurm_LSD_workshop_1_initial_spread.sh`
-- `slurm_LSD_workshop_2_deteciton_two_weeks.sh`
 
+Assuming that everything runs successfully, files will submit jobs for the next step and so on until completion.
 
 **The main steps**:
 The model procedes through these setps:
