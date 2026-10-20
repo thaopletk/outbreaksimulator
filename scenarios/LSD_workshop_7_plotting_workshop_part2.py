@@ -31,7 +31,7 @@ from matplotlib_scalebar.scalebar import ScaleBar
 import pandas as pd
 from matplotlib.path import Path
 
-folder_path_main = os.path.join(os.path.dirname(__file__), "LSD_Workshop")
+folder_path_main = os.path.join(os.path.dirname(__file__), "LSD_workshop")
 
 undetected_spread_version = int(sys.argv[1])
 detected_spread_version = int(sys.argv[2])

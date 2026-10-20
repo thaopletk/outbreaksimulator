@@ -24,7 +24,7 @@ python3 scenarios/LSD_workshop_7_plotting_workshop_part2.py $UNDETECTEDVER $DETE
 
 python3 scenarios/LSD_workshop_9_special_workshop_data_files.py $UNDETECTEDVER $DETECTIONVER $SLURM_ARRAY_TASK_ID $RESOURCING
 
-python3 scenarios/LSD_workshop_10_plot_column_figures.py LSD_workshop/$UNDETECTEDVER_$DETECTIONVER_05_two_weeks_${SLURM_ARRAY_TASK_ID}_$RESOURCING/properties_$UNDETECTEDVER_$DETECTIONVER_05_two_weeks_${SLURM_ARRAY_TASK_ID}_$RESOURCING
+python3 scenarios/LSD_workshop_10_plot_column_figures.py scenarios/LSD_workshop/${UNDETECTEDVER}_${DETECTIONVER}_05_two_weeks_${SLURM_ARRAY_TASK_ID}_${RESOURCING}/properties_${UNDETECTEDVER}_${DETECTIONVER}_05_two_weeks_${SLURM_ARRAY_TASK_ID}_${RESOURCING}
 
 END=$(date "+%s")
 echo -e "\n"
