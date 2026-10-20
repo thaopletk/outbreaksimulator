@@ -13,7 +13,7 @@ This repository branch documents the version used to run simulation exercises ba
 - Data outputs at end of simulation periods allows return to previous time points and branching decision-making.
 
 **Code requirements**:
-- Python (3.12.10)
+- Python (3.10+ should worK)
 
 **Code written by Thao P. Le, Isobel Abell and Martin Cyster**
 Base code and FMD_modelling module written by Isobel Abell, adapted by Thao P. Le, with column plots plotting support from Martin Cyster.
@@ -46,7 +46,7 @@ Run the `LSD_workshop_*.py` files in turn. Some slurm scripts are provided as ex
 - `slurm_venv_setup.py`
 - `slurm_LSD_workshop_1_initial_spread.sh`
 
-Assuming that everything runs successfully, files will submit jobs for the next step and so on until completion.
+Assuming that everything runs successfully, files will submit jobs for the next step and so on until completion. Note: you might need to convert the sh file encodings.
 
 **The main steps**:
 The model procedes through these setps:
