@@ -424,9 +424,9 @@ def generate_jobs_teams(folder_path, approx_data_csv, scheduled_date, action_num
 
     delays = {"ContactTracing": timedelta(days=2)}
 
-    if strategy == "fast DDD":
+    if "fast DDD" in strategy:
         delays["DDD"] = timedelta(days=7)
-    elif strategy == "slow DDD":
+    elif "slow DDD" in strategy:
         delays["DDD"] = timedelta(days=21)
     else:
         raise ValueError(f"strategy '{strategy}' not expected")
@@ -793,7 +793,9 @@ def generate_jobs_QLD(folder_path, approx_data_csv, scheduled_date, action_numbe
     zones_df.to_csv(os.path.join(folder_path, f"zones_{action_number}.csv"), index=False)
 
 
-def generate_jobs_teams_FMD(folder_path, approx_data_csv, scheduled_date, action_number, strategy="national_standstill"):
+def generate_jobs_teams_FMD(
+    folder_path, approx_data_csv, scheduled_date, action_number, strategy="national_standstill", save_output_data=True, approx_known_data_df=None
+):
     """
 
     strategy "initial_investigation" - first day investigation; basically the default
@@ -813,8 +815,10 @@ def generate_jobs_teams_FMD(folder_path, approx_data_csv, scheduled_date, action
     strategy "default"
 
     """
-
-    approx_data = pd.read_csv(os.path.join(folder_path, approx_data_csv))
+    if approx_known_data_df is not None:
+        approx_data = approx_known_data_df
+    else:
+        approx_data = pd.read_csv(os.path.join(folder_path, approx_data_csv))
 
     first_day = dt.strptime("28/03/2026", "%d/%m/%Y")
     scheduled_date_object = dt.strptime(scheduled_date, "%d/%m/%Y")
@@ -959,9 +963,11 @@ def generate_jobs_teams_FMD(folder_path, approx_data_csv, scheduled_date, action
             job_row = [row["sim_id"], scheduled_date, "Disposal", "", "", "", "IP"]  # disposal is done right away
             jobs_rows.append(job_row)
             teams["Disposal"] -= 1
+
         if (
             teams["Decontamination"] > 0
             and not pd.isna(row["disposal_date"])
+            and not row["disposal_date"] == "NA"
             and dt.strptime(row["disposal_date"], "%d/%m/%Y") + delays["Decontamination"] <= scheduled_date_object
         ):
             job_row = [row["sim_id"], scheduled_date, "Decontamination", "", "", "", "IP"]  # Decontamination is done right away
@@ -1066,13 +1072,15 @@ def generate_jobs_teams_FMD(folder_path, approx_data_csv, scheduled_date, action
             zone_rows.append(zone_row)
 
     print(teams)
-
-    # and then save
     jobs_df = pd.DataFrame(jobs_rows, columns=jobs_header)
-    jobs_df.to_csv(os.path.join(folder_path, f"jobs_{action_number}.csv"), index=False)
-
     zone_jobs_df = pd.DataFrame(zone_jobs_rows, columns=zone_jobs_header)
-    zone_jobs_df.to_csv(os.path.join(folder_path, f"zone_jobs_{action_number}.csv"), index=False)
-
     zones_df = pd.DataFrame(zone_rows, columns=zones_header)
-    zones_df.to_csv(os.path.join(folder_path, f"zones_{action_number}.csv"), index=False)
+
+    if save_output_data:
+        # and then save
+
+        jobs_df.to_csv(os.path.join(folder_path, f"jobs_{action_number}.csv"), index=False)
+        zone_jobs_df.to_csv(os.path.join(folder_path, f"zone_jobs_{action_number}.csv"), index=False)
+        zones_df.to_csv(os.path.join(folder_path, f"zones_{action_number}.csv"), index=False)
+
+    return jobs_df, zone_jobs_df, zones_df

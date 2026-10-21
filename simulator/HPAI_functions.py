@@ -22,6 +22,7 @@ from shapely.ops import transform, unary_union
 from simulator.spatial_functions import quick_distance_haversine
 import time
 from FMD_modelling.class_definitions import Animal
+import datetime
 
 
 def seed_HPAI_infection(
@@ -36,6 +37,7 @@ def seed_HPAI_infection(
     latent_period=7,
     disease_parameters=None,
     further_restriction=False,
+    start_date=datetime.datetime(year=2026, month=3, day=1),
 ):
     """Seeds an infection at a property within the bounds specified"""
     seed_property = 0  # default
@@ -60,10 +62,10 @@ def seed_HPAI_infection(
     # TODO technically, to encapsulate this better, there should a function that allows you to infect a specific animal(s), and that will then update infection_status, prop_infections, cumulative_infections, and exposure_date, and anything else that may need to be updated
     p.infection_status = 1
     if latent_period != None:
-        p.exposure_date = premises.convert_time_to_date(int_time - latent_period)
+        p.exposure_date = premises.convert_time_to_date(int_time - latent_period, start_date)
     else:  # the version with multiple animals
         latent_period = disease_parameters[p.animal_type]["latent_period"]
-        p.exposure_date = premises.convert_time_to_date(int_time - latent_period)
+        p.exposure_date = premises.convert_time_to_date(int_time - latent_period, start_date)
 
     num_infected = 10
     p.init_animals(None)
@@ -338,6 +340,7 @@ def animal_movement(
     reduced_movement_zone=None,
     movement_reduction_factor=0.2,
     all_movement_reduction_factor=1.0,
+    start_date=datetime.datetime(year=2026, month=3, day=1),
 ):
     """Animal movements
 
@@ -347,7 +350,7 @@ def animal_movement(
 
     """
 
-    date = premises.convert_time_to_date(day)
+    date = premises.convert_time_to_date(day, start_date)
 
     # rows of day, converted date, moving from property index, to property index, WHAT was moved (chickens or eggs), number of animals/eggs moved, a narrative report (locations, number of animals moved)
 

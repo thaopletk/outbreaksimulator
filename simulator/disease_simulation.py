@@ -14,6 +14,7 @@ import os
 import random
 import pandas as pd
 import itertools
+import datetime
 
 # import parq
 
@@ -75,6 +76,9 @@ class DiseaseSimulation:
             "clinical_delay": 0.5,
         },
         scenario_parameters={"clinical_reporting_threshold": 0.05, "prob_report": 0.7},
+        start_year=2026,
+        start_month=3,
+        start_day=1,
     ):
         """
         A class used to represent the simulation model controller
@@ -140,6 +144,43 @@ class DiseaseSimulation:
 
         self.case_id_counter = 0
         self.notified_iter = itertools.count(start=1)
+
+        self.start_year = start_year
+        self.start_month = start_month
+        self.start_day = start_day
+        self.start_date = datetime.datetime(year=start_year, month=start_month, day=start_day)
+
+    # def get_current_datetime(self, time):
+    #     if type(time) != int:
+    #         time = int(np.floor(time))
+    #         # TODO : here, I should allow for "morning" vs "afternoon" or some other time thing
+    #     current_date = self.start_date + datetime.timedelta(days=time)
+    #     return current_date
+
+    # def convert_time_to_date(self, time, return_string="%d/%m/%Y"):
+    #     """Converts outbreak days (0, 1, 2...) to fake dates, started at some specified date (day 0).
+    #     Parameters
+    #     ----------
+    #     time : int
+    #         Simulation day to convert
+    #     start_date : datetime.datetime objective
+    #         Date time object describing "day 0".
+    #     return_string : str
+    #         String for formatting date output
+    #     Returns
+    #     -------
+    #     date : string
+    #         Formatted string d/m/Y representing the physical date
+    #     """
+    #     if type(time) != int:
+    #         time = int(np.floor(time))
+    #         # TODO : here, I should allow for "morning" vs "afternoon" or some other time thing
+    #     current_date = self.start_date + datetime.timedelta(days=time)
+    #     return current_date.strftime(return_string)
+
+    # def convert_date_to_time(self, date):
+    #     d1 = datetime.datetime.strptime(date, "%d/%m/%Y")
+    #     return abs((d1 - self.start_date).days)
 
     def set_plotting_parameters(self, xlims, ylims, plotting=True, folder_path="", unique_output=""):
         """Sets the plotting parameters, especially important to update regularly if you want things to output to a different folder"""
@@ -275,19 +316,25 @@ class DiseaseSimulation:
             if premise.culled_status == True:
                 geometry_culled.append(curr_farm)
 
-                contact_tracing_report, traced_property_indices = management.contact_tracing(properties, index, self.movement_records, self.time)
+                contact_tracing_report, traced_property_indices = management.contact_tracing(
+                    properties, index, self.movement_records, self.time, start_date=self.start_date
+                )
                 TPs.extend(traced_property_indices)
 
             elif premise.reported_status == True:
                 geometry_confirmed_infected.append(curr_farm)
 
-                contact_tracing_report, traced_property_indices = management.contact_tracing(properties, index, self.movement_records, self.time)
+                contact_tracing_report, traced_property_indices = management.contact_tracing(
+                    properties, index, self.movement_records, self.time, start_date=self.start_date
+                )
                 TPs.extend(traced_property_indices)
 
             elif premise.clinical_report_outcome == True or premise.status == "DCP" or index in self_reported_list:
                 geometry_DCP.append(curr_farm)
 
-                contact_tracing_report, traced_property_indices = management.contact_tracing(properties, index, self.movement_records, self.time)
+                contact_tracing_report, traced_property_indices = management.contact_tracing(
+                    properties, index, self.movement_records, self.time, start_date=self.start_date
+                )
                 TPs.extend(traced_property_indices)
             elif premise.infection_status:
                 geometry_infected.append(curr_farm)
@@ -403,7 +450,7 @@ class DiseaseSimulation:
             property_i.undergoing_testing = True
 
     def run_property_selfreporting(self, properties, i):
-        converted_date = premises.convert_time_to_date(self.time)
+        converted_date = premises.convert_time_to_date(self.time, self.start_date)
         self.daily_statistics[converted_date]["num positive clinical"] += 1
 
         property_i = properties[i]
@@ -446,23 +493,8 @@ class DiseaseSimulation:
         for i, property_i in enumerate(properties):
             if not property_i.culled_status:
                 FOI[i] = SEIR.calculate_force_of_infection(
-                    properties, i, self.vax_modifier, self.r_wind, self.beta_wind, self.beta_animal, outbreak_sim, time
+                    properties, i, self.vax_modifier, self.r_wind, self.beta_wind, self.beta_animal, outbreak_sim, time, self.start_date
                 )
-
-        # def calculate_FOI_individual(i):
-        #     property_i = properties[i]
-        #     if property_i.culled_status:
-        #         return 0
-        #     else:
-        #         return SEIR.calculate_force_of_infection(
-        #             properties, i, self.vax_modifier, self.r_wind, self.beta_wind, self.beta_animal, outbreak_sim, time
-        #         )
-        # job_inputs = [(i,) for i in range(len(properties))]
-        # result = parq.run(calculate_FOI_individual, job_inputs, n_proc=4, results=True)
-        # if result.success:
-        #     FOI = result.job_results.values()
-        # else:
-        #     raise ValueError("Parq run for calculate_FOI_for_each_property failed")
 
         return FOI
 
@@ -472,7 +504,9 @@ class DiseaseSimulation:
             if property_i.get_num_animals() == 0:
                 continue
             if outbreak_sim == "FMD":
-                property_i.infection_model(FOI=FOI[i], time=self.time, disease_parameters_by_animal_type=self.disease_parameters)
+                property_i.infection_model(
+                    FOI=FOI[i], time=self.time, disease_parameters_by_animal_type=self.disease_parameters, start_date=self.start_date
+                )
             else:
                 animal_type = property_i.animal_type
                 property_i.infection_model(
@@ -481,6 +515,7 @@ class DiseaseSimulation:
                     preclinical_period=self.preclinical_period[animal_type],
                     FOI=FOI[i],
                     time=self.time,
+                    start_date=self.start_date,
                 )
         return properties
 
@@ -538,14 +573,16 @@ class DiseaseSimulation:
 
             if outbreak_sim == "LSD":
                 if self.time % 2 == 0:
-                    movement_record = animal_movement.extra_southward_movement(properties, day=self.time)
+                    movement_record = animal_movement.extra_southward_movement(properties, day=self.time, start_date=self.start_date)
                     self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
                 else:
-                    movement_record = animal_movement.animal_movement(properties, day=self.time, controlzone=controlzone_movement_restrictions)
+                    movement_record = animal_movement.animal_movement(
+                        properties, day=self.time, controlzone=controlzone_movement_restrictions, start_date=self.start_date
+                    )
                     self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
             elif outbreak_sim == "HPAI":
                 movement_record, number_of_movement_requests = HPAI_functions.animal_movement(
-                    properties, day=self.time, controlzone=controlzone_movement_restrictions
+                    properties, day=self.time, controlzone=controlzone_movement_restrictions, start_date=self.start_date
                 )
                 self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
             elif outbreak_sim == "FMD":
@@ -555,12 +592,13 @@ class DiseaseSimulation:
                     controlzone=controlzone_movement_restrictions,
                     trucks_df=trucks_df,
                     disease_parameters=self.disease_parameters,
+                    start_date=self.start_date,
                 )
                 self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
 
             # update counts of infected/clinical/etc animals on each farm
             for i, premise in enumerate(properties):
-                premise.update_counts(self.time)
+                premise.update_counts(self.time, self.start_date)
 
             if self.plotting and ABC_mode == False:
                 simulator.plot_current_state(  # TODO - simulator is a weird place to put plotting, probably...
@@ -573,6 +611,7 @@ class DiseaseSimulation:
                     infectionpoly=False,
                     contacts_for_plotting=self.contacts_for_plotting,
                     apparent_situation_plot=False,  # no point plotting this
+                    start_date=self.start_date,
                 )
 
                 # # should also save things for plotting: i.e., everything that I had used to actually plot
@@ -685,6 +724,7 @@ class DiseaseSimulation:
             self.controlzone,
             infectionpoly=False,
             contacts_for_plotting=self.contacts_for_plotting,
+            start_date=self.start_date,
         )
         self.save_preprocessed_plotting_information(properties)
 
@@ -706,13 +746,13 @@ class DiseaseSimulation:
 
         animal_movement.save_movement_record(self.folder_path, self.movement_records)
         self.save_reports(properties, restricted_area, control_area, output_suffix=output_suffix)
-        self.job_manager.save_jobs_queue(self.folder_path)
+        self.job_manager.save_jobs_queue(self.folder_path, self.start_date)
         self.save_daily_statistics(output_suffix, outbreak_sim=outbreak_sim)
 
         # TODO: add in a "total" column? or add in relative costs/estimated costs and a total estimated cost...
         self.job_manager.calculate_resources_used(self.folder_path, output_suffix)
 
-        dates_list = [premises.convert_time_to_date(t) for t in range(self.first_detection_day, self.time + 1)]
+        dates_list = [premises.convert_time_to_date(t, self.start_date) for t in range(self.first_detection_day, self.time + 1)]
         # print(dates_list)
         daily_notifs = [0] * len(dates_list)
 
@@ -771,7 +811,7 @@ class DiseaseSimulation:
 
         self.time += 1
         self.first_detection_day = self.time
-        converted_date = premises.convert_time_to_date(self.time)
+        converted_date = premises.convert_time_to_date(self.time, self.start_date)
         if outbreak_sim == "HPAI":
             self.daily_statistics[converted_date] = {
                 "num self-reported": 0,
@@ -809,22 +849,25 @@ class DiseaseSimulation:
 
         # forcing a property to report
         if outbreak_sim == "FMD":
-            first_report_i = None
-            for i, property in enumerate(properties):
-                if "herd_id" in property.FMD_extra_info:
-                    if first_report_herd_id == property.FMD_extra_info["herd_id"]:
-                        first_report_i = i
-                        break
-            if first_report_i != None:
-                # check if it's actually infected or not
-                if properties[first_report_i].clinical_date != "NA":
-                    print("first detected herd successfully found")
-                    pass  # good
+            if first_report_herd_id is not None:
+                first_report_i = None
+                for i, property in enumerate(properties):
+                    if "herd_id" in property.FMD_extra_info:
+                        if first_report_herd_id == property.FMD_extra_info["herd_id"]:
+                            first_report_i = i
+                            break
+                if first_report_i != None:
+                    # check if it's actually infected or not
+                    if properties[first_report_i].clinical_date != "NA":
+                        print("first detected herd successfully found")
+                        pass  # good
+                    else:
+                        print("ideal first detected herd not actually infected")
+                        first_report_i = self.select_first_reported_property(properties, reportingregion_x, reportingregion_y)
                 else:
-                    print("ideal first detected herd not actually infected")
+                    print("ideal first detected herd not among the current properties")
                     first_report_i = self.select_first_reported_property(properties, reportingregion_x, reportingregion_y)
             else:
-                print("ideal first detected herd not among the current properties")
                 first_report_i = self.select_first_reported_property(properties, reportingregion_x, reportingregion_y)
         else:
             first_report_i = self.select_first_reported_property(properties, reportingregion_x, reportingregion_y)
@@ -863,7 +906,7 @@ class DiseaseSimulation:
 
         self.time += 1
         self.first_detection_day = self.time
-        converted_date = premises.convert_time_to_date(self.time)
+        converted_date = premises.convert_time_to_date(self.time, self.start_date)
         self.daily_statistics[converted_date] = {
             "num positive clinical": 0,
             "num lab tested": 0,
@@ -912,7 +955,9 @@ class DiseaseSimulation:
 
         # Contact tracing, movement restrictions on dangerous properties, clinical checkup will be arranged for the next day
         # this could just be a list of the dangerous properties
-        contact_tracing_report, traced_property_indices = management.contact_tracing(properties, first_report_i, self.movement_records, self.time)
+        contact_tracing_report, traced_property_indices = management.contact_tracing(
+            properties, first_report_i, self.movement_records, self.time, start_date=self.start_date
+        )
         self.combined_narrative.append([self.time, converted_date, "tracing", first_report_i, contact_tracing_report])
         # add this as a job to the job queue for completeness
         self.job_manager.jobs_queue[reported_property.id]["ContactTracing"][str(self.time)] = [
@@ -972,7 +1017,7 @@ class DiseaseSimulation:
         reported_property = properties[first_report_i]
 
         self.time += 1
-        converted_date = premises.convert_time_to_date(self.time)
+        converted_date = premises.convert_time_to_date(self.time, self.start_date)
         self.daily_statistics[converted_date] = {
             "num positive clinical": 0,
             "num lab tested": 0,
@@ -1005,6 +1050,7 @@ class DiseaseSimulation:
                 properties,
                 i,
                 self.time,
+                self.start_date,
                 self.job_manager.clinical_test_sensitivity,
                 test_type="clinical observation",
             )
@@ -1195,7 +1241,7 @@ class DiseaseSimulation:
         stop_time = self.time + days_to_run_for
         while self.time < stop_time:
             self.time += 1
-            converted_date = premises.convert_time_to_date(self.time)
+            converted_date = premises.convert_time_to_date(self.time, self.start_date)
             self.daily_statistics[converted_date] = {
                 "num positive clinical": 0,
                 "num lab tested": 0,
@@ -1347,7 +1393,7 @@ class DiseaseSimulation:
         nothing_left_to_do = False
         while self.time < stop_time and not nothing_left_to_do:
             self.time += 1
-            converted_date = premises.convert_time_to_date(self.time)
+            converted_date = premises.convert_time_to_date(self.time, self.start_date)
             self.daily_statistics[converted_date] = {
                 "num positive clinical": 0,
                 "num lab tested": 0,
@@ -1745,7 +1791,7 @@ class DiseaseSimulation:
         # TODO: add in a "total" column? or add in relative costs/estimated costs and a total estimated cost...
         self.job_manager.calculate_resources_used(self.folder_path)
 
-        dates_list = [premises.convert_time_to_date(t) for t in range(self.first_detection_day, self.time + 1)]
+        dates_list = [premises.convert_time_to_date(t, self.start_date) for t in range(self.first_detection_day, self.time + 1)]
         # print(dates_list)
         daily_notifs = [0] * len(dates_list)
 
@@ -2121,9 +2167,10 @@ class DiseaseSimulation:
         control_emergency_zone=None,
         enhanced_passive_surveillance_area=None,
         output_suffix="",
+        outbreak_sim="HPAI",
     ):
         # no time change
-        converted_date = premises.convert_time_to_date(self.time)
+        converted_date = premises.convert_time_to_date(self.time, self.start_date)
 
         # get control zones
         RA_geo_list = []
@@ -2209,7 +2256,7 @@ class DiseaseSimulation:
 
         self.job_manager.calculate_resources_used(self.folder_path, output_suffix)
 
-        dates_list = [premises.convert_time_to_date(t) for t in range(self.first_detection_day, self.time + 1)]
+        dates_list = [premises.convert_time_to_date(t, self.start_date) for t in range(self.first_detection_day, self.time + 1)]
         # print(dates_list)
         daily_notifs = [0] * len(dates_list)
 
@@ -2272,6 +2319,8 @@ class DiseaseSimulation:
         trucks_df=None,
         save_data=True,
         strategy=None,
+        state="",
+        save_plots=True,  # this is about the plots per day
     ):
 
         if time != None:
@@ -2290,7 +2339,7 @@ class DiseaseSimulation:
 
         while self.time < stop_time:
             self.time += 1
-            converted_date = premises.convert_time_to_date(self.time)
+            converted_date = premises.convert_time_to_date(self.time, self.start_date)
             if outbreak_sim == "HPAI":
                 self.daily_statistics[converted_date] = {
                     "num self-reported": 0,
@@ -2367,7 +2416,7 @@ class DiseaseSimulation:
                 RA_geo_list.append(restricted_emergency_zone)
 
             restricted_area = unary_union(RA_geo_list)
-            if outbreak_sim == "FMD":
+            if outbreak_sim == "FMD" and state == "VIC":
                 restricted_area = restricted_area.intersection(VIC_shape)
 
             CA_df = property_based_zones[property_based_zones["zone_type"] == "CA"]
@@ -2386,7 +2435,7 @@ class DiseaseSimulation:
 
             control_area = unary_union(CA_geo_list)
 
-            if outbreak_sim == "FMD":
+            if outbreak_sim == "FMD" and state == "VIC":
                 control_area = control_area.intersection(VIC_shape)
 
             self.controlzone["restricted area"] = restricted_area
@@ -2409,7 +2458,7 @@ class DiseaseSimulation:
                     job_type = row["action"]
                     property_index = int(row["ID"])
                     if job_type == "LabTesting":
-                        testing_report, positive = self.job_manager.conduct_labtesting(properties, property_index, self.time)
+                        testing_report, positive = self.job_manager.conduct_labtesting(properties, property_index, self.time, self.start_date)
                         full_testing_report = [self.time, converted_date, "test", property_index, testing_report, properties[property_index].case_id]
                         self.combined_narrative.append(full_testing_report)
 
@@ -2427,7 +2476,7 @@ class DiseaseSimulation:
                             properties[property_index].custom_info["infection_data_known"] = True
                             OG_status = properties[property_index].status
                             # report property
-                            premise_report = premise.report_only(self.time, next(self.notified_iter))  # updates status to IP
+                            premise_report = premise.report_only(self.time, self.start_date, next(self.notified_iter))  # updates status to IP
                             self.combined_narrative.append([self.time, converted_date, "report", property_index, premise_report, premise.case_id])
 
                             self.combined_narrative.append(
@@ -2476,7 +2525,9 @@ class DiseaseSimulation:
                             properties[property_index].case_id = self.case_id_counter
                             properties[property_index].case_created_date = converted_date
 
-                        testing_report, positive = self.job_manager.conduct_clinicalobservation(properties, property_index, self.time)
+                        testing_report, positive = self.job_manager.conduct_clinicalobservation(
+                            properties, property_index, self.time, self.start_date
+                        )
                         self.combined_narrative.append(
                             [self.time, converted_date, "test", property_index, testing_report, properties[property_index].case_id]
                         )
@@ -2550,7 +2601,12 @@ class DiseaseSimulation:
                         prop_clinical = properties[property_index].prop_clinical
 
                         testing_report, positive = management.test_property(
-                            properties, property_index, self.time, test_sensitivity=detection_prob, test_type=row["specific_action"]
+                            properties,
+                            property_index,
+                            self.time,
+                            start_date=self.start_date,
+                            test_sensitivity=detection_prob,
+                            test_type=row["specific_action"],
                         )
 
                         if positive:  #  and row["specific_action"] in ["Field Surveillance", "Phone Surveillance"]:
@@ -2757,7 +2813,7 @@ class DiseaseSimulation:
 
                     elif job_type == "ContactTracing":
                         contact_tracing_report, traced_property_indices = management.contact_tracing(
-                            properties, property_index, self.movement_records, self.time
+                            properties, property_index, self.movement_records, self.time, start_date=self.start_date
                         )
                         self.combined_narrative.append(
                             [self.time, converted_date, "tracing", property_index, contact_tracing_report, properties[property_index].case_id]
@@ -2839,7 +2895,7 @@ class DiseaseSimulation:
                             daily_stat_text = "vaccinated animals"
 
                         if num_animals_to_vaccinate >= total_animals:
-                            properties[property_index].vaccinate(self.time)
+                            properties[property_index].vaccinate(self.time, self.start_date)
                             if dict_text in properties[property_index].custom_info:
                                 properties[property_index].custom_info[dict_text] += total_animals
                             else:
@@ -2929,13 +2985,17 @@ class DiseaseSimulation:
 
                     if pd.isna(row["ID"]) and pd.isna(row["radius_km"]):
                         if population_surveillance_ref == "RA":
-                            if restricted_emergency_zone == None:
-                                raise ValueError("REZ not input")
-                            population_level_surveillance = restricted_emergency_zone
+                            population_level_surveillance = (
+                                restricted_emergency_zone
+                                if restricted_emergency_zone is not None
+                                else restricted_area
+                            )                        
                         elif population_surveillance_ref == "CA":
-                            if control_emergency_zone == None:
-                                raise ValueError("CEZ not input")
-                            population_level_surveillance = control_emergency_zone
+                            population_level_surveillance = (
+                                control_emergency_zone
+                                if control_emergency_zone is not None
+                                else control_area
+                            )
                         elif population_surveillance_ref == "Enhanced Passive Surveillance":
                             if enhanced_passive_surveillance_area == None:
                                 raise ValueError("Enhanced Passive Surveillance zone not input")
@@ -2970,13 +3030,17 @@ class DiseaseSimulation:
 
                     if pd.isna(row["ID"]) and pd.isna(row["radius_km"]):
                         if surveillance_ref == "RA":
-                            if restricted_emergency_zone == None:
-                                raise ValueError("REZ not input")
-                            wild_animal_surveillance = restricted_emergency_zone
+                            wild_animal_surveillance = (
+                                restricted_emergency_zone
+                                if restricted_emergency_zone is not None
+                                else restricted_area
+                            )
                         elif surveillance_ref == "CA":
-                            if control_emergency_zone == None:
-                                raise ValueError("CEZ not input")
-                            wild_animal_surveillance = control_emergency_zone
+                            wild_animal_surveillance = (
+                                control_emergency_zone
+                                if control_emergency_zone is not None
+                                else control_area
+                            )
                         elif surveillance_ref == "Enhanced Passive Surveillance":
                             if enhanced_passive_surveillance_area == None:
                                 raise ValueError("Enhanced Passive Surveillance zone not input")
@@ -3010,13 +3074,17 @@ class DiseaseSimulation:
 
                     if pd.isna(row["ID"]) and pd.isna(row["radius_km"]):
                         if surveillance_ref == "RA":
-                            if restricted_emergency_zone == None:
-                                raise ValueError("REZ not input")
-                            surveillance_zone = restricted_emergency_zone
+                            surveillance_zone = (
+                                restricted_emergency_zone
+                                if restricted_emergency_zone is not None
+                                else restricted_area
+                            )
                         elif surveillance_ref == "CA":
-                            if control_emergency_zone == None:
-                                raise ValueError("CEZ not input")
-                            surveillance_zone = control_emergency_zone
+                            surveillance_zone = (
+                                control_emergency_zone
+                                if control_emergency_zone is not None
+                                else control_area
+                            )
                         elif surveillance_ref == "Enhanced Passive Surveillance":
                             if enhanced_passive_surveillance_area == None:
                                 raise ValueError("Enhanced Passive Surveillance zone not input")
@@ -3049,13 +3117,17 @@ class DiseaseSimulation:
 
                     if pd.isna(row["ID"]) and pd.isna(row["radius_km"]):
                         if surveillance_ref == "RA":
-                            if restricted_emergency_zone == None:
-                                raise ValueError("REZ not input")
-                            surveillance_zone = restricted_emergency_zone
+                            surveillance_zone = (
+                                restricted_emergency_zone
+                                if restricted_emergency_zone is not None
+                                else restricted_area
+                            )
                         elif surveillance_ref == "CA":
-                            if control_emergency_zone == None:
-                                raise ValueError("CEZ not input")
-                            surveillance_zone = control_emergency_zone
+                            surveillance_zone = (
+                                control_emergency_zone
+                                if control_emergency_zone is not None
+                                else control_area
+                            )
                         elif surveillance_ref == "Enhanced Passive Surveillance":
                             if enhanced_passive_surveillance_area == None:
                                 raise ValueError("Enhanced Passive Surveillance zone not input")
@@ -3082,7 +3154,7 @@ class DiseaseSimulation:
             controlzone_movement_restrictions = restricted_area
             movement_reduction_factor = 0.2  # 80% reduction / 20% chance of movement
 
-            if "national_standstill" in strategy:
+            if strategy is not None and "national_standstill" in strategy:
                 self.combined_narrative.append(
                     [
                         self.time,
@@ -3102,6 +3174,7 @@ class DiseaseSimulation:
                         reduced_movement_zone=control_area,
                         movement_reduction_factor=movement_reduction_factor,
                         all_movement_reduction_factor=0.8,  # reducing probability of movement in RA and CA
+                        start_date=self.start_date,
                     )
                 elif outbreak_sim == "FMD":
                     movement_record, number_of_movement_requests, trucks_df = FMD_functions.animal_movement(
@@ -3113,6 +3186,7 @@ class DiseaseSimulation:
                         all_movement_reduction_factor=0.8,
                         trucks_df=trucks_df,
                         disease_parameters=self.disease_parameters,
+                        start_date=self.start_date,
                     )
 
                 self.movement_records = pd.concat([self.movement_records, movement_record], axis=0, ignore_index=True)
@@ -3132,7 +3206,7 @@ class DiseaseSimulation:
 
             # update counts of infected/clinical/etc animals on each farm
             for i, premise in enumerate(properties):
-                premise.update_counts(self.time)
+                premise.update_counts(self.time, self.start_date)
 
             # then close off this day
             time_list.append(self.time)
@@ -3147,6 +3221,7 @@ class DiseaseSimulation:
                     infectionpoly=False,
                     contacts_for_plotting=self.contacts_for_plotting,
                     apparent_situation_plot=True,
+                    start_date=self.start_date,
                 )
 
                 self.save_preprocessed_plotting_information(properties)
@@ -3179,16 +3254,16 @@ class DiseaseSimulation:
 
             animal_movement.save_movement_record(self.folder_path, self.movement_records)
             self.save_reports(properties, restricted_area, control_area, output_suffix=output_suffix)
-            self.job_manager.save_jobs_HPAI(self.folder_path, f"completed_jobs{output_suffix}.csv")
+            self.job_manager.save_jobs_HPAI(self.folder_path, start_date=self.start_date, save_name=f"completed_jobs{output_suffix}.csv")
             self.save_daily_statistics(output_suffix=output_suffix, outbreak_sim=outbreak_sim)
 
             self.job_manager.calculate_resources_used(self.folder_path, output_suffix)
 
-            dates_list = [premises.convert_time_to_date(t) for t in range(self.first_detection_day, self.time + 1)]
+            dates_list = [premises.convert_time_to_date(t, self.start_date) for t in range(self.first_detection_day, self.time + 1)]
             # print(dates_list)
             daily_notifs = [0] * len(dates_list)
 
-            dates_list2 = [premises.convert_time_to_date(t) for t in range(0, self.time + 1)]
+            dates_list2 = [premises.convert_time_to_date(t, self.start_date) for t in range(0, self.time + 1)]
             daily_exposures = [0] * len(dates_list2)
 
             daily_current_infected_properties = [0] * len(dates_list2)
@@ -3235,35 +3310,45 @@ class DiseaseSimulation:
                 save_name="current_infected_properties",
                 title="Current number of properties with infected animals",
             )
+        if save_plots:
+            output.plot_HPAI_outbreak_apparent(
+                properties,
+                restricted_area,
+                control_area,
+                enhanced_passive_surveillance_area,
+                self.xlims,
+                self.ylims,
+                self.folder_path,
+                self.time,
+                state=state,
+            )
 
-        output.plot_HPAI_outbreak_apparent(
-            properties, restricted_area, control_area, enhanced_passive_surveillance_area, self.xlims, self.ylims, self.folder_path, self.time
-        )
+            output.plot_HPAI_outbreak_apparent(
+                properties,
+                restricted_area,
+                control_area,
+                enhanced_passive_surveillance_area,
+                self.xlims,
+                self.ylims,
+                self.folder_path,
+                self.time,
+                zoomed_in=True,
+                state=state,
+            )
 
-        output.plot_HPAI_outbreak_apparent(
-            properties,
-            restricted_area,
-            control_area,
-            enhanced_passive_surveillance_area,
-            self.xlims,
-            self.ylims,
-            self.folder_path,
-            self.time,
-            zoomed_in=True,
-        )
-
-        output.plot_HPAI_outbreak_apparent(
-            properties,
-            restricted_area,
-            control_area,
-            enhanced_passive_surveillance_area,
-            self.xlims,
-            self.ylims,
-            self.folder_path,
-            self.time,
-            zoomed_in=True,
-            show_hidden_infected_properties=True,
-        )
+            output.plot_HPAI_outbreak_apparent(
+                properties,
+                restricted_area,
+                control_area,
+                enhanced_passive_surveillance_area,
+                self.xlims,
+                self.ylims,
+                self.folder_path,
+                self.time,
+                zoomed_in=True,
+                show_hidden_infected_properties=True,
+                state=state,
+            )
 
         if outbreak_sim == "HPAI":
             return properties, self.movement_records, self.time, self.total_culled_animals, self.job_manager

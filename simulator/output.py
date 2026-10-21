@@ -21,6 +21,7 @@ import geopandas as gpd
 import contextily as ctx
 import pickle
 from moviepy.editor import ImageSequenceClip
+import datetime
 
 import pointpats
 from scipy.stats import gaussian_kde
@@ -32,6 +33,37 @@ import pandas as pd
 import PIL
 
 PIL.Image.ANTIALIAS = PIL.Image.LANCZOS
+
+
+# yes, there is a copy of this file in fixed_spatial_setup
+def Mapnik_basemap(state, zoomed_in=False):
+    """
+    Pre-downloaded base maps for different states
+
+    """
+    if zoomed_in:
+        if state == "VIC":
+            source = os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_Mapnik_10.tif")
+        elif state in ["NSW", "QLD"]:
+            source = os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_Mapnik_10.tif")
+        elif state == "NT":
+            source = os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "NT_Mapnik_10.tif")
+        else:
+            # no zoomed in version available...
+            source = os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_Mapnik.tif")
+        if not os.path.exists(source):
+            print("Go and consider downloading a higher resolution map - in data/geotiles/download_geotiles.py")
+            return Mapnik_basemap(state, zoomed_in=False)
+    else:
+        if state == "VIC":
+            source = os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_Mapnik.tif")
+        elif state in ["NSW", "QLD"]:
+            source = os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_Mapnik.tif")
+        elif state == "NT":
+            source = os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "NT_Mapnik.tif")
+        else:
+            source = os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_Mapnik.tif")
+    return source
 
 
 def plot_polygon(ax, poly, **kwargs):
@@ -53,14 +85,7 @@ def plot_polygon(ax, poly, **kwargs):
     return collection
 
 
-def plot_property_coordinates(
-    property_coordinates,
-    xlims,
-    ylims,
-    folder_path,
-    file_name="base_map.png",
-    colour="orange",
-):
+def plot_property_coordinates(property_coordinates, xlims, ylims, folder_path, file_name="base_map.png", colour="orange", state=""):
     """Plot properties' coordinates (centers) only"""
 
     fig, ax = plt.subplots(1, 1, figsize=(20, 15))  # ,figsize=(10,12)
@@ -80,7 +105,13 @@ def plot_property_coordinates(
     geo_df.crs = {"init": "epsg:4326"}
     ax = geo_df.plot(ax=ax, markersize=markersize, color=colour, marker=marker, label=markerlabel)
 
-    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
+    # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
+    ctx.add_basemap(
+        ax,
+        crs={"init": "epsg:4326"},
+        source=Mapnik_basemap(state, zoomed_in=False),
+        attribution="© OpenStreetMap contributors",
+    )
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
     points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
@@ -115,7 +146,7 @@ def plot_property_coordinates(
     plt.close()
 
 
-def plot_map_land(property_polygons, property_polygons_puffed, xlims, ylims, folder_path):
+def plot_map_land(property_polygons, property_polygons_puffed, xlims, ylims, folder_path, state=""):
     """Plot property boundaries"""
     fig, ax = plt.subplots(1, 1, figsize=(20, 20))  # ,figsize=(10,12)
 
@@ -125,7 +156,13 @@ def plot_map_land(property_polygons, property_polygons_puffed, xlims, ylims, fol
     for poly in property_polygons:
         plot_polygon(ax, poly, facecolor="tomato", edgecolor="maroon", alpha=1)
 
-    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
+    # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
+    ctx.add_basemap(
+        ax,
+        crs={"init": "epsg:4326"},
+        source=Mapnik_basemap(state, zoomed_in=False),
+        attribution="© OpenStreetMap contributors",
+    )
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
     points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
@@ -175,6 +212,8 @@ def plot_map(
     show_movement_neighbours=False,
     xylabels=False,
     save_suffix="",
+    state="",
+    start_date=datetime.datetime(year=2026, month=3, day=1),
 ):
     """Plot map during an outbreak
 
@@ -430,7 +469,13 @@ def plot_map(
         # plot the marker
         ax = geo_df.plot(ax=ax, markersize=markersize, color=colour, marker=marker, label=markerlabel, aspect=1)
 
-    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
+    # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
+    ctx.add_basemap(
+        ax,
+        crs={"init": "epsg:4326"},
+        source=Mapnik_basemap(state, zoomed_in=False),
+        attribution="© OpenStreetMap contributors",
+    )
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
     points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
@@ -446,7 +491,7 @@ def plot_map(
 
     # ax.set_title("Outbreak day " + str(time), fontsize=18)
     # ax.set_title(convert_time_to_date(time), fontsize=18)
-    ax.text(xlims[0] + 0.002, ylims[1] - 1.5, convert_time_to_date(time), size=18, color="black")
+    ax.text(xlims[0] + 0.002, ylims[1] - 1.5, convert_time_to_date(time, start_date), size=18, color="black")
 
     if xylabels == False:
         ax.axis("off")
@@ -488,6 +533,7 @@ def plot_animal_density(
     ylims,
     folder_path,
     file_name="animal_density.png",
+    state="",
 ):
     """Aim: to plot a map of animal density across space"""
 
@@ -531,7 +577,28 @@ def plot_animal_density(
 
     fig.colorbar(pcm, ax=ax)
 
-    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)
+    # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)
+    if state == "VIC":
+        ctx.add_basemap(
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_CartoDBPositron.tif"),
+            attribution="© OpenStreetMap contributors, © CARTO",
+        )
+    elif state in ["NSW", "QLD"]:
+        ctx.add_basemap(
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_CartoDBPositron.tif"),
+            attribution="© OpenStreetMap contributors, © CARTO",
+        )
+    else:
+        ctx.add_basemap(
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_CartoDBPositron.tif"),
+            attribution="© OpenStreetMap contributors, © CARTO",
+        )
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
     points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
@@ -566,12 +633,7 @@ def plot_animal_density(
     plt.close()
 
 
-def plot_animals(
-    properties,
-    xlims,
-    ylims,
-    folder_path,
-):
+def plot_animals(properties, xlims, ylims, folder_path, state=""):
     """Aim: to plot a map of animal density across space - just plot the dots (i.e., the individual cows) directly here"""
 
     fig, ax = plt.subplots(1, 1, figsize=(20, 15))
@@ -600,7 +662,28 @@ def plot_animals(
     ax = geo_df.plot(ax=ax, markersize=40, color="orange", marker="s", alpha=0.1)  # , label=markerlabel) # no label
 
     # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
-    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)
+    # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)
+    if state == "VIC":
+        ctx.add_basemap(
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_CartoDBPositron.tif"),
+            attribution="© OpenStreetMap contributors, © CARTO",
+        )
+    elif state in ["NSW", "QLD"]:
+        ctx.add_basemap(
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_CartoDBPositron.tif"),
+            attribution="© OpenStreetMap contributors, © CARTO",
+        )
+    else:
+        ctx.add_basemap(
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_CartoDBPositron.tif"),
+            attribution="© OpenStreetMap contributors, © CARTO",
+        )
     # Stadia.StamenTonerLite
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
@@ -638,12 +721,7 @@ def plot_animals(
     plt.close()
 
 
-def plot_animal_density_hist2d(
-    properties,
-    xlims,
-    ylims,
-    folder_path,
-):
+def plot_animal_density_hist2d(properties, xlims, ylims, folder_path, state=""):
     """Aim: to plot a map of animal density across space"""
 
     fig, ax = plt.subplots(1, 1, figsize=(20, 15))
@@ -669,7 +747,28 @@ def plot_animal_density_hist2d(
     pcm[3].set_clip_path(Australiashape)
     fig.colorbar(pcm[3], ax=ax)
 
-    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)
+    # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.CartoDB.Positron)
+    if state == "VIC":
+        ctx.add_basemap(
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "VIC_CartoDBPositron.tif"),
+            attribution="© OpenStreetMap contributors, © CARTO",
+        )
+    elif state in ["NSW", "QLD"]:
+        ctx.add_basemap(
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "EasternAustralia_CartoDBPositron.tif"),
+            attribution="© OpenStreetMap contributors, © CARTO",
+        )
+    else:
+        ctx.add_basemap(
+            ax,
+            crs={"init": "epsg:4326"},
+            source=os.path.join(os.path.dirname(__file__), "..", "data", "geotiles", "Australia_CartoDBPositron.tif"),
+            attribution="© OpenStreetMap contributors, © CARTO",
+        )
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
     points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
@@ -706,14 +805,7 @@ def plot_animal_density_hist2d(
     plt.close()
 
 
-def plot_initial_report(
-    properties,
-    time,
-    xlims,
-    ylims,
-    folder_path,
-    contacts_for_plotting={},
-):
+def plot_initial_report(properties, time, xlims, ylims, folder_path, contacts_for_plotting={}, state=""):
     fig, ax = plt.subplots(1, 1, figsize=(20, 15))
 
     # geometry_undergoing_testing = [] # this should include both the reported property and the two contacts
@@ -749,7 +841,13 @@ def plot_initial_report(
         # plot the marker
         ax = geo_df.plot(ax=ax, markersize=markersize, color=colour, marker=marker)  # , label=markerlabel) # no label
 
-    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
+    # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
+    ctx.add_basemap(
+        ax,
+        crs={"init": "epsg:4326"},
+        source=Mapnik_basemap(state, zoomed_in=False),
+        attribution="© OpenStreetMap contributors",
+    )
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
     points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
@@ -788,6 +886,7 @@ def plot_simex(
     save_suffix="",
     controlzone=None,
     plot_name="standstill",
+    state="",
 ):
     fig, ax = plt.subplots(1, 1, figsize=(20, 15))
 
@@ -866,7 +965,13 @@ def plot_simex(
         # plot the marker
         ax = geo_df.plot(ax=ax, markersize=markersize, color=colour, marker=marker)  # , label=markerlabel) # no label
 
-    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
+    # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
+    ctx.add_basemap(
+        ax,
+        crs={"init": "epsg:4326"},
+        source=Mapnik_basemap(state, zoomed_in=False),
+        attribution="© OpenStreetMap contributors",
+    )
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
     points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
@@ -1068,12 +1173,7 @@ def make_video(folder_path="outputs", prefix="map", times=None, save_name_prefix
     return
 
 
-def plot_infection_pressure(
-    time,
-    xlims,
-    ylims,
-    folder_path,
-):
+def plot_infection_pressure(time, xlims, ylims, folder_path, state=""):
     fig, ax = plt.subplots(1, 1, figsize=(20, 15))  # ,figsize=(10,12)
 
     df = pd.read_csv(os.path.join(folder_path, "infection_pressure_output.csv"))
@@ -1100,7 +1200,13 @@ def plot_infection_pressure(
             aspect=1,
         )
 
-    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
+    # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)
+    ctx.add_basemap(
+        ax,
+        crs={"init": "epsg:4326"},
+        source=Mapnik_basemap(state, zoomed_in=False),
+        attribution="© OpenStreetMap contributors",
+    )
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
     points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
@@ -1146,6 +1252,7 @@ def plot_HPAI_outbreak_apparent(
     time,
     zoomed_in=False,
     show_hidden_infected_properties=False,
+    state="",
 ):
     fig, ax = plt.subplots(1, 1, figsize=(30, 25))  # ,figsize=(10,12)
 
@@ -1373,8 +1480,18 @@ def plot_HPAI_outbreak_apparent(
         print([min_y - 0.05, max_y + 0.05])
         ax.set_xlim([min_x - 0.1, max_x + 0.1])  # making a more zoomed in version
         ax.set_ylim([min_y - 0.05, max_y + 0.05])
+    elif zoomed_in and min_x == max_x:
+        # basically means there is only one property
+        ax.set_xlim([min_x - 0.2, max_x + 0.2])
+        ax.set_ylim([min_y - 0.1, max_y + 0.1])
 
-    ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)  # source=ctx.providers.CartoDB.Positron
+    # ctx.add_basemap(ax, crs={"init": "epsg:4326"}, source=ctx.providers.OpenStreetMap.Mapnik)  # source=ctx.providers.CartoDB.Positron
+    ctx.add_basemap(
+        ax,
+        crs={"init": "epsg:4326"},
+        source=Mapnik_basemap(state, zoomed_in),
+        attribution="© OpenStreetMap contributors",
+    )
 
     # https://geopandas.org/en/stable/gallery/matplotlib_scalebar.html
     points = gpd.GeoSeries([Point(-73.5, 40.5), Point(-74.5, 40.5)], crs=4326)  # Geographic WGS 84 - degrees
