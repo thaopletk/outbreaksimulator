@@ -8,6 +8,28 @@ from datetime import timedelta
 import simulator.spatial_functions as spatial_functions
 
 
+def sort_property_distances(approx_data, property_status, target_status):
+    """sort properties with property_status by their distance from target_status properties"""
+    target_properties = approx_data[approx_data["status"] == target_status][["sim_id", "xcoord", "ycoord"]]
+
+    properties_to_check = approx_data[approx_data["status"] == property_status]
+
+    distance_from_targets = []
+    for i, row in properties_to_check.iterrows():
+        coords1 = [float(row["xcoord"]), float(row["ycoord"])]
+        dists_from_targets = []
+        for j, rowj in target_properties.iterrows():
+            coords2 = [float(rowj["xcoord"]), float(rowj["ycoord"])]
+            dist = spatial_functions.quick_distance_haversine(coords1, coords2)
+            dists_from_targets.append(dist)
+        distance_from_targets.append(min(dists_from_targets))
+
+    properties_to_check["distance_from_targets"] = distance_from_targets
+    properties_to_check = properties_to_check.sort_values(by="distance_from_targets")
+
+    return properties_to_check
+
+
 def generate_jobs(folder_path, approx_data_csv, scheduled_date, action_number, max_resource_units=100, strategy="default"):
     """
     Available strategies: 'default', 'surveillance', and 'faster depop'"""
@@ -794,7 +816,15 @@ def generate_jobs_QLD(folder_path, approx_data_csv, scheduled_date, action_numbe
 
 
 def generate_jobs_teams_FMD(
-    folder_path, approx_data_csv, scheduled_date, action_number, strategy="national_standstill", save_output_data=True, approx_known_data_df=None
+    folder_path,
+    approx_data_csv,
+    scheduled_date,
+    action_number,
+    strategy="national_standstill",
+    save_output_data=True,
+    approx_known_data_df=None,
+    first_day=dt.strptime("28/03/2026", "%d/%m/%Y"),
+    state="VIC",
 ):
     """
 
@@ -820,16 +850,21 @@ def generate_jobs_teams_FMD(
     else:
         approx_data = pd.read_csv(os.path.join(folder_path, approx_data_csv))
 
-    first_day = dt.strptime("28/03/2026", "%d/%m/%Y")
     scheduled_date_object = dt.strptime(scheduled_date, "%d/%m/%Y")
 
     delta = abs((scheduled_date_object - first_day).days)
 
-    # basic ramp-up
-    num_surveillance_teams = min(3 + int((50 - 3) * (delta) / 21), 50)
-    num_cull_teams = min(1 + int((25 - 1) * (delta) / 28), 25)
-    num_disposal_teams = min(5 + int((40 - 5) * (delta) / 30), 40)
-    num_decontamination_teams = min(10 + int((100 - 10) * (delta) / 25), 100)
+    # basic ramp-up - numbers inspired by Seitzinger 2022 paper
+    if state == "VIC":
+        num_surveillance_teams = min(3 + int((50 - 3) * (delta) / 21), 50)
+        num_cull_teams = min(1 + int((25 - 1) * (delta) / 28), 25)
+        num_disposal_teams = min(5 + int((40 - 5) * (delta) / 30), 40)
+        num_decontamination_teams = min(10 + int((100 - 10) * (delta) / 25), 100)
+    elif state == "NT":
+        num_surveillance_teams = min(1 + int((15 - 1) * (delta) / 21), 15)
+        num_cull_teams = min(0 + int((10) * (delta) / 28), 10)
+        num_disposal_teams = min(0 + int((16) * (delta) / 30), 16)
+        num_decontamination_teams = min(0 + int((100) * (delta) / 25), 100)
 
     # "teams" is actually the number of jobs that can be done a day
     teams = {
@@ -1002,25 +1037,31 @@ def generate_jobs_teams_FMD(
                     jobs_rows.append(job_row)
                     teams["Surveillance"] -= 0.5  # a less in-depth investigation
 
-    # ARPs and PORs are treated the same
+    # ARPs and PORs are treated the same (but ARPs come first)
     for status in ["ARP", "POR"]:
-        properties = approx_data[approx_data["status"] == status]
-        properties = properties.sort_values("case_id")
-        for i, row in properties.iterrows():
-            if pd.isna(row["last_surveillance_date"]) and teams["Surveillance"] > 0:
-                job_row = [row["sim_id"], scheduled_date, "Surveillance", "Field Surveillance", "", "", status]
-                jobs_rows.append(job_row)
-                job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", status]
-                jobs_rows.append(job_row)
+        # properties = approx_data[approx_data["status"] == status]
+        # properties = properties.sort_values("case_id")
+        if teams["Surveillance"] > 0:
+            properties = sort_property_distances(approx_data, status, target_status="IP")
 
-                teams["Surveillance"] -= 0.5  # a less in-depth investigation
-            else:  # if it's still an SP, then it's not an IP....treating it like a DCP with ~2 inspections per week
-                if teams["Surveillance"] > 0 and dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + timedelta(days=7) <= scheduled_date_object:
+            for i, row in properties.iterrows():
+                if pd.isna(row["last_surveillance_date"]) and teams["Surveillance"] > 0:
                     job_row = [row["sim_id"], scheduled_date, "Surveillance", "Field Surveillance", "", "", status]
                     jobs_rows.append(job_row)
                     job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", status]
                     jobs_rows.append(job_row)
+
                     teams["Surveillance"] -= 0.5  # a less in-depth investigation
+                else:  # if it's still an SP, then it's not an IP....treating it like a DCP with ~2 inspections per week
+                    if (
+                        teams["Surveillance"] > 0
+                        and dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + timedelta(days=7) <= scheduled_date_object
+                    ):
+                        job_row = [row["sim_id"], scheduled_date, "Surveillance", "Field Surveillance", "", "", status]
+                        jobs_rows.append(job_row)
+                        job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", status]
+                        jobs_rows.append(job_row)
+                        teams["Surveillance"] -= 0.5  # a less in-depth investigation
 
     UPs = approx_data[approx_data["status"] == "UP"]
     UPs = UPs.sort_values("case_id")

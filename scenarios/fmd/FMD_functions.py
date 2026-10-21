@@ -1189,6 +1189,11 @@ def run_auto_strategies(
     with open(previous_truck_filename, "rb") as file:
         trucks_df = pickle.load(file)
 
+    # get first day of outbreak based on the earliest outbreak detection date
+    with open(os.path.join(folder_path_main, "03_outbreak_detection", "outbreakobject_03_outbreak_detection"), "rb") as file:
+        old_diseaseoutbreak = pickle.load(file)
+        first_date = premises.get_current_datetime(old_diseaseoutbreak.time, start_date)
+
     RA_shape = None
     CA_shape = None
     EPS_shape = None
@@ -1250,6 +1255,9 @@ def run_auto_strategies(
     running_day = 1
     save_data = False
     approx_known_data_df = None
+
+    total_lab_tests_over_interval = 0
+
     while running_day <= total_days_to_run_for:
         if running_day == total_days_to_run_for and save_output_data:
             save_data = True
@@ -1286,12 +1294,14 @@ def run_auto_strategies(
         # assign jobs
         scheduled_date = premises.convert_time_to_date(diseaseoutbreak.time + 1, start_date)
         property_jobs, zones_based_jobs, property_based_zones = auto_job_mode.generate_jobs_teams_FMD(
-            folder_path, approx_data_csv, scheduled_date, running_day, strategy, save_output_data, approx_known_data_df
+            folder_path, approx_data_csv, scheduled_date, running_day, strategy, save_output_data, approx_known_data_df, first_date, state
         )
 
         # property_jobs = pd.read_csv(os.path.join(folder_path, f"jobs_{running_day}.csv"))
         # zones_based_jobs = pd.read_csv(os.path.join(folder_path, f"zone_jobs_{running_day}.csv"))
         # property_based_zones = pd.read_csv(os.path.join(folder_path, f"zones_{running_day}.csv"))
+
+        total_lab_tests_over_interval += len(property_jobs[property_jobs["action"] == "LabTesting"])
 
         # construct zones
         enhanced_passive_surveillance_area, enhanced_reporting_factor = get_enhanced_passive_surveillance_area(property_based_zones, properties)
@@ -1378,10 +1388,22 @@ def run_auto_strategies(
         if property_i.ip != "NA":
             total_confirmed_IPs += 1
 
+    total_undetected_properties_with_infected_animals = 0
+    for property_i in properties:
+        if property_i.number_infected > 0 and property_i.ip == "NA":
+            total_undetected_properties_with_infected_animals += 1
+
+    total_infected_properties_with_infected_animals_or_depop = 0
+    for property_i in properties:
+        if property_i.number_infected > 0 or property_i.ip != "NA":
+            total_infected_properties_with_infected_animals_or_depop += 1
+
     print(f"Total number of infected premises: {total_infected}")
     print(f"Total number of infected premises with infected animals: {total_infected_properties_with_infected_animals}")
     print(f"Total number of infected animals: {total_infected_animals}")
     print(f"Total number of confirmed IPs: {total_confirmed_IPs}")
+    print(f"Total number of undetected properties with infected animals: {total_undetected_properties_with_infected_animals}")
+    print(f"Total number of properties with infected animals or depopulated: {total_infected_properties_with_infected_animals_or_depop}")
 
     if create_download_folder:
         if download_parent_folder == None:
@@ -1391,7 +1413,13 @@ def run_auto_strategies(
 
         v06_functions.create_separate_download_folder(folder_path, download_parent_folder, download_folder_name)
 
-    return total_infected_properties_with_infected_animals, total_confirmed_IPs
+    return (
+        total_infected_properties_with_infected_animals,
+        total_confirmed_IPs,
+        total_undetected_properties_with_infected_animals,
+        total_infected_properties_with_infected_animals_or_depop,
+        total_lab_tests_over_interval,
+    )
 
 
 # def undetected_spread_sim(rng, cattle_wind, cattle_beta, pigs_wind, pigs_beta, sheep_wind, sheep_beta,size=None):
