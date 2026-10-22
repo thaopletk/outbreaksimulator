@@ -731,7 +731,7 @@ joblib.dump(setup, setup_path, compress=0)
 ### require top make diseaseoutbreak pickle obj.
 ### but for now, I'm going to copy and paste pickle objs for simulation
 import shutil
-source_dir = Path("../../Scenarios/hpai/v06_NSW_123/03_outbreak_detection")
+source_dir = Path("../../scenarios/hpai/v06_NSW_123/03_outbreak_detection")
 
 files_to_copy = [
     "properties_03_outbreak_detection",

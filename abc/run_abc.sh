@@ -1,6 +1,5 @@
 #!/bin/env bash
 #SBATCH --job-name=make_abc_slurm_code
-#SBATCH --output=make_slurm.out
 # The maximum running time of the job in days-hours:mins:sec
 #SBATCH --time=0-00:10:00
 #SBATCH --nodes=1

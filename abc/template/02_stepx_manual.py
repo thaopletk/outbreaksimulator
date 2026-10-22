@@ -419,6 +419,12 @@ print(
     flush=True
 )
 
+    
+# remove simulation output folders, keeping 03_outbreak_detection
+for folder in sim_dir.iterdir():
+    if folder.is_dir() and folder.name != "03_outbreak_detection":
+        shutil.rmtree(folder)
+
 # %%
 # Remove simulation directory
 if sim_dir.exists():

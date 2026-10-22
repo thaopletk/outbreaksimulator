@@ -7,10 +7,17 @@
 
 echo "this is the init script running on `hostname`";
 
-module load foss/2022a R/4.2.2
+module --force purge
+module load GCCcore/11.3.0
+module load Python/3.10.4
+module load texlive
 
-#edit working dir for different task arrays on cluster (set your directory)
+# Activate virtual environment
+cd ~/outbreaksimulator
+source venv/bin/activate
+
+# Set working directory
 cd ~/outbreaksimulator/abc_output/${RUN_NAME}
 
 # The job command(s):
-time R --no-save --args $RUN_NAME < 01_init.R
+time python 01_init.py $RUN_NAME

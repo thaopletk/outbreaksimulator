@@ -220,6 +220,8 @@ class Premises(Property):
         self.decontamination_date = "NA"
 
     def find_location(self):
+        # HPC cannot retrieve location information from the external environment.
+        return
         try:
             self.location = geolocator.reverse(f"{self.y},{self.x}")
             self.address = self.location.raw["address"]

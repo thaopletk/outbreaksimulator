@@ -413,6 +413,11 @@ while N_particles_g < N_particles:
         end="\r",
         flush=True
     )
+    
+    # remove simulation output folders, keeping 03_outbreak_detection
+    for folder in sim_dir.iterdir():
+        if folder.is_dir() and folder.name != "03_outbreak_detection":
+            shutil.rmtree(folder)
 
     # update iteration counter
     k += 1

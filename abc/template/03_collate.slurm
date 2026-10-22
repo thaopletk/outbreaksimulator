@@ -7,13 +7,17 @@
 
 echo "this is the collate script running on `hostname`";
 
-module load GCC/11.3.0
-module load OpenMPI/4.1.4
-#module load r/3.6.2
-module load foss/2022a R/4.2.2
+module --force purge
+module load GCCcore/11.3.0
+module load Python/3.10.4
+module load texlive
 
-#edit working dir for different task arrays on cluster (set your directory)
+# Activate virtual environment
+cd ~/outbreaksimulator
+source venv/bin/activate
+
+# Set working directory
 cd ~/outbreaksimulator/abc_output/${RUN_NAME}
 
 # The job command(s):
-time R --no-save < 03_collate.R
+time python 03_collate.py
