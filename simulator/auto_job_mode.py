@@ -12,6 +12,8 @@ def sort_property_distances(approx_data, property_status, target_status):
     """sort properties with property_status by their distance from target_status properties"""
     target_properties = approx_data[approx_data["status"] == target_status][["sim_id", "xcoord", "ycoord"]]
 
+    if len(len(target_properties.index)) == 0:
+        return target_properties
     properties_to_check = approx_data[approx_data["status"] == property_status]
 
     distance_from_targets = []
@@ -882,6 +884,9 @@ def generate_jobs_teams_FMD(
     delays["Disposal"] = timedelta(days=7)  # no DDD right away
     delays["Decontamination"] = timedelta(days=7)  # no DDD right away
 
+    if state == "NT":
+        delays["Cull"] = timedelta(days=12)  # increasing delays for depop of large / remote properties
+
     if "cull_focus" in strategy:
         # initial_surv_teams = teams["Surveillance"]
         # teams["Surveillance"] = min(10, initial_surv_teams)
@@ -896,6 +901,9 @@ def generate_jobs_teams_FMD(
         delays["Cull"] = timedelta(days=4)
         delays["Disposal"] = timedelta(days=4)
         delays["Decontamination"] = timedelta(days=4)
+
+        if state == "NT":
+            delays["Cull"] = timedelta(days=7)
 
         teams["Surveillance"] += 20
 
