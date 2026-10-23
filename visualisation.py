@@ -1,4 +1,3 @@
-#%%
 #------ required packages ------
 from pathlib import Path
 import joblib
@@ -8,8 +7,7 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 
 #------ please set your working directory here ------
-workdir = Path("C:/TK/outbreaksimulator")
-os.chdir(workdir)
+workdir = Path(__file__).resolve().parent
 folder_name = "config_HPAI"
 gmax0 = 8
 plot_y_max = 20
