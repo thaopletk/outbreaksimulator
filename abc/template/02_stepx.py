@@ -76,7 +76,7 @@ if g > 1:
     g += 1
 print("Generation:", g)
 
-task_id = int(os.environ.get("SLURM_ARRAY_TASK_ID", "2")) # if it run on PC, task_id will set as 1
+task_id = int(os.environ.get("SLURM_ARRAY_TASK_ID", "1")) # if it run on PC, task_id will set as 1
 
 # 2. create simulation directories and copy, paste generated pickle obj to task folders
 sim_dir = Path(f"task{task_id}")
@@ -266,6 +266,11 @@ while N_particles_g < N_particles:
     # 4. run simulations across configured timepoints
     previous_unique_output = "03_outbreak_detection"
     previous_output_suffix_int = 3
+    
+    # random seed
+    particle_seed = int(np.random.SeedSequence([g, task_id, k]).generate_state(1)[0])
+    random.seed(particle_seed)
+    np.random.seed(particle_seed)
 
     for t_diff, policy in zip(previous_t_diff[:-1], previous_policy[:-1]):
 
@@ -313,8 +318,8 @@ while N_particles_g < N_particles:
     res["y_km"] = (res["changed_lat"] / 1000).round(3)
 
     # temporal discrepancy
-    target_E = temporal_counts(dat_today, t_detect, t_today)
-    sim_E = temporal_counts(res, t_detect, t_today)
+    target_E = temporal_counts(dat_today, t_start, t_today)
+    sim_E = temporal_counts(res, t_start, t_today)
     distance_temporal = np.abs(target_E - sim_E).sum()
 
     # spatial discrepancy
@@ -337,7 +342,6 @@ while N_particles_g < N_particles:
     accepted = (
         distance_temporal <= epsilon_temporal[g-1]
         and distance_spatial >= epsilon_spatial[g-1]
-        and res["t_e"].between(t_detect + 1, t_today).sum() > 0
     )
 
     if accepted:
@@ -393,7 +397,7 @@ while N_particles_g < N_particles:
         output_file = (output_dir / f"gen_{g}_task_{task_id}_particle_{i}_iter_{k}.joblib")
         # store accepted particle
         result = {
-            "seed": seed,
+            "seed": particle_seed,
             "paras": paras,
             "distance_temporal": distance_temporal,
             "distance_spatial": distance_spatial,

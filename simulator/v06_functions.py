@@ -1412,8 +1412,8 @@ def run_auto_strategies(
             enhanced_reporting_factor = EPS_factor
 
         # adjust the plotting parameters for this new scenario
-        random.seed(1235)
-        np.random.seed(1116)
+        # random.seed(1235)
+        # np.random.seed(1116)
         diseaseoutbreak.set_plotting_parameters(
             xlims=xlims,
             ylims=ylims,

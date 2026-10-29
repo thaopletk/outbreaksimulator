@@ -517,9 +517,10 @@ t_today_config = config["run_parameters"]["t_today"]
 if t_today_config is None or str(t_today_config).upper() == "NA":
     t_today = int(dat["t_n"].max()) + 1 # t_today is the day after the last notification
 else:
-    t_today = int(t_today_config) + t_detect # we put t_today (t_detect based; e.g., 3 weeks after t_detect)
-    if t_today > t_max:
-        raise ValueError("t_max must be bigger than (t_detect + t_today).") 
+    t_today = t_today_config
+#    t_today = int(t_today_config) + t_detect # we put t_today (t_detect based; e.g., 3 weeks after t_detect)
+#    if t_today > t_max:
+#        raise ValueError("t_max must be bigger than (t_detect + t_today).") 
     
 dat_today = dat.copy()
 
@@ -543,7 +544,8 @@ dat.loc[~mask, cols] = np.nan
 # 7. outbreak data reconstrucion
 # a. temporal target
 # observation window (inclusive)
-t_range = np.arange(t_detect, t_today + 1)
+t_range = np.arange(t_start, t_today + 1) # simulation starts from day 1
+# t_range = np.arange(t_detect, t_today + 1)
 target_temporal = pd.DataFrame({"t": t_range})
 
 for col, event in [("t_e", "E"), ("t_i", "I"), ("t_c", "C"), ("t_n", "N"), ("t_r", "R"), ("t_d", "D")]:

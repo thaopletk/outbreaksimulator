@@ -94,7 +94,7 @@ def predicted_epicurve(sim_data, real_data=None, target_data=None,
 
     sim = np.asarray(sim_data, dtype=float)
     days = np.arange(t_start, t_start + sim.shape[1])
-
+    
     # Credible intervals
     median = np.median(sim, axis=0)
     lower95 = np.quantile(sim, 0.025, axis=0)
@@ -102,8 +102,8 @@ def predicted_epicurve(sim_data, real_data=None, target_data=None,
     lower50 = np.quantile(sim, 0.25, axis=0)
     upper50 = np.quantile(sim, 0.75, axis=0)
 
-    # Fitted and forecast periods
-    fitted = (days >= t_detect) & (days <= t_today)
+    # Fitted (t_start ~ t_today) and forecast (t_today ~) periods
+    fitted = (days >= t_start) & (days <= t_today)
     forecast = (days >= t_today)
 
     fig, ax = plt.subplots(figsize=(15, 11))
@@ -135,7 +135,7 @@ def predicted_epicurve(sim_data, real_data=None, target_data=None,
                 color="goldenrod",  alpha=0.5, linewidth=lw * 1.1, label="Reported")
 
     # Vertical boundaries
-    ax.axvline(t_detect, color="steelblue", linewidth=lw)
+    # ax.axvline(t_detect, color="steelblue", linewidth=lw)
     ax.axvline(t_today, color="steelblue", linewidth=lw)
 
     # Axes
@@ -153,8 +153,8 @@ def predicted_epicurve(sim_data, real_data=None, target_data=None,
         if len(policy) != len(t_point):
             raise ValueError("policy and t_point must have the same length")
 
-        # Boundaries relative to t_detect
-        boundaries = [t_detect] + [t_detect + t for t in t_point]
+        # Boundaries relative to t_start
+        boundaries = [t_start - 1] + [t_start - 1 + t for t in t_point]
         for i, plc in enumerate(policy):
             start = boundaries[i]
             end = boundaries[i + 1]
@@ -169,8 +169,8 @@ def predicted_epicurve(sim_data, real_data=None, target_data=None,
             if i > 0:
                 ax.axvline(start, color="grey", linestyle=":", linewidth=0.8, alpha=0.6)
 
-    # Weeks since detection
-    ticks = np.arange(t_detect, days[-1] + 1, 14)
+    # Weeks from day 0
+    ticks = np.arange(t_start-1, days[-1] + 1, 14)
     ax.set_xticks(ticks)
     ax.set_xticklabels([str(i * 2) for i in range(len(ticks))])
     ax.set_xlabel("Week", fontsize=axes_text_size)
@@ -338,7 +338,7 @@ def abc_plot(sim_data, real_data=None, ymax=None,
             ax.plot(real_data["t"], real_data["E"], color="black", linewidth=1.2)
 
         # Vertical boundaries
-        ax.axvline(t_detect, color="skyblue", linewidth=0.8)
+        # ax.axvline(t_detect, color="skyblue", linewidth=0.8)
         ax.axvline(t_today, color="skyblue", linewidth=0.8)
 
         # Axis settings
