@@ -13,7 +13,7 @@ wind_radius = 20
 start_date = datetime.datetime(year=start_year, month=start_month, day=start_day)
 
 
-data_file = os.path.join(os.path.dirname(__file__), main_folder_name, "06_large_vs_small_CAs_two_weeks.csv")
+data_file = os.path.join(os.path.dirname(__file__), main_folder_name, "06_large_vs_small_CAs_7days.csv")
 data_df = pd.read_csv(data_file)
 
 # data_file2 = os.path.join(os.path.dirname(__file__), main_folder_name, "06_large_vs_small_CAs.csv")
@@ -77,7 +77,7 @@ ax3.legend()
 
 
 plt.tight_layout()
-plt.savefig(os.path.join(os.path.dirname(__file__), main_folder_name, "06_large_vs_small_CAs_two_weeks.png"), bbox_inches="tight")
+plt.savefig(os.path.join(os.path.dirname(__file__), main_folder_name, "06_large_vs_small_CAs_7days.png"), bbox_inches="tight")
 plt.close()
 
 
