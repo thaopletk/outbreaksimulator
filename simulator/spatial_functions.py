@@ -294,7 +294,8 @@ def expand_polygon_to_SALs(poly_to_expand):
 
 def get_address(x, y):
     curr_farm = Point(x, y)
-    SALs = get_SALs()
+    # SALs = get_SALs()
+    SALs = get_SALs_gdf()
     farm_SAL = 0
     state = 0
     country = 0

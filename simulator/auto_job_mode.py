@@ -24,7 +24,10 @@ def sort_property_distances(approx_data, property_status, target_status):
             coords2 = [float(rowj["xcoord"]), float(rowj["ycoord"])]
             dist = spatial_functions.quick_distance_haversine(coords1, coords2)
             dists_from_targets.append(dist)
-        distance_from_targets.append(min(dists_from_targets))
+        if dists_from_targets == []:
+            pass
+        else:
+            distance_from_targets.append(min(dists_from_targets))
 
     properties_to_check["distance_from_targets"] = distance_from_targets
     properties_to_check = properties_to_check.sort_values(by="distance_from_targets")
