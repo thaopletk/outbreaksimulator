@@ -12,7 +12,7 @@ def sort_property_distances(approx_data, property_status, target_status):
     """sort properties with property_status by their distance from target_status properties"""
     target_properties = approx_data[approx_data["status"] == target_status][["sim_id", "xcoord", "ycoord"]]
 
-    if len(len(target_properties.index)) == 0:
+    if len(target_properties.index) == 0:
         return target_properties
     properties_to_check = approx_data[approx_data["status"] == property_status]
 
