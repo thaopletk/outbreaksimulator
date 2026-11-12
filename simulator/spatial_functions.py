@@ -290,3 +290,25 @@ def expand_polygon_to_SALs(poly_to_expand):
             intersecting_SALs.append(SAL)
 
     return unary_union(intersecting_SALs)
+
+
+def get_address(x, y):
+    curr_farm = Point(x, y)
+    SALs = get_SALs()
+    farm_SAL = 0
+    state = 0
+    country = 0
+
+    SAL_list = SALs["SAL_NAME21"].tolist()
+    for SAL in SAL_list:
+        region_only = SALs.loc[SALs["SAL_NAME21"] == SAL, :]
+        region_shape = list(region_only["geometry"])[0]
+        if region_shape != None and region_shape.contains(curr_farm):
+            farm_SAL = SAL
+            state = list(region_only["STE_NAME21"])[0]
+            country = list(region_only["AUS_NAME21"])[0]
+
+    if farm_SAL == 0:
+        raise ValueError(f"Unable to find Suburb/Location for {curr_farm}")
+
+    return farm_SAL, state, country

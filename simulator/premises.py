@@ -9,7 +9,8 @@ Expands upon the Property class from FMD_Modelling
 import sys
 import os
 import numpy as np
-from geopy.geocoders import Nominatim
+
+# from geopy.geocoders import Nominatim
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -19,6 +20,7 @@ import itertools
 from simulator.spatial_functions import calculate_area
 import time
 import math
+import simulator.spatial_functions as spatial_functions
 
 
 def rounding_entities(val):
@@ -37,7 +39,7 @@ def rounding_entities(val):
     return math.floor(val / 100000) * 100000
 
 
-geolocator = Nominatim(user_agent="http")
+# geolocator = Nominatim(user_agent="http")
 
 start_year = 2026
 start_month = 3
@@ -222,16 +224,24 @@ class Premises(Property):
         self.decontamination_date = "NA"
 
     def find_location(self):
-        try:
-            self.location = geolocator.reverse(f"{self.y},{self.x}")
-            self.address = self.location.raw["address"]
-            self.state = self.address.get("state", "")
-            if self.state == "":
-                self.state = self.address.get("territory", "")
-            print("successful address found")
-            time.sleep(1.0)
-        except Exception as e:
-            print(e)
+        # # previously: location = Street Address, Suburb, State/Territory, Postcode, Country
+        # try:
+        #     self.location = geolocator.reverse(f"{self.y},{self.x}")
+        #     self.address = self.location.raw["address"]
+        #     self.state = self.address.get("state", "")
+        #     if self.state == "":
+        #         self.state = self.address.get("territory", "")
+        #     print("successful address found")
+        #     time.sleep(1.0)
+        # except Exception as e:
+        #     print(e)
+
+        # location = Suburb, State/Territory, Postcode, Country
+        # TODO: get Postcode if it feels necessary
+        farm_SAL, state, country = spatial_functions.get_address(self.x, self.y)
+        self.location = f"{farm_SAL}, {state}, {country}"
+        self.address = self.location
+        self.state = state
 
     def get_location(self):
         if self.location == None:
