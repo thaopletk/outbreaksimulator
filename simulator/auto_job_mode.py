@@ -1038,7 +1038,7 @@ def generate_jobs_teams_FMD(
                 job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", status]
                 jobs_rows.append(job_row)
 
-                teams["Surveillance"] -= 1  # in depth first investigation
+                teams["Surveillance"] -= 1
 
             else:  # if it's still an SP, then it's not an IP....treating it like a DCP with ~2 inspections per week
                 if teams["Surveillance"] > 0 and dt.strptime(row["last_surveillance_date"], "%d/%m/%Y") + timedelta(days=4) <= scheduled_date_object:
@@ -1046,7 +1046,7 @@ def generate_jobs_teams_FMD(
                     jobs_rows.append(job_row)
                     job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", status]
                     jobs_rows.append(job_row)
-                    teams["Surveillance"] -= 0.5  # a less in-depth investigation
+                    teams["Surveillance"] -= 1
 
     # ARPs and PORs are treated the same (but ARPs come first)
     for status in ["ARP", "POR"]:
@@ -1062,7 +1062,7 @@ def generate_jobs_teams_FMD(
                     job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", status]
                     jobs_rows.append(job_row)
 
-                    teams["Surveillance"] -= 0.5  # a less in-depth investigation
+                    teams["Surveillance"] -= 1
                 else:  # if it's still an SP, then it's not an IP....treating it like a DCP with ~2 inspections per week
                     if (
                         teams["Surveillance"] > 0
@@ -1072,7 +1072,7 @@ def generate_jobs_teams_FMD(
                         jobs_rows.append(job_row)
                         job_row = [row["sim_id"], scheduled_date, "LabTesting", "", "", "", status]
                         jobs_rows.append(job_row)
-                        teams["Surveillance"] -= 0.5  # a less in-depth investigation
+                        teams["Surveillance"] -= 1
 
     UPs = approx_data[approx_data["status"] == "UP"]
     UPs = UPs.sort_values("case_id")

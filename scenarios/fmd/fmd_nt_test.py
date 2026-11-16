@@ -80,11 +80,13 @@ start_date = datetime.datetime(year=start_year, month=start_month, day=start_day
 #     create_download_folder=False,
 #     download_parent_folder=None,
 #     download_folder_name=None,
-#     strategy="large_CA",
+#     strategy="large_CA_1",
 #     shapefile_path=None,
 #     start_date=start_date,
+#     random_seed=1000,
+#     np_random_seed=1000,
+#     EPS_factor=5,
 # )
-
 
 # FMD_functions.run_auto_strategies(
 #     main_folder_name=main_folder_name,
@@ -95,68 +97,104 @@ start_date = datetime.datetime(year=start_year, month=start_month, day=start_day
 #     create_download_folder=False,
 #     download_parent_folder=None,
 #     download_folder_name=None,
-#     strategy="small_CA",
+#     strategy="large_CA_2",
+#     shapefile_path=None,
+#     start_date=start_date,
+#     random_seed=2000,
+#     np_random_seed=2000,
+#     EPS_factor=5,
+# )
+
+# FMD_functions.run_auto_strategies(
+#     main_folder_name=main_folder_name,
+#     state=state,
+#     previous_unique_output="05_national_standstill",
+#     previous_output_suffix_int=5,
+#     total_days_to_run_for=4,
+#     create_download_folder=False,
+#     download_parent_folder=None,
+#     download_folder_name=None,
+#     strategy="small_CA_1",
+#     shapefile_path=None,
+#     start_date=start_date,
+#     random_seed=1000,
+#     np_random_seed=1000,
+#     EPS_factor=5,
+# )
+
+FMD_functions.run_auto_strategies(
+    main_folder_name=main_folder_name,
+    state=state,
+    previous_unique_output="05_national_standstill",
+    previous_output_suffix_int=5,
+    total_days_to_run_for=4,
+    create_download_folder=False,
+    download_parent_folder=None,
+    download_folder_name=None,
+    strategy="small_CA_2",
+    shapefile_path=None,
+    start_date=start_date,
+    random_seed=2000,
+    np_random_seed=2000,
+    EPS_factor=5,
+)
+
+# FMD_functions.run_auto_strategies(
+#     main_folder_name=main_folder_name,
+#     state=state,
+#     previous_unique_output="06_large_CA",
+#     previous_output_suffix_int=6,
+#     total_days_to_run_for=28 - 7,  # 7 to 28
+#     create_download_folder=False,
+#     download_parent_folder=None,
+#     download_folder_name=None,
+#     strategy="large_CA_cull_focus",
+#     shapefile_path=None,
+#     start_date=start_date,
+# )
+
+# FMD_functions.run_auto_strategies(
+#     main_folder_name=main_folder_name,
+#     state=state,
+#     previous_unique_output="06_small_CA",
+#     previous_output_suffix_int=6,
+#     total_days_to_run_for=28 - 7,  # 7 to 28
+#     create_download_folder=False,
+#     download_parent_folder=None,
+#     download_folder_name=None,
+#     strategy="small_CA_cull_focus",
+#     shapefile_path=None,
+#     start_date=start_date,
+# )
+
+# FMD_functions.run_auto_strategies(
+#     main_folder_name=main_folder_name,
+#     state=state,
+#     previous_unique_output="06_large_CA",
+#     previous_output_suffix_int=6,
+#     total_days_to_run_for=28 - 7,  # 7 to 28
+#     create_download_folder=False,
+#     download_parent_folder=None,
+#     download_folder_name=None,
+#     strategy="large_CA_surveillance_focus",
 #     shapefile_path=None,
 #     start_date=start_date,
 # )
 
 
-FMD_functions.run_auto_strategies(
-    main_folder_name=main_folder_name,
-    state=state,
-    previous_unique_output="06_large_CA",
-    previous_output_suffix_int=6,
-    total_days_to_run_for=28 - 7,  # 7 to 28
-    create_download_folder=False,
-    download_parent_folder=None,
-    download_folder_name=None,
-    strategy="large_CA_cull_focus",
-    shapefile_path=None,
-    start_date=start_date,
-)
-
-FMD_functions.run_auto_strategies(
-    main_folder_name=main_folder_name,
-    state=state,
-    previous_unique_output="06_small_CA",
-    previous_output_suffix_int=6,
-    total_days_to_run_for=28 - 7,  # 7 to 28
-    create_download_folder=False,
-    download_parent_folder=None,
-    download_folder_name=None,
-    strategy="small_CA_cull_focus",
-    shapefile_path=None,
-    start_date=start_date,
-)
-
-FMD_functions.run_auto_strategies(
-    main_folder_name=main_folder_name,
-    state=state,
-    previous_unique_output="06_large_CA",
-    previous_output_suffix_int=6,
-    total_days_to_run_for=28 - 7,  # 7 to 28
-    create_download_folder=False,
-    download_parent_folder=None,
-    download_folder_name=None,
-    strategy="large_CA_surveillance_focus",
-    shapefile_path=None,
-    start_date=start_date,
-)
-
-
-FMD_functions.run_auto_strategies(
-    main_folder_name=main_folder_name,
-    state=state,
-    previous_unique_output="06_small_CA",
-    previous_output_suffix_int=6,
-    total_days_to_run_for=28 - 7,  # 7 to 28
-    create_download_folder=False,
-    download_parent_folder=None,
-    download_folder_name=None,
-    strategy="small_CA_surveillance_focus",
-    shapefile_path=None,
-    start_date=start_date,
-)
+# FMD_functions.run_auto_strategies(
+#     main_folder_name=main_folder_name,
+#     state=state,
+#     previous_unique_output="06_small_CA",
+#     previous_output_suffix_int=6,
+#     total_days_to_run_for=28 - 7,  # 7 to 28
+#     create_download_folder=False,
+#     download_parent_folder=None,
+#     download_folder_name=None,
+#     strategy="small_CA_surveillance_focus",
+#     shapefile_path=None,
+#     start_date=start_date,
+# )
 
 # FMD_functions.run_auto_strategies(
 #     main_folder_name=main_folder_name,
