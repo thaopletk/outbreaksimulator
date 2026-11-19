@@ -6,15 +6,20 @@ import pandas as pd
 import yaml
 import joblib
 import pickle
-import copy
-import ast
 import itertools
+import os
 
 from pyproj import Transformer
 from scipy.spatial.distance import pdist, squareform
 from scipy.stats import gamma
-from shapely.geometry import Point
 from datetime import datetime
+from types import SimpleNamespace
+from shapely.geometry import Polygon
+from scipy.spatial import cKDTree
+from geopy.location import Location
+import geopandas as gpd
+from pyproj import Geod
+from shapely.affinity import translate
 
 # 0. user defined functions and record start time
 time = datetime.now().astimezone().isoformat(timespec="seconds")
@@ -51,250 +56,665 @@ def epi_gammabuster(mode, max_val, qmax=0.99, max_shape1=10, step=0.01):
         "skew": float(skew)
     }
 
-def approx_dat_to_properties(dat, approx_known_dat, seed=123):
+# outbreakobject pickle
+def create_outbreak_pickle(
+    start_date,
+    current_date,
+    para_names,
+    prior_values,
+    folder_path="",
+    unique_output="",
+    movement_dat="",
+    xrange="", 
+    yrange="",
+    job_manager="",
+    vax_modifier=""
+):
+
+    def parse_date(value):
+        if isinstance(value, datetime):
+            return value
+        return datetime.strptime(value, "%d/%m/%Y")
+
+    start = parse_date(start_date)
+    current = parse_date(current_date)
+    parameters = dict(zip(para_names, prior_values))
+
+    # disease_parameters
+    chicken_keys = [
+        "beta_wind",
+        "beta_animal",
+        "latent_period",
+        "infectious_period",
+        "preclinical_period",
+    ]
+
+    chicken_parameters = {
+        key: float(parameters[key])
+        for key in chicken_keys
+    }
+
+    outbreak = SimpleNamespace(
+        time=(current.date() - start.date()).days,
+
+        movement_records=movement_dat,
+
+        disease_parameters={"chicken": chicken_parameters.copy()},
+        beta_wind={"chicken": chicken_parameters["beta_wind"]},
+        beta_animal={"chicken": chicken_parameters["beta_animal"]},
+        latent_period={"chicken": chicken_parameters["latent_period"]},
+        infectious_period={"chicken": chicken_parameters["infectious_period"]},
+        preclinical_period={"chicken": chicken_parameters["preclinical_period"]},
+
+        r_wind=float(parameters["r_wind"]),
+        clinical_reporting_threshold=float(parameters["clinical_reporting_threshold"]),
+        prob_report=float(parameters["prob_report"]),
+        prob_report_commercial=float(parameters["prob_report_commercial"]),
+        prob_report_backyard=float(parameters["prob_report_backyard"]),
+        vax_modifier=vax_modifier,
+
+        combined_narrative=[],
+        xlims=xrange,
+        ylims=yrange,
+        plotting=True,
+        folder_path=str(folder_path),
+        unique_output=str(unique_output),
+        
+        job_manager=job_manager,
+        total_culled_animals=0,
+        controlzone={},
+        contacts_for_plotting={},
+        daily_statistics={},
+        first_detection_day=(current.date() - start.date()).days,
+        case_id_counter=1,
+        notified_iter=itertools.count(1),
+
+        start_year=start.year,
+        start_month=start.month,
+        start_day=start.day,
+        start_date=start,
+    )
     
-    rng = np.random.default_rng(seed)
+    obj = DiseaseSimulation.__new__(DiseaseSimulation)
+    obj.__dict__.update(vars(outbreak))
+    return obj
+
+# Premises pickle
+def merge_dat_approx(dat, approx_known_dat, tolerance=1e-5, seed=123):
     
     dat = dat.copy().reset_index(drop=True)
-    approx_known_dat = approx_known_dat.copy()
+    approx_known_dat = approx_known_dat.copy().reset_index(drop=True)
+    rng = np.random.default_rng(seed)
+    
+    # known data
+    approx_known_dat["known_sheds"] = approx_known_dat["sheds"].copy()
+    approx_known_dat["known_area"] = approx_known_dat["area"].copy()
+    approx_known_dat["known_birds"] = approx_known_dat["total_chickens"].copy()
 
-    if approx_known_dat["sim_id"].duplicated().any():
-        raise ValueError("Duplicate sim_id in approx_known_dat")
+    # Coordinate matching
+    dat_coords = dat[["longitude", "latitude"]].to_numpy(dtype=float)
+    approx_coords = approx_known_dat[["xcoord", "ycoord"]].to_numpy(dtype=float)
+    tree = cKDTree(approx_coords)
+    matches = tree.query_ball_point(dat_coords, r=tolerance, p=np.inf)
 
-    # avoid overwriting dat columns
-    known = approx_known_dat.set_index("sim_id")
+    # Avoid ambiguous matches
+    if any(len(m) > 1 for m in matches):
+        raise ValueError("Multiple approx_known_dat rows match the same coordinates")
 
-    # helper functions
-    def valid(v):
-        if v is None:
-            return False
-        if isinstance(v, str):
-            return v.strip() not in ("", "NA", "nan", "None")
-        return bool(pd.notna(v))
+    indices = [m[0] if m else -1 for m in matches]
+    matched_indices = [i for i in indices if i >= 0]
+    
+    if len(matched_indices) != len(set(matched_indices)):
+        raise ValueError("An approx_known_dat row matches multiple dat rows")
 
-    def get_value(row, col, default=None):
-        if col in row.index and valid(row[col]):
-            return row[col]
-        return default
+    # Keep dat columns when names overlap
+    extra_cols = [
+        col for col in approx_known_dat.columns
+        if col not in dat.columns
+        and col not in ["xcoord", "ycoord"]
+    ]
 
-    def weighted_sample(series, default=None):
-        values = series.dropna()
-        values = values[
-            ~values.astype(str).isin(["", "NA", "nan", "None"])
-        ]
-
-        if len(values) == 0:
-            return default
-
-        probabilities = values.value_counts(normalize=True)
-
-        return rng.choice(
-            probabilities.index.to_numpy(),
-            p=probabilities.to_numpy()
-        )
-
-    def get_known(sim_id, col, default=None):
-        if sim_id in known.index and col in known.columns:
-            value = known.at[sim_id, col]
-            if valid(value):
-                return value
-        return default
-
-    def get_date(row, col):
-        value = get_value(row, col)
-        if value is None:
-            return "NA"
-
-        if isinstance(value, (int, float, np.integer, np.floating)):
-            return str(value)
-
-        date = pd.to_datetime(value, dayfirst=True, errors="coerce")
-
-        if pd.notna(date):
-            return date.strftime("%d/%m/%Y")
-
-        return str(value)
-
-    # 3. prepare imputed values
-    # region: nearest available LGA by row order
-    region = pd.Series(
-        [
-            get_known(sim_id, "LGA")
-            for sim_id in dat["id"]
-        ]
+    approx_aligned = (
+        approx_known_dat.reindex(indices)[extra_cols]
+        .reset_index(drop=True)
     )
 
-    region = region.ffill().bfill()
+    dat = pd.concat([dat, approx_aligned], axis=1)
+    
+    # Identify premises with both observed shed counts and chicken counts. - These complete records are used as sampling donors.
+    sheds = pd.to_numeric(dat["sheds"], errors="coerce")
+    chickens = pd.to_numeric(dat["total_chickens"], errors="coerce")
+    donors = pd.DataFrame({"sheds": sheds, "total_chickens": chickens}).dropna()
+    
+    # Weighted sampling: similar values receive higher probabilities.
+    def sample(value, column):
+        if pd.isna(value):
+            return donors.iloc[rng.integers(len(donors))]
 
-    # 4. create Premises objects
+        x = donors[column].to_numpy(float)
+        weights = np.exp(-2 * abs(np.log1p(x) - np.log1p(value)))
+        weights /= weights.sum()
+
+        return donors.iloc[rng.choice(len(donors), p=weights)]
+    
+    result = []
+    
+    for i, row in dat.iterrows():
+    
+        s = sheds.iloc[i]
+        n = chickens.iloc[i]
+
+        # Four cases:
+        # 1 Both known: preserve both.
+        # 2 Only sheds known: sample chickens conditional on sheds.
+        # 3 Only chickens known: sample sheds conditional on chickens.
+        # 4 Both missing: use n_total as a proxy for farm size.
+        if pd.isna(s) or pd.isna(n):
+            if pd.notna(s):
+                donor = sample(s, "sheds")
+            elif pd.notna(n):
+                donor = sample(n, "total_chickens")
+            else:
+                target = pd.to_numeric(row.get("n_total"), errors="coerce")
+                donor = sample(target, "total_chickens")
+
+            if pd.isna(s):
+                s = donor["sheds"]
+            if pd.isna(n):
+                n = donor["total_chickens"]
+
+        s, n = int(s), int(n)
+
+        size = pd.to_numeric(row.get("n_total"), errors="coerce")
+        size = max(int(size), 0) if pd.notna(size) else 0
+
+        kind = str(row.get("enterprise", "")).strip().lower()
+
+        # Approximate chickens per shed.
+        approx_per_shed = int(round(n / s)) if n > 0 else None
+
+        # Infer eggs using the original type-specific initialisation rules.
+        # Direct egg observations take priority over simulated values.
+        raw_eggs = pd.to_numeric(row.get("eggs", np.nan), errors="coerce")
+
+        if pd.notna(raw_eggs):
+            eggs = int(raw_eggs)
+        elif "layers" in kind or "egg production" in kind or "mixed" in kind:
+            eggs = (size // s) * int(rng.integers(0, s))
+        elif kind == "breeder":
+            eggs = 12000 * int(rng.integers(0, s))
+        elif kind == "backyard" or "other" in kind:
+            eggs = int(rng.integers(0, size)) if size > 0 else 0
+        else:
+            eggs = 0
+
+        result.append((s, n, approx_per_shed, eggs))
+
+    # Store estimates without overwriting original observations.
+    dat[["num_sheds_inferred", "total_chicken_inferred", "approx_chickens_per_shed", "eggs_inferred"]] = pd.DataFrame(result, index=dat.index)
+    print(f"Matched rows: {len(matched_indices)}/{len(dat)}")
+
+    return dat
+
+def fill_lga(dat, shp_path):
+    dat = dat.copy().reset_index(drop=True)
+
+    # Load LGA shapefile
+    lga = gpd.read_file(shp_path)
+
+    # Farm coordinates (longitude, latitude)
+    farms = gpd.GeoDataFrame(
+        dat[["longitude", "latitude"]].copy(),
+        geometry=gpd.points_from_xy(dat["longitude"], dat["latitude"]),
+        crs="EPSG:4326"
+    )
+
+    # Match coordinate systems
+    farms = farms.to_crs(lga.crs)
+
+    # Spatial join
+    matched = gpd.sjoin(farms, lga[["LGA_NAME25", "geometry"]], how="left", predicate="within")
+
+    # Ensure one LGA per farm
+    if matched.index.duplicated().any():
+        raise ValueError("Multiple LGAs matched to a single farm")
+
+    # Fill missing LGA values only
+    if "LGA" not in dat.columns:
+        dat["LGA"] = pd.NA
+
+    dat["LGA"] = dat["LGA"].fillna(matched["LGA_NAME25"].reindex(dat.index))
+
+    return dat
+
+def calculate_spatial_attributes(properties, epsg="EPSG:3577", max_distance=6, radius_km=5):
+    
+    # Convert longitude/latitude to projected coordinates (km)
+    transformer = Transformer.from_crs("EPSG:4326", epsg, always_xy=True)
+    lon = np.array([p.coordinates[0] for p in properties])
+    lat = np.array([p.coordinates[1] for p in properties])
+    x, y = transformer.transform(lon, lat)
+    coords_km = np.column_stack([x, y]) / 1000
+
+    # Build spatial index
+    tree = cKDTree(coords_km)
+
+    for i, p in enumerate(properties):
+
+        # 1. Neighbourhood and total_neighbours
+        indices = tree.query_ball_point(coords_km[i], r=max_distance)
+
+        neighbours = [
+            [int(j), float(np.linalg.norm(coords_km[i] - coords_km[j]))]
+            for j in indices if i != j
+        ]
+
+        neighbours.sort(key=lambda item: item[0])
+
+        p.neighbourhood = neighbours
+        p.total_neighbours = len(neighbours)
+
+        # 2. Puffed polygon and area
+        # TODO: Replace the centre-distance criterion with the original polygon intersection method.
+        # The original simulator also uses Haversine distances.
+        polygon_coords = geodesic_point_buffer(lat[i], lon[i], radius_km)
+        p.puffed_poly = Polygon(polygon_coords)
+        p.puffed_poly_area = calculate_area(p.puffed_poly)
+
+    return properties
+
+def initialise_movement_attributes(properties, movement_dat):
+    # Reconstruct movement_neighbours and allowed_movement_details
+    # using observed movement records from movement_dat.
+    
+    MOVEMENT_TYPES = [
+        "layers free-range", "layers caged", "layers barn",
+        "broiler farm", "pullet farm", "egg processing",
+        "abbatoir", "hatchery", "breeder", "backyard"
+    ]
+
+    # Initialise movement-related attributes.
+    for p in properties:
+        p.movement_neighbours = {t: [] for t in MOVEMENT_TYPES}
+        p.allowed_movement_details = {}
+
+    # Map premises IDs to list indices.
+    id_to_index = {
+        int(p.id): i for i, p in enumerate(properties)
+    }
+
+    # Restore observed directed movements.
+    for _, row in movement_dat.iterrows():
+
+        source_id = int(row["from"])
+        target_id = int(row["to"])
+        target_type = row["facility_type_2"]
+
+        if source_id not in id_to_index or target_id not in id_to_index:
+            continue
+
+        if target_type not in MOVEMENT_TYPES:
+            continue
+
+        source_idx = id_to_index[source_id]
+        target_idx = id_to_index[target_id]
+
+        source = properties[source_idx]
+
+        # Preserve observed movement direction.
+        neighbours = source.movement_neighbours[target_type]
+
+        if target_idx not in neighbours:
+            neighbours.append(target_idx)
+
+        # Record observed destinations by transported entity.
+        entity = str(row["entity"]).strip().lower()
+        entity = {"chicken": "chickens", "egg": "eggs"}.get(entity)
+
+        if entity is None:
+            continue
+
+        if entity not in source.allowed_movement_details:
+            source.allowed_movement_details[entity] = {
+                "property_types": [],
+                "properties": []
+            }
+
+        details = source.allowed_movement_details[entity]
+
+        if target_type not in details["property_types"]:
+            details["property_types"].append(target_type)
+
+        if target_idx not in details["properties"]:
+            details["properties"].append(target_idx)
+
+    return properties
+
+def create_rectangle_polygon(lon, lat, area, aspect_ratio=2.0):
+    
+    geod = Geod(ellps="WGS84")
+
+    area_m2 = area * 10000 # Area (ha -> m²)
+    width = np.sqrt(area_m2 / aspect_ratio)
+    height = width * aspect_ratio
+
+    corners = []
+
+    for east, north in [
+        (-width / 2, -height / 2),
+        ( width / 2, -height / 2),
+        ( width / 2,  height / 2),
+        (-width / 2,  height / 2)
+    ]:
+        azimuth = np.degrees(np.arctan2(east, north))
+        distance = np.hypot(east, north)
+
+        x, y, _ = geod.fwd(lon, lat, azimuth, distance)
+        corners.append((x, y))
+
+    return Polygon(corners)
+
+def estimate_area_polygon(dat, LGA_path, seed=123):
+
+    dat = dat.copy()
+
+    # Read LGA boundaries
+    lga_gdf = gpd.read_file(LGA_path).to_crs("EPSG:4326")
+    lga_regions = dict(zip(lga_gdf["LGA_NAME25"], lga_gdf.geometry))
+
+    polygons = {}
+
+    # 1. Premises with known area
+    known = dat["area"].notna()
+
+    for idx, row in dat.loc[known].iterrows():
+
+        polygons[idx] = create_rectangle_polygon(
+            lon=row["longitude"],
+            lat=row["latitude"],
+            area=row["area"],
+            aspect_ratio=2.0
+        )
+
+    # 2. Premises with missing area
+    missing = dat["area"].isna()
+
+    np.random.seed(seed)
+
+    for lga, group in dat.loc[missing].groupby("LGA"):
+
+        region = lga_regions[lga]
+
+        # Reuse original simulator function
+        coords, generated_polygons, generated_areas = (
+            assign_property_locations_in_region(
+                n=len(group),
+                region=region,
+                average_property_ha=50,
+                excluded_regions=[]
+            )
+        )
+
+        for (idx, row), poly in zip(group.iterrows(), generated_polygons):
+            
+            # Move polygon to the existing premises coordinates
+            polygon = translate(poly, xoff=row["longitude"] - poly.centroid.x, yoff=row["latitude"] - poly.centroid.y)
+            polygons[idx] = polygon
+
+            # Recalculate area at the destination coordinates
+            dat.at[idx, "area"] = calculate_area(polygon)
+
+    # Store polygons
+    dat["polygon"] = None
+
+    for idx, polygon in polygons.items():
+        dat.at[idx, "polygon"] = polygon
+
+    return dat
+
+
+def create_property_pickle(dat, approx_known_dat, movement_dat, LGA_path=None):
+
+    # 1. Merge datasets using farm coordinates and identify LGAs.
+    dat = merge_dat_approx(dat, approx_known_dat)
+    
+    if LGA_path is not None:
+        dat = fill_lga(dat, shp_path=LGA_path)
+    
+    # 2. Preserve known farm areas and use the original simulator function
+    # to generate missing 'area's and rectangular polygons (re-centered)
+    dat = estimate_area_polygon(dat, LGA_path=LGA_path, seed=123)
+    
     properties = []
-    Premises.id_iter = itertools.count()
+    
+    rng = np.random.default_rng(123)
+    cutoff = pd.to_datetime(approx_known_dat["self_report_date"], dayfirst=True, errors="coerce").min()
+
     for i, row in dat.iterrows():
 
-        sim_id = int(row["id"])
+        # 3. Create a Premises object without calling the original constructor.
+        p = Premises.__new__(Premises)
 
-        # basic premises information
-        x = float(row["longitude"])
-        y = float(row["latitude"])
+        # 4. Initialise attributes that have identical values across all premises.
+        p.__dict__.update({
 
-        area_ha = float(
-            get_known(sim_id, "area", get_value(row, "area_h", 0))
-        )
-
-        num_animals = int(get_value(row, "n_total", get_value(row, "total_chickens", 0)))
-
-        # polygon (requires projected coordinates in metres)
-        radius = np.sqrt(max(area_ha, 0) * 10000 / np.pi)
-        polygon = Point(x, y).buffer(max(radius, 0.001))
-
-        # enterprise
-        property_type = get_known(sim_id, "enterprise")
-
-        if property_type is None:
-            property_type = weighted_sample(
-                approx_known_dat["enterprise"],
-                default="NA"
+            "radius": None,
+            "animals": [],
+            "vaccination_status": 0,
+            "culled_status": 0,
+            "vaccinate_delay": 0,
+            "cull_delay": 0,
+            "movement_start_day": 0,
+            "animal_type": "chicken",
+            "reported_status": False,
+            "culled_on_suspicion": False,
+            "ip": "NA",
+            "notification_date": "NA",
+            "removal_date": "NA",
+            "recovery_date": "NA",
+            "vacc_date": "NA",
+            "county": "NA",
+            "cluster": "NA",
+            "movement_probability": 0,
+            "movement_prop_animals": 0,
+            "movement_frequency": 1,
+            "allowed_movement": {},
+            "max_daily_movements": 1,
+            "undergoing_testing": False,
+            "day_of_last_lab_test": None,
+            "chickens": None,
+            "eggs_fertilised": None,
+            "QLD_property_type": None,
+            "FMD_extra_info": None,
+            "cumulative_infections_by_animal_type": {},
+            "disposed_status": 0,
+            "decontaminated_status": 0,
+            "disposal_date": "NA",
+            "decontamination_date": "NA",
+        })
+        
+        # 5. known data
+        p.known_birds = row["known_birds"]
+        p.known_area = row["known_area"]
+        p.known_sheds = row["known_sheds"]
+        p.sim_id = row["sim_id"]
+        p.data_source = row["data_source"]
+        
+        # 6. Estimated while merging
+        p.num_sheds = row["num_sheds_inferred"]
+        p.chicken_capacity = row["total_chicken_inferred"]
+        p.approx_chickens_per_shed = row["approx_chickens_per_shed"]
+        p.eggs = row["eggs_inferred"]
+        
+        # 7. Assign farm coordinates from the merged dataset.
+        x = np.float64(row["longitude"])
+        y = np.float64(row["latitude"])
+        p.__dict__.update({
+            "coordinates": np.array([x, y], dtype=np.float64),
+            "x": x,
+            "y": y
+        })
+        
+        # 8. Initialise reporting status and location attributes (address, location, state, clinical_report_outcome, status).
+        self_report_date = pd.to_datetime(row.get("self_report_date"), dayfirst=True, errors="coerce")
+        has_report = pd.notna(self_report_date)
+        if has_report:
+            # TODO: Addresses and street names need to be inferred from the x and y coordinates. 
+            # G-NAF data could be used for this purpose, although the dataset is approximately 2 GB in size.
+            p.address = {
+                "road": "Willowdene Avenue",
+                "city": "Sydney",
+                "state": "New South Wales",
+                "ISO3166-2-lvl4": "AU-NSW",
+                "postcode": "2745",
+                "country": "Australia",
+                "country_code": "au"
+            }
+            full_address = ", ".join([p.address["road"], p.address["city"], p.address["state"], p.address["postcode"], p.address["country"]])
+            p.location = Location(
+                full_address,
+                (y, x, 0.0), # latitude, longitude, altitude
+                raw={"address": p.address}
             )
+            p.state = p.address["state"]
+            p.clinical_report_outcome = True
+            p.status = "SP"
+            p.case_created_date = self_report_date.strftime("%d/%m/%Y")
+            p.custom_info = {"self_report_date": self_report_date.strftime("%d/%m/%Y")}
+            p.case_id = 1
+        else:
+            p.location = None
+            p.address = None
+            p.state = None
+            p.clinical_report_outcome = None
+            p.status = "NA"
+            p.case_created_date = None
+            p.custom_info = {}
+            p.case_id = None
 
-        # create object
-        p = Premises(
-            num_animals=num_animals,
-            coordinates=np.array([x, y], dtype=np.float64),
-            area_ha=area_ha,
-            neighbourhood=[],
-            property_polygon=polygon,
-            property_polygon_puffed=polygon,
-            property_type=str(property_type),
-            animal_type="chicken",
-            allowed_movement={}
+        # 9. Assign premises ID and farm population size (id, size).
+        p.id = int(i)
+        p.size = row["n_total"]
+        
+        # 10. Assign exposure and clinical dates, excluding dates after the cutoff.
+        exposure_date = pd.to_datetime(row["exposure_date"], errors="coerce")
+        clinical_date = pd.to_datetime(row["clinical_date"], errors="coerce")
+        p.exposure_date = (
+            exposure_date.strftime("%d/%m/%Y") 
+            if pd.notna(exposure_date) and exposure_date <= cutoff
+            else "NA"
         )
-
-        # identifiers
-        p.id = sim_id
-        p.sim_id = sim_id
-        p.case_id = get_known(sim_id, "case_id", "")
-
-        # premises information
-        p.x = np.float64(x)
-        p.y = np.float64(y)
-        p.type = str(property_type)
-        p.region = (
-            str(region.iloc[i])
-            if valid(region.iloc[i]) else "NA"
+        p.clinical_date = (
+            clinical_date.strftime("%d/%m/%Y") 
+            if pd.notna(clinical_date) and clinical_date <= cutoff
+            else "NA"
         )
-        p.state = None
-        p.data_source = get_known(sim_id, "data_source")
-        if p.data_source is None:
-            p.data_source = weighted_sample(
-                approx_known_dat["data_source"],
-                default="NA"
+        
+        # 11. Assign administrative region, premises type, and housing typ.
+        # if we don't have information on premises and housing types, let them be.
+        p.region = row["LGA"] if pd.notna(row.get("LGA")) else ""
+        p.type = row["enterprise"] if pd.notna(row.get("enterprise")) else "" # not sure the simulator accept "" value
+        p.housing_type = row["housing"] if pd.notna(row.get("housing")) else ""
+        p.accepts_hatchlings = ( # Infer hatchling acceptance based on premises type and shed count.
+            p.type in {"broiler farm", "pullet farm", "backyard"}
+            or "Meat" in p.type
+            or "Other" in p.type
+            or (
+                ("layers" in p.type or "Egg production" in p.type or "Mixed" in p.type)
+                and p.num_sheds > 5
             )
-        p.housing_type = get_known(sim_id, "housing")
-        if p.housing_type is None:
-            p.housing_type = weighted_sample(
-                approx_known_dat["housing"],
-                default=""
-            )
-
-        # infection information from dat
-        p.status = get_value(row, "status", "NIL")
-        p.ip = get_known(sim_id, "ip", "")
-        p.exposure_date = get_date(row, "exposure_date")
-        p.clinical_date = get_date(row, "clinical_date")
-        p.notification_date = get_date(row, "notification_date")
-        p.recovery_date = get_date(row, "recovery_date")
-        p.removal_date = get_date(row, "removal_date")
-        p.vacc_date = get_date(row, "vacc_date")
-
-        # Known premises information
-        p.known_birds = int(
-            get_known(sim_id, "total_chickens", get_value(row, "total_chickens", num_animals))
         )
 
-        p.known_area = float(
-            get_known(sim_id, "area", get_value(row, "area_h", area_ha))
-        )
+        # 12. Approximate infection-related attributes using available exposure data.
+        # TODO: Replace random initialisation with a within-premises nfection model accounting for time since exposure and farm size.
+        has_exposure = p.exposure_date != "NA"
+        if has_exposure and p.size > 0:
+            p.infection_status = 1
+            p.number_infected = int(rng.integers(1, max(int(p.size), 1) + 1))
+            p.cumulative_infections = p.number_infected
+            p.prop_infectious = float(p.number_infected / p.size)
+            p.prop_clinical = float(p.number_infected / p.size)
+        else:
+            p.infection_status = 0
+            p.number_infected = 0
+            p.cumulative_infections = 0
+            p.prop_infectious = 0
+            p.prop_clinical = 0
 
-        known_sheds = get_known(sim_id, "sheds")
-
-        if known_sheds is None:
-            known_sheds = weighted_sample(approx_known_dat["sheds"], default="")
-
-        p.known_sheds = known_sheds
-
-        # chicken-related information
-        p.sheds = {
-            1: {
+        # 13. Assign known or reconstructed farm area and polygon.
+        p.area = float(row["area"])
+        p.polygon = row["polygon"]
+        
+        # 14.  Reconstruct shed-level poultry populations.
+        # Use the original simulator's age ranges for known premises types.
+        # Shed populations are distributed from the current n_total (p.size).
+        # These ages are synthetic, not observed outbreak-day ages.
+        
+        p.sheds = {}
+        kind = str(p.type or "").strip().lower()
+        size = int(p.size)
+        s = int(p.num_sheds)
+        if kind == "hatchery":
+            p.sheds = {
+            j: {
+                "eggs": [],
                 "chickens": [],
                 "cleaning": False,
                 "cleaning_completion": None
-                }
             }
-        p.num_sheds = 0
+            for j in range(1, s + 1)
+        }
 
-        p.approx_chickens_per_shed = (
-            int(round(num_animals * 1.1))
-            if num_animals > 0 else 100
-        )
+        elif size > 0:                
+            # Define age ranges (in weeks) from Premises.init_chickens_eggs().
+            if kind == "broiler farm" or "meat" in kind:
+                weeks = range(1, 7)
+            elif kind == "pullet farm":
+                weeks = range(1, 21)
+            elif "layers" in kind or "egg production" in kind or "mixed" in kind:
+                weeks = range(1, 78) if s > 5 else range(20, 78)
+            elif kind == "breeder":
+                weeks = range(20, 78)
+            elif kind == "abbatoir":
+                weeks = [6]
+            elif kind == "backyard" or "other" in kind:
+                weeks = range(1, 71)
+            else:
+                weeks = None
 
-        p.eggs = 0
+            if weeks is not None:
+            
+                # Distribute chickens across sheds without losing individuals.
+                birds_per_shed, remainder = divmod(size, s)
 
-        # movement and neighbourhood
-        p.neighbourhood = []
-        p.total_neighbours = 0
-        movement_types = [
-            "layers free-range",
-            "layers caged",
-            "layers barn",
-            "broiler farm",
-            "pullet farm",
-            "egg processing",
-            "abbatoir",
-            "hatchery",
-            "breeder",
-            "backyard"
-            ]
-        p.movement_neighbours = {
-            movement_type: []
-            for movement_type in movement_types
-            }
-        p.allowed_movement = {}
-        p.allowed_movement_details = {}
+                for j in range(1, s + 1):
+                
+                    n = birds_per_shed + (j <= remainder)
+                    age = int(rng.choice(list(weeks))) * 7
 
-        # additional information
-        p.day_of_last_lab_test = get_known(sim_id, "last_PCR_date")
-        p.case_created_date = get_known(sim_id, "case_created_date")
-        p.address = ""
-        p.location = ""
-        self_report_date = get_known(sim_id, "self_report_date")
-        p.clinical_report_outcome = (
-            True
-            if p.status == "IP" and self_report_date is not None
-            else None
-        )
-        p.reported_status = (
-            p.status == "IP" and self_report_date is not None
-        )
-
-        # custom information
-        extra_columns = [
-            "self_report_date",
-            "last_surveillance_date",
-            "animals_clinical",
-            "last_PCR_date",
-            "PCR_result",
-            "last_cull_date",
-            "culled_birds",
-            "destroyed_eggs",
-            "last_conducted_contact_tracing",
-            "vaccinated_birds"
-        ]
-
-        for col in extra_columns:
-            p.custom_info[col] = get_known(sim_id, col, "NA")
+                    p.sheds[j] = {
+                        "chickens": [{"n": int(n), "age": age}] if n > 0 else [],
+                        "cleaning": False,
+                        "cleaning_completion": None
+                    }
+        # For egg processing, unknown types, and other unresolvable cases,
+        # leave p.sheds = {} rather than inventing an age distribution.
 
         properties.append(p)
 
+    # 13. identify neighbouring premises within 6km (center-to-center distance)
+    # an generate 5km circular buffers (puffed_poly) and their areas.
+    properties = calculate_spatial_attributes(properties, epsg=f"EPSG:{epsg}", max_distance=6, radius_km=5)
+    
+    # 14. Restore movement_neighbours and allowed_movement_details from movement_dat
+    movement_restored = movement_dat.copy()
+    # Exclude external distributors
+    movement_restored = movement_restored.loc[
+        (movement_restored["from"] >= 0) & (movement_restored["to"] >= 0)].copy()
+    # Keep unique directed movements
+    movement_restored = movement_restored.drop_duplicates(subset=["from", "to", "facility_type_2"])
+    properties = initialise_movement_attributes(properties, movement_dat = movement_restored)
+    
     return properties
 
 
@@ -339,6 +759,10 @@ dat = pd.read_csv(dat_path)
 approx_dat_file = config["general"]["approx_known_data_file"] # approx_known_data_03_outbreak_detection.csv (premises and first IP info)
 approx_dat_path = (Path("../../") / approx_dat_file).resolve()
 approx_dat = pd.read_csv(approx_dat_path)
+
+movement_dat_file = config["general"]["movement_data_file"] # approx_known_data_03_outbreak_detection.csv (premises and first IP info)
+movement_dat_path = (Path("../../") / movement_dat_file).resolve()
+movement_dat = pd.read_csv(movement_dat_path)
 
 # change NIL to IP if notification_date is available
 check_status = (
@@ -630,9 +1054,64 @@ detection_dir.mkdir(parents=True, exist_ok=True)
 # import user defined functions
 sys.path.insert(0, str(Path("../..").resolve())) # add simulator_path
 from simulator.premises import Premises
+from simulator.spatial_functions import geodesic_point_buffer, calculate_area
+from simulator.fixed_spatial_setup import assign_property_locations_in_region
+from simulator.management import JobManager
+from simulator.disease_simulation import DiseaseSimulation
+
+# create Outbreakobject pickle
+# dates
+start_date = pd.to_datetime(dat_today['exposure_date'], errors='coerce').min()
+start_date = start_date.strftime('%d/%m/%Y')
+current_date = pd.to_datetime(approx_dat['self_report_date'], errors='coerce').min()
+current_date = current_date.strftime('%d/%m/%Y')
+
+# directories
+dat_dir = os.path.dirname(approx_dat_file)
+base_dir = os.path.dirname(os.path.dirname(os.getcwd()))
+folder_path = os.path.join(base_dir, dat_dir)
+folder_path = os.path.normpath(folder_path).replace('\\', '/')
+unique_output = os.path.basename(os.path.normpath(folder_path))
+
+# create job_manager
+spatial_only_parameters = {
+    "n": dat_today.shape[0]
+}
+
+job_parameters = {
+    "lab_test_sensitivity": priors.loc[priors['param_name'] == 'lab_test_sensitivity', 'value'].values[0],
+    "clinical_test_sensitivity": priors.loc[priors['param_name'] == 'clinical_test_sensitivity', 'value'].values[0],
+    "cull_delay": priors.loc[priors['param_name'] == 'cull_delay', 'value'].values[0],
+    "contact_tracing_delay": priors.loc[priors['param_name'] == 'contact_tracing_delay', 'value'].values[0],
+    "lab_test_delay": priors.loc[priors['param_name'] == 'lab_test_delay', 'value'].values[0],
+    "clinical_delay": priors.loc[priors['param_name'] == 'clinical_delay', 'value'].values[0],
+}
+
+job_manager = JobManager(spatial_only_parameters["n"], **job_parameters)
+
+outbreak = create_outbreak_pickle(
+    start_date=start_date,
+    current_date=current_date,
+    para_names=para_names,
+    prior_values=priors["value"].to_numpy(),
+    folder_path=folder_path,
+    unique_output=unique_output,
+    movement_dat=movement_dat,
+    xrange=xrange, 
+    yrange=yrange,
+    job_manager=job_manager,
+    vax_modifier=0.6
+)
+
+output_file = detection_dir / f"outbreakobject_{unique_output}"
+
+with open(output_file, "wb") as f:
+    pickle.dump(outbreak, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 # create Premises objects
-properties = approx_dat_to_properties(dat, approx_dat, seed=123)
+LGA_path = Path("../../worldmap/LGA_2025_AUST_GDA2020.shp")
+properties =  create_property_pickle(dat=dat_today, approx_known_dat=approx_dat,
+                                     movement_dat = movement_dat, LGA_path = LGA_path)
 
 # save as pickle
 output_file = detection_dir / "properties_03_outbreak_detection"
@@ -733,20 +1212,20 @@ joblib.dump(setup, setup_path, compress=0)
 ### require top make diseaseoutbreak pickle obj.
 ### but for now, I'm going to copy and paste pickle objs for simulation
 import shutil
-source_dir = Path("../../scenarios/hpai/v06_NSW_123/03_outbreak_detection")
-
-files_to_copy = [
-    "properties_03_outbreak_detection",
-    "outbreakobject_03_outbreak_detection"
-]
-
-detection_dir.mkdir(parents=True, exist_ok=True)
-
-for filename in files_to_copy:
-    shutil.copy2(
-        source_dir / filename,
-        detection_dir / filename
-    )
+# source_dir = Path("../../scenarios/hpai/v06_NSW_123/03_outbreak_detection")
+# 
+# files_to_copy = [
+#     "properties_03_outbreak_detection",
+#     "outbreakobject_03_outbreak_detection"
+# ]
+# 
+# detection_dir.mkdir(parents=True, exist_ok=True)
+# 
+# for filename in files_to_copy:
+#     shutil.copy2(
+#         source_dir / filename,
+#         detection_dir / filename
+#     )
 
 ### copy approx_known_data and paste to template folder
 shutil.copy2(
